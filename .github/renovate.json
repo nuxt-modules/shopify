@@ -5,6 +5,7 @@
     ],
     "onboarding": false,
     "automerge": true,
+    "autodiscover": true,
     "rangeStrategy": "bump",
     "commitMessagePrefix": "chore:"
 }

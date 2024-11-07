@@ -1,4 +1,4 @@
-name: 'bump'
+name: 'Bump'
 on:
   pull_request:
   push:
