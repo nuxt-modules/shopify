@@ -21,10 +21,12 @@
     ],
     "scripts": {
         "build": "nuxt-module-build build",
-        "prepare": "nuxt-module-build build --stub && nuxi prepare",
+        "prepare": "nuxt-module-build build --stub",
         "dev": "nuxi dev playground",
         "dev:prepare": "pnpm prepare && nuxi prepare playground",
-        "dev:build": "nuxi build"
+        "dev:build": "nuxi build",
+        "lint": "eslint .",
+        "postinstall": "pnpm prepare"
     },
     "devDependencies": {
         "@graphql-codegen/cli": "^5.0.3",

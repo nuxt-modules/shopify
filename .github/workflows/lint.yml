@@ -1,4 +1,7 @@
 name: 'Lint'
+env:
+  NIX_SHELL: dev-ops/nix/shell.nix
+
 on:
   pull_request:
   push:
@@ -10,5 +13,5 @@ jobs:
       - uses: cachix/install-nix-action@v27
         with:
           nix_path: nixpkgs=channel:nixos-unstable
-      - run: nix-shell --run "pnpm install --frozen-lockfile"
-      - run: nix-shell --run "pnpm lint"
+      - run: nix-shell $NIX_SHELL --run "pnpm install --frozen-lockfile"
+      - run: nix-shell $NIX_SHELL --run "pnpm lint"

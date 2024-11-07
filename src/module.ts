@@ -30,7 +30,7 @@ export default defineNuxtModule<NuxtShopify.ModuleOptions>({
                 generates: shopifyApiTypes(codegenOptions),
             })
         },
-        'prepare:types': async (types) => {
+        'prepare:types': async (_types) => {
 
         },
     },
