@@ -1,0 +1,19 @@
+# Fragment for menu item fields
+fragment MenuItemFields on MenuItem {
+    id
+    title
+    url
+    type
+}
+
+# Fragment for common menu fields
+fragment CommonMenuFields on Menu {
+    id
+    title
+    items {
+        ...MenuItemFields
+        items {
+            ...MenuItemFields
+        }
+    }
+}

@@ -1,0 +1,50 @@
+{
+    "name": "@konkonam/nuxt-shopify",
+    "version": "1.0.0",
+    "type": "module",
+    "description": "Module to integrating the shopify api`s into your Nuxt application",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/konkonam/nuxt-shopify.git"
+    },
+    "exports": {
+        ".": {
+            "types": "./dist/types.d.ts",
+            "import": "./dist/module.mjs",
+            "require": "./dist/module.cjs"
+        }
+    },
+    "main": "./dist/module.cjs",
+    "types": "./dist/types.d.ts",
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "build": "nuxt-module-build build",
+        "prepare": "nuxt-module-build build --stub && nuxi prepare",
+        "dev": "nuxi dev playground",
+        "dev:prepare": "pnpm prepare && nuxi prepare playground",
+        "dev:build": "nuxi build"
+    },
+    "devDependencies": {
+        "@graphql-codegen/cli": "^5.0.3",
+        "@nuxt/eslint-config": "^0.6.1",
+        "@nuxt/kit": "^3.14.159",
+        "@nuxt/module-builder": "^0.8.4",
+        "@nuxt/schema": "^3.14.159",
+        "@nuxt/test-utils": "^3.14.4",
+        "@shopify/admin-api-client": "^1.0.1",
+        "@shopify/api-codegen-preset": "^1.1.1",
+        "@shopify/graphql-client": "^1.2.1",
+        "@shopify/storefront-api-client": "^1.0.1",
+        "@types/lodash": "^4.17.13",
+        "@types/node": "latest",
+        "eslint": "^9.14.0",
+        "lodash": "^4.17.21",
+        "nuxt": "^3.14.159",
+        "typescript": "latest",
+        "unbuild": "^2.0.0",
+        "vitest": "^2.1.4",
+        "zod": "^3.23.8"
+    }
+}

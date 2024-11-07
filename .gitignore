@@ -1,0 +1,48 @@
+# dev/build outputs
+dist
+.output
+.data
+.nuxt
+.nitro
+.cache
+docs/.vitepress/cache
+
+# dependencies
+node_modules
+target
+bun.lockb
+yarn.lock
+
+# logs
+logs
+*.log
+
+# Misc
+.DS_Store
+.fleet
+.idea
+
+# Local env files
+.env
+.env.*
+
+**/.env
+**/.env.*
+
+!.env.example
+!**/.env.example
+
+.envrc
+.direnv
+
+# certificates
+*.pem
+*.pem
+.vercel
+.env*.local
+
+
+
+.nx/cache
+.nx/workspace-data
+# Nuxt dev/build outputs

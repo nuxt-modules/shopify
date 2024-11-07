@@ -1,0 +1,10 @@
+{
+    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+    "extends": [
+        "group:allNonMajor"
+    ],
+    "onboarding": false,
+    "automerge": true,
+    "rangeStrategy": "bump",
+    "commitMessagePrefix": "chore:"
+}

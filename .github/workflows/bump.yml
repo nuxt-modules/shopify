@@ -1,0 +1,12 @@
+name: 'bump'
+on:
+  pull_request:
+  push:
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Renovate Bot GitHub Action
+        uses: renovatebot/github-action@v40.3.4
+        with:
+          token: ${{ secrets.RENOVATE_TOKEN }}
