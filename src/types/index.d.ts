@@ -1,4 +1,4 @@
-import type { HookResult } from '@nuxt/schema'
+import type { HookResult, Nuxt } from '@nuxt/schema'
 import type { ShopifyApiTypesOptions } from '@shopify/api-codegen-preset'
 import type { ModuleOptions, AdminOptions, StorefrontOptions } from './module'
 
@@ -15,7 +15,7 @@ declare module '@nuxt/schema' {
         /**
          * Called to generate the storefront API types
          */
-        'shopify:codegen': (config: ShopifyApiTypesOptions) => HookResult
+        'shopify:codegen': (nuxt: Nuxt, config: ShopifyApiTypesOptions) => HookResult
     }
 }
 

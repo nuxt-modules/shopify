@@ -17,6 +17,15 @@ export default defineNuxtModule<ModuleOptions>({
         },
     },
 
+    hooks: {
+        'shopify:codegen': async (nuxt, codegenOptions) => {
+            await generate({
+                cwd: nuxt.options.rootDir,
+                generates: shopifyApiTypes(codegenOptions),
+            })
+        },
+    },
+
     async setup(options, nuxt) {
         if (!options?.clients) {
             console.warn('No shopify module configuration provided.')
@@ -29,11 +38,7 @@ export default defineNuxtModule<ModuleOptions>({
             for (const apiType of availableApiTypes) {
                 const codegenOptions = config.getCodegen(apiType)
                 if (codegenOptions) {
-                    await nuxt.callHook('shopify:codegen', codegenOptions)
-                    await generate({
-                        cwd: nuxt.options.rootDir,
-                        generates: shopifyApiTypes(codegenOptions),
-                    })
+                    await nuxt.callHook('shopify:codegen', nuxt, codegenOptions)
                 }
 
                 nuxt.options.runtimeConfig._shopify = defu(
