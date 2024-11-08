@@ -1,5 +1,5 @@
 import { generate } from '@graphql-codegen/cli'
-import { defineNuxtModule } from '@nuxt/kit'
+import { addServerImportsDir, createResolver, defineNuxtModule } from '@nuxt/kit'
 import type { ApiType } from '@shopify/api-codegen-preset'
 import { shopifyApiTypes } from '@shopify/api-codegen-preset'
 import defu from 'defu'
@@ -32,6 +32,7 @@ export default defineNuxtModule<ModuleOptions>({
             console.warn('> skipping shopify setup...')
         }
         else {
+            const resolver = createResolver(import.meta.url)
             const availableApiTypes = Object.keys(options.clients) as ApiType[]
             const config = useConfig(options)
 
@@ -40,6 +41,10 @@ export default defineNuxtModule<ModuleOptions>({
                 if (codegenOptions) {
                     await nuxt.callHook('shopify:codegen', nuxt, codegenOptions)
                 }
+
+                addServerImportsDir(
+                    resolver.resolve('./runtime/server/imports'),
+                )
 
                 nuxt.options.runtimeConfig._shopify = defu(
                     nuxt.options.runtimeConfig._shopify ?? {},
