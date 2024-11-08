@@ -7,10 +7,10 @@ import { setupApi } from './utils/setupApi'
 
 export default defineNuxtModule<NuxtShopify.ModuleOptions>({
     meta: {
-        name: '@marlz/nuxt-shopify',
+        name: '@konkonam/nuxt-shopify',
         configKey: 'shopify',
         compatibility: {
-            nuxt: '>=3.13.0',
+            nuxt: '>=3.11.0',
         },
     },
 

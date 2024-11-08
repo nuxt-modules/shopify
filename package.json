@@ -2,7 +2,7 @@
     "name": "@konkonam/nuxt-shopify",
     "version": "1.0.0",
     "type": "module",
-    "description": "Module to integrating the shopify api`s into your Nuxt application",
+    "description": "Easily integrate shopify into your nuxt project 🚀",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/konkonam/nuxt-shopify.git"
@@ -21,17 +21,19 @@
     ],
     "scripts": {
         "build": "nuxt-module-build build",
-        "prepare": "nuxt-module-build build --stub",
+        "prepare": "nuxt-module-build prepare && nuxt-module-build build --stub",
         "dev": "nuxi dev playground",
         "dev:prepare": "pnpm prepare && nuxi prepare playground",
         "dev:build": "nuxi build",
         "lint": "eslint .",
         "postinstall": "pnpm prepare"
     },
+    "dependencies": {
+        "@nuxt/kit": "^3.14.159"
+    },
     "devDependencies": {
         "@graphql-codegen/cli": "^5.0.3",
         "@nuxt/eslint-config": "^0.6.1",
-        "@nuxt/kit": "^3.14.159",
         "@nuxt/module-builder": "^0.8.4",
         "@nuxt/schema": "^3.14.159",
         "@nuxt/test-utils": "^3.14.4",

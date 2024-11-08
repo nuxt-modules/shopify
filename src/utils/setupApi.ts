@@ -9,13 +9,13 @@ import type { NuxtShopify } from '../types'
 import { NuxtShopifyError } from '../errors'
 import { getCodegenOption } from './getCodegenConfig'
 
-type FunctionParams = {
+type SetupParams = {
     nuxt: Nuxt
     apiType: ApiType
     options: NuxtShopify.ModuleOptions
 }
 
-export async function setupApi<T extends ApiType>(params: FunctionParams & { apiType: T }) {
+export async function setupApi<T extends ApiType>(params: SetupParams & { apiType: T }) {
     const apiType = params.apiType.toLowerCase() as Lowercase<T> & keyof NuxtShopify.ApiTypeOptions
 
     const options = params.options?.clients?.[apiType] as NuxtShopify.OptionsForApiType<T> | undefined
