@@ -1,11 +1,14 @@
 import { generate } from '@graphql-codegen/cli'
 import { defineNuxtModule } from '@nuxt/kit'
-import { ApiType, shopifyApiTypes } from '@shopify/api-codegen-preset'
-import type { NuxtShopify } from './types'
+import type { ApiType } from '@shopify/api-codegen-preset'
+import { shopifyApiTypes } from '@shopify/api-codegen-preset'
+import defu from 'defu'
 
-import { setupApi } from './utils/setupApi'
+import type { ModuleOptions } from './types'
 
-export default defineNuxtModule<NuxtShopify.ModuleOptions>({
+import { useConfig } from './utils/useConfig'
+
+export default defineNuxtModule<ModuleOptions>({
     meta: {
         name: '@konkonam/nuxt-shopify',
         configKey: 'shopify',
@@ -14,57 +17,34 @@ export default defineNuxtModule<NuxtShopify.ModuleOptions>({
         },
     },
 
-    hooks: {
-        'shopify:prepare': async ({ nuxt, codegenOptions }) => {
-            if (codegenOptions) {
-                await nuxt.callHook(
-                    'shopify:codegen', {
-                        nuxt,
-                        codegenOptions,
+    async setup(options, nuxt) {
+        if (!options?.clients) {
+            console.warn('No shopify module configuration provided.')
+            console.warn('> skipping shopify setup...')
+        }
+        else {
+            const availableApiTypes = Object.keys(options.clients) as ApiType[]
+            const config = useConfig(options)
+
+            for (const apiType of availableApiTypes) {
+                const codegenOptions = config.getCodegen(apiType)
+                if (codegenOptions) {
+                    await nuxt.callHook('shopify:codegen', codegenOptions)
+                    await generate({
+                        cwd: nuxt.options.rootDir,
+                        generates: shopifyApiTypes(codegenOptions),
+                    })
+                }
+
+                nuxt.options.runtimeConfig._shopify = defu(
+                    nuxt.options.runtimeConfig._shopify ?? {},
+                    {
+                        clients: {
+                            [apiType]: config.get(apiType),
+                        },
                     },
                 )
             }
-        },
-        'shopify:codegen': async ({ codegenOptions }) => {
-            await generate({
-                generates: shopifyApiTypes(codegenOptions),
-            })
-        },
-        'prepare:types': async (_types) => {
-
-        },
-    },
-
-    async setup(options, nuxt) {
-        if (!options) {
-            console.warn('No shopify module configuration provided.')
-            console.warn('> skipping shopify setup...')
-
-            return
         }
-
-        await setupApi({ nuxt, apiType: ApiType.Storefront, options })
-            .then(async ({ options, codegenOptions }) => {
-                await nuxt.callHook('shopify:prepare', {
-                    nuxt,
-                    options,
-                    codegenOptions,
-                })
-            })
-            .catch((error) => {
-                console.error(error)
-            })
-
-        await setupApi({ nuxt, apiType: ApiType.Admin, options })
-            .then(async ({ options, codegenOptions }) => {
-                await nuxt.callHook('shopify:prepare', {
-                    nuxt,
-                    options,
-                    codegenOptions,
-                })
-            })
-            .catch((error) => {
-                console.error(error)
-            })
     },
 })
