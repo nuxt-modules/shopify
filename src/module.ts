@@ -51,6 +51,9 @@ export default defineNuxtModule<NuxtShopify.ModuleOptions>({
                     codegenOptions,
                 })
             })
+            .catch((error) => {
+                console.error(error)
+            })
 
         await setupApi({ nuxt, apiType: ApiType.Admin, options })
             .then(async ({ options, codegenOptions }) => {
@@ -59,6 +62,9 @@ export default defineNuxtModule<NuxtShopify.ModuleOptions>({
                     options,
                     codegenOptions,
                 })
+            })
+            .catch((error) => {
+                console.error(error)
             })
     },
 })

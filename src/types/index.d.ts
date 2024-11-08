@@ -10,7 +10,7 @@ import 'nitropack'
 export type HookShopifyPrepareOptions = {
     nuxt: Nuxt
     options: NuxtShopify.ModuleOptions
-    codegenOptions: ShopifyApiTypesOptions
+    codegenOptions?: ShopifyApiTypesOptions
 }
 
 export type HookShopifyCodegenOptions = {

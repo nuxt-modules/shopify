@@ -17,7 +17,7 @@ type SetupParams = {
 
 export async function setupApi<T extends ApiType>(params: SetupParams & { apiType: T }) {
     const apiType = params.apiType.toLowerCase() as Lowercase<T> & keyof NuxtShopify.ApiTypeOptions
-
+    console.log(params.options)
     const options = params.options?.clients?.[apiType] as NuxtShopify.OptionsForApiType<T> | undefined
     if (!options) {
         throw NuxtShopifyError.MissingClientConfiguration()
@@ -55,7 +55,7 @@ export async function setupApi<T extends ApiType>(params: SetupParams & { apiTyp
         codegenOptions: getCodegenOption({
             nuxt: params.nuxt,
             apiType: params.apiType,
-            options: options,
+            options: options as NuxtShopify.OptionsForApiType<T> & NuxtShopify.ClientBaseOptions,
         }),
     }
 }
