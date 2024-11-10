@@ -13,11 +13,11 @@ export default defineNuxtConfig({
         debug: true,
         clients: {
             storefront: {
-                apiVersion: '2024-999',
+                apiVersion: '2024-10',
                 accessToken: '',
             },
             admin: {
-                apiVersion: '2024-999',
+                apiVersion: '2024-10',
                 accessToken: '',
             },
         },
