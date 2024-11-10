@@ -1,23 +1,9 @@
 <script setup lang="ts">
-const shopify = useShopify()
-
-const products = await shopify.admin.request(`
-    #graphql
-    query GetProducts($first: Int!, $after: String) {
-        products(first: $first, after: $after) {
-            nodes {
-                id
-                title
-                descriptionHtml
-            }
-        }
-    }
-`, {
-    first: 10,
-    after: null,
-})
+const config = await useFetch('/api/config')
+const a = useRuntimeConfig()
 </script>
 
 <template>
-    <pre>{{ products }}</pre>
+    <pre>{{ config }}</pre>
+    <pre>{{ a }}</pre>
 </template>

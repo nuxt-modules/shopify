@@ -25,11 +25,24 @@ export function useConfig(options: ModuleOptions) {
         const clientConfig = resolveClient(apiType)
         if (!clientConfig || clientConfig.codegen === false) return false
 
+        const documentBase = {
+            [ApiType.Storefront]: [
+                '**/!(*.{admin,customer}).{gql,graphql}',
+                '**/*.{ts,js}',
+            ],
+            [ApiType.Admin]: [
+                '**/*.admin.{gql,graphql}',
+            ],
+            [ApiType.Customer]: [
+                '**/*.customer.{gql,graphql}',
+            ],
+        }
+
         return {
             apiType,
             apiVersion: clientConfig.apiVersion,
             documents: [
-                `**/*.{gql,graphql,ts,js}`,
+                ...documentBase[apiType],
                 '!node_modules',
                 '!.nuxt',
                 '!dist',
