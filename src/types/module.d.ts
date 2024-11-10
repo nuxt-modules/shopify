@@ -1,10 +1,7 @@
 import type { ApiType, ShopifyApiTypesOptions } from '@shopify/api-codegen-preset'
 import type {
-    AllOperations,
     ApiClientLogger,
-    ApiClientRequestParams,
-    ClientResponse,
-    CustomFetchApi, ReturnData,
+    CustomFetchApi,
 } from '@shopify/graphql-client'
 
 export type ApiClientOptions = {
