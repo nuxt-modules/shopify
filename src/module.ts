@@ -1,11 +1,9 @@
+import type { ApiType } from '@shopify/api-codegen-preset'
 import { generate } from '@graphql-codegen/cli'
 import { addServerImportsDir, createResolver, defineNuxtModule } from '@nuxt/kit'
-import type { ApiType } from '@shopify/api-codegen-preset'
 import { shopifyApiTypes } from '@shopify/api-codegen-preset'
-import defu from 'defu'
 
 import type { ModuleOptions } from './types'
-
 import { useConfig } from './utils/useConfig'
 
 export default defineNuxtModule<ModuleOptions>({
@@ -33,27 +31,30 @@ export default defineNuxtModule<ModuleOptions>({
         }
         else {
             const resolver = createResolver(import.meta.url)
-            const availableApiTypes = Object.keys(options.clients) as ApiType[]
+            const availableApiTypes = Object.keys(options.clients)
+            const capitalize = (s: string) => (s && String(s[0]).toUpperCase() + String(s).slice(1))
+
             const config = useConfig(options)
 
+            nuxt.options.runtimeConfig._shopify = {
+                name: options.name,
+                debug: options.debug,
+                clients: {},
+            }
+
             for (const apiType of availableApiTypes) {
-                const codegenOptions = config.getCodegen(apiType)
+                const apiTypeCapitalized = capitalize(apiType) as ApiType
+                const codegenOptions = config.getCodegen(apiTypeCapitalized)
                 if (codegenOptions) {
                     await nuxt.callHook('shopify:codegen', nuxt, codegenOptions)
                 }
 
                 addServerImportsDir(
-                    resolver.resolve('./runtime/server/imports'),
+                    resolver.resolve('./runtime/server/utils'),
                 )
 
-                nuxt.options.runtimeConfig._shopify = defu(
-                    nuxt.options.runtimeConfig._shopify ?? {},
-                    {
-                        clients: {
-                            [apiType]: config.get(apiType),
-                        },
-                    },
-                )
+                // @ts-expect-error - union loss due to copy
+                nuxt.options.runtimeConfig._shopify.clients[apiType] = config.compile(apiType)
             }
         }
     },

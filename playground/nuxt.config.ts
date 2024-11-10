@@ -10,6 +10,15 @@ export default defineNuxtConfig({
     shopify: {
         name: 'quickstart-a5b1ec22',
         debug: true,
-
+        clients: {
+            storefront: {
+                apiVersion: '2024-10',
+                accessToken: '',
+            },
+            admin: {
+                apiVersion: '2024-10',
+                accessToken: '',
+            },
+        },
     },
 })

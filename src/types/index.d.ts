@@ -8,12 +8,14 @@ import 'nitropack'
 
 declare module '@nuxt/schema' {
     interface RuntimeConfig {
-        _shopify?: ModuleOptions
+        _shopify: ModuleOptions
     }
 
     interface NuxtHooks {
         /**
-         * Called to generate the storefront API types
+         * Call/Called to generate the storefront API types
+         * or manipulate the config before
+         * it is passed to the codegen.
          */
         'shopify:codegen': (nuxt: Nuxt, config: ShopifyApiTypesOptions) => HookResult
     }
@@ -22,12 +24,14 @@ declare module '@nuxt/schema' {
 declare module 'nitropack' {
     interface NitroRuntimeHooks {
         /**
-         * Called before the storefront client is created
+         * Called before the storefront client is created.
+         * Can be used to load runtime specific options.
          */
         'shopify:storefront:init': (options: StorefrontOptions) => void
 
         /**
-         * Called before the admin client is created
+         * Called before the admin client is created.
+         * Can be used to load runtime specific options.
          */
         'shopify:admin:init': (options: AdminOptions) => void
     }
