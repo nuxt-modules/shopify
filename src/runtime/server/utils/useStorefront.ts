@@ -1,4 +1,5 @@
 import { createStorefrontApiClient } from '@shopify/storefront-api-client'
+
 import { useRuntimeConfig, useNitroApp } from '#imports'
 
 export async function useStorefront() {

@@ -1,6 +1,6 @@
+import type { ModuleOptions, AdminOptions, StorefrontOptions } from './module'
 import type { HookResult, Nuxt } from '@nuxt/schema'
 import type { ShopifyApiTypesOptions } from '@shopify/api-codegen-preset'
-import type { ModuleOptions, AdminOptions, StorefrontOptions } from './module'
 
 // import to make sure to merge and not overwrite the interfaces
 import '@nuxt/schema'
