@@ -32,7 +32,7 @@
         "lint": "eslint .",
         "lint:types": "nuxi typecheck",
         "cleanup": "pnpm run --filter=./playgrounds/playground cleanup && nuxi cleanup",
-        "postinstall": "pnpm prepare && pnpm run dev:prepare"
+        "postinstall": "pnpm run prepare && pnpm run prepare:dev"
     },
     "dependencies": {
         "@nuxt/kit": "^3.14.159"
