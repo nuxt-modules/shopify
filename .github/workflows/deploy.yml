@@ -21,6 +21,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v3
+        with:
+          version: latest
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -31,7 +33,7 @@ jobs:
       - name: Install dependencies
         run: pnpm ci
       - name: Build VitePress
-        run: npm run docs:build
+        run: npm run build:docs
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:

@@ -4,8 +4,6 @@ import type { Theme } from 'vitepress'
 import DefaultTheme from 'vitepress/theme'
 import { h } from 'vue'
 
-import '@fontsource-variable/sono/mono'
-import '@fontsource-variable/sono'
 import './style.css'
 
 export default {
