@@ -9,7 +9,6 @@ docs/.vitepress/cache
 
 # dependencies
 node_modules
-target
 bun.lockb
 yarn.lock
 
@@ -21,6 +20,7 @@ logs
 .DS_Store
 .fleet
 .idea
+.vscode
 
 # Local env files
 .env
@@ -37,12 +37,4 @@ logs
 
 # certificates
 *.pem
-*.pem
-.vercel
 .env*.local
-
-
-
-.nx/cache
-.nx/workspace-data
-# Nuxt dev/build outputs

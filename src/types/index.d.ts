@@ -1,14 +1,14 @@
-import type { ModuleOptions, AdminOptions, StorefrontOptions } from './module'
+import type { AdminOptions, ModuleOptions } from './module'
 import type { HookResult, Nuxt } from '@nuxt/schema'
 import type { ShopifyApiTypesOptions } from '@shopify/api-codegen-preset'
+import type { NuxtHooks } from 'nuxt/schema'
 
-// import to make sure to merge and not overwrite the interfaces
 import '@nuxt/schema'
 import 'nitropack'
 
 declare module '@nuxt/schema' {
     interface RuntimeConfig {
-        _shopify: ModuleOptions
+        _shopify?: ModuleOptions
     }
 
     interface NuxtHooks {
@@ -17,24 +17,21 @@ declare module '@nuxt/schema' {
          * or manipulate the config before
          * it is passed to the codegen.
          */
-        'shopify:codegen': (nuxt: Nuxt, config: ShopifyApiTypesOptions) => HookResult
+        'shopify:codegen': (nuxt: Nuxt, options: ShopifyApiTypesOptions) => HookResult
+
+        /**
+         * Call/Called to persist the storefront options
+         * into the runtime config.
+         */
+        'shopify:storefront:persist': (nuxt: Nuxt, options: AdminOptions) => HookResult
+
+        /**
+         * Call/Called to persist the admin options
+         * into the runtime config.
+         */
+        'shopify:admin:persist': (nuxt: Nuxt, options: AdminOptions) => HookResult
     }
 }
 
-declare module 'nitropack' {
-    interface NitroRuntimeHooks {
-        /**
-         * Called before the storefront client is created.
-         * Can be used to load runtime specific options.
-         */
-        'shopify:storefront:init': (options: StorefrontOptions) => void
-
-        /**
-         * Called before the admin client is created.
-         * Can be used to load runtime specific options.
-         */
-        'shopify:admin:init': (options: AdminOptions) => void
-    }
-}
-
+export type ShopifyPersistHookName = keyof NuxtHooks['shopify:storefront:persist'] | keyof NuxtHooks['shopify:admin:persist']
 export * from './module'

@@ -1,4 +1,4 @@
-import type { ModuleOptions } from './types'
+import type { ApiClientOptions, ModuleOptions, ModuleOptionsClients, ShopifyPersistHookName } from './types'
 import type { ApiType } from '@shopify/api-codegen-preset'
 
 import { generate } from '@graphql-codegen/cli'
@@ -22,63 +22,66 @@ export default defineNuxtModule<ModuleOptions>({
             const logger = useLogger('nuxt-shopify')
 
             try {
-                await generate({
+                return generate({
                     cwd: nuxt.options.rootDir,
                     generates: shopifyApiTypes(codegenOptions),
-                    silent: true,
+                    // silent: true,
+                    ignoreNoDocuments: true,
+                }).then(() => {
+                    logger.success(`Generated shopify API types for ${codegenOptions.apiType}`)
                 })
-
-                logger.success(`Generated shopify API types for ${codegenOptions.apiType}`)
             }
             catch (error) {
-                if (error instanceof Error) {
-                    logger.error(
-                        `Failed to generate shopify API types for ${codegenOptions.apiType}:\n${error.message}`,
-                    )
-                }
+                // @ts-expect-error - error is not an instanceof Error
+                logger.error(`Failed to generate shopify API types for ${codegenOptions.apiType}:\n${error.message}`)
             }
+        },
+        'shopify:storefront:persist': async (nuxt, options) => {
+            // @ts-expect-error Union loss due to copy
+            nuxt.options.runtimeConfig._shopify.clients[options._apiType] = options
         },
     },
 
     async setup(options, nuxt) {
         const logger = useLogger('nuxt-shopify')
-        const resolver = createResolver(import.meta.url)
 
-        const availableApiTypes = Object.keys(options.clients)
+        if (!options?.clients) {
+            logger.warn('No shopify module configuration provided.')
+        }
+        else {
+            logger.info('Starting shopify setup')
 
-        const config = useConfig(options)
+            const resolver = createResolver(import.meta.url)
+            const availableApiTypes = Object.keys(options.clients) as unknown as Array<keyof ModuleOptionsClients>
+            const config = useConfig(options)
 
-        nuxt.hooks.hook('prepare:types', async () => {
-            if (!options?.clients) {
-                logger.warn('No shopify module configuration provided.')
+            nuxt.options.runtimeConfig._shopify = {
+                name: options.name,
+                debug: options.debug,
+                clients: {},
             }
-            else {
-                logger.info('Starting shopify setup')
 
-                nuxt.options.runtimeConfig._shopify = {
-                    name: options.name,
-                    debug: options.debug,
-                    clients: {},
+            for (const apiType of availableApiTypes) {
+                const apiTypeCapitalized = upperFirst(apiType) as ApiType
+                const codegenOptions = config.getCodegen(apiTypeCapitalized)
+
+                if (codegenOptions) {
+                    await nuxt.callHook('shopify:codegen', nuxt, codegenOptions)
                 }
 
-                for (const apiType of availableApiTypes) {
-                    const apiTypeCapitalized = upperFirst(apiType) as ApiType
-                    const codegenOptions = config.getCodegen(apiTypeCapitalized)
+                addServerImportsDir(
+                    resolver.resolve('./runtime/server/utils'),
+                )
 
-                    if (codegenOptions) {
-                        await nuxt.callHook('shopify:codegen', nuxt, codegenOptions)
-                    }
-
-                    addServerImportsDir(
-                        resolver.resolve('./runtime/server/utils'),
-                    )
-
-                    // @ts-expect-error Union loss due to copy
-                    nuxt.options.runtimeConfig._shopify.clients[apiType] = config.compile(apiType)
-                }
-
-                logger.success('Finished shopify setup')
+                await nuxt.callHook(
+                    `shopify:${apiType}:persist`,
+                    // @ts-expect-error dynamic key
+                    nuxt,
+                    config.compile(apiTypeCapitalized),
+                )
             }
-        })
+
+            logger.success('Finished shopify setup')
+        }
     },
 })

@@ -1,27 +1,21 @@
 import { createStorefrontApiClient } from '@shopify/storefront-api-client'
 
-import { useRuntimeConfig, useNitroApp } from '#imports'
+import { useRuntimeConfig } from '#imports'
 
-export async function useStorefront() {
-    const nitro = useNitroApp()
+export function useStorefront() {
     const { _shopify } = useRuntimeConfig()
+    const config = _shopify?.clients.storefront
 
-    const config = _shopify.clients.storefront
     if (!config) return
+    if (config.storeDomain === undefined) return
 
-    if (config.private) {
-        config.privateAccessToken = config.accessToken
-    }
-    else {
-        config.publicAccessToken = config.accessToken
-    }
-
-    await nitro.hooks.callHook(
-        'shopify:storefront:init',
-        config,
-    )
-
-    return createStorefrontApiClient(
-        config,
-    )
+    return createStorefrontApiClient({
+        storeDomain: config.storeDomain,
+        apiVersion: config.apiVersion,
+        retries: config.retries,
+        customFetchApi: config.customFetchApi,
+        logger: config.logger,
+        ...config.private && { privateAccessToken: config.accessToken },
+        ...!config.private && { publicAccessToken: config.accessToken },
+    })
 }

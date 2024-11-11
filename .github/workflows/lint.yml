@@ -3,24 +3,24 @@ name: 'Lint'
 on:
   pull_request:
   push:
+    branches:
+      - '*'
+      - '!main'
+
 jobs:
   lint:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout
       - uses: actions/checkout@v4
-
-      - name: Setup pnpm
-      - uses: pnpm/action-setup@v3
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - uses: pnpm/action-setup@v2
+      - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
 
       - name: Install dependencies
-      - run: pnpm ci
+        run: pnpm ci
 
       - name: Lint
-      - run: pnpm lint
+        run: pnpm lint

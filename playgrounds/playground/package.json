@@ -1,0 +1,13 @@
+{
+    "name": "playground",
+    "type": "module",
+    "scripts": {
+        "dev": "nuxi dev",
+        "build": "nuxi build",
+        "generate": "nuxi generate",
+        "cleanup": "nuxi cleanup"
+    },
+    "dependencies": {
+        "nuxt": "^3.14.159"
+    }
+}

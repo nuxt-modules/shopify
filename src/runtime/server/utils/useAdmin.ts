@@ -1,19 +1,20 @@
 import { createAdminApiClient } from '@shopify/admin-api-client'
 
-import { useRuntimeConfig, useNitroApp } from '#imports'
+import { useRuntimeConfig } from '#imports'
 
 export function useAdmin() {
-    const nitro = useNitroApp()
     const { _shopify } = useRuntimeConfig()
+    const config = _shopify?.clients.admin
 
-    if (!_shopify?.clients?.admin) return
+    if (!config) return
+    if (config.storeDomain === undefined) return
 
-    nitro.hooks.callHook(
-        'shopify:admin:init',
-        _shopify.clients.admin,
-    )
-
-    return createAdminApiClient(
-        _shopify.clients.admin,
-    )
+    return createAdminApiClient({
+        storeDomain: config.storeDomain,
+        apiVersion: config.apiVersion,
+        retries: config.retries,
+        customFetchApi: config.customFetchApi,
+        logger: config.logger,
+        accessToken: config.accessToken,
+    })
 }

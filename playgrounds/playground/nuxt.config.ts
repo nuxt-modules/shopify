@@ -9,16 +9,12 @@ export default defineNuxtConfig({
     compatibilityDate: '2024-11-07',
 
     shopify: {
-        name: 'quickstart-a5b1ec22',
+        name: process.env.SHOPIFY_NAME,
         debug: true,
         clients: {
             storefront: {
-                apiVersion: '2024-10',
-                accessToken: '',
-            },
-            admin: {
-                apiVersion: '2024-10',
-                accessToken: '',
+                apiVersion: process.env.SHOPIFY_STOREFRONT_API_VERSION ?? '2024-10',
+                accessToken: process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN ?? '',
             },
         },
     },

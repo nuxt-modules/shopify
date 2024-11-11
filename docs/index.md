@@ -3,23 +3,21 @@
 layout: home
 
 hero:
-  name: "nuxt-shopify"
-  text: "Handbook to get you started with the nuxt-shopify module"
-  tagline: My great project tagline
+  name: nuxt-shopify [wip]
+  text: "Easily integrate shopify into your nuxt app"
+  tagline: "Handbook to get you started with the nuxt-shopify module"
   actions:
     - theme: brand
-      text: Markdown Examples
-      link: /markdown-examples
+      text: "Quickstart"
+      link: "/quickstart"
     - theme: alt
-      text: API Examples
-      link: /api-examples
+      text: "Examples"
+      link: "/examples"
 
 features:
-  - title: Feature A
-    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
-  - title: Feature B
-    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
-  - title: Feature C
-    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
+  - title: Storefront
+    details: "Integrate the shopify storefront API into your nuxt app"
+  - title: Admin
+    details: "Connect to the shopify admin API"
 ---
 

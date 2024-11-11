@@ -1,11 +1,18 @@
 > work in progress
 
-roadmap
-- apollo playground
-- logging
-- examples
-- docs
-- tests
-- ci
-- release
-- apply auto generated types to useFetch?
+## Local Development
+
+### Requirements
+
+- [Nix](https://nixos.org/download.html)
+- [direnv (optional)](https://direnv.net/)
+
+### Quickstart
+
+```bash
+git clone git@github.com:konkonam/nuxt-shopify.git
+```
+
+```bash
+direnv allow || nix-shell
+```

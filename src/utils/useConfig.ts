@@ -1,4 +1,4 @@
-import type { ModuleOptions, ApiTypeToOptions } from '~/src/types'
+import type { ModuleOptions, ApiTypeToOptions, ApiClientOptions } from '~/src/types'
 
 import { ApiType, type ShopifyApiTypesOptions } from '@shopify/api-codegen-preset'
 import defu from 'defu'
@@ -54,6 +54,7 @@ export function useConfig(options: ModuleOptions) {
 
         return defu({
             ...{ storeDomain: `${options.name}.myshopify.com` },
+            ...{ _apiType: apiType.toLowerCase() },
             clientConfig,
         })
     }
