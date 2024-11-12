@@ -1,5 +1,5 @@
 export default defineEventHandler(async () => {
-    const products = useStorefront()
+    const storefront = useStorefront()
 
     storefront?.request(`
         #graphql

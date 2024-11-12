@@ -1,9 +1,8 @@
 import type { ModuleOptions, ApiTypeToOptions, ApiTypeToResolvedOptions } from '~/src/types'
 
 import { ApiType } from '@shopify/api-codegen-preset'
-import defu from 'defu'
 
-const resolveClient = <T extends ApiType>(options: ModuleOptions, apiType: T): ApiTypeToOptions[T] | undefined => {
+export function resolveClient<T extends ApiType>(options: ModuleOptions, apiType: T): ApiTypeToOptions[T] | undefined {
     if (!options.clients) return
 
     switch (apiType) {
@@ -17,11 +16,14 @@ const resolveClient = <T extends ApiType>(options: ModuleOptions, apiType: T): A
 }
 
 export function useConfig<T extends ApiType>(options: ModuleOptions, apiType: T) {
+    console.log(options)
+
     const clientConfig = resolveClient(options, apiType)
     if (!clientConfig) return
 
-    return defu({
-        ...{ storeDomain: `${options.name}.myshopify.com` },
-        clientConfig,
-    }) as unknown as ApiTypeToResolvedOptions[T]
+    clientConfig.storeDomain = `https://${options.name}.myshopify.com/api/${clientConfig.apiVersion}/graphql.json`
+
+    console.log(clientConfig)
+
+    return clientConfig as unknown as ApiTypeToResolvedOptions[T]
 }

@@ -1,3 +1,5 @@
+await import('dotenv').then(({ config }) => config())
+
 export default defineNuxtConfig({
     modules: [
         '../src/module',
@@ -8,7 +10,7 @@ export default defineNuxtConfig({
     compatibilityDate: '2024-11-07',
 
     shopify: {
-        name: process.env.SHOPIFY_NAME,
+        name: process.env.NUXT_SHOPIFY_NAME,
         debug: true,
         clients: {
             storefront: {

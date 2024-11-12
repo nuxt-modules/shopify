@@ -1,2 +1,2 @@
-export * from './useCodegen'
-export * from './useConfig'
+export * from './codegen'
+export * from './config'
