@@ -1,12 +1,10 @@
-import type { ModuleOptions, ModuleOptionsClients } from './types'
+import type { ModuleOptions } from './types'
 import type { ApiType } from '@shopify/api-codegen-preset'
 
-import { generate } from '@graphql-codegen/cli'
 import { addServerImportsDir, createResolver, useLogger, defineNuxtModule } from '@nuxt/kit'
-import { shopifyApiTypes } from '@shopify/api-codegen-preset'
 import { upperFirst } from 'scule'
 
-import { useConfig } from './utils/useConfig'
+import { useCodegen, useConfig } from './utils'
 
 export default defineNuxtModule<ModuleOptions>({
     meta: {
@@ -18,25 +16,25 @@ export default defineNuxtModule<ModuleOptions>({
     },
 
     hooks: {
-        'shopify:storefront:codegen': async (nuxt, codegenOptions) => {
+        'shopify:storefront:codegen': async ({ nuxt, generates }) => {
             const logger = useLogger('nuxt-shopify')
 
-            return generate({
+            return useCodegen({
                 cwd: nuxt.options.rootDir,
-                generates: shopifyApiTypes(codegenOptions),
+                generates,
                 // silent: true,
                 ignoreNoDocuments: true,
             })
-                .then(() => logger.success(`Generated shopify API types for ${codegenOptions.apiType}`))
-                .catch(error => logger.error(`Failed to generate shopify API types for ${codegenOptions.apiType}:\n${error.message}`))
+                .then(() => logger.success('Generated shopify API types for storefront'))
+                .catch(error => logger.error(`Failed to generate shopify API types for storefront:\n${error.message}`))
         },
         'shopify:storefront:persist': async (nuxt, options) => {
-            if (nuxt.options.runtimeConfig._shopify) {
+            if (nuxt.options.runtimeConfig._shopify && options) {
                 nuxt.options.runtimeConfig._shopify.clients.storefront = options
             }
         },
         'shopify:admin:persist': async (nuxt, options) => {
-            if (nuxt.options.runtimeConfig._shopify) {
+            if (nuxt.options.runtimeConfig._shopify && options) {
                 nuxt.options.runtimeConfig._shopify.clients.admin = options
             }
         },
@@ -65,14 +63,6 @@ export default defineNuxtModule<ModuleOptions>({
                 const _apiType = upperFirst(apiType) as ApiType
                 const apiOptions = config.compile(_apiType)
 
-                if (apiOptions?.codegen) {
-                    await nuxt.callHook(
-                        'shopify:storefront:codegen',
-                        nuxt,
-
-                    )
-                }
-
                 addServerImportsDir(
                     resolver.resolve('./runtime/server/utils'),
                 )
@@ -80,8 +70,12 @@ export default defineNuxtModule<ModuleOptions>({
                 await nuxt.callHook(
                     `shopify:${apiType}:persist`,
                     nuxt,
-                    config.compile(apiTypeCapitalized),
+                    config.compile(_apiType),
                 )
+
+                if (apiOptions?.codegen) {
+                    await nuxt.callHook(`shopify:${apiType}:codegen`, nuxt, apiOptions.codegen)
+                }
             }
 
             logger.success('Finished shopify setup')

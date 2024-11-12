@@ -4,15 +4,16 @@ import type {
     CustomFetchApi,
 } from '@shopify/graphql-client'
 
-export type ApiClientOptions<T extends ApiType> = {
+export type NormalizedShopifyApiTypesOptions = Omit<ShopifyApiTypesOptions, 'apiType' | 'apiVersion'>
+
+export type ApiClientOptions = {
     storeDomain?: string
     apiVersion: string
     accessToken: string
     retries?: number
     customFetchApi?: CustomFetchApi
     logger?: ApiClientLogger
-    codegen?: boolean | Omit<ShopifyApiTypesOptions, 'apiType' | 'apiVersion'>
-    readonly _apiType?: Lowercase<T>
+    codegen?: boolean | NormalizedShopifyApiTypesOptions
 }
 
 export type StorefrontOptions = ApiClientOptions<ApiType.Storefront> & {
