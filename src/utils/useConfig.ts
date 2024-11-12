@@ -48,7 +48,7 @@ export function useConfig(options: ModuleOptions) {
         } satisfies ShopifyApiTypesOptions
     }
 
-    const compile = (apiType: ApiType) => {
+    const compile = <T extends ApiType>(apiType: T) => {
         const clientConfig = resolveClient(apiType)
         if (!clientConfig) return
 
@@ -56,7 +56,7 @@ export function useConfig(options: ModuleOptions) {
             ...{ storeDomain: `${options.name}.myshopify.com` },
             ...{ _apiType: apiType.toLowerCase() },
             clientConfig,
-        })
+        }) as unknown as ApiTypeToOptions[T]
     }
 
     return {

@@ -1,4 +1,4 @@
-import type { ApiClientOptions, ModuleOptions, ModuleOptionsClients, ShopifyPersistHookName } from './types'
+import type { ModuleOptions, ModuleOptionsClients } from './types'
 import type { ApiType } from '@shopify/api-codegen-preset'
 
 import { generate } from '@graphql-codegen/cli'
@@ -18,41 +18,41 @@ export default defineNuxtModule<ModuleOptions>({
     },
 
     hooks: {
-        'shopify:codegen': async (nuxt, codegenOptions) => {
+        'shopify:storefront:codegen': async (nuxt, codegenOptions) => {
             const logger = useLogger('nuxt-shopify')
 
-            try {
-                return generate({
-                    cwd: nuxt.options.rootDir,
-                    generates: shopifyApiTypes(codegenOptions),
-                    // silent: true,
-                    ignoreNoDocuments: true,
-                }).then(() => {
-                    logger.success(`Generated shopify API types for ${codegenOptions.apiType}`)
-                })
-            }
-            catch (error) {
-                // @ts-expect-error - error is not an instanceof Error
-                logger.error(`Failed to generate shopify API types for ${codegenOptions.apiType}:\n${error.message}`)
-            }
+            return generate({
+                cwd: nuxt.options.rootDir,
+                generates: shopifyApiTypes(codegenOptions),
+                // silent: true,
+                ignoreNoDocuments: true,
+            })
+                .then(() => logger.success(`Generated shopify API types for ${codegenOptions.apiType}`))
+                .catch(error => logger.error(`Failed to generate shopify API types for ${codegenOptions.apiType}:\n${error.message}`))
         },
         'shopify:storefront:persist': async (nuxt, options) => {
-            // @ts-expect-error Union loss due to copy
-            nuxt.options.runtimeConfig._shopify.clients[options._apiType] = options
+            if (nuxt.options.runtimeConfig._shopify) {
+                nuxt.options.runtimeConfig._shopify.clients.storefront = options
+            }
+        },
+        'shopify:admin:persist': async (nuxt, options) => {
+            if (nuxt.options.runtimeConfig._shopify) {
+                nuxt.options.runtimeConfig._shopify.clients.admin = options
+            }
         },
     },
 
     async setup(options, nuxt) {
         const logger = useLogger('nuxt-shopify')
 
-        if (!options?.clients) {
-            logger.warn('No shopify module configuration provided.')
+        const availableApiTypes = Object.keys(options?.clients ?? {}) as Array<Lowercase<ApiType>>
+        if (!availableApiTypes.length) {
+            logger.warn('No shopify client configuration provided.')
         }
         else {
             logger.info('Starting shopify setup')
 
             const resolver = createResolver(import.meta.url)
-            const availableApiTypes = Object.keys(options.clients) as unknown as Array<keyof ModuleOptionsClients>
             const config = useConfig(options)
 
             nuxt.options.runtimeConfig._shopify = {
@@ -62,11 +62,15 @@ export default defineNuxtModule<ModuleOptions>({
             }
 
             for (const apiType of availableApiTypes) {
-                const apiTypeCapitalized = upperFirst(apiType) as ApiType
-                const codegenOptions = config.getCodegen(apiTypeCapitalized)
+                const _apiType = upperFirst(apiType) as ApiType
+                const apiOptions = config.compile(_apiType)
 
-                if (codegenOptions) {
-                    await nuxt.callHook('shopify:codegen', nuxt, codegenOptions)
+                if (apiOptions?.codegen) {
+                    await nuxt.callHook(
+                        'shopify:storefront:codegen',
+                        nuxt,
+
+                    )
                 }
 
                 addServerImportsDir(
@@ -75,7 +79,6 @@ export default defineNuxtModule<ModuleOptions>({
 
                 await nuxt.callHook(
                     `shopify:${apiType}:persist`,
-                    // @ts-expect-error dynamic key
                     nuxt,
                     config.compile(apiTypeCapitalized),
                 )

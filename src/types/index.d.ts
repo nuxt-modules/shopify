@@ -1,10 +1,10 @@
-import type { AdminOptions, ModuleOptions } from './module'
+import type { AdminOptions, ModuleOptions, StorefrontOptions } from './module'
 import type { HookResult, Nuxt } from '@nuxt/schema'
-import type { ShopifyApiTypesOptions } from '@shopify/api-codegen-preset'
-import type { NuxtHooks } from 'nuxt/schema'
+import type { IGraphQLProject } from 'graphql-config'
 
 import '@nuxt/schema'
 import 'nitropack'
+import type { CodegenConfig } from '@graphql-codegen/cli'
 
 declare module '@nuxt/schema' {
     interface RuntimeConfig {
@@ -17,13 +17,20 @@ declare module '@nuxt/schema' {
          * or manipulate the config before
          * it is passed to the codegen.
          */
-        'shopify:codegen': (nuxt: Nuxt, options: ShopifyApiTypesOptions) => HookResult
+        'shopify:storefront:codegen': (nuxt: Nuxt, generates: CodegenConfig['generates']) => HookResult
+
+        /**
+         * Call/Called to generate the admin API types
+         * or manipulate the config before
+         * it is passed to the codegen.
+         */
+        'shopify:admin:codegen': (nuxt: Nuxt, generates: CodegenConfig['generates']) => HookResult
 
         /**
          * Call/Called to persist the storefront options
          * into the runtime config.
          */
-        'shopify:storefront:persist': (nuxt: Nuxt, options: AdminOptions) => HookResult
+        'shopify:storefront:persist': (nuxt: Nuxt, options: StorefrontOptions) => HookResult
 
         /**
          * Call/Called to persist the admin options
@@ -33,5 +40,4 @@ declare module '@nuxt/schema' {
     }
 }
 
-export type ShopifyPersistHookName = keyof NuxtHooks['shopify:storefront:persist'] | keyof NuxtHooks['shopify:admin:persist']
 export * from './module'

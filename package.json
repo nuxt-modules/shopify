@@ -22,7 +22,7 @@
     ],
     "scripts": {
         "prepare": "nuxt-module-build prepare && nuxt-module-build build --stub",
-        "prepare:dev": "pnpm prepare && pnpm run --filter=./playgrounds/playground cleanup",
+        "prepare:dev": "pnpm prepare && pnpm run --filter=./playgrounds/playground prepare",
         "build": "nuxt-module-build build",
         "build:docs": "vitepress build docs",
         "dev": "nuxi dev playgrounds/playground",
