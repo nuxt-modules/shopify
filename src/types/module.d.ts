@@ -16,12 +16,12 @@ export type ApiClientOptions = {
     codegen?: boolean | NormalizedShopifyApiTypesOptions
 }
 
-export type StorefrontOptions = ApiClientOptions<ApiType.Storefront> & {
+export type StorefrontOptions = ApiClientOptions & {
     // Indicates whether it's a private or public access token
     private?: boolean
 }
 
-export type AdminOptions = ApiClientOptions<ApiType.Admin> & {
+export type AdminOptions = ApiClientOptions & {
     userAgentPrefix?: string
     isTesting?: boolean
 }
@@ -29,6 +29,20 @@ export type AdminOptions = ApiClientOptions<ApiType.Admin> & {
 export type ApiTypeToOptions = {
     [ApiType.Storefront]: StorefrontOptions
     [ApiType.Admin]: AdminOptions
+    [ApiType.Customer]: undefined
+}
+
+export type ApiTypeToResolvedOptions = {
+    [ApiType.Storefront]: StorefrontOptions & {
+        storeDomain: string
+        codegen: ShopifyApiTypesOptions
+    }
+
+    [ApiType.Admin]: AdminOptions & {
+        storeDomain: string
+        codegen: ShopifyApiTypesOptions
+    }
+
     [ApiType.Customer]: undefined
 }
 
