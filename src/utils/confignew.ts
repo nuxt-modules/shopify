@@ -4,6 +4,7 @@ import type { AdminOptions, ModuleOptions, StorefrontOptions } from '~/src/types
 
 import { ApiType } from '@shopify/api-codegen-preset'
 import { join } from 'node:path'
+import { upperFirst } from 'scule'
 
 type ShopifyConfig = {
     name: string
@@ -18,16 +19,43 @@ type ShopifyConfig = {
     }
 }
 
+type ClientType = keyof ModuleOptions['clients']
+
 export const useShopifyConfig = (nuxt: Nuxt, options: ModuleOptions): ShopifyConfig => {
-    const resolveCodegenOptions = (apiType: ApiType) => {
-        const lowerCasedApiType = apiType.toLowerCase() as keyof ShopifyConfig['clients']
+    const getCodegenOptions = (key: ClientType): ShopifyApiTypesOptions | undefined => {
+        const clientOptions = options.clients?.[key]
+        if (!clientOptions || clientOptions.codegen === false) return
+
+        const codegenOptions = clientOptions.codegen ?? true
+        if (!codegenOptions) return
+
+        const storefrontDocuments = [
+            '**/!(*.{admin,customer}).{gql,graphql}',
+            '**/*.{ts,js}',
+        ]
+
+        return {
+            apiType: upperFirst(key) as ApiType,
+            apiVersion: clientOptions.apiVersion,
+            documents: [
+                '!node_modules',
+                '!.nuxt',
+                '!dist',
+                `**/*.${key}.{gql,graphql}`,
+                ...(key === 'storefront' ? storefrontDocuments : []),
+            ],
+            outputDir: join('.nuxt/types/shopify', key),
+        } as ShopifyApiTypesOptions
     }
 
     return {
         name: options.name,
         debug: options.debug,
-        clients: {},
-    }
+        clients: {
+            storefront: options.clients.storefront,
+            admin: options.clients.storefront,
+        },
+    } satisfies ShopifyConfig
 }
 
 export function getDefaultOptions(apiType: ApiType) {
