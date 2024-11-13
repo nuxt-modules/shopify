@@ -1,16 +1,16 @@
 import type { ModuleOptions } from './types'
-import type { Types } from '@graphql-codegen/plugin-helpers'
 import type { NuxtTemplate } from '@nuxt/schema'
 
-import { generate } from '@graphql-codegen/cli'
+import { type CodegenConfig, generate } from '@graphql-codegen/cli'
 import {
     addServerImportsDir,
     createResolver,
     useLogger,
     defineNuxtModule, useNuxt, addTypeTemplate, updateTemplates, addTemplate,
 } from '@nuxt/kit'
+import { preset } from '@shopify/api-codegen-preset'
 import defu from 'defu'
-import { basename, matchesGlob } from 'node:path'
+import { join } from 'node:path'
 
 import { useShopifyConfig } from './utils'
 
@@ -43,29 +43,36 @@ export default defineNuxtModule<ModuleOptions>({
 
             for (const [filename, config] of Object.entries(files)) {
                 const getContents: NuxtTemplate['getContents'] = async () => {
-                    const generates = {
-                        [filename]: config,
-                    }
+                    const generates: CodegenConfig['generates'] = { [filename]: config }
 
                     await nuxt.callHook('shopify:codegen:generate', { nuxt, generates })
 
-                    return generate({
+                    return await generate({
                         cwd: nuxt.options.rootDir,
                         generates,
-                    }, false).then(result => result)
+                    }, false).then(result => result.content)
                 }
 
-                let template = undefined
                 if (filename.endsWith('.d.ts')) {
-                    // @ts-expect-error - is valid by the condition
-                    template = addTypeTemplate({ filename, getContents })
+                    addTypeTemplate({
+                        // @ts-expect-error - is valid by the condition
+                        filename: join('types/shopify', filename),
+                        getContents,
+                    })
+                }
+                else if (filename.endsWith('.json')) {
+                    addTemplate({
+                        filename: join('schema', filename),
+                        getContents,
+                    })
                 }
                 else {
-                    template = addTemplate({ filename, getContents })
+                    addTemplate({ filename, getContents })
                 }
-
-                console.log(template)
             }
+        },
+        'shopify:codegen:generate': async ({ nuxt, generates }) => {
+            if (generates)
         },
     },
 
@@ -85,6 +92,15 @@ export default defineNuxtModule<ModuleOptions>({
             )
 
             await nuxt.callHook('shopify:config', { nuxt, config })
+
+            await updateTemplates({
+                filter: () => true,
+            })
+
+            console.log(nuxt.options.runtimeConfig?._shopify?.clients?.storefront?.codegen)
+
+            const a = addTemplate({ filename: 'test.ts', getContents: () => 'abc' })
+            console.log(a)
 
             logger.success('Finished shopify setup')
         }

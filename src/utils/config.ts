@@ -20,7 +20,7 @@ export const useShopifyConfig = (options: ModuleOptions): ShopifyConfig => {
                 ...customDocuments,
                 `**/*.${key}.{gql,graphql,ts,js}`,
             ],
-            outputDir: join('.nuxt/types/shopify', key),
+            outputDir: key,
         }
 
         // If there are custom options, merge them with the defaults
