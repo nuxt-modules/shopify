@@ -35,4 +35,4 @@ type ShopifyConfig = {
     }
 }
 
-type ShopifyClientType = keyof ModuleOptions['clients']
+export type ShopifyClientType = keyof ModuleOptions['clients']

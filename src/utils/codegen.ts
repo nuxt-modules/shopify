@@ -10,7 +10,7 @@ export type UseCodegenParams = {
     config: ShopifyConfig
 }
 
-export async function useCodegen({ nuxt, config }: UseCodegenParams) {
+export async function useCodegen<T>({ nuxt, config }: UseCodegenParams): Promise<T> {
     const logger = useLogger('nuxt-shopify')
 
     const generates = {
@@ -20,7 +20,5 @@ export async function useCodegen({ nuxt, config }: UseCodegenParams) {
 
     await nuxt.callHook('shopify:codegen:resolved', { nuxt, generates })
 
-    return generate({ cwd: nuxt.options.rootDir, generates })
-        .then(() => logger.success('Generated shopify API types!'))
-        .catch(error => logger.error(`Failed to generate shopify API types:\n${error.message}`))
+    return generate({ cwd: nuxt.options.rootDir, generates }, false)
 }
