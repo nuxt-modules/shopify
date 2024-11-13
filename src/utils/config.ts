@@ -1,12 +1,12 @@
-import type { ShopifyApiTypesOptions, ApiType } from '@shopify/api-codegen-preset'
 import type { ModuleOptions, ShopifyClientType, ShopifyConfig } from '~/src/types'
 
+import { type ApiType, shopifyApiTypes } from '@shopify/api-codegen-preset'
 import defu from 'defu'
 import { join } from 'node:path'
 import { upperFirst } from 'scule'
 
 export const useShopifyConfig = (options: ModuleOptions): ShopifyConfig => {
-    const getCodegenOptions = (key: ShopifyClientType, customDocuments: string[] = []): ShopifyApiTypesOptions | undefined => {
+    const getCodegenConfig = (key: ShopifyClientType, customDocuments: string[] = []) => {
         const clientOptions = options.clients?.[key]
         if (!clientOptions || clientOptions.codegen === false) return
 
@@ -28,7 +28,7 @@ export const useShopifyConfig = (options: ModuleOptions): ShopifyConfig => {
             result = defu(result, clientOptions.codegen)
         }
 
-        return result
+        return shopifyApiTypes(result)
     }
 
     const getClientConfig = <T extends ShopifyClientType>(key: T, customDocuments: string[] = []) => {
@@ -39,7 +39,7 @@ export const useShopifyConfig = (options: ModuleOptions): ShopifyConfig => {
             clientOptions,
             {
                 storeDomain: `https://${options.name}.myshopify.com/api/${clientOptions.apiVersion}/graphql.json`,
-                codegen: getCodegenOptions(key, customDocuments),
+                codegen: getCodegenConfig(key, customDocuments),
             },
         ) as ShopifyConfig['clients'][T]
     }

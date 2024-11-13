@@ -1,15 +1,18 @@
 import type { ModuleOptions } from './types'
 import type { Types } from '@graphql-codegen/plugin-helpers'
+import type { NuxtTemplate } from '@nuxt/schema'
 
+import { generate } from '@graphql-codegen/cli'
 import {
     addServerImportsDir,
     createResolver,
     useLogger,
-    defineNuxtModule, useNuxt, addTypeTemplate, updateTemplates,
+    defineNuxtModule, useNuxt, addTypeTemplate, updateTemplates, addTemplate,
 } from '@nuxt/kit'
+import defu from 'defu'
 import { basename, matchesGlob } from 'node:path'
 
-import { useCodegen, useShopifyConfig } from './utils'
+import { useShopifyConfig } from './utils'
 
 export default defineNuxtModule<ModuleOptions>({
     meta: {
@@ -27,40 +30,42 @@ export default defineNuxtModule<ModuleOptions>({
         'builder:watch': async (event, path) => {
             const nuxt = useNuxt()
             if (!nuxt.options.runtimeConfig._shopify) return
-
-            await useCodegen({
-                nuxt,
-                config: nuxt.options.runtimeConfig._shopify,
-            })
-
-            await updateTemplates({
-                filter: template => matchesGlob(template.filename),
-            })
         },
         'prepare:types': async () => {
             const nuxt = useNuxt()
+            const config = nuxt.options.runtimeConfig._shopify
+            if (!config) return
 
-            if (!nuxt.options.runtimeConfig._shopify) return
+            const files = defu(
+                config.clients.storefront?.codegen ?? {},
+                config.clients.admin?.codegen ?? {},
+            )
 
-            const results = await useCodegen<Types.FileOutput[]>({
-                nuxt,
-                config: nuxt.options.runtimeConfig._shopify,
-            })
+            for (const [filename, config] of Object.entries(files)) {
+                const getContents: NuxtTemplate['getContents'] = async () => {
+                    const generates = {
+                        [filename]: config,
+                    }
 
-            const typeFiles = results.filter(f => f.filename.endsWith('.d.ts'))
-            for (const { filename, content } of typeFiles) {
-                const t = addTypeTemplate({
-                    filename,
-                    getContents: () => content,
-                })
+                    await nuxt.callHook('shopify:codegen:generate', { nuxt, generates })
+
+                    return generate({
+                        cwd: nuxt.options.rootDir,
+                        generates,
+                    }, false).then(result => result)
+                }
+
+                let template = undefined
+                if (filename.endsWith('.d.ts')) {
+                    // @ts-expect-error - is valid by the condition
+                    template = addTypeTemplate({ filename, getContents })
+                }
+                else {
+                    template = addTemplate({ filename, getContents })
+                }
+
+                console.log(template)
             }
-
-            addTypeTemplate({
-                filename: 'types/shopify/index.d.ts',
-                getContents: () => results
-                    .map(({ filename }) => basename(filename))
-                    .join('\n'),
-            })
         },
     },
 

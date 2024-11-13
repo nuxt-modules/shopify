@@ -33,7 +33,7 @@ declare module '@nuxt/schema' {
          */
         'shopify:codegen': ({ nuxt, config }: ShopifyCodegenHookParams) => HookResult
 
-        'shopify:codegen:resolved': ({ nuxt, generates }: ShopifyCodegenResolvedHookParams) => HookResult
+        'shopify:codegen:generate': ({ nuxt, generates }: ShopifyCodegenResolvedHookParams) => HookResult
 
         /**
          * Call/Called to persist the config into runtime.

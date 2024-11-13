@@ -1,3 +1,4 @@
+import type { CodegenConfig } from '@graphql-codegen/cli'
 import type { createAdminApiClient } from '@shopify/admin-api-client'
 import type { ShopifyApiTypesOptions } from '@shopify/api-codegen-preset'
 import type { createStorefrontApiClient } from '@shopify/storefront-api-client'
@@ -25,12 +26,10 @@ type ShopifyConfig = {
     debug?: boolean
     clients: {
         storefront?: StorefrontOptions & {
-            storeDomain: string
-            codegen?: ShopifyApiTypesOptions
+            codegen?: CodegenConfig['generates']
         }
         admin?: AdminOptions & {
-            storeDomain: string
-            codegen?: ShopifyApiTypesOptions
+            codegen?: CodegenConfig['generates']
         }
     }
 }
