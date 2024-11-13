@@ -1,29 +1,74 @@
-import type { ModuleOptions, ApiTypeToOptions, ApiTypeToResolvedOptions } from '~/src/types'
+import type { ShopifyApiTypesOptions, ApiType } from '@shopify/api-codegen-preset'
+import type { AdminOptions, ModuleOptions, StorefrontOptions } from '~/src/types'
 
-import { ApiType } from '@shopify/api-codegen-preset'
+import defu from 'defu'
+import { join } from 'node:path'
+import { upperFirst } from 'scule'
 
-export function resolveClient<T extends ApiType>(options: ModuleOptions, apiType: T): ApiTypeToOptions[T] | undefined {
-    if (!options.clients) return
-
-    switch (apiType) {
-        case ApiType.Storefront:
-            return options.clients.storefront as ApiTypeToOptions[T]
-        case ApiType.Admin:
-            return options.clients.admin as ApiTypeToOptions[T]
-        default:
-            return
+type ShopifyConfig = {
+    name: string
+    debug?: boolean
+    clients: {
+        storefront?: StorefrontOptions & {
+            codegen?: ShopifyApiTypesOptions // default: true
+        }
+        admin?: AdminOptions & {
+            codegen?: ShopifyApiTypesOptions // default: true
+        }
     }
 }
 
-export function useConfig<T extends ApiType>(options: ModuleOptions, apiType: T) {
-    console.log(options)
+type ClientType = keyof ModuleOptions['clients']
 
-    const clientConfig = resolveClient(options, apiType)
-    if (!clientConfig) return
+const documentIgnores = [
+    '!node_modules',
+    '!.nuxt',
+    '!dist',
+]
 
-    clientConfig.storeDomain = `https://${options.name}.myshopify.com/api/${clientConfig.apiVersion}/graphql.json`
+export const useShopifyConfig = (options: ModuleOptions): ShopifyConfig => {
+    const getCodegenOptions = (key: ClientType, customDocuments: string[] = []): ShopifyApiTypesOptions | undefined => {
+        const clientOptions = options.clients?.[key]
+        if (!clientOptions || clientOptions.codegen === false) return
 
-    console.log(clientConfig)
+        let result = {
+            apiType: upperFirst(key) as ApiType,
+            apiVersion: clientOptions.apiVersion,
+            documents: [
+                ...documentIgnores,
+                ...customDocuments,
+                `**/*.${key}.{gql,graphql}`,
+            ],
+            outputDir: join('.nuxt/types/shopify', key),
+        }
 
-    return clientConfig as unknown as ApiTypeToResolvedOptions[T]
+        // If there are custom options, merge them with the defaults
+        if (clientOptions.codegen !== undefined && clientOptions.codegen !== true) {
+            result = defu(result, clientOptions.codegen)
+        }
+
+        return result
+    }
+
+    const getClientConfig = <T extends ClientType>(key: T, customDocuments: string[] = []): ShopifyConfig['clients'][T] => {
+        const clientOptions = options.clients?.[key]
+        if (!clientOptions) return
+
+        return defu(
+            clientOptions,
+            {
+                storeDomain: `https://${options.name}.myshopify.com/api/${clientOptions.apiVersion}/graphql.json`,
+                codegen: getCodegenOptions(key, customDocuments),
+            },
+        )
+    }
+
+    return {
+        name: options.name,
+        debug: options.debug,
+        clients: {
+            storefront: getClientConfig('storefront'),
+            admin: getClientConfig('admin'),
+        },
+    } satisfies ShopifyConfig
 }
