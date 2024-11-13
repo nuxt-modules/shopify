@@ -21,8 +21,6 @@
         "dist"
     ],
     "scripts": {
-        "prepare": "nuxt-module-build prepare && nuxt-module-build build --stub",
-        "prepare:dev": "pnpm prepare && pnpm run --filter=./playgrounds/playground prepare",
         "build": "nuxt-module-build build",
         "build:docs": "vitepress build docs",
         "dev": "nuxi dev playgrounds/playground",
@@ -32,7 +30,8 @@
         "lint": "eslint .",
         "lint:types": "nuxi typecheck",
         "cleanup": "pnpm run --filter=./playgrounds/playground cleanup && nuxi cleanup",
-        "postinstall": "pnpm run prepare && pnpm run prepare:dev"
+        "prepare": "nuxt-module-build prepare && nuxt-module-build build --stub && pnpm run --filter=./playgrounds/* prepare",
+        "postinstall": "pnpm run prepare"
     },
     "dependencies": {
         "@nuxt/kit": "^3.14.159"

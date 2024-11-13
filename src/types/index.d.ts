@@ -1,19 +1,23 @@
-import type { ModuleOptions } from './module'
+import type { ModuleOptions, ShopifyConfig } from './module'
+import type { CodegenConfig } from '@graphql-codegen/cli'
 import type { HookResult, Nuxt } from '@nuxt/schema'
-import type { ShopifyApiTypesOptions } from '@shopify/api-codegen-preset'
-import type { ApiClientOptions } from '~/src/types/module'
 
 import '@nuxt/schema'
 import 'nitropack'
 
-export type CodegenHookParams = {
+export type ShopifyCodegenHookParams = {
     nuxt: Nuxt
-    options: ShopifyApiTypesOptions
+    config: ShopifyConfig
 }
 
-export type PersistHookParams = {
+export type ShopifyCodegenResolvedHookParams = {
     nuxt: Nuxt
-    options?: ApiClientOptions
+    generates: CodegenConfig['generates']
+}
+
+export type ShopifyConfigHookParams = {
+    nuxt: Nuxt
+    config: ShopifyConfig
 }
 
 declare module '@nuxt/schema' {
@@ -27,43 +31,14 @@ declare module '@nuxt/schema' {
          * or manipulate the config before
          * it is passed to the codegen.
          */
-        'shopify:storefront:codegen': (params: CodegenHookParams) => HookResult
+        'shopify:codegen': ({ nuxt, config }: ShopifyCodegenHookParams) => HookResult
+
+        'shopify:codegen:resolved': ({ nuxt, generates }: ShopifyCodegenResolvedHookParams) => HookResult
 
         /**
-         * Call/Called to generate the admin API types
-         * or manipulate the config before
-         * it is passed to the codegen.
+         * Call/Called to persist the config into runtime.
          */
-        'shopify:admin:codegen': (params: CodegenHookParams) => HookResult
-
-        /**
-         * @wip
-         *
-         * Call/Called to generate the admin API types
-         * or manipulate the config before
-         * it is passed to the codegen.
-         */
-        'shopify:customer:codegen': (params: CodegenHookParams) => HookResult
-
-        /**
-         * Call/Called to persist the storefront options
-         * into the runtime config.
-         */
-        'shopify:storefront:persist': (params: PersistHookParams) => HookResult
-
-        /**
-         * Call/Called to persist the admin options
-         * into the runtime config.
-         */
-        'shopify:admin:persist': (params: PersistHookParams) => HookResult
-
-        /**
-         * @wip
-         *
-         * Call/Called to persist the customer options
-         * into the runtime config.
-         */
-        'shopify:customer:persist': (params: PersistHookParams) => HookResult
+        'shopify:config': ({ nuxt, config }: ShopifyConfigHookParams) => HookResult
     }
 }
 

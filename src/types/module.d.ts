@@ -11,11 +11,28 @@ export type ModuleOptions = {
     name: string
     debug?: boolean
     clients: {
-        storefront?: StorefrontOptions & {
-            codegen?: boolean | NormalizedShopifyApiTypesOptions // default: true
+        storefront?: Omit<StorefrontOptions, 'storeDomain'> & {
+            codegen?: boolean | NormalizedShopifyApiTypesOptions
         }
-        admin?: AdminOptions & {
-            codegen?: boolean | NormalizedShopifyApiTypesOptions // default: true
+        admin?: Omit<AdminOptions, 'storeDomain'> & {
+            codegen?: boolean | NormalizedShopifyApiTypesOptions
         }
     }
 }
+
+type ShopifyConfig = {
+    name: string
+    debug?: boolean
+    clients: {
+        storefront?: StorefrontOptions & {
+            storeDomain: string
+            codegen?: ShopifyApiTypesOptions
+        }
+        admin?: AdminOptions & {
+            storeDomain: string
+            codegen?: ShopifyApiTypesOptions
+        }
+    }
+}
+
+type ShopifyClientType = keyof ModuleOptions['clients']

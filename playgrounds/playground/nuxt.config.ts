@@ -9,6 +9,12 @@ export default defineNuxtConfig({
 
     compatibilityDate: '2024-11-07',
 
+    hooks: {
+        'shopify:codegen:resolved': ({ nuxt, generates }) => {
+            console.log(generates)
+        },
+    },
+
     shopify: {
         name: process.env.NUXT_SHOPIFY_NAME,
         debug: true,
