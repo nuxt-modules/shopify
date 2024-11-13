@@ -1,35 +1,16 @@
+import type { createAdminApiClient } from '@shopify/admin-api-client'
 import type { ApiType, ShopifyApiTypesOptions } from '@shopify/api-codegen-preset'
-import type {
-    ApiClientLogger,
-    CustomFetchApi,
-} from '@shopify/graphql-client'
+import type { createStorefrontApiClient } from '@shopify/storefront-api-client'
 
 export type NormalizedShopifyApiTypesOptions = Omit<ShopifyApiTypesOptions, 'apiType' | 'apiVersion'>
 
-export type ApiClientOptions = {
-    storeDomain?: string
-    apiVersion: string
-    accessToken: string
-    retries?: number
-    customFetchApi?: CustomFetchApi
-    logger?: ApiClientLogger
-    codegen?: boolean | NormalizedShopifyApiTypesOptions
-}
+type StorefrontOptions = Parameters<typeof createStorefrontApiClient>[0]
 
-export type StorefrontOptions = ApiClientOptions & {
-    // Indicates whether it's a private or public access token
-    private?: boolean
-}
-
-export type AdminOptions = ApiClientOptions & {
-    userAgentPrefix?: string
-    isTesting?: boolean
-}
+type AdminOptions = Parameters<typeof createAdminApiClient>[0]
 
 export type ApiTypeToOptions = {
     [ApiType.Storefront]: StorefrontOptions
     [ApiType.Admin]: AdminOptions
-    [ApiType.Customer]: undefined
 }
 
 export type ApiTypeToResolvedOptions = {
@@ -42,17 +23,17 @@ export type ApiTypeToResolvedOptions = {
         storeDomain: string
         codegen: ShopifyApiTypesOptions
     }
-
-    [ApiType.Customer]: undefined
-}
-
-export type ModuleOptionsClients = {
-    storefront: StorefrontOptions
-    admin: AdminOptions
 }
 
 export type ModuleOptions = {
     name: string
     debug?: boolean
-    clients: Partial<ModuleOptionsClients>
+    clients: {
+        storefront?: StorefrontOptions & {
+            codegen?: boolean | NormalizedShopifyApiTypesOptions // default: true
+        }
+        admin?: AdminOptions & {
+            codegen?: boolean | NormalizedShopifyApiTypesOptions // default: true
+        }
+    }
 }
