@@ -1,8 +1,8 @@
+import type { CodegenConfig } from '@graphql-codegen/cli'
 import type { ModuleOptions, ShopifyClientType, ShopifyConfig } from '~/src/types'
 
 import { type ApiType, shopifyApiTypes } from '@shopify/api-codegen-preset'
 import defu from 'defu'
-import { join } from 'node:path'
 import { upperFirst } from 'scule'
 
 export const useShopifyConfig = (options: ModuleOptions): ShopifyConfig => {
@@ -54,4 +54,14 @@ export const useShopifyConfig = (options: ModuleOptions): ShopifyConfig => {
             admin: getClientConfig('admin'),
         },
     } satisfies ShopifyConfig
+}
+
+export function removePreset(config?: CodegenConfig['generates']) {
+    for (const [filename, codegenConfig] of Object.entries(config ?? {})) {
+        if (!filename.endsWith('.generated.d.ts') || Array.isArray(codegenConfig)) {
+            continue
+        }
+
+        delete codegenConfig.preset
+    }
 }
