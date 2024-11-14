@@ -1,5 +1,4 @@
 import type { CodegenConfig } from '@graphql-codegen/cli'
-import type { Types, ConfiguredOutput, ConfiguredPlugin } from '@graphql-codegen/plugin-helpers/typings/types'
 import type { createAdminApiClient } from '@shopify/admin-api-client'
 import type { ShopifyApiTypesOptions } from '@shopify/api-codegen-preset'
 import type { createStorefrontApiClient } from '@shopify/storefront-api-client'
@@ -36,5 +35,4 @@ export type ShopifyConfig = {
 }
 
 export type CodegenTemplateOptions = CodegenConfig['generates']
-
 export type ShopifyClientType = keyof ModuleOptions['clients']

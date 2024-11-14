@@ -1,10 +1,27 @@
+import type { Types } from '@graphql-codegen/plugin-helpers'
 import type { NuxtTemplate } from '@nuxt/schema'
-import type { CodegenTemplateOptions, ShopifyConfig } from '~/src/types'
+import type { ShopifyConfig } from '~/src/types'
 
-import { generate } from '@graphql-codegen/cli'
+import { partition } from '@antfu/utils'
+import { type CodegenConfig, generate } from '@graphql-codegen/cli'
 import { addTemplate, addTypeTemplate } from '@nuxt/kit'
+import { preset } from '@shopify/api-codegen-preset'
 import defu from 'defu'
 import { join } from 'node:path'
+
+// @TODO: consider implementing everything with graphql-codegen only
+
+// since we are merging the generate steps, we have to remove the importTypes preset
+const createPreset = () => ({
+    buildGeneratesSection: (options) => {
+        const original = preset.buildGeneratesSection(options)
+
+        console.log(original)
+
+        return original
+    },
+
+} satisfies Types.ConfiguredOutput['preset'])
 
 /**
  * Gets called by the template to generate its content
@@ -19,37 +36,56 @@ const getContents: NuxtTemplate['getContents'] = async ({ nuxt, options }) => {
     return generate({
         cwd: nuxt.options.rootDir,
         generates: options.generates,
-        silent: nuxt.options.runtimeConfig._shopify?.debug,
-    }, false).then(result => result.content)
+    }, false).then(result => result.content).catch(console.error)
 }
 
+// merge configs for compatibility with lodash templates
+const normalizeTypeGenerates = (identifier: string, original?: CodegenConfig['generates']) => {
+    const entries = Object.entries(defu(original ?? {}))
+    if (!entries.length) return
+
+    const [targets, others] = partition(entries, ([filename]) => {
+        return filename.endsWith('.types.d.ts') || filename.endsWith('.generated.d.ts')
+    })
+
+    const mergedGenerates = targets
+        .reduce<Types.ConfiguredOutput>(
+            (acc, [_, config]) => defu(acc, config),
+            {},
+        )
+
+    mergedGenerates.preset = createPreset()
+
+    return defu(others, {
+        [identifier + '.d.ts']: mergedGenerates,
+    })
+}
+
+// adds custom (file)templates into the nuxt ecosystem
 export function registerTemplates(config: ShopifyConfig) {
     const entries = Object.entries(defu(
-        config.clients.storefront?.codegen ?? {},
-        config.clients.admin?.codegen ?? {},
+        normalizeTypeGenerates('storefront', config.clients.storefront?.codegen) ?? {},
+        normalizeTypeGenerates('admin', config.clients.admin?.codegen) ?? {},
     ))
 
-    for (const entry of entries) {
-        const [filename, _config] = entry
-        const generates = Object.fromEntries([entry])
-
+    for (const [filename, generates] of entries) {
         if (filename.endsWith('.d.ts')) {
-            addTypeTemplate<CodegenTemplateOptions>({
-                // @ts-expect-error - is valid by the condition
-                filename: join('types/shopify', filename),
+            addTypeTemplate({
+                // @ts-expect-error - valid by the condition
+                filename: join('types', filename),
                 getContents,
                 options: { generates },
             })
         }
         else if (filename.endsWith('.json')) {
-            addTemplate<CodegenTemplateOptions>({
-                filename: join('schema', filename),
+            addTemplate({
+                filename: join('schemas', filename),
                 getContents,
                 options: { generates },
             })
         }
         else {
-            addTemplate<CodegenTemplateOptions>({
+            addTemplate({
                 filename,
                 getContents,
                 options: { generates },

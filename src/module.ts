@@ -6,6 +6,7 @@ import {
     useLogger,
     defineNuxtModule, updateTemplates,
 } from '@nuxt/kit'
+import { matchesGlob } from 'node:path'
 
 import {
     registerTemplates,
@@ -26,7 +27,7 @@ export default defineNuxtModule<ModuleOptions>({
         'shopify:config': async ({ nuxt, config }) => {
             nuxt.options.runtimeConfig._shopify = config
         },
-        'prepare:types': async (params) => {
+        'builder:watch': async (event, path) => {
 
         },
     },
