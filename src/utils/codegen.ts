@@ -16,8 +16,6 @@ const createPreset = () => ({
     buildGeneratesSection: (options) => {
         const original = preset.buildGeneratesSection(options)
 
-        console.log(original)
-
         return original
     },
 
@@ -32,11 +30,17 @@ const getContents: NuxtTemplate['getContents'] = async ({ nuxt, options }) => {
         generates: options.generates,
     })
 
-    // plugins depend on one another, but are handled independently -> no generate :(
-    return generate({
+    const generated = await generate({
         cwd: nuxt.options.rootDir,
         generates: options.generates,
-    }, false).then(result => result.content).catch(console.error)
+    }, false)
+
+    if (generated.length === 1) {
+        return generated[0].content
+    }
+    else if (generated.length > 1) {
+        await Promise.reject(new Error('Multiple files generated'))
+    }
 }
 
 // merge configs for compatibility with lodash templates
@@ -69,26 +73,28 @@ export function registerTemplates(config: ShopifyConfig) {
     ))
 
     for (const [filename, generates] of entries) {
+        const whatever = { [filename]: generates }
+
         if (filename.endsWith('.d.ts')) {
             addTypeTemplate({
                 // @ts-expect-error - valid by the condition
                 filename: join('types', filename),
                 getContents,
-                options: { generates },
+                options: { generates: whatever },
             })
         }
         else if (filename.endsWith('.json')) {
             addTemplate({
                 filename: join('schemas', filename),
                 getContents,
-                options: { generates },
+                options: { generates: whatever },
             })
         }
         else {
             addTemplate({
                 filename,
                 getContents,
-                options: { generates },
+                options: { generates: whatever },
             })
         }
     }

@@ -23,6 +23,10 @@ export default defineNuxtConfig({
                 apiVersion: process.env.SHOPIFY_STOREFRONT_API_VERSION ?? '2024-10',
                 accessToken: process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN ?? '',
             },
+            admin: {
+                apiVersion: process.env.SHOPIFY_STOREFRONT_API_VERSION ?? '2024-10',
+                accessToken: process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN ?? '',
+            },
         },
     },
 })

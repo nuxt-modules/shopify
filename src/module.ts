@@ -4,9 +4,9 @@ import {
     addServerImportsDir,
     createResolver,
     useLogger,
-    defineNuxtModule, updateTemplates,
+    defineNuxtModule,
+    updateTemplates,
 } from '@nuxt/kit'
-import { matchesGlob } from 'node:path'
 
 import {
     registerTemplates,
