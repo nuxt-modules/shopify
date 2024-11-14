@@ -6,17 +6,20 @@ import { addTemplate, addTypeTemplate } from '@nuxt/kit'
 import defu from 'defu'
 import { join } from 'node:path'
 
+/**
+ * Gets called by the template to generate its content
+ */
 const getContents: NuxtTemplate['getContents'] = async ({ nuxt, options }) => {
     await nuxt.callHook('shopify:codegen:generate', {
         nuxt,
         generates: options.generates,
     })
 
+    // plugins depend on one another, but are handled independently -> no generate :(
     return generate({
         cwd: nuxt.options.rootDir,
         generates: options.generates,
         silent: nuxt.options.runtimeConfig._shopify?.debug,
-        de,
     }, false).then(result => result.content)
 }
 
