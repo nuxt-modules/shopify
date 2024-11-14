@@ -1,9 +1,10 @@
-name: Deploy to Pages
+name: 'Deploy to pages'
 
 on:
   push:
     branches:
       - main
+
   workflow_dispatch:
 
 permissions:
@@ -20,9 +21,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v3
+
+      - uses: pnpm/action-setup@v4
         with:
-          version: latest
+          version: 9
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -30,22 +33,25 @@ jobs:
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
       - name: Build VitePress
         run: npm run build:docs
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: docs/.vitepress/dist
 
   deploy:
+    name: Deploy
+    needs: build
+    runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    needs: build
-    runs-on: ubuntu-latest
-    name: Deploy
     steps:
       - name: Deploy to Pages
         id: deployment

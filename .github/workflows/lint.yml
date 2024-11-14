@@ -1,4 +1,4 @@
-name: 'Lint'
+name: 'Lint module'
 
 on:
   pull_request:
@@ -13,6 +13,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
       - uses: pnpm/action-setup@v4
         with:
           version: 9
@@ -26,4 +27,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Lint
-        run: pnpm lint
+        run: pnpm run lint
+
+      - name: Typecheck
+        run: pnpm run typecheck

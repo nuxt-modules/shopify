@@ -28,9 +28,10 @@
         "dev:v4": "nuxi dev playgrounds/playground-nuxt-v4",
         "preview:docs": "vitepress preview docs",
         "lint": "eslint .",
-        "lint:types": "nuxi typecheck",
+        "typecheck": "nuxi typecheck",
         "cleanup": "pnpm run --filter=./playgrounds/playground cleanup && nuxi cleanup",
-        "prepare": "nuxt-module-build prepare && nuxt-module-build build --stub && pnpm run --filter=./playgrounds/* prepare",
+        "prepare": "nuxt-module-build prepare && nuxt-module-build build --stub",
+        "prepare:dev": "pnpm run --filter=./playgrounds/* prepare",
         "postinstall": "pnpm run prepare"
     },
     "dependencies": {
