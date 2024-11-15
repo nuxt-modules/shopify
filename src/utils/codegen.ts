@@ -1,101 +1,78 @@
 import type { Types } from '@graphql-codegen/plugin-helpers'
 import type { NuxtTemplate } from '@nuxt/schema'
-import type { ShopifyConfig } from '~/src/types'
+import type { InterfaceExtensionsParams, ShopifyTypeTemplateOptions } from '~/src/types'
+import type { ShopifyClientType } from '~/src/utils'
 
-import { partition } from '@antfu/utils'
-import { type CodegenConfig, generate } from '@graphql-codegen/cli'
-import { addTemplate, addTypeTemplate } from '@nuxt/kit'
-import { preset } from '@shopify/api-codegen-preset'
-import defu from 'defu'
-import { join } from 'node:path'
+import { generate } from '@graphql-codegen/cli'
+import { useLogger } from '@nuxt/kit'
+import { preset } from '@shopify/graphql-codegen'
+import { upperFirst } from 'scule'
+import { join } from 'node:path';
 
-// @TODO: consider implementing everything with graphql-codegen only
-
-// since we are merging the generate steps, we have to remove the importTypes preset
-const createPreset = () => ({
-    buildGeneratesSection: (options) => {
-        const original = preset.buildGeneratesSection(options)
-
-        return original
-    },
-
-} satisfies Types.ConfiguredOutput['preset'])
-
-/**
- * Gets called by the template to generate its content
- */
-const getContents: NuxtTemplate['getContents'] = async ({ nuxt, options }) => {
-    await nuxt.callHook('shopify:codegen:generate', {
-        nuxt,
-        generates: options.generates,
-    })
-
-    const generated = await generate({
-        cwd: nuxt.options.rootDir,
-        generates: options.generates,
-    }, false)
-
-    if (generated.length === 1) {
-        return generated[0].content
+async function extractResult(input: Promise<Types.FileOutput[]>) {
+    try {
+        return (await input)?.at(0)?.content ?? ''
     }
-    else if (generated.length > 1) {
-        await Promise.reject(new Error('Multiple files generated'))
+    catch (error) {
+        useLogger('nuxt-shopify').error((error as Error).message)
+        return ''
     }
 }
 
-// merge configs for compatibility with lodash templates
-const normalizeTypeGenerates = (identifier: string, original?: CodegenConfig['generates']) => {
-    const entries = Object.entries(defu(original ?? {}))
-    if (!entries.length) return
+const getInterfaceExtensionFunction = (clientType: ShopifyClientType, queryType: string, mutationType: string) => `
+declare module '@shopify/${clientType}-api-client' {
+    type InputMaybe<T> = upperFirst(clientType)Types.InputMaybe<T>
+    interface ${upperFirst(clientType)}Queries extends ${queryType} {}
+    interface ${upperFirst(clientType)}Mutations extends ${mutationType} {}
+}
+`
 
-    const [targets, others] = partition(entries, ([filename]) => {
-        return filename.endsWith('.types.d.ts') || filename.endsWith('.generated.d.ts')
-    })
-
-    const mergedGenerates = targets
-        .reduce<Types.ConfiguredOutput>(
-            (acc, [_, config]) => defu(acc, config),
-            {},
-        )
-
-    mergedGenerates.preset = createPreset()
-
-    return defu(others, {
-        [identifier + '.d.ts']: mergedGenerates,
-    })
+export const generateIntrospection: NuxtTemplate<ShopifyTypeTemplateOptions>['getContents'] = async (data) => {
+    return extractResult(generate({
+        ignoreNoDocuments: true,
+        generates: {
+            [`_${data.options.clientType}.schema.json`]: {
+                schema: `https://shopify.dev/${data.options.clientType}-graphql-direct-proxy/${data.options.clientConfig.apiVersion}/`,
+                plugins: ['introspection'],
+            },
+        },
+    }, false))
 }
 
-// adds custom (file)templates into the nuxt ecosystem
-export function registerTemplates(config: ShopifyConfig) {
-    const entries = Object.entries(defu(
-        normalizeTypeGenerates('storefront', config.clients.storefront?.codegen) ?? {},
-        normalizeTypeGenerates('admin', config.clients.admin?.codegen) ?? {},
-    ))
+export const generateTypes: NuxtTemplate<ShopifyTypeTemplateOptions>['getContents'] = async (data) => {
+    return extractResult(generate({
+        ignoreNoDocuments: true,
+        generates: {
+            [`_${data.options.clientType}.types.d.ts`]: {
+                schema: join(data.nuxt.options.buildDir, `schemas/${data.options.clientType}.schema.json`),
+                plugins: ['typescript'],
+            },
+        },
+    }, false))
+}
 
-    for (const [filename, generates] of entries) {
-        const whatever = { [filename]: generates }
-
-        if (filename.endsWith('.d.ts')) {
-            addTypeTemplate({
-                // @ts-expect-error - valid by the condition
-                filename: join('types', filename),
-                getContents,
-                options: { generates: whatever },
-            })
-        }
-        else if (filename.endsWith('.json')) {
-            addTemplate({
-                filename: join('schemas', filename),
-                getContents,
-                options: { generates: whatever },
-            })
-        }
-        else {
-            addTemplate({
-                filename,
-                getContents,
-                options: { generates: whatever },
-            })
-        }
-    }
+export const generateOperations: NuxtTemplate<ShopifyTypeTemplateOptions>['getContents'] = async (data) => {
+    return extractResult(generate({
+        generates: {
+            [`_${data.options.clientType}.operations.d.ts`]: {
+                schema: join(data.nuxt.options.buildDir, `schemas/${data.options.clientType}.schema.json`),
+                preset,
+                documents: data.options.clientConfig.documents,
+                presetConfig: {
+                    importTypes: {
+                        namespace: `${upperFirst(data.options.clientType)}Types`,
+                        from: `#shopify/${data.options.clientType}`,
+                    },
+                    skipTypenameInOperations: true,
+                    interfaceExtension: (params: InterfaceExtensionsParams) => {
+                        return getInterfaceExtensionFunction(
+                            data.options.clientType,
+                            params.queryType,
+                            params.mutationType,
+                        )
+                    },
+                },
+            },
+        },
+    }, false))
 }

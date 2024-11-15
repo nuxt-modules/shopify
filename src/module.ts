@@ -1,16 +1,23 @@
-import type { ModuleOptions } from './types'
+import type {
+    ModuleOptions,
+    ShopifyClientConfig,
+    ShopifyClientType,
+    ShopifyTypeTemplateOptions,
+} from './types'
 
 import {
     addServerImportsDir,
     createResolver,
     useLogger,
     defineNuxtModule,
-    updateTemplates,
+    addTypeTemplate,
+    addTemplate,
 } from '@nuxt/kit'
 
 import {
-    registerTemplates,
-    removePreset,
+    generateIntrospection,
+    generateOperations,
+    generateTypes,
     useShopifyConfig,
 } from './utils'
 
@@ -24,12 +31,9 @@ export default defineNuxtModule<ModuleOptions>({
     },
 
     hooks: {
-        'shopify:config': async ({ nuxt, config }) => {
-            nuxt.options.runtimeConfig._shopify = config
-        },
-        'builder:watch': async (event, path) => {
+        'prepare:types': ({}) => {
 
-        },
+        }
     },
 
     async setup(options, nuxt) {
@@ -41,26 +45,52 @@ export default defineNuxtModule<ModuleOptions>({
         else {
             logger.info('Starting shopify setup')
 
-            const shopifyConfig = useShopifyConfig(options)
+            const config = useShopifyConfig(options)
 
             addServerImportsDir(
                 createResolver(import.meta.url).resolve('./runtime/server/utils'),
             )
 
-            registerTemplates(shopifyConfig)
+            await nuxt.callHook('shopify:config', { nuxt, config })
 
-            // Remove the preset from the config to avoid serialization issues
-            removePreset(shopifyConfig.clients?.storefront?.codegen)
-            removePreset(shopifyConfig.clients?.admin?.codegen)
+            nuxt.options.runtimeConfig._shopify = config
 
-            await nuxt.callHook('shopify:config', {
-                nuxt,
-                config: shopifyConfig,
-            })
+            for (const [clientType, client] of Object.entries<ShopifyClientConfig>(config.clients)) {
+                const { skipCodegen, ...clientConfig } = client
 
-            await updateTemplates({
-                filter: () => true,
-            })
+                if (skipCodegen) continue
+
+                const template = addTemplate<ShopifyTypeTemplateOptions>({
+                    filename: `schemas/${clientType}.introspection.json`,
+                    getContents: async (data) => {
+                        const introspection = await generateIntrospection(data)
+
+                        return introspection
+                    },
+                    options: {
+                        clientType: clientType as ShopifyClientType,
+                        clientConfig,
+                    },
+                })
+
+                addTypeTemplate<ShopifyTypeTemplateOptions>({
+                    filename: `types/${clientType}.types.d.ts`,
+                    getContents: generateTypes,
+                    options: {
+                        clientType: clientType as ShopifyClientType,
+                        clientConfig,
+                    },
+                })
+
+                addTypeTemplate<ShopifyTypeTemplateOptions>({
+                    filename: `types/${clientType}.operations.d.ts`,
+                    getContents: generateOperations,
+                    options: {
+                        clientType: clientType as ShopifyClientType,
+                        clientConfig,
+                    },
+                })
+            }
 
             logger.success('Finished shopify setup')
         }

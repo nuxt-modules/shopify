@@ -1,4 +1,4 @@
-query GetProducts($first: Int!, $after: String) {
+query GetProducts2($first: Int!, $after: String) {
     products(first: $first, after: $after) {
         nodes {
             id

@@ -1,66 +1,56 @@
-import type { CodegenConfig } from '@graphql-codegen/cli'
-import type { ModuleOptions, ShopifyClientType, ShopifyConfig } from '~/src/types'
+import type { ModuleOptions, ShopifyConfig } from '~/src/types'
 
-import { type ApiType, shopifyApiTypes } from '@shopify/api-codegen-preset'
 import defu from 'defu'
-import { upperFirst } from 'scule'
+
+export enum ShopifyClientType {
+    Storefront = 'storefront',
+    Admin = 'admin',
+}
+
+export const getCodegenDocuments = (clientType: ShopifyClientType) => {
+    const ignores = [
+        '!node_modules',
+        '!.output',
+        '!.nuxt',
+    ]
+
+    switch (clientType) {
+        case ShopifyClientType.Storefront:
+            return [
+                '**/*.{gql,graphql,ts,js}',
+                '!**/*.admin.{gql,graphql,ts,js}',
+                ...ignores,
+            ]
+        case ShopifyClientType.Admin:
+            return [
+                '**/*.admin.{gql,graphql,ts,js}',
+                ...ignores,
+            ]
+        default:
+            return ignores
+    }
+}
 
 export const useShopifyConfig = (options: ModuleOptions): ShopifyConfig => {
-    const getCodegenConfig = (key: ShopifyClientType, customDocuments: string[] = []) => {
-        const clientOptions = options.clients?.[key]
-        if (!clientOptions || clientOptions.codegen === false) return
-
-        let result = {
-            apiType: upperFirst(key) as ApiType,
-            apiVersion: clientOptions.apiVersion,
-            documents: [
-                '!node_modules',
-                '!.nuxt',
-                '!dist',
-                ...customDocuments,
-                `**/*.${key}.{gql,graphql,ts,js}`,
-            ],
-        }
-
-        // If there are custom options, merge them with the defaults
-        if (clientOptions.codegen !== undefined && clientOptions.codegen !== true) {
-            result = defu(result, clientOptions.codegen)
-        }
-
-        return shopifyApiTypes(result)
-    }
-
-    const getClientConfig = <T extends ShopifyClientType>(key: T, customDocuments: string[] = []) => {
-        const clientOptions = options.clients?.[key]
+    const getClientConfig = <T extends ShopifyClientType>(clientType: T) => {
+        const clientOptions = options.clients?.[clientType] as ShopifyConfig['clients'][T]
         if (!clientOptions) return
 
-        return defu(
-            clientOptions,
-            {
-                storeDomain: `https://${options.name}.myshopify.com/api/${clientOptions.apiVersion}/graphql.json`,
-                codegen: getCodegenConfig(key, customDocuments),
-            },
-        ) as ShopifyConfig['clients'][T]
+        clientOptions.storeDomain = `https://${options.name}.myshopify.com`
+        clientOptions.documents = defu(
+            clientOptions.documents,
+            getCodegenDocuments(clientType),
+        )
+
+        return clientOptions
     }
 
     return {
         name: options.name,
         debug: options.debug,
         clients: {
-            storefront: getClientConfig('storefront', [
-                '**/!(*.admin).{gql,graphql,ts,js}',
-            ]),
-            admin: getClientConfig('admin'),
+            storefront: getClientConfig(ShopifyClientType.Storefront),
+            admin: getClientConfig(ShopifyClientType.Admin),
         },
     } satisfies ShopifyConfig
-}
-
-export function removePreset(config?: CodegenConfig['generates']) {
-    for (const [filename, codegenConfig] of Object.entries(config ?? {})) {
-        if (!filename.endsWith('.generated.d.ts') || Array.isArray(codegenConfig)) {
-            continue
-        }
-
-        delete codegenConfig.preset
-    }
 }

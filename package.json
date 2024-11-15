@@ -29,7 +29,7 @@
         "preview:docs": "vitepress preview docs",
         "lint": "eslint .",
         "typecheck": "nuxi typecheck",
-        "cleanup": "pnpm run --filter=./playgrounds/playground cleanup && nuxi cleanup",
+        "cleanup": "pnpm run --filter=./playgrounds/playground cleanup && nuxi cleanup && rm -rf node_modules",
         "prepare": "nuxt-module-build prepare && nuxt-module-build build --stub",
         "prepare:dev": "pnpm run --filter=./playgrounds/* prepare",
         "postinstall": "pnpm run prepare"
@@ -38,7 +38,9 @@
         "@nuxt/kit": "^3.14.159"
     },
     "devDependencies": {
-        "@types/node": "latest",
+        "@fontsource-variable/sono": "^5.1.0",
+        "@graphql-codegen/cli": "^5.0.3",
+        "@graphql-codegen/import-types-preset": "^3.0.0",
         "@nuxt/eslint-config": "^0.6.1",
         "@nuxt/module-builder": "^0.8.4",
         "@nuxt/schema": "^3.14.159",
@@ -46,8 +48,7 @@
         "@shopify/admin-api-client": "^1.0.4",
         "@shopify/api-codegen-preset": "^1.1.2",
         "@shopify/storefront-api-client": "^1.0.3",
-        "@fontsource-variable/sono": "^5.1.0",
-        "@graphql-codegen/cli": "^5.0.3",
+        "@types/node": "latest",
         "eslint": "^9.14.0",
         "nuxt": "^3.14.159",
         "vitepress": "^1.5.0",

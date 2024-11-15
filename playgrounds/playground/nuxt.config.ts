@@ -2,18 +2,12 @@ await import('dotenv').then(({ config }) => config())
 
 export default defineNuxtConfig({
     modules: [
-        '../src/module',
+        '../../src/module',
     ],
 
     srcDir: 'src/',
 
     compatibilityDate: '2024-11-07',
-
-    hooks: {
-        'shopify:codegen:generate': ({ nuxt, generates }) => {
-            console.log('cpt hook: ', generates)
-        },
-    },
 
     shopify: {
         name: process.env.NUXT_SHOPIFY_NAME,

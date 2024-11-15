@@ -32,7 +32,7 @@ Add the module to your `nuxt.config.ts`:
 ```ts
 export default defineNuxtConfig({
   modules: [
-    '@konkonam/nuxt-shopify',
+    'nuxt-shopify',
   ],
 })
 ```
@@ -43,7 +43,6 @@ Add your Shopify configuration to the `nuxt.config.ts`:
 export default defineNuxtConfig({
   shopify: {
     name: 'quickstart-abcd1234',
-    debug: true,
     clients: {
       storefront: {
         apiVersion: '2024-10',
