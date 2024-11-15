@@ -1,5 +1,5 @@
 {
-    "name": "nuxt-shopify",
+    "name": "@konkonam/nuxt-shopify",
     "version": "0.0.1",
     "license": "MIT",
     "type": "module",
@@ -31,8 +31,7 @@
         "typecheck": "nuxi typecheck",
         "cleanup": "pnpm run --filter=./playgrounds/playground cleanup && nuxi cleanup && rm -rf node_modules",
         "prepare": "nuxt-module-build prepare && nuxt-module-build build --stub",
-        "prepare:dev": "pnpm run --filter=./playgrounds/* prepare",
-        "postinstall": "pnpm run prepare"
+        "prepare:dev": "pnpm run --filter=./playgrounds/* prepare"
     },
     "dependencies": {
         "@nuxt/kit": "^3.14.159"

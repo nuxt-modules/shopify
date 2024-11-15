@@ -45,12 +45,16 @@ export const useShopifyConfig = (options: ModuleOptions): ShopifyConfig => {
         return clientOptions
     }
 
+    const storefront = getClientConfig(ShopifyClientType.Storefront)
+    const admin = getClientConfig(ShopifyClientType.Admin)
+
     return {
         name: options.name,
         debug: options.debug,
         clients: {
-            storefront: getClientConfig(ShopifyClientType.Storefront),
-            admin: getClientConfig(ShopifyClientType.Admin),
+            ...(storefront && { storefront }),
+            ...(admin && { admin }),
+
         },
     } satisfies ShopifyConfig
 }

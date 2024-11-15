@@ -31,9 +31,9 @@ export default defineNuxtModule<ModuleOptions>({
     },
 
     hooks: {
-        'prepare:types': async () => {
+        'builder:watch': async (event, file) => {
             await updateTemplates({
-                filter: (data) => data.filename.endsWith('.schema.json')
+                filter: (data) => data.filename.endsWith('gql')
             })
         }
     },
@@ -58,17 +58,18 @@ export default defineNuxtModule<ModuleOptions>({
             nuxt.options.runtimeConfig._shopify = config
 
             for (const [clientType, client] of Object.entries<ShopifyClientConfig>(config.clients)) {
-                const { skipCodegen, ...clientConfig } = client
+                if (client.skipCodegen) continue
 
-                if (skipCodegen) continue
+                delete client.skipCodegen
 
-                const template = addTemplate<ShopifyTypeTemplateOptions>({
-                    filename: `schemas/${clientType}.introspection.json`,
+                addTemplate<ShopifyTypeTemplateOptions>({
+                    filename: `schema/${clientType}.schema.json`,
                     getContents: generateIntrospection,
                     options: {
                         clientType: clientType as ShopifyClientType,
-                        clientConfig,
+                        clientConfig: client,
                     },
+                    write: true,
                 })
 
                 addTypeTemplate<ShopifyTypeTemplateOptions>({
@@ -76,7 +77,7 @@ export default defineNuxtModule<ModuleOptions>({
                     getContents: generateTypes,
                     options: {
                         clientType: clientType as ShopifyClientType,
-                        clientConfig,
+                        clientConfig: client,
                     },
                 })
 
@@ -85,7 +86,7 @@ export default defineNuxtModule<ModuleOptions>({
                     getContents: generateOperations,
                     options: {
                         clientType: clientType as ShopifyClientType,
-                        clientConfig,
+                        clientConfig: client,
                     },
                 })
             }

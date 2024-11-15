@@ -60,7 +60,7 @@ export const generateOperations: NuxtTemplate<ShopifyTypeTemplateOptions>['getCo
                 presetConfig: {
                     importTypes: {
                         namespace: `${upperFirst(data.options.clientType)}Types`,
-                        from: `#shopify/${data.options.clientType}`,
+                        from: `./${data.options.clientType}.types.d.ts`,
                     },
                     skipTypenameInOperations: true,
                     interfaceExtension: (params: InterfaceExtensionsParams) => {

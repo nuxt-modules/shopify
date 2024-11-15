@@ -40,7 +40,7 @@ export type ModuleOptions = {
     debug?: boolean
     clients: {
         [ShopifyClientType.Storefront]?: Omit<ShopifyStorefrontConfig, 'storeDomain'>
-        [ShopifyClientType.Admin]?: Omit<ShopifyStorefrontConfig, 'storeDomain'>
+        [ShopifyClientType.Admin]?: Omit<ShopifyAdminConfig, 'storeDomain'>
     }
 }
 

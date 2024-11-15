@@ -1,9 +1,9 @@
 <script setup lang="ts">
-const config = await useFetch('/api/config')
+const products = await useFetch('/api/products')
 const a = useRuntimeConfig()
 </script>
 
 <template>
-    <pre>{{ config }}</pre>
+    <pre>{{ products }}</pre>
     <pre>{{ a }}</pre>
 </template>
