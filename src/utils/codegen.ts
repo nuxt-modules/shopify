@@ -7,7 +7,6 @@ import { generate } from '@graphql-codegen/cli'
 import { useLogger } from '@nuxt/kit'
 import { preset } from '@shopify/graphql-codegen'
 import { upperFirst } from 'scule'
-import { join } from 'node:path';
 
 async function extractResult(input: Promise<Types.FileOutput[]>) {
     try {
@@ -21,7 +20,7 @@ async function extractResult(input: Promise<Types.FileOutput[]>) {
 
 const getInterfaceExtensionFunction = (clientType: ShopifyClientType, queryType: string, mutationType: string) => `
 declare module '@shopify/${clientType}-api-client' {
-    type InputMaybe<T> = upperFirst(clientType)Types.InputMaybe<T>
+    type InputMaybe<T> = ${upperFirst(clientType)}Types.InputMaybe<T>
     interface ${upperFirst(clientType)}Queries extends ${queryType} {}
     interface ${upperFirst(clientType)}Mutations extends ${mutationType} {}
 }
@@ -44,7 +43,7 @@ export const generateTypes: NuxtTemplate<ShopifyTypeTemplateOptions>['getContent
         ignoreNoDocuments: true,
         generates: {
             [`_${data.options.clientType}.types.d.ts`]: {
-                schema: join(data.nuxt.options.buildDir, `schemas/${data.options.clientType}.schema.json`),
+                schema: `https://shopify.dev/${data.options.clientType}-graphql-direct-proxy/${data.options.clientConfig.apiVersion}/`,
                 plugins: ['typescript'],
             },
         },
@@ -55,7 +54,7 @@ export const generateOperations: NuxtTemplate<ShopifyTypeTemplateOptions>['getCo
     return extractResult(generate({
         generates: {
             [`_${data.options.clientType}.operations.d.ts`]: {
-                schema: join(data.nuxt.options.buildDir, `schemas/${data.options.clientType}.schema.json`),
+                schema: `https://shopify.dev/${data.options.clientType}-graphql-direct-proxy/${data.options.clientConfig.apiVersion}/`,
                 preset,
                 documents: data.options.clientConfig.documents,
                 presetConfig: {

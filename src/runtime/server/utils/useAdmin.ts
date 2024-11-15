@@ -7,14 +7,6 @@ export function useAdmin() {
     const config = _shopify?.clients.admin
 
     if (!config) return
-    if (config.storeDomain === undefined) return
 
-    return createAdminApiClient({
-        storeDomain: config.storeDomain,
-        apiVersion: config.apiVersion,
-        retries: config.retries,
-        customFetchApi: config.customFetchApi,
-        logger: config.logger,
-        accessToken: config.accessToken,
-    })
+    return createAdminApiClient(config)
 }

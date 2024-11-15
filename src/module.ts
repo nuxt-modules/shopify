@@ -11,7 +11,7 @@ import {
     useLogger,
     defineNuxtModule,
     addTypeTemplate,
-    addTemplate,
+    addTemplate, updateTemplates,
 } from '@nuxt/kit'
 
 import {
@@ -31,8 +31,10 @@ export default defineNuxtModule<ModuleOptions>({
     },
 
     hooks: {
-        'prepare:types': ({}) => {
-
+        'prepare:types': async () => {
+            await updateTemplates({
+                filter: (data) => data.filename.endsWith('.schema.json')
+            })
         }
     },
 
@@ -62,11 +64,7 @@ export default defineNuxtModule<ModuleOptions>({
 
                 const template = addTemplate<ShopifyTypeTemplateOptions>({
                     filename: `schemas/${clientType}.introspection.json`,
-                    getContents: async (data) => {
-                        const introspection = await generateIntrospection(data)
-
-                        return introspection
-                    },
+                    getContents: generateIntrospection,
                     options: {
                         clientType: clientType as ShopifyClientType,
                         clientConfig,
