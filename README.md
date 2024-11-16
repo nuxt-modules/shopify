@@ -7,6 +7,7 @@
 
 Easily integrate shopify into your nuxt app.
 
+- [📚 &nbsp;Documentation](https://konkonam.github.io/nuxt-shopify)
 - [✨ &nbsp;Release Notes](https://github.com/konkonam/nuxt-shopify/tree/main/CHANGELOG.md)
 - [🏀 &nbsp;Online playground](https://stackblitz.com/github/konkonam/nuxt-shopify?file=playgrounds%2Fplayground%2Fnuxt.config.ts)
 
