@@ -9,21 +9,15 @@ declare enum ShopifyClientType {
     Admin = 'admin',
 }
 
-export type InterfaceExtensionsParams = {
-    queryType: string
-    mutationType: string
-}
-
 export type ShopifyStorefrontConfig = StorefrontOptions & {
     skipCodegen?: boolean
-    sandbox?: boolean
+    sandbox?: true
     documents?: string[]
 }
 
-
 export type ShopifyAdminConfig = AdminOptions & {
     skipCodegen?: boolean
-    sandbox?: boolean
+    sandbox?: true
     documents?: string[]
 }
 
@@ -46,12 +40,12 @@ export type ExposedShopifyConfig = ShopifyConfig<
     AdminOptions
 >
 
-export type ModuleOptions = ShopifyConfig<
-    Omit<ShopifyStorefrontConfig, 'storeDomain'>,
-    Omit<ShopifyAdminConfig, 'storeDomain'>
->
-
 export type ShopifyTypeTemplateOptions = {
     clientType: ShopifyClientType
     clientConfig: ShopifyClientConfig
+}
+
+export type InterfaceExtensionsParams = {
+    queryType: string
+    mutationType: string
 }
