@@ -15,15 +15,30 @@ export default defineConfig({
 
         nav: [
             { text: 'Home', link: '/' },
-            { text: 'Examples', link: '/markdown-examples' },
+            { text: 'Quickstart', link: '/quickstart' },
+            { text: 'Examples', link: '/examples' },
+            { text: 'Configuration', link: '/configuration' },
         ],
 
         sidebar: [
             {
+                text: 'Quickstart',
+                link: '/quickstart',
+            },
+            {
                 text: 'Examples',
+                link: '/examples',
                 items: [
-                    { text: 'Markdown Examples', link: '/markdown-examples' },
-                    { text: 'Runtime API Examples', link: '/api-examples' },
+                    { text: 'Storefront', link: '/examples/storefront' },
+                    { text: 'Admin', link: '/examples/admin' },
+                ],
+            },
+            {
+                text: 'Configuration',
+                link: '/configuration',
+                items: [
+                    { text: 'Module config', link: '/configuration/module' },
+                    { text: 'Codegen config', link: '/configuration/codegen' },
                 ],
             },
         ],

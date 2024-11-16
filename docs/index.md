@@ -17,6 +17,8 @@ hero:
 features:
   - title: Storefront
     details: "Integrate the shopify storefront API into your nuxt app"
+    link: "/examples/storefront"
   - title: Admin
     details: "Connect to the shopify admin API"
+    link: "/examples/admin"
 ---
