@@ -1,7 +1,7 @@
 import type {
     ShopifyClientType,
-    type ShopifyClientConfig,
-    type ShopifyTypeTemplateOptions,
+    ShopifyClientConfig,
+    ShopifyTypeTemplateOptions,
 } from '../types'
 import type { Nuxt } from '@nuxt/schema'
 

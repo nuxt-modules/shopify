@@ -1,1 +1,1 @@
-![An image](./.vitepress/assets/img/logo.png)
+![An image](.vitepress/public/logo.png)
