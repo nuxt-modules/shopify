@@ -10,7 +10,6 @@ import { ShopifyClientType } from '~/src/utils';
 import { createError, useRoute } from '#imports';
 import ApolloSandbox from '../components/ApolloSandbox.vue';
 
-
 const { meta } = useRoute()
 const clientType = meta.clientType as ShopifyClientType
 const clientConfig = meta.clientConfig as ShopifyClientConfig
@@ -19,7 +18,7 @@ let token = ''
 
 switch(clientType) {
     case 'storefront':
-        token = (clientConfig as StorefrontOptions).privateAccessToken ?? clientConfig.publicAccessToken
+        token = (clientConfig as StorefrontOptions).privateAccessToken ?? (clientConfig as StorefrontOptions).publicAccessToken ?? ''
 
         break
     case 'admin':

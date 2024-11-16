@@ -1,10 +1,6 @@
-import { loadEnv } from 'vite';
+import * as dotenv from 'dotenv'
 
-const env = await import('dotenv').then(({ config }) => config({
-    path: '../../.env'
-}))
-
-console.log(env)
+dotenv.config()
 
 export default defineNuxtConfig({
     modules: [
@@ -13,6 +9,10 @@ export default defineNuxtConfig({
 
     srcDir: 'src/',
 
+
+
+
+
     compatibilityDate: '2024-11-07',
 
     shopify: {
@@ -20,7 +20,6 @@ export default defineNuxtConfig({
         debug: true,
         clients: {
             storefront: {
-                skipCodegen: true,
                 apiVersion: process.env.SHOPIFY_STOREFRONT_API_VERSION ?? '2024-10',
                 publicAccessToken: process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN ?? '',
             },

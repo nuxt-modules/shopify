@@ -5,6 +5,11 @@ import type { HookResult, Nuxt } from '@nuxt/schema'
 import '@nuxt/schema'
 import 'nitropack'
 
+export type ModuleOptions = ShopifyConfig<
+    Omit<ShopifyStorefrontConfig, 'storeDomain'>,
+    Omit<ShopifyAdminConfig, 'storeDomain'>
+>
+
 export type ShopifyCodegenHookParams = {
     nuxt: Nuxt
     config: ShopifyConfig
@@ -42,4 +47,4 @@ declare module '@nuxt/schema' {
     }
 }
 
-export * from './module'
+export * from './shopify'

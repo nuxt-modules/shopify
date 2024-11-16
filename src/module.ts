@@ -16,8 +16,6 @@ import {
     useShopifyConfig,
 } from './utils'
 
-import { join } from 'node:path';
-
 export default defineNuxtModule<ModuleOptions>({
     meta: {
         name: 'nuxt-shopify',
@@ -48,7 +46,6 @@ export default defineNuxtModule<ModuleOptions>({
             const config = useShopifyConfig(options)
 
             addServerImportsDir(resolver.resolve('./runtime/server/utils'))
-            addServerImportsDir(resolver.resolve('./runtime/types'))
 
             for (const _clientType in config.clients) {
                 const clientType = _clientType as ShopifyClientType
@@ -73,7 +70,11 @@ export default defineNuxtModule<ModuleOptions>({
                         })
                     })
 
-                    logger.info(`Sandbox available at: ${join(nuxt.options.devServer.url, 'apollo-sandbox', clientType)}`)
+                    const url = new URL(nuxt.options.devServer.url).href
+                        + 'apollo-sandbox/'
+                        + clientType
+
+                    logger.info(`Sandbox available at: ${url}`)
                 }
 
                 delete clientConfig.skipCodegen
