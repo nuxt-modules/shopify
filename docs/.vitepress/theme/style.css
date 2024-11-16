@@ -6,8 +6,8 @@
 
   --vp-c-brand-1: #95BF47;
   --vp-c-brand-2: #5E8E3E;
-  --vp-c-brand-3: var(--vp-c-indigo-3);
-  --vp-c-brand-soft: var(--vp-c-indigo-soft);
+  --vp-c-brand-3: #486c2f;
+  --vp-c-brand-soft: var(--vp-c-brand-1);
 
   --vp-c-tip-1: var(--vp-c-brand-1);
   --vp-c-tip-2: var(--vp-c-brand-2);

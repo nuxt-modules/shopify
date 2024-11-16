@@ -3,7 +3,7 @@
 layout: home
 
 hero:
-  name: nuxt-shopify [wip]
+  name: nuxt-shopify
   text: "Easily integrate shopify into your nuxt app"
   tagline: "Handbook to get you started with the nuxt-shopify module"
   actions:
@@ -20,4 +20,3 @@ features:
   - title: Admin
     details: "Connect to the shopify admin API"
 ---
-
