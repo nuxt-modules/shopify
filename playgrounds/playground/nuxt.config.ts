@@ -9,10 +9,6 @@ export default defineNuxtConfig({
 
     srcDir: 'src/',
 
-
-
-
-
     compatibilityDate: '2024-11-07',
 
     hooks: {

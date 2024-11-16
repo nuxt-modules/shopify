@@ -1,21 +1,19 @@
-import {
+import type {
+    ShopifyClientType,
     type ShopifyClientConfig,
     type ShopifyTypeTemplateOptions,
-    ShopifyClientType,
-} from '../types';
+} from '../types'
+import type { Nuxt } from '@nuxt/schema'
 
-import type { Nuxt } from '@nuxt/schema';
-
-import { dirname } from 'node:path';
-import { basename } from 'node:path';
-import defu from 'defu';
-import { addTemplate, addTypeTemplate } from '@nuxt/kit';
+import { addTemplate, addTypeTemplate } from '@nuxt/kit'
+import defu from 'defu'
+import { dirname, basename } from 'node:path'
 
 import {
     generateIntrospection,
     generateOperations,
     generateTypes,
-} from './codegen';
+} from './codegen'
 
 export function registerTemplates<T extends ShopifyClientType>(nuxt: Nuxt, clientType: T, clientConfig: ShopifyClientConfig) {
     addTemplate<ShopifyTypeTemplateOptions>({
@@ -36,7 +34,6 @@ export function registerTemplates<T extends ShopifyClientType>(nuxt: Nuxt, clien
             clientConfig,
         },
     })
-
 
     const operations = addTypeTemplate<ShopifyTypeTemplateOptions>({
         filename: `types/${clientType}/${clientType}.operations.d.ts`,

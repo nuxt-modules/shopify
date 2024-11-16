@@ -1,4 +1,3 @@
-
 import { z } from 'zod'
 
 export const fetchProductsOptions = z.object({
@@ -11,11 +10,7 @@ export const fetchProductsOptions = z.object({
 })
 
 export default defineEventHandler(async () => {
-    const storefront = useStorefront();
-
-
-
-
+    const storefront = useStorefront()
 
     return await storefront.request(`
         #graphql
@@ -44,7 +39,7 @@ export default defineEventHandler(async () => {
         }
     `, {
         variables: {
-            first: 1
+            first: 1,
         },
     })
 })

@@ -28,9 +28,9 @@ export default defineNuxtModule<ModuleOptions>({
     hooks: {
         'builder:watch': async (event, file) => {
             await updateTemplates({
-                filter: (data) => data.filename.endsWith('gql')
+                filter: data => data.filename.endsWith('gql'),
             })
-        }
+        },
     },
 
     async setup(options, nuxt) {
@@ -66,7 +66,7 @@ export default defineNuxtModule<ModuleOptions>({
                             name: `apollo-sandbox-${clientType}`,
                             file: resolver.resolve('./runtime/pages/apollo-sandbox.vue'),
                             path: `\/apollo-sandbox/${clientType}`,
-                            meta: { clientType, clientConfig }
+                            meta: { clientType, clientConfig },
                         })
                     })
 

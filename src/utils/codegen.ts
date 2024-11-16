@@ -1,7 +1,7 @@
+import type { ShopifyClientType } from './config'
+import type { InterfaceExtensionsParams, ShopifyTypeTemplateOptions } from '../types'
 import type { Types } from '@graphql-codegen/plugin-helpers'
 import type { NuxtTemplate } from '@nuxt/schema'
-import type { InterfaceExtensionsParams, ShopifyTypeTemplateOptions } from '../types'
-import type { ShopifyClientType } from './config'
 
 import { generate } from '@graphql-codegen/cli'
 import { useLogger } from '@nuxt/kit'

@@ -1,4 +1,7 @@
+import { createResolver } from '@nuxt/kit'
 import { defineConfig } from 'vitepress'
+
+const resolver = createResolver(import.meta.url)
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
@@ -9,7 +12,7 @@ export default defineConfig({
     base: '/nuxt-shopify/',
 
     themeConfig: {
-        logo: './.vitepress/assets/img/logo-small.png',
+        logo: './assets/img/logo-small.png',
 
         editLink: {
             pattern: 'https://github.com/konkonam/nuxt-shopify/edit/main/docs/:path',
