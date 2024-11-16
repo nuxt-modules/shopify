@@ -12,10 +12,11 @@ Easily integrate shopify into your nuxt app.
 
 ## 🚀 Features
 
-- Plug & play shopify integration
+- Plug & play Shopify integration
 - Nuxt 3 & 4 ready
-- GraphQL generated types
+- Customizable GraphQL code generation
 - Storefront and Admin API support
+- Automatic schema updates
 
 > [!NOTE]
 > This module is still a work in progress. Stable release coming soon.
@@ -78,7 +79,7 @@ schema:
 
 ### Access APIs via Nitro endpoints
 
-The module exposes utilities to access each API via Nitro endpoints:
+The module exposes utilities to access each API via Nitro endpoints.
 
 #### Storefront API example
 
