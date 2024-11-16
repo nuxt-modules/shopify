@@ -3,7 +3,11 @@ import { defineConfig } from 'vitepress'
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
     title: 'Nuxt Shopify',
+
     description: 'Handbook to get you started with the nuxt-shopify module',
+
+    base: '/nuxt-shopify/',
+
     themeConfig: {
         logo: './.vitepress/assets/img/logo-small.png',
 
