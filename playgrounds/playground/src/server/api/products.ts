@@ -1,4 +1,4 @@
-import { useStorefront } from '#imports';
+import { useStorefront } from '#imports'
 
 export type FetchProductsOptions = {
     after: string
@@ -11,8 +11,6 @@ export type FetchProductsOptions = {
 
 export default defineEventHandler(async () => {
     const storefront = useStorefront()
-
-
 
     return await storefront.request(`
         #graphql
@@ -41,7 +39,7 @@ export default defineEventHandler(async () => {
         }
     `, {
         variables: {
-            first: 1
+            first: 1,
         },
     })
 })

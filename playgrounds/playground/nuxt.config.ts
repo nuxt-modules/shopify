@@ -7,6 +7,12 @@ export default defineNuxtConfig({
 
     compatibilityDate: '2024-11-07',
 
+    hooks: {
+        'shopify:config': ({ nuxt, config }) => {
+            // Adjust the module config as you like
+        },
+    },
+
     shopify: {
         name: process.env.SHOPIFY_STORE_NAME ?? 'quickstart-a5b1ec22',
         debug: true,

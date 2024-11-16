@@ -10,16 +10,17 @@ Easily integrate shopify into your nuxt app.
 - [✨ &nbsp;Release Notes](https://github.com/konkonam/nuxt-shopify/tree/main/CHANGELOG.md)
 - [🏀 &nbsp;Online playground](https://stackblitz.com/github/konkonam/nuxt-shopify?file=playgrounds%2Fplayground%2Fnuxt.config.ts)
 
-## Features ✨
+## 🚀 Features
 
+- Plug & play shopify integration
 - Nuxt 3 & 4 ready
 - GraphQL generated types
 - Storefront and Admin API support
 
 > [!NOTE]
-> This module is an early work in progress. Stable release coming soon.
+> This module is still a work in progress. Stable release coming soon.
 
-## Setup
+## 📦 Setup
 
 Run the following command to install the module in your project:
 
@@ -46,8 +47,9 @@ export default defineNuxtConfig({
     clients: {
       storefront: {
         apiVersion: '2024-10',
-        accessToken: 'YOUR_ACCESS_TOKEN',
+        publicAccessToken: 'YOUR_ACCESS_TOKEN',
       },
+
       admin: {
         apiVersion: '2024-10',
         accessToken: 'YOUR_ACCESS_TOKEN',
@@ -57,20 +59,92 @@ export default defineNuxtConfig({
 })
 ```
 
-That's it! The module will now generare the types for you. 
+## 🛠️ Usage
 
-## Usage
+### Type generation
 
-TODO: Add instructions for usage
+Once installed, the module automatically generates your GraphQL types and saves them in:
+- .nuxt/types — Type definitions
+- .nuxt/schema — GraphQL schema files
 
-## Contributing
+To enable IDE support, add a GraphQL configuration file:
+
+```yaml
+# graphql.config.yml
+schema:
+  - ./.nuxt/schema/storefront.schema.json
+  - ./.nuxt/schema/admin.schema.json
+```
+
+### Access APIs via Nitro endpoints
+
+The module exposes utilities to access each API via Nitro endpoints:
+
+#### Storefront API example
+
+```typescript
+export default defineEventHandler(async () => {
+    const storefront = useStorefront()
+
+    return await storefront.request(...)
+})
+```
+
+#### Admin API example
+
+```typescript
+export default defineEventHandler(async () => {
+    const admin = useAdmin()
+
+    return await admin.request(...)
+})
+```
+
+### Advanced configuration
+
+Customize Shopify and GraphQL code generation via Nuxt hooks.
+
+#### Modify Shopify configuration
+
+```typescript
+export default defineNuxtConfig({
+    hooks: {
+        'shopify:config': ({ nuxt, config }) => {
+            // Modify Shopify config here
+        },
+    },
+})
+```
+
+#### Modify GraphQL codegen configuration
+
+```typescript
+export default defineNuxtConfig({
+    hooks: {
+        'shopify:codegen': ({ nuxt, generates }) => {
+            // Modify GraphQL codegen config here
+        },
+    },
+})
+```
+
+[GraphQL codegen config reference](https://the-guild.dev/graphql/codegen/docs/config-reference/codegen-config)
+
+## 🤝 Contributing
 
 1. Clone this repository
-2. Install dependencies using `pnpm install` (install `pnpm` with `corepack enable`, [learn more](https://pnpm.io/installation#using-corepack))
+2. Install dependencies using:
+    ```bash
+    pnpm install
+    ```
+    (Make sure pnpm is enabled with `corepack enable`. [Learn more](https://pnpm.io/installation#using-corepack).)
 3. Run `pnpm run dev:prepare` to generate type stubs.
-4. Use `pnpm run dev` to start the default [playground](https://github.com/konkonam/nuxt-shopify/tree/main/playgrounds/playground) in development mode.
+4. Start the default [playground](https://github.com/konkonam/nuxt-shopify/tree/main/playgrounds/playground) with:
+    ```bash
+   pnpm run dev
+    ```
 
-## License
+## 📜 License
 
 Published under the [MIT License](https://github.com/konkonam/nuxt-shopify/tree/main/LICENSE).
 
