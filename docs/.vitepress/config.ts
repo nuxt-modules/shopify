@@ -9,8 +9,6 @@ export default defineConfig({
     base: '/nuxt-shopify/',
 
     themeConfig: {
-        logo: '/logo-small.png',
-
         editLink: {
             pattern: 'https://github.com/konkonam/nuxt-shopify/edit/main/docs/:path',
         },

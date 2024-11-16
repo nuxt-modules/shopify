@@ -1,4 +1,4 @@
-![nuxt-shopify](https://raw.githubusercontent.com/konkonam/nuxt-shopify/refs/heads/main/docs/.vitepress/public/logo-small.png)
+![nuxt-shopify](https://raw.githubusercontent.com/konkonam/nuxt-shopify/refs/heads/main/docs/public/logo-small.png)
 
 # Nuxt Shopify
 
