@@ -2,6 +2,7 @@
 
 # Nuxt Shopify
 
+[![Github Actions][github-actions-src]][github-actions-href]
 [![License][license-src]][license-href]
 [![Nuxt][nuxt-src]][nuxt-href]
 
@@ -149,6 +150,9 @@ export default defineNuxtConfig({
 ## 📜 License
 
 Published under the [MIT License](https://github.com/konkonam/nuxt-shopify/tree/main/LICENSE).
+
+[github-actions-src]: https://github.com/konkonam/nuxt-shopify/actions/workflows/release.yml/badge.svg
+[github-actions-href]: https://github.com/konkonam/nuxt-shopify/actions
 
 [license-src]: https://img.shields.io/github/license/konkonam/nuxt-shopify.svg?style=flat&colorA=18181B&colorB=28CF8D
 [license-href]: https://github.com/konkonam/nuxt-shopify/tree/main/LICENSE

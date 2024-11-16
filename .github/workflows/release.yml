@@ -1,4 +1,4 @@
-name: 'Release module'
+name: 'Release'
 
 on:
   push:
@@ -28,6 +28,9 @@ jobs:
 
       - name: Typecheck
         run: pnpm run typecheck
+
+      - name: Test
+        run: pnpm run test
 
       - name: Release module
         run: pnpm release
