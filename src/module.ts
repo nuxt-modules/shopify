@@ -1,8 +1,6 @@
 import type {
     ModuleOptions,
-    ShopifyClientConfig,
     ShopifyClientType,
-    ShopifyTypeTemplateOptions,
 } from './types'
 
 import {
@@ -10,16 +8,15 @@ import {
     createResolver,
     useLogger,
     defineNuxtModule,
-    addTypeTemplate,
-    addTemplate, updateTemplates,
+    updateTemplates,
 } from '@nuxt/kit'
 
 import {
-    generateIntrospection,
-    generateOperations,
-    generateTypes,
+    registerTemplates,
     useShopifyConfig,
 } from './utils'
+
+import { join } from 'node:path';
 
 export default defineNuxtModule<ModuleOptions>({
     meta: {
@@ -47,49 +44,46 @@ export default defineNuxtModule<ModuleOptions>({
         else {
             logger.info('Starting shopify setup')
 
+            const resolver = createResolver(import.meta.url)
             const config = useShopifyConfig(options)
 
-            addServerImportsDir(
-                createResolver(import.meta.url).resolve('./runtime/server/utils'),
-            )
+            addServerImportsDir(resolver.resolve('./runtime/server/utils'))
+            addServerImportsDir(resolver.resolve('./runtime/types'))
+
+            for (const _clientType in config.clients) {
+                const clientType = _clientType as ShopifyClientType
+                const clientConfig = config.clients[clientType]
+
+                if (!clientConfig) continue
+
+                if (!clientConfig.skipCodegen) {
+                    registerTemplates(nuxt, clientType, clientConfig)
+                }
+                else {
+                    logger.info(`Skipping type generation for ${clientType}`)
+                }
+
+                if (clientConfig.sandbox) {
+                    nuxt.hooks.hook('pages:extend', (pages) => {
+                        pages.push({
+                            name: `apollo-sandbox-${clientType}`,
+                            file: resolver.resolve('./runtime/pages/apollo-sandbox.vue'),
+                            path: `\/apollo-sandbox/${clientType}`,
+                            meta: { clientType, clientConfig }
+                        })
+                    })
+
+                    logger.info(`Sandbox available at: ${join(nuxt.options.devServer.url, 'apollo-sandbox', clientType)}`)
+                }
+
+                delete clientConfig.skipCodegen
+                delete clientConfig.sandbox
+                delete clientConfig.documents
+            }
 
             await nuxt.callHook('shopify:config', { nuxt, config })
 
             nuxt.options.runtimeConfig._shopify = config
-
-            for (const [clientType, client] of Object.entries<ShopifyClientConfig>(config.clients)) {
-                if (client.skipCodegen) continue
-
-                delete client.skipCodegen
-
-                addTemplate<ShopifyTypeTemplateOptions>({
-                    filename: `schema/${clientType}.schema.json`,
-                    getContents: generateIntrospection,
-                    options: {
-                        clientType: clientType as ShopifyClientType,
-                        clientConfig: client,
-                    },
-                    write: true,
-                })
-
-                addTypeTemplate<ShopifyTypeTemplateOptions>({
-                    filename: `types/${clientType}.types.d.ts`,
-                    getContents: generateTypes,
-                    options: {
-                        clientType: clientType as ShopifyClientType,
-                        clientConfig: client,
-                    },
-                })
-
-                addTypeTemplate<ShopifyTypeTemplateOptions>({
-                    filename: `types/${clientType}.operations.d.ts`,
-                    getContents: generateOperations,
-                    options: {
-                        clientType: clientType as ShopifyClientType,
-                        clientConfig: client,
-                    },
-                })
-            }
 
             logger.success('Finished shopify setup')
         }

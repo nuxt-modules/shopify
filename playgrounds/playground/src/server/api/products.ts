@@ -1,5 +1,5 @@
 import { useStorefront } from '#imports';
-
+import { ProductConnection} from '#shopify/storefront';
 export type FetchProductsOptions = {
     after: string
     before: string
@@ -11,8 +11,6 @@ export type FetchProductsOptions = {
 
 export default defineEventHandler(async () => {
     const storefront = useStorefront()
-
-
 
     return await storefront.request(`
         #graphql

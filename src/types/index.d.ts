@@ -1,4 +1,4 @@
-import type { ShopifyConfig } from './module'
+import type { ExposedShopifyConfig, ShopifyConfig } from './module'
 import type { CodegenConfig } from '@graphql-codegen/cli'
 import type { HookResult, Nuxt } from '@nuxt/schema'
 
@@ -17,12 +17,12 @@ export type ShopifyCodegenResolvedHookParams = {
 
 export type ShopifyConfigHookParams = {
     nuxt: Nuxt
-    config: ShopifyConfig
+    config: ExposedShopifyConfig
 }
 
 declare module '@nuxt/schema' {
     interface RuntimeConfig {
-        _shopify?: ShopifyConfig
+        _shopify?: ExposedShopifyConfig
     }
 
     interface NuxtHooks {

@@ -16,33 +16,40 @@ export type InterfaceExtensionsParams = {
 
 export type ShopifyStorefrontConfig = StorefrontOptions & {
     skipCodegen?: boolean
+    sandbox?: boolean
     documents?: string[]
 }
 
+
 export type ShopifyAdminConfig = AdminOptions & {
     skipCodegen?: boolean
+    sandbox?: boolean
     documents?: string[]
 }
 
 export type ShopifyClientConfig = ShopifyStorefrontConfig | ShopifyAdminConfig
 
-export type ShopifyConfig = {
+export type ShopifyConfig<
+    StorefrontConfig = ShopifyStorefrontConfig,
+    AdminConfig = ShopifyAdminConfig,
+> = {
     name: string
     debug?: boolean
     clients: {
-        [ShopifyClientType.Storefront]?: ShopifyStorefrontConfig
-        [ShopifyClientType.Admin]?: ShopifyAdminConfig
+        [ShopifyClientType.Storefront]?: StorefrontConfig
+        [ShopifyClientType.Admin]?: AdminConfig
     }
 }
 
-export type ModuleOptions = {
-    name: string
-    debug?: boolean
-    clients: {
-        [ShopifyClientType.Storefront]?: Omit<ShopifyStorefrontConfig, 'storeDomain'>
-        [ShopifyClientType.Admin]?: Omit<ShopifyAdminConfig, 'storeDomain'>
-    }
-}
+export type ExposedShopifyConfig = ShopifyConfig<
+    StorefrontOptions,
+    AdminOptions
+>
+
+export type ModuleOptions = ShopifyConfig<
+    Omit<ShopifyStorefrontConfig, 'storeDomain'>,
+    Omit<ShopifyAdminConfig, 'storeDomain'>
+>
 
 export type ShopifyTypeTemplateOptions = {
     clientType: ShopifyClientType
