@@ -1,9 +1,14 @@
-import type { ShopifyConfig } from './module'
+import type { ExposedShopifyConfig, ShopifyConfig } from './module'
 import type { CodegenConfig } from '@graphql-codegen/cli'
 import type { HookResult, Nuxt } from '@nuxt/schema'
 
 import '@nuxt/schema'
 import 'nitropack'
+
+export type ModuleOptions = ShopifyConfig<
+    Omit<ShopifyStorefrontConfig, 'storeDomain'>,
+    Omit<ShopifyAdminConfig, 'storeDomain'>
+>
 
 export type ShopifyCodegenHookParams = {
     nuxt: Nuxt
@@ -17,12 +22,12 @@ export type ShopifyCodegenResolvedHookParams = {
 
 export type ShopifyConfigHookParams = {
     nuxt: Nuxt
-    config: ShopifyConfig
+    config: ExposedShopifyConfig
 }
 
 declare module '@nuxt/schema' {
     interface RuntimeConfig {
-        _shopify?: ShopifyConfig
+        _shopify?: ExposedShopifyConfig
     }
 
     interface NuxtHooks {
@@ -42,4 +47,4 @@ declare module '@nuxt/schema' {
     }
 }
 
-export * from './module'
+export * from './shopify'

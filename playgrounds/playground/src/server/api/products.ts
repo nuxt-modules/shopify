@@ -1,16 +1,21 @@
-import { useStorefront } from '#imports'
 
-export type FetchProductsOptions = {
-    after: string
-    before: string
-    first: number
-    last: number
-    query: string
-    reverse: boolean
-}
+import { z } from 'zod'
+
+export const fetchProductsOptions = z.object({
+    after: z.string().optional(),
+    before: z.string().optional(),
+    first: z.number().optional(),
+    last: z.number().optional(),
+    query: z.string().optional(),
+    reverse: z.boolean().optional(),
+})
 
 export default defineEventHandler(async () => {
-    const storefront = useStorefront()
+    const storefront = useStorefront();
+
+
+
+
 
     return await storefront.request(`
         #graphql
@@ -39,7 +44,7 @@ export default defineEventHandler(async () => {
         }
     `, {
         variables: {
-            first: 1,
+            first: 1
         },
     })
 })

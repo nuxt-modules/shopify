@@ -1,7 +1,7 @@
 import type { Types } from '@graphql-codegen/plugin-helpers'
 import type { NuxtTemplate } from '@nuxt/schema'
-import type { InterfaceExtensionsParams, ShopifyTypeTemplateOptions } from '~/src/types'
-import type { ShopifyClientType } from '~/src/utils'
+import type { InterfaceExtensionsParams, ShopifyTypeTemplateOptions } from '../types'
+import type { ShopifyClientType } from './config'
 
 import { generate } from '@graphql-codegen/cli'
 import { useLogger } from '@nuxt/kit'
@@ -29,6 +29,7 @@ declare module '@shopify/${clientType}-api-client' {
 export const generateIntrospection: NuxtTemplate<ShopifyTypeTemplateOptions>['getContents'] = async (data) => {
     return extractResult(generate({
         ignoreNoDocuments: true,
+        silent: true,
         generates: {
             [`_${data.options.clientType}.schema.json`]: {
                 schema: `https://shopify.dev/${data.options.clientType}-graphql-direct-proxy/${data.options.clientConfig.apiVersion}/`,
@@ -41,6 +42,7 @@ export const generateIntrospection: NuxtTemplate<ShopifyTypeTemplateOptions>['ge
 export const generateTypes: NuxtTemplate<ShopifyTypeTemplateOptions>['getContents'] = async (data) => {
     return extractResult(generate({
         ignoreNoDocuments: true,
+        silent: true,
         generates: {
             [`_${data.options.clientType}.types.d.ts`]: {
                 schema: `https://shopify.dev/${data.options.clientType}-graphql-direct-proxy/${data.options.clientConfig.apiVersion}/`,
@@ -52,6 +54,7 @@ export const generateTypes: NuxtTemplate<ShopifyTypeTemplateOptions>['getContent
 
 export const generateOperations: NuxtTemplate<ShopifyTypeTemplateOptions>['getContents'] = async (data) => {
     return extractResult(generate({
+        silent: true,
         generates: {
             [`_${data.options.clientType}.operations.d.ts`]: {
                 schema: `https://shopify.dev/${data.options.clientType}-graphql-direct-proxy/${data.options.clientConfig.apiVersion}/`,

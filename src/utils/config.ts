@@ -1,4 +1,4 @@
-import type { ModuleOptions, ShopifyConfig } from '~/src/types'
+import type { ModuleOptions, ShopifyConfig } from '../types'
 
 import defu from 'defu'
 
@@ -37,6 +37,7 @@ export const useShopifyConfig = (options: ModuleOptions): ShopifyConfig => {
         if (!clientOptions) return
 
         clientOptions.storeDomain = `https://${options.name}.myshopify.com`
+        clientOptions.sandbox = !!(clientOptions.sandbox === undefined || clientOptions.sandbox)
         clientOptions.documents = defu(
             clientOptions.documents,
             getCodegenDocuments(clientType),
