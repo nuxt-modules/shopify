@@ -34,9 +34,6 @@ export default defineNuxtModule<ModuleOptions>({
                 filter: template => template.filename.endsWith('.operations.d.ts'),
             })
         },
-        'app:templatesGenerated': async (nuxt, templates, options) => {
-
-        },
     },
 
     async setup(options, nuxt) {

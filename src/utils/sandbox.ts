@@ -29,14 +29,14 @@ export function getApiHeaders<T extends ShopifyClientType>(clientType: T, client
 
     switch (clientType) {
         case 'storefront':
+            accessTokenKey = 'X-Shopify-Storefront-Access-Token'
             // @ts-expect-error is validated by params
             accessTokenValue = clientConfig.privateAccessToken ?? clientConfig.publicAccessToken
-            accessTokenKey = 'X-Shopify-Storefront-Access-Token'
             break
         case 'admin':
+            accessTokenKey = 'X-Shopify-Access-Token'
             // @ts-expect-error is validated by params
             accessTokenValue = clientConfig.accessToken
-            accessTokenKey = 'X-Shopify-Access-Token'
             break
         default:
             throw new Error('Unknown client type')
@@ -58,9 +58,6 @@ export function installApolloSandbox<T extends ShopifyClientType>(
     // Call early to throw errors in this setup step
     const apiUrl = getApiUrl(clientConfig)
     const apiHeaders = getApiHeaders(clientType, clientConfig)
-
-    console.log(apiHeaders)
-    console.log(apiUrl)
 
     nuxt.hooks.hook('pages:extend', (pages) => {
         pages.push({

@@ -38,9 +38,6 @@ export type ShopifyConfig<S = ShopifyStorefrontConfig, A = ShopifyAdminConfig> =
 // Any client config
 export type ShopifyClientConfig = ShopifyStorefrontConfig | ShopifyAdminConfig
 
-// Config that is exposed to the runtime after setup
-export type ExposedShopifyConfig = ShopifyConfig<StorefrontOptions, AdminOptions>
-
 // Options for custom templates
 export type ShopifyTypeTemplateOptions = {
     clientType: ShopifyClientType

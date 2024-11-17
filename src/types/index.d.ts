@@ -1,6 +1,13 @@
-import type { ExposedShopifyConfig, ShopifyConfig } from './shopify'
-import type { CodegenConfig } from '@graphql-codegen/cli'
+import type {
+    ShopifyAdminConfig,
+    ShopifyConfig,
+    ShopifyStorefrontConfig,
+} from './shopify'
 import type { HookResult, Nuxt } from '@nuxt/schema'
+import type {
+    AdminOptions,
+    StorefrontOptions,
+} from '~/src/types/shopify'
 
 import '@nuxt/schema'
 import 'nitropack'
@@ -10,36 +17,17 @@ export type ModuleOptions = ShopifyConfig<
     Omit<ShopifyAdminConfig, 'storeDomain'>
 >
 
-export type ShopifyCodegenHookParams = {
-    nuxt: Nuxt
-    config: ShopifyConfig
-}
-
-export type ShopifyCodegenResolvedHookParams = {
-    nuxt: Nuxt
-    generates: CodegenConfig['generates']
-}
-
 export type ShopifyConfigHookParams = {
     nuxt: Nuxt
-    config: ExposedShopifyConfig
+    config: ShopifyConfig<StorefrontOptions, AdminOptions>
 }
 
 declare module '@nuxt/schema' {
     interface RuntimeConfig {
-        _shopify?: ExposedShopifyConfig
+        _shopify?: ShopifyConfig<StorefrontOptions, AdminOptions>
     }
 
     interface NuxtHooks {
-        /**
-         * Call/Called to generate the storefront API types
-         * or manipulate the config before
-         * it is passed to the codegen.
-         */
-        'shopify:codegen': ({ nuxt, config }: ShopifyCodegenHookParams) => HookResult
-
-        'shopify:codegen:generate': ({ nuxt, generates }: ShopifyCodegenResolvedHookParams) => HookResult
-
         /**
          * Call/Called to persist the config into runtime.
          */
