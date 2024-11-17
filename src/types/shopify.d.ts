@@ -1,7 +1,7 @@
 import type { createAdminApiClient } from '@shopify/admin-api-client'
 import type { createStorefrontApiClient } from '@shopify/storefront-api-client'
 
-// @TODO Rethink the architecture, there are still some flaws to it
+// @TODO Rethink the architecture, as there are still some flaws to it
 
 type StorefrontOptions = Parameters<typeof createStorefrontApiClient>[0]
 type AdminOptions = Parameters<typeof createAdminApiClient>[0]
@@ -16,16 +16,14 @@ declare enum ShopifyClientType {
 // exposed via module options
 export type ShopifyClientCustomConfig = {
     skipCodegen?: boolean
-    sandbox?: true
+    sandbox?: boolean // defaults to true
     documents?: string[]
 }
 
 export type ShopifyStorefrontConfig = StorefrontOptions & ShopifyClientCustomConfig
 export type ShopifyAdminConfig = AdminOptions & ShopifyClientCustomConfig
 
-// Intermediate shopify config
-// Module options will omit the storeDomain from each client
-// Runtime config will omit the custom config from each client
+// Fully resolved shopify config
 export type ShopifyConfig<S = ShopifyStorefrontConfig, A = ShopifyAdminConfig> = {
     name: string
     debug?: boolean
@@ -39,12 +37,14 @@ export type ShopifyConfig<S = ShopifyStorefrontConfig, A = ShopifyAdminConfig> =
 export type ShopifyClientConfig = ShopifyStorefrontConfig | ShopifyAdminConfig
 
 // Options for custom templates
-export type ShopifyTypeTemplateOptions = {
+export type ShopifyTemplateOptions = {
+    filename: string
     clientType: ShopifyClientType
     clientConfig: ShopifyClientConfig
+    introspection?: string
 }
 
-// Params for the codegen interface extension function from shopify codegen preset
+// Params for the interface extension function from the shopify codegen preset
 export type InterfaceExtensionsParams = {
     queryType: string
     mutationType: string

@@ -20,7 +20,11 @@ export const useShopifyConfig = (options: ModuleOptions): ShopifyConfig => {
 
         clientOptions.storeDomain = `https://${options.name}.myshopify.com`
         clientOptions.sandbox = !!(clientOptions.sandbox === undefined || clientOptions.sandbox)
-        clientOptions.documents = defu(clientOptions.documents, documents)
+
+        clientOptions.documents = [
+            ...clientOptions.documents ?? [],
+            ...documents,
+        ]
 
         return clientOptions
     }

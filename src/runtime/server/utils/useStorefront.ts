@@ -4,11 +4,17 @@ import { useRuntimeConfig } from '#imports'
 
 export function useStorefront() {
     const { _shopify } = useRuntimeConfig()
-    const config = _shopify?.clients.storefront
 
-    if (!config) {
+    if (!_shopify?.clients.storefront) {
         throw new Error('Could not create storefront client')
     }
 
-    return createStorefrontApiClient(config)
+    const {
+        skipCodegen: _skipCodegen,
+        sandbox: _sandbox,
+        documents: _documents,
+        ...options
+    } = _shopify.clients.storefront
+
+    return createStorefrontApiClient(options)
 }

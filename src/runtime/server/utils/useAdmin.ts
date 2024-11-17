@@ -4,11 +4,17 @@ import { useRuntimeConfig } from '#imports'
 
 export function useAdmin() {
     const { _shopify } = useRuntimeConfig()
-    const config = _shopify?.clients.admin
 
-    if (!config) {
+    if (!_shopify?.clients.admin) {
         throw new Error('Could not create admin client')
     }
 
-    return createAdminApiClient(config)
+    const {
+        skipCodegen: _skipCodegen,
+        sandbox: _sandbox,
+        documents: _documents,
+        ...options
+    } = _shopify.clients.admin
+
+    return createAdminApiClient(options)
 }

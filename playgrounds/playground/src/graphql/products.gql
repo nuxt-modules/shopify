@@ -3,6 +3,7 @@ query GetProducts2($first: Int!, $after: String) {
         nodes {
             id
             title
+
             descriptionHtml
         }
     }

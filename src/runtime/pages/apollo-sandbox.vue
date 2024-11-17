@@ -19,6 +19,7 @@ onMounted(() => {
         initialState: {
             includeCookies: false,
         },
+        runTelemetry: false,
         endpointIsEditable: false,
         handleRequest: (endpointUrl, options) => {
             return fetch(endpointUrl, {
@@ -26,6 +27,9 @@ onMounted(() => {
                 headers: {
                     ...options.headers,
                     ...props.apiHeaders,
+                    ...{
+                        'Access-Control-Allow-Origin': props.initialEndpoint,
+                    },
                 },
             })
         },

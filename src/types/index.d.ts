@@ -4,10 +4,6 @@ import type {
     ShopifyStorefrontConfig,
 } from './shopify'
 import type { HookResult, Nuxt } from '@nuxt/schema'
-import type {
-    AdminOptions,
-    StorefrontOptions,
-} from '~/src/types/shopify'
 
 import '@nuxt/schema'
 import 'nitropack'
@@ -19,12 +15,12 @@ export type ModuleOptions = ShopifyConfig<
 
 export type ShopifyConfigHookParams = {
     nuxt: Nuxt
-    config: ShopifyConfig<StorefrontOptions, AdminOptions>
+    config: ShopifyConfig
 }
 
 declare module '@nuxt/schema' {
     interface RuntimeConfig {
-        _shopify?: ShopifyConfig<StorefrontOptions, AdminOptions>
+        _shopify?: ShopifyConfig
     }
 
     interface NuxtHooks {

@@ -1,13 +1,19 @@
 import type {
     ShopifyClientType,
     ShopifyClientConfig,
-    ShopifyTypeTemplateOptions,
+    ShopifyTemplateOptions,
 } from '../types'
-import type { Nuxt } from '@nuxt/schema'
+import type { Nuxt, NuxtTemplate } from '@nuxt/schema'
 
-import { addTemplate, addTypeTemplate } from '@nuxt/kit'
+import {
+    addTemplate,
+    addTypeTemplate,
+    updateTemplates,
+} from '@nuxt/kit'
 import defu from 'defu'
-import { dirname, basename } from 'node:path'
+import { minimatch } from 'minimatch'
+import { readFile } from 'node:fs/promises'
+import { dirname, basename, join } from 'node:path'
 
 import {
     generateIntrospection,
@@ -15,42 +21,68 @@ import {
     generateTypes,
 } from './codegen'
 
+// wip
+export function setupWatcher(nuxt: Nuxt, template: NuxtTemplate<ShopifyTemplateOptions>) {
+    nuxt.hook('builder:watch', async (_event, file) => {
+        for (const document of template.options?.clientConfig?.documents ?? []) {
+            if (minimatch(file, document)) {
+                const content = await readFile(join(nuxt.options.srcDir, file), 'utf8')
+                    .catch(() => '')
+
+                if (content.includes('#graphql') || file.endsWith('.gql') || file.endsWith('.graphql')) {
+                    return updateTemplates({
+                        filter: t => t.filename === template.options?.filename,
+                    })
+                }
+            }
+        }
+    })
+}
+
 export function registerTemplates<T extends ShopifyClientType>(nuxt: Nuxt, clientType: T, clientConfig: ShopifyClientConfig) {
-    addTemplate<ShopifyTypeTemplateOptions>({
-        filename: `schema/${clientType}.schema.json`,
+    const introspectionFilename = `schema/${clientType}.schema.json`
+    const introspection = addTemplate<ShopifyTemplateOptions>({
+        filename: introspectionFilename,
         getContents: generateIntrospection,
         options: {
+            filename: introspectionFilename,
             clientType,
             clientConfig,
         },
         write: true,
     })
 
-    const types = addTypeTemplate<ShopifyTypeTemplateOptions>({
-        filename: `types/${clientType}/${clientType}.types.d.ts`,
+    const typesFilename = `types/${clientType}/${clientType}.types.d.ts`
+    const types = addTypeTemplate<ShopifyTemplateOptions>({
+        // @ts-expect-error wrong evaluation
+        filename: typesFilename,
         getContents: generateTypes,
         options: {
+            filename: typesFilename,
             clientType,
             clientConfig,
+            introspection: introspection.dst,
         },
     })
 
-    const operations = addTypeTemplate<ShopifyTypeTemplateOptions>({
-        filename: `types/${clientType}/${clientType}.operations.d.ts`,
+    const operationsFilename = `types/${clientType}/${clientType}.operations.d.ts`
+    const operations = addTypeTemplate<ShopifyTemplateOptions>({
+        // @ts-expect-error wrong evaluation
+        filename: operationsFilename,
         getContents: generateOperations,
         options: {
             clientType,
             clientConfig,
+            filename: operationsFilename,
+            introspection: introspection.dst,
         },
     })
 
-    const index = addTypeTemplate<ShopifyTypeTemplateOptions>({
+    setupWatcher(nuxt, operations)
+
+    const index = addTypeTemplate<ShopifyTemplateOptions>({
         filename: `types/${clientType}/index.d.ts`,
         getContents: () => `export * from './${basename(types.filename)}'\nexport * from './${basename(operations.filename)}'\n`,
-        options: {
-            clientType,
-            clientConfig,
-        },
     })
 
     nuxt.options.nitro.alias = defu(nuxt.options.nitro.alias, {

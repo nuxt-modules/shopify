@@ -7,7 +7,6 @@ import {
     createResolver,
     useLogger,
     defineNuxtModule,
-    updateTemplates,
     addServerImports,
 } from '@nuxt/kit'
 import { upperFirst } from 'scule'
@@ -24,15 +23,6 @@ export default defineNuxtModule<ModuleOptions>({
         configKey: 'shopify',
         compatibility: {
             nuxt: '>=3.0.0',
-        },
-    },
-
-    hooks: {
-        'builder:watch': async (event, file) => {
-            // TODO: Add filter to only update templates for the current client
-            await updateTemplates({
-                filter: template => template.filename.endsWith('.operations.d.ts'),
-            })
         },
     },
 
@@ -71,12 +61,6 @@ export default defineNuxtModule<ModuleOptions>({
 
                     logger.info(`Sandbox available at: ${url}`)
                 }
-
-                // Remove custom config, to get a clean config for the clients
-                // TODO Rethink application flow / types
-                delete clientConfig.skipCodegen
-                delete clientConfig.sandbox
-                delete clientConfig.documents
 
                 const functionName = `use${upperFirst(clientType)}`
                 addServerImports([{

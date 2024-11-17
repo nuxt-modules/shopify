@@ -1,11 +1,12 @@
 import type { ShopifyClientType } from './config'
-import type { InterfaceExtensionsParams, ShopifyTypeTemplateOptions } from '../types'
+import type { InterfaceExtensionsParams, ShopifyTemplateOptions } from '../types'
 import type { Types } from '@graphql-codegen/plugin-helpers'
 import type { NuxtTemplate } from '@nuxt/schema'
 
 import { generate } from '@graphql-codegen/cli'
 import { useLogger } from '@nuxt/kit'
 import { preset } from '@shopify/graphql-codegen'
+import { existsSync } from 'node:fs'
 import { upperFirst } from 'scule'
 
 async function extractResult(input: Promise<Types.FileOutput[]>) {
@@ -26,55 +27,70 @@ declare module '@shopify/${clientType}-api-client' {
 }
 `
 
-export const generateIntrospection: NuxtTemplate<ShopifyTypeTemplateOptions>['getContents'] = async (data) => {
+const getIntrospection = (options: ShopifyTemplateOptions) => {
+    const { clientType, clientConfig, introspection } = options
+    if (introspection && existsSync(introspection)) {
+        return introspection
+    }
+
+    return `https://shopify.dev/${clientType}-graphql-direct-proxy/${clientConfig.apiVersion}/`
+}
+
+export const generateIntrospection: NuxtTemplate<ShopifyTemplateOptions>['getContents'] = async (data) => {
+    const generates = {
+        [data.options.filename]: {
+            schema: getIntrospection(data.options),
+            plugins: ['introspection'],
+        },
+    }
+
     return extractResult(generate({
         ignoreNoDocuments: true,
         silent: true,
-        generates: {
-            [`_${data.options.clientType}.schema.json`]: {
-                schema: `https://shopify.dev/${data.options.clientType}-graphql-direct-proxy/${data.options.clientConfig.apiVersion}/`,
-                plugins: ['introspection'],
-            },
-        },
+        generates,
     }, false))
 }
 
-export const generateTypes: NuxtTemplate<ShopifyTypeTemplateOptions>['getContents'] = async (data) => {
+export const generateTypes: NuxtTemplate<ShopifyTemplateOptions>['getContents'] = async (data) => {
+    const generates = {
+        [data.options.filename]: {
+            schema: getIntrospection(data.options),
+            plugins: ['typescript'],
+        },
+    }
+
     return extractResult(generate({
         ignoreNoDocuments: true,
         silent: true,
-        generates: {
-            [`_${data.options.clientType}.types.d.ts`]: {
-                schema: `https://shopify.dev/${data.options.clientType}-graphql-direct-proxy/${data.options.clientConfig.apiVersion}/`,
-                plugins: ['typescript'],
-            },
-        },
+        generates,
     }, false))
 }
 
-export const generateOperations: NuxtTemplate<ShopifyTypeTemplateOptions>['getContents'] = async (data) => {
-    return extractResult(generate({
-        silent: true,
-        generates: {
-            [`_${data.options.clientType}.operations.d.ts`]: {
-                schema: `https://shopify.dev/${data.options.clientType}-graphql-direct-proxy/${data.options.clientConfig.apiVersion}/`,
-                preset,
-                documents: data.options.clientConfig.documents,
-                presetConfig: {
-                    importTypes: {
-                        namespace: `${upperFirst(data.options.clientType)}Types`,
-                        from: `./${data.options.clientType}.types.d.ts`,
-                    },
-                    skipTypenameInOperations: true,
-                    interfaceExtension: (params: InterfaceExtensionsParams) => {
-                        return getInterfaceExtensionFunction(
-                            data.options.clientType,
-                            params.queryType,
-                            params.mutationType,
-                        )
-                    },
+export const generateOperations: NuxtTemplate<ShopifyTemplateOptions>['getContents'] = async (data) => {
+    const generates = {
+        [data.options.filename]: {
+            schema: getIntrospection(data.options),
+            preset,
+            documents: data.options.clientConfig.documents,
+            presetConfig: {
+                importTypes: {
+                    namespace: `${upperFirst(data.options.clientType)}Types`,
+                    from: `./${data.options.clientType}.types.d.ts`,
+                },
+                skipTypenameInOperations: true,
+                interfaceExtension: (params: InterfaceExtensionsParams) => {
+                    return getInterfaceExtensionFunction(
+                        data.options.clientType,
+                        params.queryType,
+                        params.mutationType,
+                    )
                 },
             },
         },
+    }
+
+    return extractResult(generate({
+        silent: true,
+        generates,
     }, false))
 }
