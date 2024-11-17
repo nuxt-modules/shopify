@@ -48,7 +48,6 @@ export default defineConfig({
         socialLinks: [
             { icon: 'npm', link: 'https://npmjs.com/package/@konkonam/nuxt-shopify' },
             { icon: 'github', link: 'https://github.com/konkonam/nuxt-shopify' },
-            { icon: 'nuxt', link: 'https://github.com/konkonam/nuxt-shopify' },
         ],
 
         footer: {
