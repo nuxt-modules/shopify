@@ -1,4 +1,8 @@
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:url'
 import { defineConfig } from 'vitepress'
+
+const pkg = JSON.parse(readFileSync(resolve(__dirname, '../package.json'), 'utf-8'))
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
@@ -20,6 +24,19 @@ export default defineConfig({
             { text: 'Quickstart', link: '/quickstart' },
             { text: 'Examples', link: '/examples' },
             { text: 'Configuration', link: '/configuration' },
+            {
+                text: pkg?.version ?? 'stable',
+                items: [
+                    {
+                        text: 'Changelog',
+                        link: 'https://github.com/konkonam/nuxt-shopify/tree/main/CHANGELOG.md',
+                    },
+                    {
+                        text: 'Contributing',
+                        link: 'https://github.com/konkonam/nuxt-shopify/tree/main/.github/CONTRIBUTING.md',
+                    },
+                ],
+            },
         ],
 
         sidebar: [
