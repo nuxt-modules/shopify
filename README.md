@@ -18,7 +18,8 @@ Easily integrate shopify into your nuxt app.
 - Nuxt 3 & 4 ready
 - Customizable GraphQL code generation
 - Storefront and Admin API support
-- Automatic schema updates
+- Fully typed APIs with automatic schema updates
+- Apollo Sandbox integration
 
 > [!NOTE]
 > This module is still a work in progress. Stable release coming soon.
@@ -105,7 +106,7 @@ export default defineEventHandler(async () => {
 
 ### Advanced configuration
 
-Customize Shopify and GraphQL code generation via Nuxt hooks.
+Customize the Shopify module and the GraphQL code generation via Nuxt hooks.
 
 #### Modify Shopify configuration
 
@@ -114,18 +115,6 @@ export default defineNuxtConfig({
     hooks: {
         'shopify:config': ({ nuxt, config }) => {
             // Modify Shopify config here
-        },
-    },
-})
-```
-
-#### Modify GraphQL codegen configuration
-
-```typescript
-export default defineNuxtConfig({
-    hooks: {
-        'shopify:codegen': ({ nuxt, generates }) => {
-            // Modify GraphQL codegen config here
         },
     },
 })
