@@ -62,25 +62,11 @@ Obtain a list of products from the storefront API:
 ```typescript
 export default defineEventHandler(async () => {
     const storefront = useStorefront()
-
-    return await storefront.request(`
+    
+    const query = `
         #graphql
-        query FetchProducts(
-            $after: String
-            $before: String
-            $first: Int
-            $last: Int
-            $query: String
-            $reverse: Boolean
-        ){
-            products(
-                after: $after
-                before: $before
-                first: $first
-                last: $last
-                query: $query
-                reverse: $reverse
-            ){
+        query FetchProducts($first: Int) {
+            products(first: $first) {
                 nodes {
                     id
                     title
@@ -88,7 +74,9 @@ export default defineEventHandler(async () => {
                 }
             }
         }
-    `, {
+    `
+
+    return await storefront.request(query, {
         variables: {
             first: 1,
         },
