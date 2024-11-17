@@ -9,12 +9,16 @@ import {
     useLogger,
     defineNuxtModule,
     updateTemplates,
+    addServerImports,
 } from '@nuxt/kit'
 
 import {
+    installApolloSandbox,
     registerTemplates,
     useShopifyConfig,
 } from './utils'
+
+import { upperFirst } from 'scule'
 
 export default defineNuxtModule<ModuleOptions>({
     meta: {
@@ -28,8 +32,11 @@ export default defineNuxtModule<ModuleOptions>({
     hooks: {
         'builder:watch': async (event, file) => {
             await updateTemplates({
-                filter: data => data.filename.endsWith('gql'),
+                filter: template => template.filename.endsWith('.operations.d.ts'),
             })
+        },
+        'app:templatesGenerated': async (nuxt, templates, options) => {
+
         },
     },
 
@@ -45,8 +52,6 @@ export default defineNuxtModule<ModuleOptions>({
             const resolver = createResolver(import.meta.url)
             const config = useShopifyConfig(options)
 
-            addServerImportsDir(resolver.resolve('./runtime/server/utils'))
-
             for (const _clientType in config.clients) {
                 const clientType = _clientType as ShopifyClientType
                 const clientConfig = config.clients[clientType]
@@ -61,25 +66,27 @@ export default defineNuxtModule<ModuleOptions>({
                 }
 
                 if (clientConfig.sandbox) {
-                    nuxt.hooks.hook('pages:extend', (pages) => {
-                        pages.push({
-                            name: `apollo-sandbox-${clientType}`,
-                            file: resolver.resolve('./runtime/pages/apollo-sandbox.vue'),
-                            path: `\/apollo-sandbox/${clientType}`,
-                            meta: { clientType, clientConfig },
-                        })
-                    })
-
-                    const url = new URL(nuxt.options.devServer.url).href
-                        + 'apollo-sandbox/'
-                        + clientType
+                    const url = installApolloSandbox(
+                        nuxt,
+                        clientType,
+                        clientConfig,
+                        resolver.resolve('./runtime/pages/apollo-sandbox.vue'),
+                    )
 
                     logger.info(`Sandbox available at: ${url}`)
                 }
 
+                // Remove custom config, to get a clean config for the clients
+                // TODO Rethink application flow / types
                 delete clientConfig.skipCodegen
                 delete clientConfig.sandbox
                 delete clientConfig.documents
+
+                const functionName = `use${upperFirst(clientType)}`
+                addServerImports([{
+                    from: resolver.resolve(`./runtime/server/utils/use${functionName}`),
+                    name: `use${functionName}`,
+                }])
             }
 
             await nuxt.callHook('shopify:config', { nuxt, config })

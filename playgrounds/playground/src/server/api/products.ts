@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-export const fetchProductsOptions = z.object({
+export const schema = z.object({
     after: z.string().optional(),
     before: z.string().optional(),
     first: z.number().optional(),
@@ -9,8 +9,9 @@ export const fetchProductsOptions = z.object({
     reverse: z.boolean().optional(),
 })
 
-export default defineEventHandler(async () => {
-    const storefront = useStorefront()
+export default defineEventHandler(async (event) => {
+    const params = getValidatedRouterParams(event, schema.parse)
+    const storefront = useStorefront();
 
     return await storefront.request(`
         #graphql
@@ -38,8 +39,6 @@ export default defineEventHandler(async () => {
             }
         }
     `, {
-        variables: {
-            first: 1,
-        },
+        variables: params,
     })
 })

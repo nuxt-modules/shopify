@@ -7,23 +7,18 @@ export default defineNuxtConfig({
         '../../src/module',
     ],
 
+
     srcDir: 'src/',
 
     compatibilityDate: '2024-11-07',
 
-    hooks: {
-        'shopify:config': ({ nuxt, config }) => {
-            // Adjust the module config as you like
-        },
-    },
-
     shopify: {
-        name: process.env.SHOPIFY_STORE_NAME ?? 'quickstart-a5b1ec22',
+        name: process.env.SHOPIFY_STOREFRONT_NAME ?? '',
         debug: true,
         clients: {
             storefront: {
-                apiVersion: process.env.SHOPIFY_STOREFRONT_API_VERSION ?? '2024-10',
-                publicAccessToken: process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN ?? '',
+                apiVersion: process.env.SHOPIFY_STOREFRONT_API_VERSION ?? '',
+                publicAccessToken: process.env.SHOPIFY_STOREFRONT_PUBLIC_TOKEN ?? '',
             },
         },
     },

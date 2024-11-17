@@ -7,47 +7,34 @@ export enum ShopifyClientType {
     Admin = 'admin',
 }
 
-export const getCodegenDocuments = (clientType: ShopifyClientType) => {
-    const ignores = [
-        '!node_modules',
-        '!.output',
-        '!.nuxt',
-    ]
-
-    switch (clientType) {
-        case ShopifyClientType.Storefront:
-            return [
-                '**/*.{gql,graphql,ts,js}',
-                '!**/*.admin.{gql,graphql,ts,js}',
-                ...ignores,
-            ]
-        case ShopifyClientType.Admin:
-            return [
-                '**/*.admin.{gql,graphql,ts,js}',
-                ...ignores,
-            ]
-        default:
-            return ignores
-    }
-}
+const ignores = [
+    '!node_modules',
+    '!.output',
+    '!.nuxt',
+]
 
 export const useShopifyConfig = (options: ModuleOptions): ShopifyConfig => {
-    const getClientConfig = <T extends ShopifyClientType>(clientType: T) => {
+    const getClientConfig = <T extends ShopifyClientType>(clientType: T, documents: string[] = []) => {
         const clientOptions = options.clients?.[clientType] as ShopifyConfig['clients'][T]
         if (!clientOptions) return
 
         clientOptions.storeDomain = `https://${options.name}.myshopify.com`
         clientOptions.sandbox = !!(clientOptions.sandbox === undefined || clientOptions.sandbox)
-        clientOptions.documents = defu(
-            clientOptions.documents,
-            getCodegenDocuments(clientType),
-        )
+        clientOptions.documents = defu(clientOptions.documents, documents)
 
         return clientOptions
     }
 
-    const storefront = getClientConfig(ShopifyClientType.Storefront)
-    const admin = getClientConfig(ShopifyClientType.Admin)
+    const storefront = getClientConfig(ShopifyClientType.Storefront, [
+        '**/*.{gql,graphql,ts,js}',
+        '!**/*.admin.{gql,graphql,ts,js}',
+        ...ignores,
+    ])
+
+    const admin = getClientConfig(ShopifyClientType.Admin, [
+        '**/*.admin.{gql,graphql,ts,js}',
+        ...ignores,
+    ])
 
     return {
         name: options.name,
