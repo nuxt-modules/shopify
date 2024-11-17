@@ -7,7 +7,6 @@ export default defineNuxtConfig({
         '../../src/module',
     ],
 
-
     srcDir: 'src/',
 
     compatibilityDate: '2024-11-07',

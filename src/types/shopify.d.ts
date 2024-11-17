@@ -39,7 +39,7 @@ export type ShopifyConfig<S = ShopifyStorefrontConfig, A = ShopifyAdminConfig> =
 export type ShopifyClientConfig = ShopifyStorefrontConfig | ShopifyAdminConfig
 
 // Config that is exposed to the runtime after setup
-export type ExposedShopifyConfig = ShopifyConfig<StorefrontOptions,AdminOptions>
+export type ExposedShopifyConfig = ShopifyConfig<StorefrontOptions, AdminOptions>
 
 // Options for custom templates
 export type ShopifyTypeTemplateOptions = {
@@ -52,5 +52,3 @@ export type InterfaceExtensionsParams = {
     queryType: string
     mutationType: string
 }
-
-

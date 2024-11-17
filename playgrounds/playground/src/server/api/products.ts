@@ -11,7 +11,7 @@ export const schema = z.object({
 
 export default defineEventHandler(async (event) => {
     const params = getValidatedRouterParams(event, schema.parse)
-    const storefront = useStorefront();
+    const storefront = useStorefront()
 
     return await storefront.request(`
         #graphql

@@ -1,4 +1,4 @@
-import type { ExposedShopifyConfig, ShopifyConfig } from './module'
+import type { ExposedShopifyConfig, ShopifyConfig } from './shopify'
 import type { CodegenConfig } from '@graphql-codegen/cli'
 import type { HookResult, Nuxt } from '@nuxt/schema'
 

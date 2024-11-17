@@ -9,6 +9,7 @@ export default createConfigForNuxt({
         stylistic: {
             indent: 4,
             semi: false,
+            quotes: 'single',
         },
     },
 }).override('nuxt/import/rules', {

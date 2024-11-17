@@ -3,22 +3,21 @@ import type {
     ShopifyClientType,
 } from './types'
 
+import { rea } from '@graphql-codegen/core'
 import {
-    addServerImportsDir,
     createResolver,
     useLogger,
     defineNuxtModule,
     updateTemplates,
     addServerImports,
 } from '@nuxt/kit'
+import { upperFirst } from 'scule'
 
 import {
     installApolloSandbox,
     registerTemplates,
     useShopifyConfig,
 } from './utils'
-
-import { upperFirst } from 'scule'
 
 export default defineNuxtModule<ModuleOptions>({
     meta: {
@@ -31,6 +30,7 @@ export default defineNuxtModule<ModuleOptions>({
 
     hooks: {
         'builder:watch': async (event, file) => {
+            const content = await readFile(file, 'utf8')
             await updateTemplates({
                 filter: template => template.filename.endsWith('.operations.d.ts'),
             })
