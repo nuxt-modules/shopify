@@ -1,51 +1,31 @@
 <script setup lang="ts">
-import type {
-    AdminOptions,
-    ShopifyClientConfig,
-    StorefrontOptions,
-} from '~/src/types'
-import type { ShopifyClientType } from '~/src/utils'
+import { ApolloSandbox } from '@apollo/sandbox'
 
-import { join } from 'node:path'
+import { onMounted } from '#imports'
 
-import ApolloSandbox from '../components/ApolloSandbox.vue'
+const props = defineProps<{
+    initialEndpoint: string
+    apiHeaders: Record<string, string>
+}>()
 
-import { createError, useRoute } from '#imports'
-
-const { meta } = useRoute()
-const clientType = meta.clientType as ShopifyClientType
-const clientConfig = meta.clientConfig as ShopifyClientConfig
-
-// @TODO: refactor to match setup
-
-let token = ''
-
-switch (clientType) {
-    case 'storefront':
-        token = (clientConfig as StorefrontOptions).privateAccessToken ?? (clientConfig as StorefrontOptions).publicAccessToken ?? ''
-
-        break
-    case 'admin':
-        token = (clientConfig as AdminOptions).accessToken
-
-        break
-    default: createError({
-        name: 'Sandbox error',
-        message: 'Could not start Sandbox',
-        statusCode: 400,
+onMounted(() => {
+    new ApolloSandbox({
+        target: 'target',
+        initialEndpoint: props.initialEndpoint,
+        endpointIsEditable: false,
+        handleRequest: (endpointUrl, options) => {
+            return fetch(endpointUrl, {
+                ...options,
+                headers: {
+                    ...options.headers,
+                    ...props.apiHeaders,
+                },
+            })
+        },
     })
-}
+})
 </script>
 
 <template>
-    <ApolloSandbox
-        :initial-endpoint="join(clientConfig.storeDomain, clientConfig.apiVersion, 'graphql.json')"
-        :endpoint-is-editable="false"
-        :initial-state="{
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Shopify-Storefront-Access-Token': token,
-            },
-        }"
-    />
+    <div id="target" />
 </template>

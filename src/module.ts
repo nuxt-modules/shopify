@@ -3,7 +3,6 @@ import type {
     ShopifyClientType,
 } from './types'
 
-import { rea } from '@graphql-codegen/core'
 import {
     createResolver,
     useLogger,
@@ -30,7 +29,7 @@ export default defineNuxtModule<ModuleOptions>({
 
     hooks: {
         'builder:watch': async (event, file) => {
-            const content = await readFile(file, 'utf8')
+            // TODO: Add filter to only update templates for the current client
             await updateTemplates({
                 filter: template => template.filename.endsWith('.operations.d.ts'),
             })

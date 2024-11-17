@@ -57,15 +57,18 @@ export function installApolloSandbox<T extends ShopifyClientType>(
 ) {
     // Call early to throw errors in this setup step
     const apiUrl = getApiUrl(clientConfig)
-    const headers = getApiHeaders(clientType, clientConfig)
+    const apiHeaders = getApiHeaders(clientType, clientConfig)
+
+    console.log(apiHeaders)
+    console.log(apiUrl)
 
     nuxt.hooks.hook('pages:extend', (pages) => {
         pages.push({
             name: `apollo-sandbox-${clientType}`,
             path: `/apollo-sandbox/${clientType}`,
-            meta: {
-                apiUrl,
-                headers,
+            props: {
+                initialEndpoint: apiUrl,
+                apiHeaders,
             },
             file,
         })
