@@ -8,6 +8,8 @@ export default defineConfig({
 
     base: '/nuxt-shopify/',
 
+    cleanUrls: true,
+
     themeConfig: {
         editLink: {
             pattern: 'https://github.com/konkonam/nuxt-shopify/edit/main/docs/:path',
@@ -44,7 +46,25 @@ export default defineConfig({
         ],
 
         socialLinks: [
+            { icon: 'npm', link: 'https://npmjs.com/package/@konkonam/nuxt-shopify' },
             { icon: 'github', link: 'https://github.com/konkonam/nuxt-shopify' },
+            { icon: 'nuxt', link: 'https://github.com/konkonam/nuxt-shopify' },
         ],
+
+        footer: {
+            message: 'Released under the MIT License.',
+            copyright: 'Copyright © 2024-present Zoltan Lukacs, Frederik Bußmann',
+        },
+
+        lastUpdated: {
+            text: 'Last updated',
+            formatOptions: {
+                dateStyle: 'short',
+            },
+        },
+
+        search: {
+            provider: 'local',
+        },
     },
 })

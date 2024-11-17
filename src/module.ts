@@ -80,8 +80,8 @@ export default defineNuxtModule<ModuleOptions>({
 
                 const functionName = `use${upperFirst(clientType)}`
                 addServerImports([{
-                    from: resolver.resolve(`./runtime/server/utils/use${functionName}`),
-                    name: `use${functionName}`,
+                    from: resolver.resolve(`./runtime/server/utils/${functionName}`),
+                    name: functionName,
                 }])
             }
 
