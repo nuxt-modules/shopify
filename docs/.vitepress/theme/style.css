@@ -61,15 +61,27 @@
   --vp-home-hero-image-filter: blur(44px);
 }
 
+.image-container .image-bg {
+  width: 280px;
+}
+
 @media (min-width: 640px) {
   :root {
     --vp-home-hero-image-filter: blur(56px);
+  }
+
+  .image-container .image-bg {
+    width: 340px;
   }
 }
 
 @media (min-width: 960px) {
   :root {
     --vp-home-hero-image-filter: blur(68px);
+  }
+
+  .image-container .image-bg {
+    width: 420px;
   }
 }
 

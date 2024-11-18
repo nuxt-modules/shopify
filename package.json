@@ -28,7 +28,7 @@
         "dev:v4": "nuxi dev playgrounds/playground-nuxt-v4",
         "preview:docs": "vitepress preview docs",
         "lint": "eslint .",
-        "typecheck": "nuxi typecheck",
+        "typecheck": "pnpm run --filter=./playgrounds/playground typecheck",
         "analyze": "pnpm run --filter=./playgrounds/playground analyze",
         "prepare": "nuxt-module-build prepare && nuxt-module-build build --stub",
         "prepare:dev": "pnpm run --filter=./playgrounds/* prepare",

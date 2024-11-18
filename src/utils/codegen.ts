@@ -4,18 +4,19 @@ import type { Types } from '@graphql-codegen/plugin-helpers'
 import type { NuxtTemplate } from '@nuxt/schema'
 
 import { generate } from '@graphql-codegen/cli'
-import { useLogger } from '@nuxt/kit'
 import { preset, pluckConfig } from '@shopify/graphql-codegen'
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { upperFirst } from 'scule'
+
+import logger from './logger'
 
 async function extractResult(input: Promise<Types.FileOutput[]>) {
     try {
         return (await input)?.at(0)?.content ?? ''
     }
     catch (error) {
-        useLogger('nuxt-shopify').error((error as Error).message)
+        logger.error((error as Error).message)
         return ''
     }
 }

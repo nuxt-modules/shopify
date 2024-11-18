@@ -2,13 +2,12 @@
 const products = await useFetch('/api/products', {
     params: {
         first: 1,
-
     },
 })
-const config = useRuntimeConfig()
+
+console.log(products.data)
 </script>
 
 <template>
-    <pre>{{ products }}</pre>
-    <pre>{{ config }}</pre>
+    <pre>{{ products.data.value?.data?.products }}</pre>
 </template>

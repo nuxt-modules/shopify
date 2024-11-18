@@ -12,6 +12,10 @@ export default createConfigForNuxt({
             quotes: 'single',
         },
     },
+}).override('nuxt/vue/rules', {
+    rules: {
+        'vue/multi-word-component-names': 'off',
+    },
 }).override('nuxt/import/rules', {
     rules: {
         'import/order': ['error', {

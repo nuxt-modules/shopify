@@ -13,7 +13,7 @@ export default defineEventHandler(async (event) => {
     const params = getValidatedRouterParams(event, schema.parse)
     const storefront = useStorefront()
 
-    const response = await storefront.request(`#graphql
+    return storefront.request(`#graphql
         query FetchProducts($first: Int) {
             products(first: $first) {
                 nodes {
@@ -22,18 +22,10 @@ export default defineEventHandler(async (event) => {
                     description
                 }
             }
-            menu(handle: "main") {
-                title
-                items {
-                    url
-                }
-            }
         }
     `, {
         variables: {
             first: 1,
         },
     })
-
-    return response.data?.menu
 })
