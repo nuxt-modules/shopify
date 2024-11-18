@@ -11,7 +11,22 @@ export default defineEventHandler(async (event) => {
         <html lang="en">
             <head>
                 <meta charset="UTF-8">
-                <title>Apollo Sandbox</title>
+                <title>nuxt-shopify | Apollo Sandbox</title>
+
+                <style>
+                    html, body {
+                        margin: 0;
+                        overscroll-behavior: none;
+                    }
+                    
+                    #sandbox {
+                        position: absolute;
+                        bottom: 0;
+                        right: 0;
+                        left: 0;
+                        top: 0;
+                    }
+                </style>
             </head>
 
             <body>
@@ -35,20 +50,6 @@ export default defineEventHandler(async (event) => {
                         initialEndpoint: "${endpoint}",
                     });
                 </script>
-
-                <style>
-                    html, body {
-                        margin: 0;
-                    }
-                    
-                    #sandbox {
-                        position: absolute;
-                        bottom: 0;
-                        right: 0;
-                        left: 0;
-                        top: 0;
-                    }
-                </style>    
             </body>
         </html>
     `)

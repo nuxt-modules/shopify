@@ -1,16 +1,11 @@
 import { z } from 'zod'
 
 export const schema = z.object({
-    after: z.string().optional(),
-    before: z.string().optional(),
-    first: z.number().optional(),
-    last: z.number().optional(),
-    query: z.string().optional(),
-    reverse: z.boolean().optional(),
+    first: z.preprocess(v => Number(v), z.number()),
 })
 
 export default defineEventHandler(async (event) => {
-    const params = getValidatedRouterParams(event, schema.parse)
+    const query = await getValidatedQuery(event, schema.parse)
     const storefront = useStorefront()
 
     return storefront.request(`#graphql
@@ -24,8 +19,6 @@ export default defineEventHandler(async (event) => {
             }
         }
     `, {
-        variables: {
-            first: 1,
-        },
+        variables: query,
     })
 })

@@ -6,7 +6,6 @@
         "build": "nuxi build",
         "prepare": "nuxi prepare",
         "analyze": "nuxi analyze",
-        "typecheck": "nuxi typecheck",
         "cleanup": "nuxi cleanup && rm -rf node_modules"
     },
     "dependencies": {

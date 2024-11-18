@@ -28,7 +28,7 @@
         "dev:v4": "nuxi dev playgrounds/playground-nuxt-v4",
         "preview:docs": "vitepress preview docs",
         "lint": "eslint .",
-        "typecheck": "pnpm run --filter=./playgrounds/playground typecheck",
+        "typecheck": "vue-tsc --noEmit",
         "analyze": "pnpm run --filter=./playgrounds/playground analyze",
         "prepare": "nuxt-module-build prepare && nuxt-module-build build --stub",
         "prepare:dev": "pnpm run --filter=./playgrounds/* prepare",
@@ -55,6 +55,7 @@
         "nuxt": "^3.14.159",
         "vitepress": "^1.5.0",
         "vitest": "^2.1.5",
+        "vue-tsc": "^2.1.10",
         "zod": "^3.23.8"
     }
 }

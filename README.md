@@ -3,6 +3,8 @@
 # Nuxt Shopify
 
 [![Github Actions][github-actions-src]][github-actions-href]
+[![NPM version][npm-version-src]][npm-version-href]
+[![NPM downloads][npm-downloads-src]][npm-downloads-href]
 [![License][license-src]][license-href]
 [![Nuxt][nuxt-src]][nuxt-href]
 
@@ -18,11 +20,8 @@ Easily integrate shopify into your nuxt app.
 - Nuxt 3 & 4 ready
 - Customizable GraphQL code generation
 - Storefront and Admin API support
-- Fully typed APIs with automatic schema updates
+- Fully typed GraphQL operations & hot-reloading
 - Apollo Sandbox integration
-
-> [!NOTE]
-> This module is still a work in progress. Stable release coming soon.
 
 ## 📦 Setup
 
@@ -158,6 +157,13 @@ Published under the [MIT License](https://github.com/konkonam/nuxt-shopify/tree/
 
 [github-actions-src]: https://github.com/konkonam/nuxt-shopify/actions/workflows/release.yml/badge.svg
 [github-actions-href]: https://github.com/konkonam/nuxt-shopify/actions
+
+[npm-version-src]: https://img.shields.io/npm/v/@konkonam/nuxt-shopify/latest.svg?style=flat&colorA=18181B&colorB=31C553
+[npm-version-href]: https://npmjs.com/package/@konkonam/nuxt-shopify
+
+[npm-downloads-src]: https://img.shields.io/npm/dm/@konkonam/nuxt-shopify.svg?style=flat&colorA=18181B&colorB=31C553
+[npm-downloads-href]: https://npmjs.com/package/@konkonam/nuxt-shopify
+
 
 [license-src]: https://img.shields.io/github/license/konkonam/nuxt-shopify.svg?style=flat&colorA=18181B&colorB=28CF8D
 [license-href]: https://github.com/konkonam/nuxt-shopify/tree/main/LICENSE
