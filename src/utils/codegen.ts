@@ -5,7 +5,7 @@ import type { NuxtTemplate } from '@nuxt/schema'
 
 import { generate } from '@graphql-codegen/cli'
 import { useLogger } from '@nuxt/kit'
-import { preset, processSources } from '@shopify/graphql-codegen'
+import { preset, pluckConfig, processSources } from '@shopify/graphql-codegen'
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { upperFirst } from 'scule'
@@ -82,24 +82,7 @@ export const generateTypes: NuxtTemplate<ShopifyTemplateOptions>['getContents'] 
 export const generateOperations: NuxtTemplate<ShopifyTemplateOptions>['getContents'] = async (data) => {
     const config = {
         schema: getIntrospection(data.options),
-        preset: {
-            ...preset,
-            buildGeneratesSection: (options) => {
-                const original = preset.buildGeneratesSection(options)
-
-                console.log(options.documents)
-
-                console.log('-------------------')
-
-                console.log(original)
-                console.log('-------------------')
-
-                const source = processSources(options.documents)
-                console.log(source)
-
-                return original
-            },
-        },
+        preset,
         documents: data.options.clientConfig.documents?.map((d) => {
             if (d.startsWith('!')) {
                 return '!' + join(data.nuxt.options.srcDir, d.replace('!', ''))
@@ -131,6 +114,8 @@ export const generateOperations: NuxtTemplate<ShopifyTemplateOptions>['getConten
     return extractResult(generate({
         overwrite: true,
         silent: true,
+        // @ts-expect-error weird behavior
+        pluckConfig,
         generates: {
             [data.options.filename]: config,
         },

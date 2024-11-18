@@ -41,7 +41,8 @@ export function setupWatcher(nuxt: Nuxt, template: NuxtTemplate<ShopifyTemplateO
 
 export function registerTemplates<T extends ShopifyClientType>(nuxt: Nuxt, clientType: T, clientConfig: ShopifyClientConfig) {
     const introspectionFilename = `schema/${clientType}.schema.json`
-    const introspection = addTemplate<ShopifyTemplateOptions>({
+    const introspection = addTypeTemplate<ShopifyTemplateOptions>({
+        // @ts-expect-error wrong evaluation
         filename: introspectionFilename,
         getContents: generateIntrospection,
         options: {
@@ -54,7 +55,7 @@ export function registerTemplates<T extends ShopifyClientType>(nuxt: Nuxt, clien
 
     const typesFilename = `types/${clientType}/${clientType}.types.d.ts`
     const types = addTypeTemplate<ShopifyTemplateOptions>({
-        // @ts-expect-error wrong evaluation due to template strings
+        // @ts-expect-error wrong evaluation
         filename: typesFilename,
         getContents: generateTypes,
         options: {
@@ -67,7 +68,7 @@ export function registerTemplates<T extends ShopifyClientType>(nuxt: Nuxt, clien
 
     const operationsFilename = `types/${clientType}/${clientType}.operations.d.ts`
     const operations = addTypeTemplate<ShopifyTemplateOptions>({
-        // @ts-expect-error wrong evaluation due to template strings
+        // @ts-expect-error wrong evaluation
         filename: operationsFilename,
         getContents: generateOperations,
         options: {
@@ -80,7 +81,7 @@ export function registerTemplates<T extends ShopifyClientType>(nuxt: Nuxt, clien
 
     setupWatcher(nuxt, operations)
 
-    const index = addTypeTemplate<ShopifyTemplateOptions>({
+    const index = addTemplate<ShopifyTemplateOptions>({
         filename: `types/${clientType}/index.d.ts`,
         getContents: () => `export * from './${basename(types.filename)}'\nexport * from './${basename(operations.filename)}'\n`,
     })
@@ -88,4 +89,10 @@ export function registerTemplates<T extends ShopifyClientType>(nuxt: Nuxt, clien
     nuxt.options.nitro.alias = defu(nuxt.options.nitro.alias, {
         [`#shopify/${clientType}`]: dirname(index.filename),
     })
+
+    nuxt.options.nitro.typescript = nuxt.options.nitro.typescript || {}
+    nuxt.options.nitro.typescript.tsConfig = nuxt.options.nitro.typescript.tsConfig || {}
+    nuxt.options.nitro.typescript.tsConfig.include = nuxt.options.nitro.typescript?.tsConfig?.include || []
+
+    nuxt.options.nitro.typescript.tsConfig.include.push(index.filename)
 }
