@@ -5,7 +5,7 @@ import type { NuxtTemplate } from '@nuxt/schema'
 
 import { generate } from '@graphql-codegen/cli'
 import { useLogger } from '@nuxt/kit'
-import { preset, pluckConfig, processSources } from '@shopify/graphql-codegen'
+import { preset, pluckConfig } from '@shopify/graphql-codegen'
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { upperFirst } from 'scule'

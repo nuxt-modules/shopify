@@ -5,8 +5,8 @@
         "dev": "nuxi dev",
         "build": "nuxi build",
         "prepare": "nuxi prepare",
-        "cleanup": "nuxi cleanup",
-        "analyze": "nuxi analyze"
+        "analyze": "nuxi analyze",
+        "cleanup": "nuxi cleanup && rm -rf node_modules"
     },
     "dependencies": {
         "nuxt": "^3.14.159",

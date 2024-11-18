@@ -41,8 +41,7 @@ export function setupWatcher(nuxt: Nuxt, template: NuxtTemplate<ShopifyTemplateO
 
 export function registerTemplates<T extends ShopifyClientType>(nuxt: Nuxt, clientType: T, clientConfig: ShopifyClientConfig) {
     const introspectionFilename = `schema/${clientType}.schema.json`
-    const introspection = addTypeTemplate<ShopifyTemplateOptions>({
-        // @ts-expect-error wrong evaluation
+    const introspection = addTemplate<ShopifyTemplateOptions>({
         filename: introspectionFilename,
         getContents: generateIntrospection,
         options: {
@@ -81,7 +80,7 @@ export function registerTemplates<T extends ShopifyClientType>(nuxt: Nuxt, clien
 
     setupWatcher(nuxt, operations)
 
-    const index = addTemplate<ShopifyTemplateOptions>({
+    const index = addTypeTemplate<ShopifyTemplateOptions>({
         filename: `types/${clientType}/index.d.ts`,
         getContents: () => `export * from './${basename(types.filename)}'\nexport * from './${basename(operations.filename)}'\n`,
     })

@@ -27,13 +27,13 @@ export default defineNuxtModule<ModuleOptions>({
     },
 
     async setup(options, nuxt) {
-        const logger = useLogger('nuxt-shopify')
+        const logger = useLogger('nuxt-shopify', {})
 
         if (!options || Object.keys(options).length < 1) {
-            logger.warn('No shopify configuration provided.')
+            logger.info('[shopify] Skipping setup: no config provided')
         }
         else {
-            logger.info('Starting shopify setup')
+            logger.info('[shopify] Starting setup')
 
             const resolver = createResolver(import.meta.url)
             const config = useShopifyConfig(options)
@@ -48,7 +48,7 @@ export default defineNuxtModule<ModuleOptions>({
                     registerTemplates(nuxt, clientType, clientConfig)
                 }
                 else {
-                    logger.info(`Skipping type generation for ${clientType}`)
+                    logger.info(`[shopify] Skipping type generation for ${clientType}`)
                 }
 
                 if (nuxt.options.dev && clientConfig.sandbox) {
@@ -57,7 +57,7 @@ export default defineNuxtModule<ModuleOptions>({
                         clientType,
                     )
 
-                    logger.info(`Sandbox available at: ${url}`)
+                    logger.info(`[shopify] Sandbox available at: ${url}`)
                 }
 
                 const functionName = `use${upperFirst(clientType)}`
@@ -71,7 +71,7 @@ export default defineNuxtModule<ModuleOptions>({
 
             nuxt.options.runtimeConfig._shopify = config
 
-            logger.success('Finished shopify setup')
+            logger.success('[shopify] Finished setup')
         }
     },
 })

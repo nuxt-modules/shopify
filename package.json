@@ -30,9 +30,9 @@
         "lint": "eslint .",
         "typecheck": "nuxi typecheck",
         "analyze": "pnpm run --filter=./playgrounds/playground analyze",
-        "cleanup": "pnpm run --filter=./playgrounds/playground cleanup && nuxi cleanup && rm -rf node_modules",
         "prepare": "nuxt-module-build prepare && nuxt-module-build build --stub",
-        "prepare:dev": "pnpm run --filter=./playgrounds/* prepare"
+        "prepare:dev": "pnpm run --filter=./playgrounds/* prepare",
+        "cleanup": "pnpm run --filter=./playgrounds/playground cleanup && nuxi cleanup && rm -rf node_modules"
     },
     "dependencies": {
         "@nuxt/kit": "^3.14.159"
