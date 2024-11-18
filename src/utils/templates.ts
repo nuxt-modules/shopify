@@ -25,15 +25,15 @@ import {
 export function setupWatcher(nuxt: Nuxt, template: NuxtTemplate<ShopifyTemplateOptions>) {
     nuxt.hook('builder:watch', async (_event, file) => {
         for (const document of template.options?.clientConfig?.documents ?? []) {
-            if (minimatch(file, document)) {
-                const content = await readFile(join(nuxt.options.srcDir, file), 'utf8')
-                    .catch(() => '')
+            if (!minimatch(file, document)) continue
 
-                if (content.includes('#graphql') || file.endsWith('.gql') || file.endsWith('.graphql')) {
-                    return updateTemplates({
-                        filter: t => t.filename === template.options?.filename,
-                    })
-                }
+            const content = await readFile(join(nuxt.options.srcDir, file), 'utf8')
+                .catch(() => '')
+
+            if (file.endsWith('.gql') || file.endsWith('.graphql') || content.includes('#graphql')) {
+                return updateTemplates({
+                    filter: t => t.filename === template.options?.filename,
+                })
             }
         }
     })
@@ -54,7 +54,7 @@ export function registerTemplates<T extends ShopifyClientType>(nuxt: Nuxt, clien
 
     const typesFilename = `types/${clientType}/${clientType}.types.d.ts`
     const types = addTypeTemplate<ShopifyTemplateOptions>({
-        // @ts-expect-error wrong evaluation
+        // @ts-expect-error wrong evaluation due to template strings
         filename: typesFilename,
         getContents: generateTypes,
         options: {
@@ -67,7 +67,7 @@ export function registerTemplates<T extends ShopifyClientType>(nuxt: Nuxt, clien
 
     const operationsFilename = `types/${clientType}/${clientType}.operations.d.ts`
     const operations = addTypeTemplate<ShopifyTemplateOptions>({
-        // @ts-expect-error wrong evaluation
+        // @ts-expect-error wrong evaluation due to template strings
         filename: operationsFilename,
         getContents: generateOperations,
         options: {

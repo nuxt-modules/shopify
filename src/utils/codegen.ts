@@ -5,8 +5,9 @@ import type { NuxtTemplate } from '@nuxt/schema'
 
 import { generate } from '@graphql-codegen/cli'
 import { useLogger } from '@nuxt/kit'
-import { preset } from '@shopify/graphql-codegen'
+import { preset, processSources } from '@shopify/graphql-codegen'
 import { existsSync } from 'node:fs'
+import { join } from 'node:path'
 import { upperFirst } from 'scule'
 
 async function extractResult(input: Promise<Types.FileOutput[]>) {
@@ -37,60 +38,101 @@ const getIntrospection = (options: ShopifyTemplateOptions) => {
 }
 
 export const generateIntrospection: NuxtTemplate<ShopifyTemplateOptions>['getContents'] = async (data) => {
-    const generates = {
-        [data.options.filename]: {
-            schema: getIntrospection(data.options),
-            plugins: ['introspection'],
-        },
-    }
+    const config = {
+        schema: getIntrospection(data.options),
+        plugins: ['introspection'],
+    } satisfies Types.ConfiguredOutput
+
+    await data.nuxt.callHook(`${data.options.clientType}:generate:introspection`, {
+        nuxt: data.nuxt,
+        config,
+    })
 
     return extractResult(generate({
+        overwrite: true,
         ignoreNoDocuments: true,
         silent: true,
-        generates,
+        generates: {
+            [data.options.filename]: config,
+        },
     }, false))
 }
 
 export const generateTypes: NuxtTemplate<ShopifyTemplateOptions>['getContents'] = async (data) => {
-    const generates = {
-        [data.options.filename]: {
-            schema: getIntrospection(data.options),
-            plugins: ['typescript'],
-        },
-    }
+    const config = {
+        schema: getIntrospection(data.options),
+        plugins: ['typescript'],
+    } satisfies Types.ConfiguredOutput
+
+    await data.nuxt.callHook(`${data.options.clientType}:generate:types`, {
+        nuxt: data.nuxt,
+        config,
+    })
 
     return extractResult(generate({
+        overwrite: true,
         ignoreNoDocuments: true,
         silent: true,
-        generates,
+        generates: {
+            [data.options.filename]: config,
+        },
     }, false))
 }
 
 export const generateOperations: NuxtTemplate<ShopifyTemplateOptions>['getContents'] = async (data) => {
-    const generates = {
-        [data.options.filename]: {
-            schema: getIntrospection(data.options),
-            preset,
-            documents: data.options.clientConfig.documents,
-            presetConfig: {
-                importTypes: {
-                    namespace: `${upperFirst(data.options.clientType)}Types`,
-                    from: `./${data.options.clientType}.types.d.ts`,
-                },
-                skipTypenameInOperations: true,
-                interfaceExtension: (params: InterfaceExtensionsParams) => {
-                    return getInterfaceExtensionFunction(
-                        data.options.clientType,
-                        params.queryType,
-                        params.mutationType,
-                    )
-                },
+    const config = {
+        schema: getIntrospection(data.options),
+        preset: {
+            ...preset,
+            buildGeneratesSection: (options) => {
+                const original = preset.buildGeneratesSection(options)
+
+                console.log(options.documents)
+
+                console.log('-------------------')
+
+                console.log(original)
+                console.log('-------------------')
+
+                const source = processSources(options.documents)
+                console.log(source)
+
+                return original
             },
         },
-    }
+        documents: data.options.clientConfig.documents?.map((d) => {
+            if (d.startsWith('!')) {
+                return '!' + join(data.nuxt.options.srcDir, d.replace('!', ''))
+            }
+
+            return join(data.nuxt.options.srcDir, d)
+        }),
+        presetConfig: {
+            importTypes: {
+                namespace: `${upperFirst(data.options.clientType)}Types`,
+                from: `./${data.options.clientType}.types.d.ts`,
+            },
+            skipTypenameInOperations: true,
+            interfaceExtension: (params: InterfaceExtensionsParams) => {
+                return getInterfaceExtensionFunction(
+                    data.options.clientType,
+                    params.queryType,
+                    params.mutationType,
+                )
+            },
+        },
+    } satisfies Types.ConfiguredOutput
+
+    await data.nuxt.callHook(`${data.options.clientType}:generate:operations`, {
+        nuxt: data.nuxt,
+        config,
+    })
 
     return extractResult(generate({
+        overwrite: true,
         silent: true,
-        generates,
+        generates: {
+            [data.options.filename]: config,
+        },
     }, false))
 }

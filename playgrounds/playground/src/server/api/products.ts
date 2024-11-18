@@ -13,24 +13,9 @@ export default defineEventHandler(async (event) => {
     const params = getValidatedRouterParams(event, schema.parse)
     const storefront = useStorefront()
 
-    return await storefront.request(`
-        #graphql
-        query FetchProducts(
-            $after: String
-            $before: String
-            $first: Int
-            $last: Int
-            $query: String
-            $reverse: Boolean
-        ){
-            products(
-                after: $after
-                before: $before
-                first: $first
-                last: $last
-                query: $query
-                reverse: $reverse
-            ){
+    const response = await storefront.request(/* GraphQL */ `
+        query FetchProducts($first: Int) {
+            products(first: $first) {
                 nodes {
                     id
                     title
@@ -41,4 +26,6 @@ export default defineEventHandler(async (event) => {
     `, {
         variables: params,
     })
+
+    return response
 })

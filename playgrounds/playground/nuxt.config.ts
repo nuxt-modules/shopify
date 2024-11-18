@@ -11,6 +11,12 @@ export default defineNuxtConfig({
 
     compatibilityDate: '2024-11-07',
 
+    hooks: {
+        'storefront:generate:operations': ({ nuxt, config }) => {
+            console.log(config)
+        },
+    },
+
     shopify: {
         name: process.env.SHOPIFY_STOREFRONT_NAME ?? '',
         debug: true,

@@ -1,7 +1,5 @@
 import type { ModuleOptions, ShopifyConfig } from '../types'
 
-import defu from 'defu'
-
 export enum ShopifyClientType {
     Storefront = 'storefront',
     Admin = 'admin',

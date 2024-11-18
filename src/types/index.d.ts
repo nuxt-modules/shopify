@@ -18,6 +18,11 @@ export type ShopifyConfigHookParams = {
     config: ShopifyConfig
 }
 
+export type ShopifyTemplateHookParams = {
+    nuxt: Nuxt
+    config: Record<string, unknown>
+}
+
 declare module '@nuxt/schema' {
     interface RuntimeConfig {
         _shopify?: ShopifyConfig
@@ -25,9 +30,18 @@ declare module '@nuxt/schema' {
 
     interface NuxtHooks {
         /**
-         * Call/Called to persist the config into runtime.
+         * Called before the config is persisted into the runtime config
          */
         'shopify:config': ({ nuxt, config }: ShopifyConfigHookParams) => HookResult
+
+        'storefront:generate:introspection': ({ nuxt, config }: ShopifyTemplateHookParams) => HookResult
+        'admin:generate:introspection': ({ nuxt, config }: ShopifyTemplateHookParams) => HookResult
+
+        'storefront:generate:types': ({ nuxt, config }: ShopifyTemplateHookParams) => HookResult
+        'admin:generate:types': ({ nuxt, config }: ShopifyTemplateHookParams) => HookResul
+
+        'storefront:generate:operations': ({ nuxt, config }: ShopifyTemplateHookParams) => HookResult
+        'admin:generate:operations': ({ nuxt, config }: ShopifyTemplateHookParams) => HookResult
     }
 }
 

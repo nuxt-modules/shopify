@@ -1,8 +1,6 @@
 import type { createAdminApiClient } from '@shopify/admin-api-client'
 import type { createStorefrontApiClient } from '@shopify/storefront-api-client'
 
-// @TODO Rethink the architecture, as there are still some flaws to it
-
 type StorefrontOptions = Parameters<typeof createStorefrontApiClient>[0]
 type AdminOptions = Parameters<typeof createAdminApiClient>[0]
 
@@ -22,6 +20,7 @@ export type ShopifyClientCustomConfig = {
 
 export type ShopifyStorefrontConfig = StorefrontOptions & ShopifyClientCustomConfig
 export type ShopifyAdminConfig = AdminOptions & ShopifyClientCustomConfig
+export type ShopifyClientConfig = ShopifyStorefrontConfig | ShopifyAdminConfig
 
 // Fully resolved shopify config
 export type ShopifyConfig<S = ShopifyStorefrontConfig, A = ShopifyAdminConfig> = {
@@ -32,9 +31,6 @@ export type ShopifyConfig<S = ShopifyStorefrontConfig, A = ShopifyAdminConfig> =
         [ShopifyClientType.Admin]?: A
     }
 }
-
-// Any client config
-export type ShopifyClientConfig = ShopifyStorefrontConfig | ShopifyAdminConfig
 
 // Options for custom templates
 export type ShopifyTemplateOptions = {
