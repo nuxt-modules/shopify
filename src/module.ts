@@ -51,12 +51,10 @@ export default defineNuxtModule<ModuleOptions>({
                     logger.info(`Skipping type generation for ${clientType}`)
                 }
 
-                if (clientConfig.sandbox) {
+                if (nuxt.options.dev && clientConfig.sandbox) {
                     const url = installApolloSandbox(
                         nuxt,
                         clientType,
-                        clientConfig,
-                        resolver.resolve('./runtime/pages/apollo-sandbox.vue'),
                     )
 
                     logger.info(`Sandbox available at: ${url}`)

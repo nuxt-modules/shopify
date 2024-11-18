@@ -29,6 +29,7 @@
         "preview:docs": "vitepress preview docs",
         "lint": "eslint .",
         "typecheck": "nuxi typecheck",
+        "analyze": "pnpm run --filter=./playgrounds/playground analyze",
         "cleanup": "pnpm run --filter=./playgrounds/playground cleanup && nuxi cleanup && rm -rf node_modules",
         "prepare": "nuxt-module-build prepare && nuxt-module-build build --stub",
         "prepare:dev": "pnpm run --filter=./playgrounds/* prepare"

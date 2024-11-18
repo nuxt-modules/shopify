@@ -5,10 +5,14 @@ import type {
 } from '../types'
 import type { Nuxt } from '@nuxt/schema'
 
+import { addServerHandler, createResolver } from '@nuxt/kit'
+
+const resolver = createResolver(import.meta.url)
+
 export function getSandboxUrl(nuxt: Nuxt, clientType: ShopifyClientType) {
     const url = new URL(nuxt.options.devServer.url)
 
-    return url.href + 'apollo-sandbox/' + clientType
+    return url.href + '_apollo-sandbox/' + clientType
 }
 
 export function getApiUrl(clientConfig?: ShopifyClientConfig) {
@@ -52,23 +56,10 @@ export function getApiHeaders<T extends ShopifyClientType>(clientType: T, client
 export function installApolloSandbox<T extends ShopifyClientType>(
     nuxt: Nuxt,
     clientType: T,
-    clientConfig: ShopifyConfig['clients'][T],
-    file: string,
 ) {
-    // Call early to throw errors in this setup step
-    const apiUrl = getApiUrl(clientConfig)
-    const apiHeaders = getApiHeaders(clientType, clientConfig)
-
-    nuxt.hooks.hook('pages:extend', (pages) => {
-        pages.push({
-            name: `apollo-sandbox-${clientType}`,
-            path: `/apollo-sandbox/${clientType}`,
-            props: {
-                initialEndpoint: apiUrl,
-                apiHeaders,
-            },
-            file,
-        })
+    addServerHandler({
+        handler: resolver.resolve('../runtime/server/handlers/apolloSandboxHandler.ts'),
+        route: `/_apollo-sandbox/${clientType}`,
     })
 
     return getSandboxUrl(nuxt, clientType)
