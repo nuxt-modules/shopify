@@ -57,5 +57,21 @@
         "vitest": "^2.1.5",
         "vue-tsc": "^2.1.10",
         "zod": "^3.23.8"
+    },
+    "keywords": [
+        "nuxt",
+        "nuxt3",
+        "nuxtjs",
+        "nuxt-module",
+        "shopify",
+        "ecommerce",
+        "graphql",
+        "codegen"
+    ],
+    "engines": {
+        "node": "^18.x || ^20.x || ^22.x"
+    },
+    "stackblitz": {
+        "startCommand": "pnpm run prepare:dev && pnpm run dev"
     }
 }
