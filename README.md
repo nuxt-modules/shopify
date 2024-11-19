@@ -91,7 +91,7 @@ You can use the `useStorefront` utility to access the storefront API:
 export default defineEventHandler(async () => {
     const storefront = useStorefront()
 
-   return await storefront.request(`#graphql
+    return await storefront.request(`#graphql
         query FetchProducts($first: Int) {
             products(first: $first) {
                 nodes {
@@ -102,14 +102,23 @@ export default defineEventHandler(async () => {
             }
         }
     `, {
-      variables: {
-         first: 1,
-      },
-   })
+        variables: {
+            first: 1,
+        },
+    })
 })
 ```
 
+Notice how we can use the `graphql` directive inside the event handler, this is possible because in
+the standard module configuration all `.ts` and `.gql` files are automatically processed for the
+storefront API, as long as the don't end with `.admin.ts` or `.admin.gql`.
+
+Read more about the [codegen configuration](https://konkonam.github.io/nuxt-shopify/configuration/codegen).
+
 #### Admin API example
+
+Files ending with `.admin.ts` or `.admin.gql` will automatically be processed for the admin API.
+We can use the `useAdmin` utility to access the admin API in a nitro event handler:
 
 ```typescript
 export default defineEventHandler(async () => {
@@ -118,6 +127,8 @@ export default defineEventHandler(async () => {
     return await admin.request(...)
 })
 ```
+
+For a full example, see [Admin API examples](https://konkonam.github.io/nuxt-shopify/examples/admin).
 
 ### Advanced configuration
 
@@ -163,7 +174,6 @@ Published under the [MIT License](https://github.com/konkonam/nuxt-shopify/tree/
 
 [npm-downloads-src]: https://img.shields.io/npm/dm/@konkonam/nuxt-shopify.svg?style=flat&colorA=18181B&colorB=31C553
 [npm-downloads-href]: https://npmjs.com/package/@konkonam/nuxt-shopify
-
 
 [license-src]: https://img.shields.io/github/license/konkonam/nuxt-shopify.svg?style=flat&colorA=18181B&colorB=28CF8D
 [license-href]: https://github.com/konkonam/nuxt-shopify/tree/main/LICENSE

@@ -26,11 +26,11 @@ export type ShopifyClientConfig = ShopifyStorefrontConfig | ShopifyAdminConfig
 // Fully resolved shopify config
 export type ShopifyConfig<S = ShopifyStorefrontConfig, A = ShopifyAdminConfig> = {
     name: string
+    logger?: Partial<ConsolaOptions>
     clients: {
         [ShopifyClientType.Storefront]?: S
         [ShopifyClientType.Admin]?: A
     }
-    logger?: Partial<ConsolaOptions>
 }
 
 // Options for custom templates

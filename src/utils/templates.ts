@@ -29,7 +29,12 @@ export function setupWatcher(nuxt: Nuxt, template: NuxtTemplate<ShopifyTemplateO
             const content = await readFile(join(nuxt.options.srcDir, file), 'utf8')
                 .catch(() => '')
 
-            if (file.endsWith('.gql') || file.endsWith('.graphql') || content.includes('#graphql')) {
+            if (
+                file.endsWith('.gql')
+                || file.endsWith('.graphql')
+                || content.includes('#graphql')
+                || content.includes('/* GraphQL */')
+            ) {
                 return updateTemplates({
                     filter: t => t.filename === template.options?.filename,
                 })

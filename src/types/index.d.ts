@@ -34,13 +34,34 @@ declare module '@nuxt/schema' {
          */
         'shopify:config': ({ nuxt, config }: ShopifyConfigHookParams) => HookResult
 
+        /**
+         * Called before the storefront introspection schema is generated
+         */
         'storefront:generate:introspection': ({ nuxt, config }: ShopifyTemplateHookParams) => HookResult
+
+        /**
+         * Called before the admin introspection schema is generated
+         */
         'admin:generate:introspection': ({ nuxt, config }: ShopifyTemplateHookParams) => HookResult
 
+        /**
+         * Called before the storefront types are generated
+         */
         'storefront:generate:types': ({ nuxt, config }: ShopifyTemplateHookParams) => HookResult
+
+        /**
+         * Called before the admin types are generated
+         */
         'admin:generate:types': ({ nuxt, config }: ShopifyTemplateHookParams) => HookResul
 
+        /**
+         * Called before the storefront operations are generated
+         */
         'storefront:generate:operations': ({ nuxt, config }: ShopifyTemplateHookParams) => HookResult
+
+        /**
+         * Called before the admin operations are generated
+         */
         'admin:generate:operations': ({ nuxt, config }: ShopifyTemplateHookParams) => HookResult
     }
 }
