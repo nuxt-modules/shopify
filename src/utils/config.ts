@@ -1,5 +1,7 @@
 import type { ModuleOptions, ShopifyConfig } from '../types'
 
+import { z } from 'zod'
+
 export enum ShopifyClientType {
     Storefront = 'storefront',
     Admin = 'admin',
@@ -40,11 +42,34 @@ export const useShopifyConfig = (options: ModuleOptions): ShopifyConfig => {
 
     return {
         name: options.name,
-        debug: options.debug,
+        logger: options.logger,
         clients: {
             ...(storefront && { storefront }),
             ...(admin && { admin }),
 
         },
     } satisfies ShopifyConfig
+}
+
+export const useShopifyConfigSchema = (options: ModuleOptions) => {
+    const schema = z.object({
+        name: z.string().min(1),
+        logLevel: z.number().optional(),
+        clients: z.object({
+            storefront: z.object({
+                apiVersion: z.string().min(1),
+                publicAccessToken: z.string().min(1),
+                sandbox: z.boolean().optional(),
+                documents: z.array(z.string()).optional(),
+            }).optional(),
+            admin: z.object({
+                apiVersion: z.string().min(1),
+                accessToken: z.string().min(1),
+                sandbox: z.boolean().optional(),
+                documents: z.array(z.string()).optional(),
+            }).optional(),
+        }),
+    })
+
+    return schema.safeParse(options)
 }

@@ -48,6 +48,9 @@ importers:
       '@types/node':
         specifier: latest
         version: 22.9.0
+      consola:
+        specifier: ^3.2.3
+        version: 3.2.3
       eslint:
         specifier: ^9.15.0
         version: 9.15.0(jiti@2.4.0)

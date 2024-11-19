@@ -50,6 +50,7 @@
         "@shopify/api-codegen-preset": "^1.1.2",
         "@shopify/storefront-api-client": "^1.0.3",
         "@types/node": "latest",
+        "consola": "^3.2.3",
         "eslint": "^9.15.0",
         "minimatch": "^10.0.1",
         "nuxt": "^3.14.159",

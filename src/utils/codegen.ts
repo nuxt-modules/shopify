@@ -9,14 +9,14 @@ import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { upperFirst } from 'scule'
 
-import logger from './logger'
+import { useLog } from './log'
 
 async function extractResult(input: Promise<Types.FileOutput[]>) {
     try {
         return (await input)?.at(0)?.content ?? ''
     }
     catch (error) {
-        logger.error((error as Error).message)
+        useLog().error((error as Error).message)
         return ''
     }
 }

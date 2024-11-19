@@ -21,7 +21,6 @@ import {
     generateTypes,
 } from './codegen'
 
-// wip
 export function setupWatcher(nuxt: Nuxt, template: NuxtTemplate<ShopifyTemplateOptions>) {
     nuxt.hook('builder:watch', async (_event, file) => {
         for (const document of template.options?.clientConfig?.documents ?? []) {
@@ -52,28 +51,26 @@ export function registerTemplates<T extends ShopifyClientType>(nuxt: Nuxt, clien
         write: true,
     })
 
-    const typesFilename = `types/${clientType}/${clientType}.types.d.ts`
+    const typesFilename = `types/${clientType}/${clientType}.types`
     const types = addTypeTemplate<ShopifyTemplateOptions>({
-        // @ts-expect-error wrong evaluation
-        filename: typesFilename,
+        filename: `${typesFilename}.d.ts`,
         getContents: generateTypes,
         options: {
-            filename: typesFilename,
+            filename: `${typesFilename}.d.ts`,
             clientType,
             clientConfig,
             introspection: introspection.dst,
         },
     })
 
-    const operationsFilename = `types/${clientType}/${clientType}.operations.d.ts`
+    const operationsFilename = `types/${clientType}/${clientType}.operations`
     const operations = addTypeTemplate<ShopifyTemplateOptions>({
-        // @ts-expect-error wrong evaluation
-        filename: operationsFilename,
+        filename: `${operationsFilename}.d.ts`,
         getContents: generateOperations,
         options: {
             clientType,
             clientConfig,
-            filename: operationsFilename,
+            filename: `${operationsFilename}.d.ts`,
             introspection: introspection.dst,
         },
     })

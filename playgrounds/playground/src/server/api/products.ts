@@ -15,6 +15,7 @@ export default defineEventHandler(async (event) => {
                     id
                     title
                     description
+                    descriptionHtml
                 }
             }
         }

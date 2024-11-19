@@ -14,8 +14,9 @@ import {
     installApolloSandbox,
     registerTemplates,
     useShopifyConfig,
+    useShopifyConfigSchema,
 } from './utils'
-import logger from './utils/logger'
+import { useLog } from './utils/log'
 
 export default defineNuxtModule<ModuleOptions>({
     meta: {
@@ -27,14 +28,20 @@ export default defineNuxtModule<ModuleOptions>({
     },
 
     async setup(options, nuxt) {
-        if (!options || Object.keys(options).length < 1) {
-            logger.info('Skipping setup: no config provided')
+        const log = useLog(options.logger)
+
+        const moduleOptions = useShopifyConfigSchema(options)
+
+        if (!moduleOptions.success) {
+            log.info('Skipping setup: config not provided or invalid')
+            log.debug(`See module configuration reference: https://konkonam.github.io/nuxt-shopify/configuration/module`)
+            log.debug(`Error while parsing module options:\n${moduleOptions.error}`)
         }
         else {
-            logger.start('Starting setup')
+            log.start('Starting setup')
 
             const resolver = createResolver(import.meta.url)
-            const config = useShopifyConfig(options)
+            const config = useShopifyConfig(moduleOptions.data)
 
             for (const _clientType in config.clients) {
                 const clientType = _clientType as ShopifyClientType
@@ -46,7 +53,7 @@ export default defineNuxtModule<ModuleOptions>({
                     registerTemplates(nuxt, clientType, clientConfig)
                 }
                 else {
-                    logger.info(`Skipping type generation for ${clientType}`)
+                    log.info(`Skipping type generation for ${clientType}`)
                 }
 
                 if (nuxt.options.dev && clientConfig.sandbox) {
@@ -55,7 +62,7 @@ export default defineNuxtModule<ModuleOptions>({
                         clientType,
                     )
 
-                    logger.info(`Sandbox available at: ${url}`)
+                    log.info(`Sandbox available at: ${url}`)
                 }
 
                 const functionName = `use${upperFirst(clientType)}`
@@ -69,7 +76,7 @@ export default defineNuxtModule<ModuleOptions>({
 
             nuxt.options.runtimeConfig._shopify = config
 
-            logger.success('Finished setup')
+            log.success('Finished setup')
         }
     },
 })

@@ -1,5 +1,6 @@
 import type { createAdminApiClient } from '@shopify/admin-api-client'
 import type { createStorefrontApiClient } from '@shopify/storefront-api-client'
+import type { ConsolaOptions } from 'consola'
 
 type StorefrontOptions = Parameters<typeof createStorefrontApiClient>[0]
 type AdminOptions = Parameters<typeof createAdminApiClient>[0]
@@ -25,11 +26,11 @@ export type ShopifyClientConfig = ShopifyStorefrontConfig | ShopifyAdminConfig
 // Fully resolved shopify config
 export type ShopifyConfig<S = ShopifyStorefrontConfig, A = ShopifyAdminConfig> = {
     name: string
-    debug?: boolean
     clients: {
         [ShopifyClientType.Storefront]?: S
         [ShopifyClientType.Admin]?: A
     }
+    logger?: Partial<ConsolaOptions>
 }
 
 // Options for custom templates
