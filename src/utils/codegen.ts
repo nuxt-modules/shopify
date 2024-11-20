@@ -86,10 +86,10 @@ export const generateOperations: NuxtTemplate<ShopifyTemplateOptions>['getConten
         preset,
         documents: data.options.clientConfig.documents?.map((d) => {
             if (d.startsWith('!')) {
-                return '!' + join(data.nuxt.options.srcDir, d.replace('!', ''))
+                return '!' + join(data.nuxt.options.rootDir, d.replace('!', ''))
             }
 
-            return join(data.nuxt.options.srcDir, d)
+            return join(data.nuxt.options.rootDir, d)
         }),
         presetConfig: {
             importTypes: {

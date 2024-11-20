@@ -1,0 +1,15 @@
+{
+    "name": "playground",
+    "type": "module",
+    "scripts": {
+        "dev": "nuxi dev",
+        "build": "nuxi build",
+        "prepare": "nuxi prepare",
+        "analyze": "nuxi analyze",
+        "cleanup": "nuxi cleanup && rm -rf node_modules"
+    },
+    "dependencies": {
+        "nuxt": "^3.14.159",
+        "zod": "^3.23.8"
+    }
+}

@@ -26,7 +26,10 @@ features:
     icon: 🔐
     details: "Connect to the shopify admin API"
     link: "/examples/admin"
-  - title: GraphiQL Sandbox
-    icon: 🏀
-    details: "Integrates the GraphiQL Sandbox for faster development"
+  - title: Typed operations
+    icon: ⚡️
+    details: "Fully typed GraphQL operations with hot-reloading"
+  - title: GraphiQL Explorer
+    icon: 🧭
+    details: "Integrates the GraphiQL Explorer for faster development"
 ---
