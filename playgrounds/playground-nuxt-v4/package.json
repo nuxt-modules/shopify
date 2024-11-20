@@ -9,7 +9,7 @@
         "cleanup": "nuxi cleanup && rm -rf node_modules"
     },
     "dependencies": {
-        "nuxt": "^3.14.159",
+        "nuxt": "^3.14.1592",
         "zod": "^3.23.8"
     }
 }

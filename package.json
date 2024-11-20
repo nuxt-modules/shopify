@@ -35,14 +35,14 @@
         "cleanup": "pnpm run --filter=./playgrounds/playground cleanup && nuxi cleanup && rm -rf node_modules"
     },
     "dependencies": {
-        "@nuxt/kit": "^3.14.159"
+        "@nuxt/kit": "^3.14.1592"
     },
     "devDependencies": {
         "@graphql-codegen/cli": "^5.0.3",
         "@graphql-codegen/import-types-preset": "^3.0.0",
         "@nuxt/eslint-config": "^0.7.1",
         "@nuxt/module-builder": "^0.8.4",
-        "@nuxt/schema": "^3.14.159",
+        "@nuxt/schema": "^3.14.1592",
         "@nuxt/test-utils": "^3.14.4",
         "@shopify/admin-api-client": "^1.0.4",
         "@shopify/api-codegen-preset": "^1.1.2",
@@ -50,7 +50,7 @@
         "@types/node": "^20.17.6",
         "eslint": "^9.15.0",
         "minimatch": "^10.0.1",
-        "nuxt": "^3.14.159",
+        "nuxt": "^3.14.1592",
         "vitepress": "^1.5.0",
         "vitest": "^2.1.5",
         "vue-tsc": "^2.1.10",
