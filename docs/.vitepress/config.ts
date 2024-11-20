@@ -8,7 +8,7 @@ const pkg = JSON.parse(readFileSync(resolve(__dirname, '../package.json'), 'utf-
 export default defineConfig({
     title: 'Nuxt Shopify',
 
-    description: 'Handbook to get you started with the nuxt-shopify module',
+    description: 'Easily integrate shopify into your nuxt 3 & 4 project!',
 
     base: '/nuxt-shopify/',
 

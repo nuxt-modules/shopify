@@ -3,7 +3,7 @@
     "version": "0.0.1",
     "license": "MIT",
     "type": "module",
-    "description": "Easily integrate shopify into your nuxt project 🚀",
+    "description": "Easily integrate shopify into your nuxt 3 & 4 project 🚀",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/konkonam/nuxt-shopify.git"

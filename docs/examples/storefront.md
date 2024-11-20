@@ -2,6 +2,35 @@
 
 ## Basic usage
 
+To access the storefront API, you can use the `useStorefront` utility available to the nitro server:
+
+```ts
+export default defineEventHandler(async () => {
+    const storefront = useStorefront()
+
+    return await storefront.request(`#graphql
+        query FetchProducts($first: Int) {
+            products(first: $first) {
+                nodes {
+                    id
+                    title
+                    description
+                }
+            }
+        }
+    `, {
+        variables: {
+            first: 1,
+        },
+    })
+})
+```
+
+The `useStorefront` utility returns a `createStorefrontApiClient` instance, which you can use to make requests to the storefront API.
+
+> [!NOTE]
+> The `#graphql` directive is used to tell the module that this file should be processed for graphql code generation.
+
 
 
 ## Using validation

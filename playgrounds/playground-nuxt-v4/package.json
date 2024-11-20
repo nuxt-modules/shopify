@@ -1,5 +1,6 @@
 {
     "name": "playground",
+    "private": true,
     "type": "module",
     "scripts": {
         "dev": "nuxi dev",
