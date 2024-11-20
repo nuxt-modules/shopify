@@ -21,7 +21,7 @@ Easily integrate shopify into your nuxt app.
 - Customizable GraphQL code generation
 - Storefront and Admin API support
 - Fully typed GraphQL operations & hot-reloading
-- Apollo Sandbox integration
+- GraphiQL Sandbox integration
 
 ## 📦 Setup
 

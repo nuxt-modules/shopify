@@ -41,8 +41,8 @@ export default defineNuxtConfig({
 ## Usage
 
 ### Type generation
-
-To enable IDE support, add a GraphQL configuration file:
+    
+To enable IDE support, you can add a GraphQL configuration file to the root of your project:
 
 ```yaml
 # graphql.config.yml
@@ -62,7 +62,7 @@ Obtain a list of products from the storefront API:
 ```typescript
 export default defineEventHandler(async () => {
     const storefront = useStorefront()
-
+    
     const query = `#graphql
         query FetchProducts($first: Int) {
             products(first: $first) {
@@ -82,3 +82,16 @@ export default defineEventHandler(async () => {
     })
 })
 ```
+
+### Use the GraphiQL Sandbox for faster development
+
+The module automatically installs [GraphiQL](https://github.com/graphql/graphiql) for each client type.
+
+To access the sandbox for the Storefront API, use the following URL:
+
+```
+http://localhost:3000/_sandbox/storefront
+```
+
+> [!NOTE]
+> The sandbox is only available while the Nuxt dev server is running.

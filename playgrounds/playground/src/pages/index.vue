@@ -3,9 +3,11 @@ import { useFetch } from '#imports'
 
 const products = await useFetch('/api/products', {
     query: {
-        first: 1,
+        first: 10,
     },
 })
+
+console.log(products)
 </script>
 
 <template>

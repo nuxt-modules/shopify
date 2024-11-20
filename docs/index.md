@@ -12,7 +12,7 @@ hero:
       link: "/quickstart"
     - theme: alt
       text: "Examples"
-      link: "/examples"
+      link: "/examples/storefront"
   image:
     src: /logo.png
     alt: "nuxt-shopify logo"
@@ -26,7 +26,7 @@ features:
     icon: 🔐
     details: "Connect to the shopify admin API"
     link: "/examples/admin"
-  - title: Apollo Sandbox
+  - title: GraphiQL Sandbox
     icon: 🏀
-    details: "Integrates the Apollo Sandbox for faster development"
+    details: "Integrates the GraphiQL Sandbox for faster development"
 ---

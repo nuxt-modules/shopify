@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 export const schema = z.object({
-    first: z.preprocess(v => Number(v), z.number()),
+    first: z.preprocess(v => Number(v), z.number().min(1)),
 })
 
 export default defineEventHandler(async (event) => {

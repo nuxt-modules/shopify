@@ -22,8 +22,8 @@ export default defineConfig({
         nav: [
             { text: 'Home', link: '/' },
             { text: 'Quickstart', link: '/quickstart' },
-            { text: 'Examples', link: '/examples' },
-            { text: 'Configuration', link: '/configuration' },
+            { text: 'Examples', link: '/examples/storefront', activeMatch: '/examples/' },
+            { text: 'Configuration', link: '/configuration/module', activeMatch: '/configuration/' },
             {
                 text: pkg?.version ?? 'stable',
                 items: [
@@ -41,12 +41,13 @@ export default defineConfig({
 
         sidebar: [
             {
-                text: 'Quickstart',
-                link: '/quickstart',
+                text: 'Introduction',
+                items: [
+                    { text: 'Quickstart', link: '/quickstart' },
+                ],
             },
             {
                 text: 'Examples',
-                link: '/examples',
                 items: [
                     { text: 'Storefront', link: '/examples/storefront' },
                     { text: 'Admin', link: '/examples/admin' },
@@ -54,7 +55,6 @@ export default defineConfig({
             },
             {
                 text: 'Configuration',
-                link: '/configuration',
                 items: [
                     { text: 'Module config', link: '/configuration/module' },
                     { text: 'Codegen config', link: '/configuration/codegen' },
