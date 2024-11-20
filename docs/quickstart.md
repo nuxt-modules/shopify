@@ -41,9 +41,9 @@ export default defineNuxtConfig({
 ## Usage
 
 ### Type generation
-    
+
 To enable IDE support, add a GraphQL configuration file:
-        
+
 ```yaml
 # graphql.config.yml
 schema:
@@ -62,9 +62,8 @@ Obtain a list of products from the storefront API:
 ```typescript
 export default defineEventHandler(async () => {
     const storefront = useStorefront()
-    
-    const query = `
-        #graphql
+
+    const query = `#graphql
         query FetchProducts($first: Int) {
             products(first: $first) {
                 nodes {
@@ -76,7 +75,7 @@ export default defineEventHandler(async () => {
         }
     `
 
-    return await storefront.request(query, {
+    return storefront.request(query, {
         variables: {
             first: 1,
         },

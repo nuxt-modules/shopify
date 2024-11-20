@@ -13,6 +13,9 @@ export default defineNuxtConfig({
 
     shopify: {
         name: process.env.SHOPIFY_STOREFRONT_NAME ?? '',
+        logger: {
+            level: 999,
+        },
         clients: {
             storefront: {
                 apiVersion: process.env.SHOPIFY_STOREFRONT_API_VERSION ?? '',

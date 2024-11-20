@@ -23,9 +23,15 @@ export type ShopifyTemplateHookParams = {
     config: Record<string, unknown>
 }
 
+export type SandboxConfig = {
+    url: string
+    headers: Record<string, string>
+}
+
 declare module '@nuxt/schema' {
     interface RuntimeConfig {
         _shopify?: ShopifyConfig
+        _sandbox?: Record<string, SandboxConfig>
     }
 
     interface NuxtHooks {

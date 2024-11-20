@@ -7,11 +7,12 @@ import {
     createResolver,
     defineNuxtModule,
     addServerImports,
+    updateRuntimeConfig,
 } from '@nuxt/kit'
 import { upperFirst } from 'scule'
 
 import {
-    installApolloSandbox,
+    installSandbox,
     registerTemplates,
     useShopifyConfig,
     useShopifyConfigSchema,
@@ -43,6 +44,8 @@ export default defineNuxtModule<ModuleOptions>({
             const resolver = createResolver(import.meta.url)
             const config = useShopifyConfig(moduleOptions.data)
 
+            console.log(config)
+
             for (const _clientType in config.clients) {
                 const clientType = _clientType as ShopifyClientType
                 const clientConfig = config.clients[clientType]
@@ -57,10 +60,7 @@ export default defineNuxtModule<ModuleOptions>({
                 }
 
                 if (nuxt.options.dev && clientConfig.sandbox) {
-                    const url = installApolloSandbox(
-                        nuxt,
-                        clientType,
-                    )
+                    const url = installSandbox(nuxt, clientType, clientConfig)
 
                     log.info(`Sandbox available at: ${url}`)
                 }
@@ -74,7 +74,9 @@ export default defineNuxtModule<ModuleOptions>({
 
             await nuxt.callHook('shopify:config', { nuxt, config })
 
-            nuxt.options.runtimeConfig._shopify = config
+            updateRuntimeConfig({
+                _shopify: config,
+            })
 
             log.success('Finished setup')
         }

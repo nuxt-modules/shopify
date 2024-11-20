@@ -5,14 +5,14 @@ import type {
 } from '../types'
 import type { Nuxt } from '@nuxt/schema'
 
-import { addServerHandler, createResolver } from '@nuxt/kit'
+import { addServerHandler, createResolver, updateRuntimeConfig } from '@nuxt/kit'
 
 const resolver = createResolver(import.meta.url)
 
 export function getSandboxUrl(nuxt: Nuxt, clientType: ShopifyClientType) {
     const url = new URL(nuxt.options.devServer.url)
 
-    return url.href + '_apollo-sandbox/' + clientType
+    return url.href + '_sandbox/' + clientType
 }
 
 export function getApiUrl(clientConfig?: ShopifyClientConfig) {
@@ -53,13 +53,28 @@ export function getApiHeaders<T extends ShopifyClientType>(clientType: T, client
 }
 
 // Returns the URL to the sandbox
-export function installApolloSandbox<T extends ShopifyClientType>(
+export function installSandbox<T extends ShopifyClientType>(
     nuxt: Nuxt,
     clientType: T,
+    clientConfig: ShopifyConfig['clients'][T],
 ) {
     addServerHandler({
-        handler: resolver.resolve('../runtime/server/handlers/apolloSandboxHandler.ts'),
-        route: `/_apollo-sandbox/${clientType}`,
+        handler: resolver.resolve('../runtime/server/handlers/sandbox.ts'),
+        route: `/_sandbox/${clientType}`,
+    })
+
+    addServerHandler({
+        handler: resolver.resolve('../runtime/server/handlers/proxy.ts'),
+        route: `/api/_proxy/${clientType}`,
+    })
+
+    updateRuntimeConfig({
+        _sandbox: {
+            [clientType]: {
+                url: getApiUrl(clientConfig),
+                headers: getApiHeaders(clientType, clientConfig),
+            },
+        },
     })
 
     return getSandboxUrl(nuxt, clientType)

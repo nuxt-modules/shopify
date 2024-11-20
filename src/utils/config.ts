@@ -52,21 +52,21 @@ export const useShopifyConfig = (options: ModuleOptions): ShopifyConfig => {
 }
 
 export const useShopifyConfigSchema = (options: ModuleOptions) => {
+    const clientSchema = z.object({
+        apiVersion: z.string().min(1),
+        sandbox: z.boolean().optional(),
+        documents: z.array(z.string()).optional(),
+    })
+
     const schema = z.object({
         name: z.string().min(1),
-        logLevel: z.number().optional(),
         clients: z.object({
-            storefront: z.object({
-                apiVersion: z.string().min(1),
-                publicAccessToken: z.string().min(1),
-                sandbox: z.boolean().optional(),
-                documents: z.array(z.string()).optional(),
+            storefront: clientSchema.extend({
+                publicAccessToken: z.string().min(1).optional(),
+                privateAccessToken: z.string().min(1).optional(),
             }).optional(),
-            admin: z.object({
-                apiVersion: z.string().min(1),
+            admin: clientSchema.extend({
                 accessToken: z.string().min(1),
-                sandbox: z.boolean().optional(),
-                documents: z.array(z.string()).optional(),
             }).optional(),
         }),
     })
