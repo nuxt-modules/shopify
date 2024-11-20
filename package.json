@@ -1,6 +1,6 @@
 {
     "name": "@konkonam/nuxt-shopify",
-    "version": "0.0.4",
+    "version": "0.0.5",
     "license": "MIT",
     "type": "module",
     "description": "Easily integrate shopify into your nuxt 3 & 4 project 🚀",
@@ -32,7 +32,7 @@
         "lint": "eslint .",
         "typecheck": "vue-tsc --noEmit",
         "analyze": "pnpm run --filter=./playgrounds/playground analyze",
-        "prepare": "nuxt-module-build prepare && nuxt-module-build build --stub",
+        "prepare": "nuxt-module-build prepare",
         "prepare:dev": "pnpm run --filter=./playgrounds/* prepare",
         "cleanup": "pnpm run --filter=./playgrounds/playground cleanup && nuxi cleanup && rm -rf node_modules"
     },

@@ -35,4 +35,4 @@ jobs:
       - name: Release module
         run: |
           pnpm set //registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}
-          pnpm run release
+          pnpm release
