@@ -5,8 +5,6 @@ import type { Nuxt } from '@nuxt/schema'
 
 import { addServerHandler, createResolver } from '@nuxt/kit'
 
-const resolver = createResolver(import.meta.url)
-
 export function getSandboxUrl(nuxt: Nuxt, clientType: ShopifyClientType) {
     const url = new URL(nuxt.options.devServer.url)
 
@@ -18,6 +16,8 @@ export function installSandbox<T extends ShopifyClientType>(
     nuxt: Nuxt,
     clientType: T,
 ) {
+    const resolver = createResolver(import.meta.url)
+
     addServerHandler({
         handler: resolver.resolve('../runtime/server/handlers/sandbox.ts'),
         route: `/_sandbox/${clientType}`,
