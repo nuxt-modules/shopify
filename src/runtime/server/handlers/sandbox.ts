@@ -1,17 +1,8 @@
-import { defineEventHandler, setResponseHeader, createError, useRuntimeConfig, send } from '#imports'
+import { defineEventHandler, setResponseHeader, createError, send } from '#imports'
 
 export default defineEventHandler(async (event) => {
-    const config = useRuntimeConfig()
-
     const clientType = event.node.req.url?.split('/').pop()
     if (!clientType) throw createError({
-        statusCode: 404,
-        message: 'Sandbox not found',
-    })
-
-    const url = config._sandbox?.[clientType]?.url
-    const headers = config._sandbox?.[clientType]?.headers
-    if (!url || !headers) throw createError({
         statusCode: 404,
         message: 'Sandbox not found',
     })
