@@ -25,7 +25,7 @@ export function installSandbox<T extends ShopifyClientType>(
 
     addServerHandler({
         handler: resolver.resolve('../runtime/server/handlers/proxy.ts'),
-        route: `/api/_proxy/${clientType}`,
+        route: `/_sandbox/proxy/${clientType}`,
     })
 
     return getSandboxUrl(nuxt, clientType)

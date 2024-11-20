@@ -58,7 +58,7 @@ declare module '@nuxt/schema' {
         /**
          * Called before the admin types are generated
          */
-        'admin:generate:types': ({ nuxt, config }: ShopifyTemplateHookParams) => HookResul
+        'admin:generate:types': ({ nuxt, config }: ShopifyTemplateHookParams) => HookResult
 
         /**
          * Called before the storefront operations are generated

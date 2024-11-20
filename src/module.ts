@@ -44,8 +44,6 @@ export default defineNuxtModule<ModuleOptions>({
             const resolver = createResolver(import.meta.url)
             const config = useShopifyConfig(moduleOptions.data)
 
-            console.log(config)
-
             for (const _clientType in config.clients) {
                 const clientType = _clientType as ShopifyClientType
                 const clientConfig = config.clients[clientType]
@@ -60,7 +58,7 @@ export default defineNuxtModule<ModuleOptions>({
                 }
 
                 if (nuxt.options.dev && clientConfig.sandbox) {
-                    const url = installSandbox(nuxt, clientType, clientConfig)
+                    const url = installSandbox(nuxt, clientType)
 
                     log.info(`Sandbox available at: ${url}`)
                 }

@@ -10,8 +10,6 @@ const schema = z.object({
     variables: z.record(z.unknown()).optional(),
 })
 
-// TODO: Add support for custom headers,
-//  which the user might set in the sandbox
 export default defineEventHandler(async (event) => {
     const body = await readValidatedBody(event, schema.parse)
 
@@ -22,7 +20,6 @@ export default defineEventHandler(async (event) => {
     switch (clientType) {
         case 'storefront':
             client = useStorefront()
-            console.log(client.config.headers)
             break
         case 'admin':
             client = useAdmin()

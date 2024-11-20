@@ -2,6 +2,7 @@ import { defineEventHandler, setResponseHeader, createError, send } from '#impor
 
 export default defineEventHandler(async (event) => {
     const clientType = event.node.req.url?.split('/').pop()
+
     if (!clientType) throw createError({
         statusCode: 404,
         message: 'Sandbox not found',
@@ -40,19 +41,23 @@ export default defineEventHandler(async (event) => {
                 <script>
                     const root = ReactDOM.createRoot(document.getElementById('graphiql'));
                     const explorerPlugin = GraphiQLPluginExplorer.explorerPlugin();
-                    const fetcher = async (graphQLParams) => {
-                    const response = await fetch('/api/_proxy/${clientType}', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(graphQLParams),
-                    });
-
-                    if (!response.ok) {
-                        throw new Error('Failed to fetch data');
-                    }
-
-                    return response.json();
-                };
+                    const fetcher = async (graphQLParams, opts) => {
+                        const headers = opts?.headers || {};
+                        const response = await fetch('/_sandbox/proxy/${clientType}', {
+                            method: 'POST',
+                            headers: {
+                                ...headers,
+                                'Content-Type': 'application/json' 
+                            },
+                            body: JSON.stringify(graphQLParams),
+                        });
+    
+                        if (!response.ok) {
+                            throw new Error('Failed to fetch data');
+                        }
+    
+                        return response.json();
+                    };
 
                     root.render(
                         React.createElement(GraphiQL, {

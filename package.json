@@ -38,8 +38,6 @@
         "@nuxt/kit": "^3.14.159"
     },
     "devDependencies": {
-        "@apollo/sandbox": "^2.7.0",
-        "@fontsource-variable/sono": "^5.1.0",
         "@graphql-codegen/cli": "^5.0.3",
         "@graphql-codegen/import-types-preset": "^3.0.0",
         "@nuxt/eslint-config": "^0.7.1",
@@ -49,8 +47,7 @@
         "@shopify/admin-api-client": "^1.0.4",
         "@shopify/api-codegen-preset": "^1.1.2",
         "@shopify/storefront-api-client": "^1.0.3",
-        "@types/node": "latest",
-        "consola": "^3.2.3",
+        "@types/node": "^20.17.6",
         "eslint": "^9.15.0",
         "minimatch": "^10.0.1",
         "nuxt": "^3.14.159",
@@ -66,6 +63,8 @@
         "nuxt-module",
         "shopify",
         "ecommerce",
+        "storefront-api",
+        "admin-api",
         "graphql",
         "codegen"
     ],

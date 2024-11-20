@@ -2,6 +2,8 @@
 
 ## Basic usage
 
+
+
 ## Using validation
 
 Using Nitro's built-in input validation, you can match the variables of your GraphQL queries before sending them to the API.
@@ -71,30 +73,3 @@ const response = await useFetch('/api/products', {
 ```
 
 Now the request will fail if the variable `first` is not a number.
-
-## Using zod
-
-```typescript
-const schema = z.object({
-    first: z.number().optional(),
-})
-
-export default defineEventHandler(async () => {
-    const storefront = useStorefront()
-    const variables = await getValidatedQuery(event, schema.parse)
-
-    const query = `#graphql
-        query FetchProducts($first: Int) {
-            products(first: $first) {
-                nodes {
-                    id
-                    title
-                    description
-                }
-            }
-        }
-    `
-
-    return storefront.request(query, { variables })
-})
-```
