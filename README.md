@@ -20,8 +20,8 @@ Easily integrate shopify into your nuxt app.
 - Nuxt 3 & 4 ready
 - Customizable GraphQL code generation
 - Storefront and Admin API support
-- Fully typed GraphQL operations & hot-reloading
-- GraphiQL Sandbox integration
+- Fully typed GraphQL operations with hot-reloading
+- GraphiQL Explorer sandbox integration
 
 ## 📦 Setup
 
@@ -129,24 +129,6 @@ export default defineEventHandler(async () => {
 ```
 
 For a full example, see [Admin API examples](https://konkonam.github.io/nuxt-shopify/examples/admin).
-
-### Advanced configuration
-
-Customize the Shopify module and the GraphQL code generation via Nuxt hooks.
-
-#### Modify Shopify configuration
-
-```typescript
-export default defineNuxtConfig({
-    hooks: {
-        'shopify:config': ({ nuxt, config }) => {
-            // Modify Shopify config here
-        },
-    },
-})
-```
-
-[GraphQL codegen config reference](https://the-guild.dev/graphql/codegen/docs/config-reference/codegen-config)
 
 ## 🤝 Contributing
 
