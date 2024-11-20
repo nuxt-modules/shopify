@@ -21,7 +21,7 @@ import { useLog } from './utils/log'
 
 export default defineNuxtModule<ModuleOptions>({
     meta: {
-        name: 'nuxt-shopify',
+        name: '@konkonam/nuxt-shopify',
         configKey: 'shopify',
         compatibility: {
             nuxt: '>=3.0.0',
