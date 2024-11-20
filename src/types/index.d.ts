@@ -6,7 +6,6 @@ import type {
 import type { HookResult, Nuxt } from '@nuxt/schema'
 
 import '@nuxt/schema'
-import 'nitropack'
 
 export type ModuleOptions = ShopifyConfig<
     Omit<ShopifyStorefrontConfig, 'storeDomain'>,

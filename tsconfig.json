@@ -1,8 +1,12 @@
 {
     "extends": "./.nuxt/tsconfig.json",
+    "compilerOptions": {
+        "skipLibCheck": true
+    },
     "exclude": [
         "src/runtime/server",
         "playgrounds",
         "dist",
+        "node_modules",
     ]
 }

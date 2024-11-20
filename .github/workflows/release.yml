@@ -17,7 +17,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 20
           cache: pnpm
 
       - name: Install dependencies
@@ -30,4 +30,6 @@ jobs:
         run: pnpm run typecheck
 
       - name: Release module
-        run: pnpm release
+        run: |
+          pnpm set //registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}
+          pnpm run release
