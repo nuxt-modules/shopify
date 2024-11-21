@@ -56,8 +56,7 @@ Depending on your configuration, the following files are generated:
 
 These files are seamlessly integrated into Nuxt using Nuxt Templates, making them fully accessible within the framework.
 
-You can even view them directly in Nuxt DevTools:
-http://localhost:3000/nuxt_devtools/client/modules/virtual-files
+You can even view them directly in Nuxt DevTools: `localhost:3000/nuxt_devtools/client/modules/virtual-files`
 
 ## Configuration
 

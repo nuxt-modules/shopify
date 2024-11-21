@@ -4,6 +4,8 @@ The module can be configured via the `shopify` property in the `nuxt.config.ts` 
 
 ```ts
 export default defineNuxtConfig({
+    modules: [ 'nuxt-shopify' ],
+    
     shopify: {
         name: 'quickstart-abcd1234',
         clients: {

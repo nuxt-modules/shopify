@@ -1,9 +1,11 @@
 name: 'Release'
 
 on:
-  push:
+  create:
     branches:
       - main
+    tags:
+      - 'release'
 
 jobs:
   release:
