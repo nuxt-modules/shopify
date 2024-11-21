@@ -17,11 +17,11 @@ Easily integrate shopify into your nuxt app.
 ## 🚀 Features
 
 - Plug & play Shopify integration
-- Nuxt 3 & 4 ready
-- Customizable GraphQL code generation
-- Storefront and Admin API support
 - Fully typed GraphQL operations with hot-reloading
-- GraphiQL Explorer sandbox integration
+- Nuxt 3 & 4 ready
+- Storefront and Admin API support
+- Customizable GraphQL code generation
+- Sandboxed GraphiQL Explorer integration
 
 ## 📦 Setup
 
