@@ -1,3 +1,6 @@
+# 0.0.9
+- Documentation changes
+
 # 0.0.8
 - Fixed config module name
 
