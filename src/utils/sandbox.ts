@@ -19,12 +19,12 @@ export function installSandbox<T extends ShopifyClientType>(
     const resolver = createResolver(import.meta.url)
 
     addServerHandler({
-        handler: resolver.resolve('../runtime/server/handlers/sandbox.ts'),
+        handler: resolver.resolve('../runtime/server/handlers/sandbox'),
         route: `/_sandbox/${clientType}`,
     })
 
     addServerHandler({
-        handler: resolver.resolve('../runtime/server/handlers/proxy.ts'),
+        handler: resolver.resolve('../runtime/server/handlers/proxy'),
         route: `/_sandbox/proxy/${clientType}`,
     })
 

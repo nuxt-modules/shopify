@@ -83,9 +83,10 @@ export default defineEventHandler(async () => {
 })
 ```
 
-### Use the GraphiQL Sandbox for faster development
+### Use the GraphiQL Explorer for faster development
 
-The module automatically installs [GraphiQL](https://github.com/graphql/graphiql) for each client type.
+The module automatically installs the [GraphiQL Explorer](https://www.npmjs.com/package/@graphiql/plugin-explorer)
+as a sandbox for each client type.
 
 To access the sandbox for the Storefront API, use the following URL:
 
