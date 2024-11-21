@@ -28,7 +28,7 @@
         "dev:docs": "vitepress dev docs",
         "dev:v4": "nuxi dev playgrounds/playground-nuxt-v4",
         "preview:docs": "vitepress preview docs",
-        "release": "pnpm run build && pnpm publish --access=public",
+        "release": "pnpm run build && pnpm publish --no-git-checks",
         "lint": "eslint .",
         "typecheck": "vue-tsc --noEmit",
         "analyze": "pnpm run --filter=./playgrounds/playground analyze",
