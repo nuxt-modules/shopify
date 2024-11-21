@@ -60,7 +60,7 @@ export default defineNuxtModule<ModuleOptions>({
                 if (nuxt.options.dev && clientConfig.sandbox) {
                     const url = installSandbox(nuxt, clientType)
 
-                    log.info(`Sandbox available at: ${url}`)
+                    log.info(`${upperFirst(clientType)} sandbox available at: ${url}`)
                 }
 
                 const functionName = `use${upperFirst(clientType)}`

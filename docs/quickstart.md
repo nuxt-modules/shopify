@@ -15,6 +15,8 @@ npm install -D @konkonam/nuxt-shopify
 Add the module to your `nuxt.config.ts`:
 
 ```ts
+// ~/nuxt.config.ts
+
 export default defineNuxtConfig({
   modules: [
     '@konkonam/nuxt-shopify',
@@ -25,6 +27,8 @@ export default defineNuxtConfig({
 Add your Shopify configuration to the `nuxt.config.ts`:
 
 ```ts
+// ~/nuxt.config.ts
+
 export default defineNuxtConfig({
   shopify: {
     name: 'quickstart-abcd1234',
@@ -45,7 +49,7 @@ export default defineNuxtConfig({
 To enable IDE support, you can add a GraphQL configuration file to the root of your project:
 
 ```yaml
-# graphql.config.yml
+# ~/graphql.config.yml
 schema:
   - ./.nuxt/schema/storefront.schema.json
   - ./.nuxt/schema/admin.schema.json
@@ -60,26 +64,28 @@ The module exposes utilities to access each API via Nitro endpoints.
 Obtain a list of products from the storefront API:
 
 ```typescript
-export default defineEventHandler(async () => {
-    const storefront = useStorefront()
-    
-    const query = `#graphql
-        query FetchProducts($first: Int) {
-            products(first: $first) {
-                nodes {
-                    id
-                    title
-                    description
-                }
-            }
-        }
-    `
+// ~/server/api/products.ts
 
-    return storefront.request(query, {
-        variables: {
-            first: 1,
-        },
-    })
+export default defineEventHandler(async () => {
+  const storefront = useStorefront()
+
+  const query = `#graphql
+    query FetchProducts($first: Int) {
+      products(first: $first) {
+        nodes {
+          id
+          title
+          description
+        }
+      }
+    }
+  `
+
+  return storefront.request(query, {
+    variables: {
+      first: 1,
+    },
+  })
 })
 ```
 
