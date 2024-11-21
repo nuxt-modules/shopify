@@ -11,23 +11,23 @@ To access the Admin API, you can use the `useAdmin` utility available to the nit
 // ~/server/api/products.ts
 
 export default defineEventHandler(async () => {
-  const admin = useAdmin()
+    const admin = useAdmin()
 
-  return await admin.request(`#graphql
-    query FetchProducts($first: Int) {
-      products(first: $first) {
-        nodes {
-          id
-          title
-          description
+    return await admin.request(`#graphql
+        query FetchProducts($first: Int) {
+            products(first: $first) {
+                nodes {
+                    id
+                    title
+                    description
+                }
+            }
         }
-      }
-    }
-  `, {
-    variables: {
-      first: 1,
-    },
-  })
+    `, {
+        variables: {
+            first: 1,
+        },
+    })
 })
 ```
 

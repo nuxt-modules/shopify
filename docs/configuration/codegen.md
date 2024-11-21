@@ -19,19 +19,20 @@ background, adapting dynamically to the queries you write.
 const storefront = useStorefront()
 
 const myQuery = await storefront.request(`#graphql
-  query ExampleQuery {
-    menu(handle: "main-menu") {
-      ...MenuFields
+    query ExampleQuery {
+        menu(handle: "main-menu") {
+            ...MenuFields
+        }
+        products(first: 10) {
+            ...ProductFields
+        }
     }
-    products(first: 10) {
-      ...ProductFields
-    }
-  }
 `)
 // ...
 ```
 
 ### Key Highlights:
+
 - myQuery.data.products is automatically typed as ProductConnection.
 - myQuery.data.menu is automatically typed as Menu.
 
@@ -68,7 +69,8 @@ The module options allow you to configure code generation as follows:
   - `clients`
     - `storefront | admin`
       - `skipCodegen: boolean` – Skip code generation for the specified client.
-      - `documents: []` – An array of glob patterns, relative to the Nuxt root, specifying the query documents to include.
+      - `documents: []` – An array of glob patterns, relative to the Nuxt root, specifying the query documents to
+      include.
 
 ### Advanced Customization: Hooks
 

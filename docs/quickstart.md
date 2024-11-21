@@ -18,9 +18,9 @@ Add the module to your `nuxt.config.ts`:
 // ~/nuxt.config.ts
 
 export default defineNuxtConfig({
-  modules: [
-    '@konkonam/nuxt-shopify',
-  ],
+    modules: [
+        '@konkonam/nuxt-shopify',
+    ],
 })
 ```
 
@@ -30,15 +30,15 @@ Add your Shopify configuration to the `nuxt.config.ts`:
 // ~/nuxt.config.ts
 
 export default defineNuxtConfig({
-  shopify: {
-    name: 'quickstart-abcd1234',
-    clients: {
-      storefront: {
-        apiVersion: '2024-10',
-        publicAccessToken: 'YOUR_ACCESS_TOKEN',
-      },
+    shopify: {
+        name: 'quickstart-abcd1234',
+            clients: {
+                storefront: {
+                apiVersion: '2024-10',
+                publicAccessToken: 'YOUR_ACCESS_TOKEN',
+            },
+        },
     },
-  },
 })
 ```
 
@@ -67,25 +67,25 @@ Obtain a list of products from the storefront API:
 // ~/server/api/products.ts
 
 export default defineEventHandler(async () => {
-  const storefront = useStorefront()
+    const storefront = useStorefront()
 
-  const query = `#graphql
-    query FetchProducts($first: Int) {
-      products(first: $first) {
-        nodes {
-          id
-          title
-          description
+    const query = `#graphql
+        query FetchProducts($first: Int) {
+            products(first: $first) {
+                nodes {
+                    id
+                    title
+                    description
+                }
+            }
         }
-      }
-    }
-  `
+    `
 
-  return storefront.request(query, {
-    variables: {
-      first: 1,
-    },
-  })
+    return storefront.request(query, {
+        variables: {
+            first: 1,
+        },
+    })
 })
 ```
 

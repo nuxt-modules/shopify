@@ -34,9 +34,9 @@ Add the module to your `nuxt.config.ts`:
 
 ```ts
 export default defineNuxtConfig({
-  modules: [
-    '@konkonam/nuxt-shopify',
-  ],
+    modules: [
+        '@konkonam/nuxt-shopify',
+    ],
 })
 ```
 
@@ -44,20 +44,20 @@ Add your Shopify configuration to the `nuxt.config.ts`:
 
 ```ts
 export default defineNuxtConfig({
-  shopify: {
-    name: 'quickstart-abcd1234',
-    clients: {
-      storefront: {
-        apiVersion: '2024-10',
-        publicAccessToken: 'YOUR_ACCESS_TOKEN',
-      },
+    shopify: {
+        name: 'quickstart-abcd1234',
+        clients: {
+            storefront: {
+                apiVersion: '2024-10',
+                publicAccessToken: 'YOUR_ACCESS_TOKEN',
+            },
 
-      admin: {
-        apiVersion: '2024-10',
-        accessToken: 'YOUR_ACCESS_TOKEN',
-      },
+            admin: {
+                apiVersion: '2024-10',
+                accessToken: 'YOUR_ACCESS_TOKEN',
+            },
+        },
     },
-  },
 })
 ```
 
@@ -114,6 +114,21 @@ storefront API, as long as the don't end with `.admin.ts` or `.admin.gql`.
 
 Read more about the [codegen configuration](https://konkonam.github.io/nuxt-shopify/configuration/codegen).
 
+Now we can call the API at `/api/products` with the following variables:
+
+```ts
+// ~/pages/your-page.vue
+
+// Requests /api/products?first=3
+const response = await useFetch('/api/products', {
+    query: {
+        first: 3,
+    },
+})
+```
+
+This will return a list of products with the first 3 entries.
+
 #### Admin API example
 
 Files ending with `.admin.ts` or `.admin.gql` will automatically be processed for the admin API.
@@ -136,11 +151,11 @@ For a full example, see [Admin API examples](https://konkonam.github.io/nuxt-sho
     ```bash
     pnpm install
     ```
-    (Make sure pnpm is enabled with `corepack enable`. [Learn more](https://pnpm.io/installation#using-corepack).)
+   (Make sure pnpm is enabled with `corepack enable`. [Learn more](https://pnpm.io/installation#using-corepack).)
 3. Run `pnpm run dev:prepare` to generate type stubs.
 4. Start the default [playground](https://github.com/konkonam/nuxt-shopify/tree/main/playgrounds/playground) with:
     ```bash
-   pnpm run dev
+    pnpm run dev
     ```
 
 ## 📜 License

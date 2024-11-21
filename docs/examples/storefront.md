@@ -8,23 +8,23 @@ To access the storefront API, you can use the `useStorefront` utility available 
 // ~/server/api/products.ts
 
 export default defineEventHandler(async () => {
-  const storefront = useStorefront()
+    const storefront = useStorefront()
 
-  return await storefront.request(`#graphql
-    query FetchProducts($first: Int) {
-      products(first: $first) {
-        nodes {
-          id
-          title
-          description
+    return await storefront.request(`#graphql
+        query FetchProducts($first: Int) {
+            products(first: $first) {
+                nodes {
+                    id
+                    title
+                    description
+                }
+            }
         }
-      }
-    }
-  `, {
-    variables: {
-      first: 1,
-    },
-  })
+    `, {
+        variables: {
+            first: 1,
+        },
+    })
 })
 ```
 
@@ -72,37 +72,39 @@ Next, use Nitro's built-in `getValidatedQuery` utility to validate the query var
 import { z } from 'zod'
 
 const schema = z.object({
-  first: z.preprocess(v => Number(v), z.number().min(1)),
+    first: z.preprocess(v => Number(v), z.number().min(1)),
 })
 
 export default defineEventHandler(async () => {
-  const storefront = useStorefront()
-  const variables = await getValidatedQuery(event, schema.parse)
-
-  const query = `#graphql
-    query FetchProducts($first: Int) {
-      products(first: $first) {
-        nodes {
-          id
-          title
-          description
+    const storefront = useStorefront()
+    const variables = await getValidatedQuery(event, schema.parse)
+    
+    const query = `#graphql
+        query FetchProducts($first: Int) {
+            products(first: $first) {
+                nodes {
+                    id
+                    title
+                    description
+                }
+            }
         }
-      }
-    }
-  `
-
-  return storefront.request(query, { variables })
+    `
+    
+    return storefront.request(query, { variables })
 })
 ```
 
 Now we can call the API at `/api/products` with the following variables:
 
 ```ts
+// ~/pages/your-page.vue
+
 // Requests /api/products?first=1
 const response = await useFetch('/api/products', {
-  query: {
-    first: 1,
-  },
+    query: {
+        first: 1,
+    },
 })
 ```
 
