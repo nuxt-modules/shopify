@@ -105,7 +105,7 @@ export default defineEventHandler(async () => {
         }
     `, {
         variables: {
-            first: 1,
+            first: 3,
         },
     })
 })
@@ -116,16 +116,12 @@ the standard module configuration all `.ts` and `.gql` files are automatically p
 storefront API, as long as the don't end with `.admin.ts` or `.admin.gql`.
 Read more about the [codegen configuration](https://konkonam.github.io/nuxt-shopify/configuration/codegen).
 
-Now we can call the API at `/api/products` with the following variables:
+Now we can call the API at `/api/products` to obtain the first three products:
 
 ```ts
 // ~/pages/your-page.vue
 
-const { data, error } = await useFetch('/api/products', {
-    query: {
-        first: 3,
-    },
-})
+const { data, error } = await useFetch('/api/products')
 ```
 
 The `data` variable will be typed as `Ref<ClientResponse<FetchProductsQuery>>`, which enables autocompletion and full
