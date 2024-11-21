@@ -72,7 +72,8 @@ Once installed, the module automatically generates your GraphQL types and saves 
 To enable IDE support, add a GraphQL configuration file:
 
 ```yaml
-# graphql.config.yml
+# ~/graphql.config.yml
+
 schema:
   - ./.nuxt/schema/storefront.schema.json
   - ./.nuxt/schema/admin.schema.json
@@ -87,6 +88,8 @@ The module exposes utilities to access each API via Nitro endpoints.
 You can use the `useStorefront` utility to access the storefront API:
 
 ```typescript
+// ~/server/api/products.ts
+
 export default defineEventHandler(async () => {
     const storefront = useStorefront()
 
@@ -111,7 +114,6 @@ export default defineEventHandler(async () => {
 Notice how we can use the `graphql` directive inside the event handler, this is possible because in
 the standard module configuration all `.ts` and `.gql` files are automatically processed for the
 storefront API, as long as the don't end with `.admin.ts` or `.admin.gql`.
-
 Read more about the [codegen configuration](https://konkonam.github.io/nuxt-shopify/configuration/codegen).
 
 Now we can call the API at `/api/products` with the following variables:
@@ -119,15 +121,15 @@ Now we can call the API at `/api/products` with the following variables:
 ```ts
 // ~/pages/your-page.vue
 
-// Requests /api/products?first=3
-const response = await useFetch('/api/products', {
+const { data, error } = await useFetch('/api/products', {
     query: {
         first: 3,
     },
 })
 ```
 
-This will return a list of products with the first 3 entries.
+The `data` variable will be typed as `Ref<ClientResponse<FetchProductsQuery>>`, which enables autocompletion and full
+type checking.
 
 #### Admin API example
 
@@ -135,6 +137,8 @@ Files ending with `.admin.ts` or `.admin.gql` will automatically be processed fo
 We can use the `useAdmin` utility to access the admin API in a nitro event handler:
 
 ```typescript
+// ~/server/api/your-admin-api-handler.ts
+
 export default defineEventHandler(async () => {
     const admin = useAdmin()
 

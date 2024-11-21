@@ -1,3 +1,7 @@
+# 0.0.10
+- Updated sandbox handler
+- Updated documentation
+
 # 0.0.9
 - Documentation changes
 
