@@ -53,7 +53,6 @@ export function registerTemplates<T extends ShopifyClientType>(nuxt: Nuxt, clien
             clientType,
             clientConfig,
         },
-        write: true,
     })
 
     const typesFilename = `types/${clientType}/${clientType}.types`

@@ -31,6 +31,7 @@ declare module '@shopify/${clientType}-api-client' {
 
 const getIntrospection = (options: ShopifyTemplateOptions) => {
     const { clientType, clientConfig, introspection } = options
+
     if (introspection && existsSync(introspection)) {
         return introspection
     }

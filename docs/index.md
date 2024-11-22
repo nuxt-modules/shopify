@@ -4,8 +4,11 @@ layout: home
 
 hero:
   name: "nuxt-shopify"
+
   text: "Plug & play Shopify integration"
+
   tagline: "for Nuxt 3 & 4"
+
   actions:
     - theme: brand
       text: "Quickstart"
@@ -13,6 +16,7 @@ hero:
     - theme: alt
       text: "Examples"
       link: "/examples/storefront"
+
   image:
     src: /logo.png
     alt: "nuxt-shopify logo"
