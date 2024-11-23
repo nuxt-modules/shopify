@@ -1,3 +1,7 @@
+# 0.0.11
+- Refactored codegen templates
+- Added prepare check
+
 # 0.0.10
 - Updated sandbox handler
 - Updated documentation

@@ -29,8 +29,9 @@ export default defineNuxtModule<ModuleOptions>({
     },
 
     async setup(options, nuxt) {
-        const log = useLog(options.logger)
+        if (nuxt.options._prepare) return
 
+        const log = useLog(options.logger)
         const moduleOptions = useShopifyConfigSchema(options)
 
         if (!moduleOptions.success) {

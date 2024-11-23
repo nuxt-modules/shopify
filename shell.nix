@@ -3,8 +3,7 @@
 pkgs.mkShell {
     buildInputs = with pkgs; [
         git
-        nodejs_20
-        nodejs_20.pkgs.pnpm
+        bun
     ];
 
     NODE_ENV="development";

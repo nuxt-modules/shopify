@@ -53,6 +53,7 @@ export function registerTemplates<T extends ShopifyClientType>(nuxt: Nuxt, clien
             clientType,
             clientConfig,
         },
+        write: true,
     })
 
     const typesFilename = `types/${clientType}/${clientType}.types`
@@ -86,13 +87,14 @@ export function registerTemplates<T extends ShopifyClientType>(nuxt: Nuxt, clien
         getContents: () => `export * from './${basename(types.filename)}'\nexport * from './${basename(operations.filename)}'\n`,
     })
 
-    nuxt.options.nitro.alias = defu(nuxt.options.nitro.alias, {
-        [`#shopify/${clientType}`]: dirname(index.filename),
+    nuxt.options = defu(nuxt.options, {
+        alias: { [`#shopify/${clientType}`]: dirname(index.filename) },
+        nitro: {
+            typescript: {
+                tsConfig: {
+                    include: [index.filename],
+                },
+            },
+        },
     })
-
-    nuxt.options.nitro.typescript = nuxt.options.nitro.typescript || {}
-    nuxt.options.nitro.typescript.tsConfig = nuxt.options.nitro.typescript.tsConfig || {}
-    nuxt.options.nitro.typescript.tsConfig.include = nuxt.options.nitro.typescript?.tsConfig?.include || []
-
-    nuxt.options.nitro.typescript.tsConfig.include.push(index.filename)
 }
