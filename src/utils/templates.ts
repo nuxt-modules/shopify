@@ -45,6 +45,8 @@ export function setupWatcher(nuxt: Nuxt, template: NuxtTemplate<ShopifyTemplateO
 
 export function registerTemplates<T extends ShopifyClientType>(nuxt: Nuxt, clientType: T, clientConfig: ShopifyClientConfig) {
     const introspectionFilename = `schema/${clientType}.schema.json`
+    const introspectionPath = join(nuxt.options.buildDir, introspectionFilename)
+
     const introspection = addTemplate<ShopifyTemplateOptions>({
         filename: introspectionFilename,
         getContents: generateIntrospection,
@@ -52,6 +54,7 @@ export function registerTemplates<T extends ShopifyClientType>(nuxt: Nuxt, clien
             filename: introspectionFilename,
             clientType,
             clientConfig,
+            introspection: introspectionPath,
         },
         write: true,
     })
