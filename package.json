@@ -51,12 +51,12 @@
         "zod": "^3.23.8"
     },
     "devDependencies": {
-        "@nuxt/eslint-config": "^0.7.1",
+        "@nuxt/eslint-config": "^0.7.2",
         "@nuxt/kit": "^3.14.1592",
         "@nuxt/module-builder": "^0.8.4",
         "@nuxt/schema": "^3.14.1592",
         "@nuxt/test-utils": "^3.14.4",
-        "@types/node": "^20.17.7",
+        "@types/node": "^20.17.8",
         "eslint": "^9.15.0",
         "nuxt": "^3.14.1592",
         "vitepress": "^1.5.0",
