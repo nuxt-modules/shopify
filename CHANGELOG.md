@@ -1,4 +1,7 @@
-# 0.0.11
+# 0.0.13
+- Fixed release
+
+# 0.0.12
 - Bumped dependencies
 
 # 0.0.11
