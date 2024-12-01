@@ -1,4 +1,7 @@
 # 0.0.11
+- Bumped dependencies
+
+# 0.0.11
 - Refactored codegen templates
 - Added prepare check
 
