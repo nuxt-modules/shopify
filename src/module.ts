@@ -29,8 +29,6 @@ export default defineNuxtModule<ModuleOptions>({
     },
 
     async setup(options, nuxt) {
-        if (nuxt.options._prepare) return
-
         const log = useLog(options.logger)
         const moduleOptions = useShopifyConfigSchema(options)
 
@@ -65,6 +63,7 @@ export default defineNuxtModule<ModuleOptions>({
                 }
 
                 const functionName = `use${upperFirst(clientType)}`
+
                 addServerImports([{
                     from: resolver.resolve(`./runtime/server/utils/${functionName}`),
                     name: functionName,

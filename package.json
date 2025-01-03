@@ -1,6 +1,6 @@
 {
     "name": "@konkonam/nuxt-shopify",
-    "version": "0.0.13",
+    "version": "0.0.14",
     "license": "MIT",
     "type": "module",
     "description": "Easily integrate shopify into your nuxt 3 & 4 project 🚀",

@@ -1,3 +1,6 @@
+# 0.0.14
+- Removed nuxt prepare check
+
 # 0.0.13
 - Fixed release
 

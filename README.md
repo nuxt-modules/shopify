@@ -1,4 +1,4 @@
-![nuxt-shopify](https://raw.githubusercontent.com/konkonam/nuxt-shopify/refs/heads/main/docs/public/logo-small.png)
+![nuxt-shopify](https://raw.githubusercontent.com/konkonam/nuxt-shopify/refs/heads/main/docs/public/logo-readme.png)
 
 # Nuxt Shopify
 
@@ -14,6 +14,10 @@ Easily integrate shopify into your nuxt app.
 - 🏀 [Online playground](https://stackblitz.com/github/konkonam/nuxt-shopify?file=playgrounds%2Fplayground%2Fnuxt.config.ts)
 
 ## 🚀 Features
+
+Hot-reloaded auto-generated typescript types from GraphQL operations for easy access to the Shopify APIs:
+
+![nuxt-shopify-demo](https://raw.githubusercontent.com/konkonam/nuxt-shopify/refs/heads/main/docs/public/demo.gif)
 
 - Plug & play Shopify integration
 - Fully typed GraphQL operations with hot-reloading
