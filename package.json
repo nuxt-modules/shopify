@@ -56,11 +56,11 @@
         "@nuxt/module-builder": "^0.8.4",
         "@nuxt/schema": "^3.15.4",
         "@nuxt/test-utils": "^3.17.1",
-        "@types/node": "^20.17.22",
+        "@types/node": "^20.17.23",
         "eslint": "^9.21.0",
         "nuxt": "^3.15.4",
         "vitepress": "^1.6.3",
-        "vitest": "^3.0.7",
+        "vitest": "^3.0.8",
         "vue-tsc": "^2.2.8"
     },
     "keywords": [
