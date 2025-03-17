@@ -40,10 +40,10 @@
         "@graphql-codegen/cli": "^5.0.5",
         "@graphql-codegen/import-types-preset": "^3.0.0",
         "@shopify/admin-api-client": "^1.0.6",
-        "@shopify/api-codegen-preset": "^1.1.4",
+        "@shopify/api-codegen-preset": "^1.1.5",
         "@shopify/graphql-codegen": "^0.1.0",
         "@shopify/storefront-api-client": "^1.0.5",
-        "consola": "^3.4.0",
+        "consola": "^3.4.1",
         "defu": "^6.1.4",
         "h3": "^1.15.1",
         "minimatch": "^10.0.1",
@@ -60,7 +60,7 @@
         "eslint": "^9.22.0",
         "nuxt": "^3.16.0",
         "vitepress": "^1.6.3",
-        "vitest": "^3.0.8",
+        "vitest": "^3.0.9",
         "vue-tsc": "^2.2.8"
     },
     "keywords": [
