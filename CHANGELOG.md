@@ -1,3 +1,6 @@
+# 0.0.15
+- Bumped dependencies
+
 # 0.0.14
 - Removed nuxt prepare check
 

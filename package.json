@@ -1,6 +1,6 @@
 {
     "name": "@konkonam/nuxt-shopify",
-    "version": "0.0.14",
+    "version": "0.0.15",
     "license": "MIT",
     "type": "module",
     "description": "Easily integrate shopify into your nuxt 3 & 4 project 🚀",
@@ -11,13 +11,18 @@
     "homepage": "https://konkonam.github.io/nuxt-shopify",
     "exports": {
         ".": {
-            "types": "./dist/types.d.ts",
-            "import": "./dist/module.mjs",
-            "require": "./dist/module.cjs"
+            "types": "./dist/types.d.mts",
+            "import": "./dist/module.mjs"
         }
     },
-    "main": "./dist/module.cjs",
-    "types": "./dist/types.d.ts",
+    "main": "./dist/module.mjs",
+    "typesVersions": {
+        "*": {
+            ".": [
+                "./dist/types.d.mts"
+            ]
+        }
+    },
     "files": [
         "dist"
     ],
