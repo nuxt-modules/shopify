@@ -58,13 +58,52 @@ schema:
   - ./.nuxt/schema/admin.schema.json
 ```
 
-### Access Storefront API via Nitro endpoints
+### Access Storefront API on the client side
+
+There are multiple ways of communicating with the Shopify APIs.
+The easiest way is with the `useStorefront` composable, directly inside of your vue component or page.
+
+> [!NOTE]
+> To access the `useStorefront` composable on the client side, make sure you have added a public access token.
+> You can add it in the module config: `clients > storefront > publicAccessToken`
+
+```html
+// ~/components/Products.vue
+
+<script type="setup" setup lang="ts">
+const storefront = useStorefront()
+
+const { data } = await storefront.request(`#graphql
+    query FetchProducts($first: Int) {
+        products(first: $first) {
+            nodes {
+                id
+                title
+                description
+            }
+        }
+    }
+`, {
+    variables: {
+        first: 3,
+    },
+})
+</script>
+
+<template>
+    <div>
+        <pre>{{ data?.products }}</pre>
+    </div>
+</template>
+```
+
+### Access APIs via Nitro endpoints
 
 The module exposes utilities to access each API via Nitro endpoints.
 
 #### Storefront API example
 
-Obtain a list of products from the storefront API:
+Obtain a list of products from the storefront API with the `useStorefront` utility:
 
 ```typescript
 // ~/server/api/products.ts

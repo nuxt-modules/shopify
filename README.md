@@ -87,13 +87,10 @@ schema:
   - ./.nuxt/schema/admin.schema.json
 ```
 
-### Access APIs via Nitro endpoints
+### Access Storefront API on the client side
 
-The module exposes utilities to access each API via Nitro endpoints.
-
-#### Storefront API example
-
-You can use the `useStorefront` utility to access the storefront API:
+There are multiple ways of communicating with the Shopify APIs.
+The easiest way is with the `useStorefront` composable, directly inside of your vue component or page.
 
 > [!NOTE]
 > To access the `useStorefront` composable on the client side, make sure you have added a public access token.
@@ -129,7 +126,13 @@ const { data } = await storefront.request(`#graphql
 </template>
 ```
 
-##### Server
+### Access APIs via Nitro endpoints
+
+The module exposes utilities to access each API via Nitro endpoints.
+
+#### Storefront API example
+
+You can use the `useStorefront` utility to access the storefront API:
 
 ```typescript
 // ~/server/api/products.ts
