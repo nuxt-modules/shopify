@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useFetch } from '#imports'
 
-const products = await useFetch('/api/products', {
+const { data } = await useFetch('/api/products', {
     query: {
         first: 10,
     },
@@ -9,5 +9,5 @@ const products = await useFetch('/api/products', {
 </script>
 
 <template>
-    <pre>{{ products }}</pre>
+    <pre>{{ data }}</pre>
 </template>

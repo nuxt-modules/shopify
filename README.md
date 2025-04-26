@@ -71,22 +71,6 @@ export default defineNuxtConfig({
 
 ## 🛠️ Usage
 
-### Type generation
-
-Once installed, the module automatically generates your GraphQL types and saves them in:
-- .nuxt/types — Type definitions
-- .nuxt/schema — GraphQL schema files
-
-To enable IDE support, add a GraphQL configuration file:
-
-```yaml
-# ~/graphql.config.yml
-
-schema:
-  - ./.nuxt/schema/storefront.schema.json
-  - ./.nuxt/schema/admin.schema.json
-```
-
 ### Access Storefront API on the client side
 
 There are multiple ways of communicating with the Shopify APIs.
@@ -97,7 +81,7 @@ The easiest way is with the `useStorefront` composable, directly inside of your 
 > You can add it in the module config: `clients > storefront > publicAccessToken`
 
 ```html
-<!-- ~/components/Products.vue -->
+<!-- ~/pages/your-page.vue -->
 
 <script type="setup" setup lang="ts">
 const storefront = useStorefront()
@@ -120,9 +104,7 @@ const { data } = await storefront.request(`#graphql
 </script>
 
 <template>
-    <div>
-        <pre>{{ data?.products }}</pre>
-    </div>
+    <pre>{{ data?.products }}</pre>
 </template>
 ```
 
@@ -165,10 +147,16 @@ Read more about the [codegen configuration](https://konkonam.github.io/nuxt-shop
 
 Now we can call the API at `/api/products` to obtain the first three products:
 
-```ts
-// ~/pages/your-page.vue
+```html
+<!-- ~/pages/your-page.vue -->
 
-const { data, error } = await useFetch('/api/products')
+<script setup lang="ts">
+const { data } = await useFetch('/api/products')
+</script>
+
+<template>
+    <pre>{{ data }}</pre>
+</template>
 ```
 
 The `data` variable will be typed as `Ref<ClientResponse<FetchProductsQuery>>`, which enables autocompletion and full
@@ -190,6 +178,22 @@ export default defineEventHandler(async () => {
 ```
 
 For a full example, see [Admin API examples](https://konkonam.github.io/nuxt-shopify/examples/admin).
+
+### Type generation
+
+Once installed, the module automatically generates your GraphQL types and saves them in:
+- .nuxt/types — Type definitions
+- .nuxt/schema — GraphQL schema files
+
+To enable IDE support, you can add a GraphQL configuration file:
+
+```yaml
+# ~/graphql.config.yml
+
+schema:
+  - ./.nuxt/schema/storefront.schema.json
+  - ./.nuxt/schema/admin.schema.json
+```
 
 ## 🤝 Contributing
 
