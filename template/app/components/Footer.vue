@@ -96,7 +96,7 @@ const currentYear = computed(() => new Date().getFullYear())
             </div>
 
             <div class="mt-8 text-sm">
-                <p>&copy; {{ currentYear }} Marlz Vintage. All rights reserved.</p>
+                <p>&copy; {{ currentYear }} Zoltan Lukacs, Frederik Bußmann. All rights reserved.</p>
             </div>
         </UContainer>
     </footer>

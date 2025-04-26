@@ -3,6 +3,7 @@ export default defineNuxtConfig({
         '@nuxt/image',
         '@nuxt/ui',
         '@nuxtjs/i18n',
+        '@vueuse/nuxt',
         '@konkonam/nuxt-shopify',
     ],
 
@@ -13,12 +14,14 @@ export default defineNuxtConfig({
             colors: {
                 primary: 'indigo',
             },
+
             card: {
                 slots: {
                     root: 'p-0 ring-0 shadow-none',
                     body: 'p-0 sm:p-0',
                 },
             },
+
             breadcrumb: {
                 slots: {
                     linkLabel: 'truncate mb-[2px]',
@@ -32,6 +35,7 @@ export default defineNuxtConfig({
                     },
                 },
             },
+
             icons: {
                 arrowLeft: 'hugeicons:arrow-left-01',
                 arrowRight: 'hugeicons:arrow-right-01',
@@ -61,8 +65,8 @@ export default defineNuxtConfig({
     fonts: {
         families: [
             {
-                name: 'Roboto',
-                provider: 'google-fonts',
+                name: 'Jura',
+                provider: 'google',
             },
         ],
 

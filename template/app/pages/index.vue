@@ -16,7 +16,9 @@ const navigationBounding = inject<UseElementBoundingReturn>('navigation:bounding
                 class="mt-16"
             />
         </section>
+
         <section class="h-screen" />
+
         <ProductSlider />
     </div>
 </template>

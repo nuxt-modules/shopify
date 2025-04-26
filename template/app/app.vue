@@ -25,14 +25,22 @@ useHead({
     ],
 })
 
-const { data } = await useFetch<FetchCollectionsQuery>('/api/collections', {
+const { data, error } = await useFetch<FetchCollectionsQuery>('/api/collections', {
     method: 'POST',
     body: {
         first: 10,
     },
 })
 
-const collections = computed(() => data.value?.collections.edges)
+if (error.value) {
+    throw createError({
+        statusCode: 500,
+        statusMessage: 'Failed to fetch collections',
+        fatal: true,
+    })
+}
+
+const collections = computed(() => data.value!.collections.edges)
 
 provide('navigation:bounding', navigationBounding)
 </script>

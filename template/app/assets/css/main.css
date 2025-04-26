@@ -2,7 +2,7 @@
 @import "@nuxt/ui";
 
 @theme {
-  --font-sans: 'Pacaembu', sans-serif;
+    --font-sans: 'Jura', sans-serif;
 }
 
 .animate-fade-in {
@@ -22,6 +22,7 @@
         opacity: 0;
         transform: translateY(20px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -32,9 +33,11 @@
     0% {
         transform: scale(0.98);
     }
+
     40% {
         transform: scale(1.02);
     }
+
     100% {
         transform: scale(1);
     }
