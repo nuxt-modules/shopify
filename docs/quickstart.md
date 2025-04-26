@@ -72,10 +72,10 @@ The easiest way is with the `useStorefront` composable, directly inside of your 
 > To access the `useStorefront` composable on the client side, make sure you have added a public access token.
 > You can add it in the module config: `clients > storefront > publicAccessToken`
 
-```html
-// ~/components/Products.vue
+```vue
+<!-- ~/components/Products.vue -->
 
-<script type="setup" setup lang="ts">
+<script setup lang="ts">
 const storefront = useStorefront()
 
 const { data } = await storefront.request(`#graphql

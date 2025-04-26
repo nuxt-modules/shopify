@@ -13,28 +13,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v4
+      - uses: oven-sh/setup-bun@v2
         with:
-          version: 9
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: pnpm
+          bun-version: latest
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: bun install --frozen-lockfile
 
       - name: Lint
-        run: pnpm lint
+        run: bun run lint
 
       - name: Typecheck
-        run: pnpm typecheck
+        run: bun run typecheck
 
       - name: Build
-        run: pnpm build
+        run: bun run build
 
       - name: Release module
         run: |
-          pnpm set //registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}
-          pnpm release || true
+          bun set //registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}
+          bun run release || true

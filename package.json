@@ -4,6 +4,11 @@
     "license": "MIT",
     "type": "module",
     "description": "Easily integrate shopify into your nuxt 3 app 🚀",
+    "workspaces": [
+        ".",
+        "template",
+        "playgrounds/*"
+    ],
     "repository": {
         "type": "git",
         "url": "git+https://github.com/konkonam/nuxt-shopify.git"
@@ -28,18 +33,20 @@
     ],
     "scripts": {
         "build": "nuxt-module-build build",
+        "build:template": "bun run --filter=./template --elide-lines=0 build",
         "build:docs": "vitepress build docs",
-        "dev": "pnpm run --filter=playground dev",
-        "dev:v4": "pnpm run --filter=playground-nuxt-v4 dev",
+        "dev": "bun run --filter=playground --elide-lines=0 dev",
+        "dev:v4": "bun run --filter=playground-nuxt-v4 --elide-lines=0 dev",
+        "dev:template": "bun run --filter=./template --elide-lines=0 dev",
         "dev:docs": "vitepress dev docs",
         "preview:docs": "vitepress preview docs",
-        "release": "pnpm publish --no-git-checks",
+        "release": "bun publish --no-git-checks",
         "lint": "eslint .",
         "typecheck": "vue-tsc --noEmit",
-        "analyze": "pnpm run --filter=./playgrounds/playground analyze",
+        "analyze": "bun run --filter=./playgrounds/playground --elide-lines=0 analyze",
         "prepare": "nuxt-module-build prepare",
-        "prepare:dev": "pnpm run --filter=./playgrounds/* prepare",
-        "cleanup": "pnpm run --filter=* cleanup && nuxi cleanup"
+        "prepare:dev": "bun run --filter=./playgrounds/* --elide-lines=0 prepare",
+        "cleanup": "bun run --filter={./playgrounds/*,./template} --elide-lines=0 cleanup && nuxt cleanup"
     },
     "dependencies": {
         "@graphql-codegen/cli": "^5.0.5",
@@ -87,6 +94,6 @@
         "node": "^18.x || ^20.x || ^22.x"
     },
     "stackblitz": {
-        "startCommand": "pnpm run prepare:dev && pnpm run dev"
+        "startCommand": "bun run prepare:dev && bun run dev"
     }
 }

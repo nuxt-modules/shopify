@@ -197,15 +197,15 @@ schema:
 ## 🤝 Contributing
 
 1. Clone this repository
-2. Install dependencies using:
+2. Create a `.env` file (see [`.env.example`](https://github.com/konkonam/nuxt-shopify/tree/main/.env.example))
+3. Install dependencies using:
     ```bash
-    pnpm install
+    bun install
     ```
-   (Make sure pnpm is enabled with `corepack enable`. [Learn more](https://pnpm.io/installation#using-corepack).)
-3. Run `pnpm run dev:prepare` to generate type stubs.
-4. Start the default [playground](https://github.com/konkonam/nuxt-shopify/tree/main/playgrounds/playground) with:
+4. Run `bun run prepare:dev` to generate type stubs.
+5. Start the default [playground](https://github.com/konkonam/nuxt-shopify/tree/main/playgrounds/playground) with:
     ```bash
-    pnpm run dev
+    bun run dev
     ```
 
 ## 📜 License

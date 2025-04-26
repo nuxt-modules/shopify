@@ -2,9 +2,10 @@
 
 pkgs.mkShell {
     buildInputs = with pkgs; [
-        git
         bun
+        git
     ];
 
     NODE_ENV="development";
+    NODE_NO_WARNINGS=1;
 }

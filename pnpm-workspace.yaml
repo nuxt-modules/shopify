@@ -1,6 +1,0 @@
-packages:
-  - .
-  - playgrounds/*
-
-onlyBuiltDependencies:
-  - sharp

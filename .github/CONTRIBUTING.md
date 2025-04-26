@@ -9,13 +9,12 @@ Here are some guidelines to get you started.
 1. Clone this repository
 2. Install dependencies using:
     ```bash
-    pnpm install
+    bun install
     ```
-    (Make sure pnpm is enabled with `corepack enable`. [Learn more](https://pnpm.io/installation#using-corepack).)
-3. Run `pnpm run dev:prepare` to generate type stubs.
+3. Run `bun run dev:prepare` to generate type stubs.
 4. Start the default [playground](https://github.com/konkonam/nuxt-shopify/tree/main/playgrounds/playground) with:
     ```bash
-   pnpm run dev
+   bun run dev
     ```
 
 ## Development
@@ -23,25 +22,25 @@ Here are some guidelines to get you started.
 ### Linting
 
 ```bash
-pnpm run lint
+bun run lint
 ```
 
 ### Testing
 
 ```bash
-pnpm run test
+bun run test
 ```
 
 ### Type checking
 
 ```bash
-pnpm run typecheck
+bun run typecheck
 ```
     
 ### Building
 
 ```bash
-pnpm run build
+bun run build
 ```
 
 ## Pull Requests
@@ -55,10 +54,10 @@ pnpm run build
 
 ## Releasing
 
-1. Update the version in `package.json` and `package-lock.json`.
+1. Update the version in `package.json` and `bun.lock`.
 2. Update the changelog in `CHANGELOG.md`.
 3. Commit the changes and push to the `main` branch.
 4. Create a new release on GitHub.
-5. Run `pnpm run release` to publish the package to npm.
+5. Run `bun run release` to publish the package to npm.
 
 [Learn more about semantic versioning](https://semver.org/).
