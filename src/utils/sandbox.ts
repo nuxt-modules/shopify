@@ -25,7 +25,6 @@ export function getClientConfig<T extends ShopifyClientType>(clientType: T, conf
         skipCodegen: _skipCodegen,
         sandbox: _sandbox,
         documents: _documents,
-        client: _client,
         ...options
     } = clientConfig
 

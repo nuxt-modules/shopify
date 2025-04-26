@@ -13,7 +13,6 @@ export function useStorefront() {
         skipCodegen: _skipCodegen,
         sandbox: _sandbox,
         documents: _documents,
-        client: _client,
         ...options
     } = _shopify.clients.storefront
 

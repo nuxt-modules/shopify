@@ -28,11 +28,10 @@ export const useShopifyConfig = (options: ModuleOptions): { config: ShopifyConfi
 
         return clientOptions
     }
-
     const storefront = getClientConfig(ShopifyClientType.Storefront, [
         '**/*.{gql,graphql,ts,js}',
         '!**/*.admin.{gql,graphql,ts,js}',
-        ...(options.clients?.storefront?.client ? ['**/*.vue'] : []),
+        ...(options.clients?.storefront?.publicAccessToken ? ['**/*.vue'] : []),
         ...ignores,
     ])
 
@@ -52,13 +51,12 @@ export const useShopifyConfig = (options: ModuleOptions): { config: ShopifyConfi
 
     let publicConfig
 
-    if (storefront) {
+    if (storefront && options.clients?.storefront?.publicAccessToken) {
         const {
             privateAccessToken: _privateAccessToken,
             skipCodegen: _skipCodegen,
             sandbox: _sandbox,
             documents: _documents,
-            client: _client,
             ...publicShopifyConfig
         } = storefront
 
@@ -76,7 +74,6 @@ export const useShopifyConfigSchema = (options: ModuleOptions) => {
         apiVersion: z.string().min(1),
         sandbox: z.boolean().optional(),
         documents: z.array(z.string()).optional(),
-        client: z.boolean().optional(),
     })
 
     const schema = z.object({

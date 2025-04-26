@@ -1,6 +1,8 @@
 import type {
     ShopifyClientType,
-    ModuleOptions } from './types'
+    ShopifyStorefrontConfig,
+    ModuleOptions,
+} from './types'
 
 import {
     createResolver,
@@ -64,17 +66,17 @@ export default defineNuxtModule<ModuleOptions>({
 
                 const functionName = `use${upperFirst(clientType)}`
 
-                if (clientConfig.client) {
+                addServerImports([{
+                    from: resolver.resolve(`./runtime/server/utils/${functionName}`),
+                    name: functionName,
+                }])
+
+                if (clientType === 'storefront' && (clientConfig as ShopifyStorefrontConfig).publicAccessToken?.length) {
                     addImports([{
                         from: resolver.resolve(`./runtime/composables/${functionName}`),
                         name: functionName,
                     }])
                 }
-
-                addServerImports([{
-                    from: resolver.resolve(`./runtime/server/utils/${functionName}`),
-                    name: functionName,
-                }])
             }
 
             await nuxt.callHook('shopify:config', { nuxt, config })

@@ -22,8 +22,6 @@ export default defineNuxtConfig({
             storefront: {
                 apiVersion: process.env.SHOPIFY_STOREFRONT_API_VERSION ?? '',
                 publicAccessToken: process.env.SHOPIFY_STOREFRONT_PUBLIC_TOKEN ?? '',
-
-                client: true,
             },
         },
     },

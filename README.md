@@ -94,13 +94,10 @@ The module exposes utilities to access each API via Nitro endpoints.
 #### Storefront API example
 
 You can use the `useStorefront` utility to access the storefront API:
-The Storefront API can be used on the client and on the server.
-
-##### Client
 
 > [!NOTE]
-> To access the `useStorefront` composable on the client side, make sure you have
-> set the option `clients > storefront > client` to `true`
+> To access the `useStorefront` composable on the client side, make sure you have added a public access token.
+> You can add it in the module config: `clients > storefront > publicAccessToken`
 
 ```html
 // ~/components/Products.vue
