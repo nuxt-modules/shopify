@@ -1,3 +1,8 @@
+# 0.0.16
+- Added client side Storefront API access
+- Updated documentation
+- Bumped dependencies
+
 # 0.0.15
 - Bumped dependencies
 

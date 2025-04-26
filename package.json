@@ -1,9 +1,9 @@
 {
     "name": "@konkonam/nuxt-shopify",
-    "version": "0.0.15",
+    "version": "0.0.16",
     "license": "MIT",
     "type": "module",
-    "description": "Easily integrate shopify into your nuxt 3 & 4 project 🚀",
+    "description": "Easily integrate shopify into your nuxt 3 app 🚀",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/konkonam/nuxt-shopify.git"
@@ -71,13 +71,16 @@
     "keywords": [
         "nuxt",
         "nuxt3",
+        "nuxt4",
         "nuxtjs",
         "nuxt-module",
         "shopify",
         "ecommerce",
+        "storefront",
         "storefront-api",
         "admin-api",
         "graphql",
+        "typescript",
         "codegen"
     ],
     "engines": {
