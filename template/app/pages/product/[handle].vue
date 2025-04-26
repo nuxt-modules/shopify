@@ -18,7 +18,7 @@ const { data } = await useFetch('/api/product', {
 })
 
 const product = computed(() => data.value?.product)
-const variants = computed(() => product.value?.variants?.edges)
+const _variants = computed(() => product.value?.variants?.edges)
 const selectedVariant = ref<ProductVariant | null>(product.value?.variants?.edges?.[0]?.node ?? null)
 </script>
 

@@ -1,3 +1,3 @@
-export default defineNuxtPlugin(({ app }) => {
+export default defineNuxtPlugin(({ _app }) => {
 
 })

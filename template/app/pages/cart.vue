@@ -9,19 +9,13 @@ const handleCheckout = async () => {
 
     try {
         checkoutLoading.value = true
-        const { data, error } = await useFetch('/api/cart/checkout-url', {
+        const { data: _data, error } = await useFetch('/api/cart/checkout-url', {
             method: 'POST',
             body: { id: cart.id.value },
         })
 
         if (error.value) {
             throw new Error('Could not retrieve checkout URL')
-        }
-
-        const checkoutUrl = data.value?.cart?.checkoutUrl
-        if (checkoutUrl) {
-            // Redirect to the external checkout page
-            window.location.href = checkoutUrl
         }
     }
     catch (err) {

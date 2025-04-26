@@ -18,7 +18,7 @@ const items = [
         class="w-full max-w-screen-md"
     >
         <img
-            :src="item"
+            :src="item as string"
             width="250"
             height="250"
             class="rounded-lg"

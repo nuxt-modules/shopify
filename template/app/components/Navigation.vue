@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { FetchCollectionsQuery } from '#build/types/storefront'
+import type { FetchCollectionsQuery } from '#shopify/storefront'
 
 const props = defineProps<{
     collections: FetchCollectionsQuery['collections']['edges']

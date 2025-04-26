@@ -3,8 +3,6 @@ import type { FetchCollectionQuery } from '#shopify/storefront'
 
 import { z } from 'zod'
 
-import { useCart } from '#imports'
-
 const props = defineProps<{
     product: FetchCollectionQuery['collection']['products']['edges']
     index: number

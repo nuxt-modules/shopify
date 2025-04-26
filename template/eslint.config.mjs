@@ -9,15 +9,13 @@ export default createConfigForNuxt({
         stylistic: {
             indent: 4,
             semi: false,
+            quotes: 'single',
         },
     },
 }).override('nuxt/vue/rules', {
     rules: {
         'vue/multi-word-component-names': 'off',
-    },
-}).override('nuxt/stylistic', {
-    rules: {
-        '@stylistic/array-bracket-spacing': ['error', 'always'],
+        'vue/no-v-html': 'off',
     },
 }).override('nuxt/import/rules', {
     rules: {
@@ -30,12 +28,7 @@ export default createConfigForNuxt({
             'newlines-between': 'always',
             'alphabetize': {
                 order: 'asc',
-                caseInsensitive: true,
             },
         }],
-    },
-}).prepend({
-    rules: {
-        'prefer-template': ['error'],
     },
 })
