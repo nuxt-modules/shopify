@@ -41,9 +41,14 @@ export default defineNuxtConfig({
     },
 })
 ```
+
 You can see the `name` of your shopify store in the url when you are in the Shopify admin, for example: `https://admin.shopify.com/store/quickstart-abcd1234`.
 
 To get the `publicAccessToken` for your store you need to [enable storefront API access](https://shopify.dev/docs/storefronts/headless/building-with-the-storefront-api/getting-started#step-1-enable-storefront-api-access), which involves installing the [Headless channel from the Shopify App Store](https://apps.shopify.com/headless).
+
+> [!WARNING]
+> The public access key will be exposed publicly in the nuxt runtime config.
+> If you want to stay fully server side, set a private access token instead: `clients > storefront > privateAccessToken`
 
 ## Usage
 
@@ -88,11 +93,28 @@ const { data } = await storefront.request(`#graphql
         first: 3,
     },
 })
+
+// Also works with asyncData
+const { data } = await useAsyncData('products', async () => await storefront.request(`#graphql
+    query FetchFirstThreeProducts($first: Int) {
+        products(first: $first) {
+            nodes {
+                id
+                title
+                description
+            }
+        }
+    }
+`, {
+    variables: {
+        first: 3,
+    },
+}), { transform: response => response?.data?.products.nodes })
 </script>
 
 <template>
     <div>
-        <pre>{{ data?.products }}</pre>
+        <pre>{{ data?.products.nodes }}</pre>
     </div>
 </template>
 ```
@@ -102,10 +124,6 @@ const { data } = await storefront.request(`#graphql
 The module exposes utilities to access each API via Nitro endpoints.
 
 #### Storefront API example
-
-> [!WARNING]
-> The public access key will be exposed publicly in the nuxt runtime config.
-> If you want to stay fully server side, set a private access token instead: `clients > storefront > privateAccessToken`
 
 Obtain a list of products from the storefront API with the `useStorefront` utility:
 

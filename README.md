@@ -76,7 +76,6 @@ export default defineNuxtConfig({
 There are multiple ways of communicating with the Shopify APIs.
 The easiest way is with the `useStorefront` composable, directly inside of your vue component or page.
 
-> [!NOTE]
 > To access the `useStorefront` composable on the client side, make sure you have added a public access token.
 > You can add it in the module config: `clients > storefront > publicAccessToken`
 
@@ -114,11 +113,7 @@ The module exposes utilities to access each API via Nitro endpoints.
 
 #### Storefront API example
 
-You can use the `useStorefront` utility to access the storefront API.
-
-> [!WARNING]
-> The public access key will be exposed publicly in the nuxt runtime config.
-> If you want to stay fully server side, set a private access token instead: `clients > storefront > privateAccessToken`
+You can use the `useStorefront` utility to access the storefront API:
 
 ```typescript
 // ~/server/api/products.ts

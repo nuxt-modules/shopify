@@ -1,7 +1,7 @@
 <script type="setup" setup lang="ts">
 const storefront = useStorefront()
 
-const { data } = await storefront.request(`#graphql
+const { data } = await useAsyncData('products', async () => await storefront.request(`#graphql
     query FetchFirstThreeProducts($first: Int) {
         products(first: $first) {
             nodes {
@@ -15,11 +15,11 @@ const { data } = await storefront.request(`#graphql
     variables: {
         first: 3,
     },
-})
+}), { transform: data => data?.data?.products.nodes })
 </script>
 
 <template>
     <div>
-        <pre>{{ data?.products }}</pre>
+        <pre>{{ data }}</pre>
     </div>
 </template>
