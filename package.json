@@ -29,9 +29,9 @@
     "scripts": {
         "build": "nuxt-module-build build",
         "build:docs": "vitepress build docs",
-        "dev": "nuxi dev playgrounds/playground",
+        "dev": "pnpm run --filter=playground dev",
+        "dev:v4": "pnpm run --filter=playground-nuxt-v4 dev",
         "dev:docs": "vitepress dev docs",
-        "dev:v4": "nuxi dev playgrounds/playground-nuxt-v4",
         "preview:docs": "vitepress preview docs",
         "release": "pnpm publish --no-git-checks",
         "lint": "eslint .",
@@ -39,7 +39,7 @@
         "analyze": "pnpm run --filter=./playgrounds/playground analyze",
         "prepare": "nuxt-module-build prepare",
         "prepare:dev": "pnpm run --filter=./playgrounds/* prepare",
-        "cleanup": "pnpm run --filter=./playgrounds/playground cleanup && nuxi cleanup && rm -rf node_modules"
+        "cleanup": "pnpm run --filter=* cleanup && nuxi cleanup"
     },
     "dependencies": {
         "@graphql-codegen/cli": "^5.0.5",

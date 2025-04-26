@@ -1,11 +1,11 @@
 import type {
-    ModuleOptions,
     ShopifyClientType,
-} from './types'
+    ModuleOptions } from './types'
 
 import {
     createResolver,
     defineNuxtModule,
+    addImports,
     addServerImports,
     updateRuntimeConfig,
 } from '@nuxt/kit'
@@ -41,7 +41,7 @@ export default defineNuxtModule<ModuleOptions>({
             log.start('Starting setup')
 
             const resolver = createResolver(import.meta.url)
-            const config = useShopifyConfig(moduleOptions.data)
+            const { config, publicConfig } = useShopifyConfig(moduleOptions.data)
 
             for (const _clientType in config.clients) {
                 const clientType = _clientType as ShopifyClientType
@@ -64,6 +64,13 @@ export default defineNuxtModule<ModuleOptions>({
 
                 const functionName = `use${upperFirst(clientType)}`
 
+                if (clientConfig.client) {
+                    addImports([{
+                        from: resolver.resolve(`./runtime/composables/${functionName}`),
+                        name: functionName,
+                    }])
+                }
+
                 addServerImports([{
                     from: resolver.resolve(`./runtime/server/utils/${functionName}`),
                     name: functionName,
@@ -74,6 +81,8 @@ export default defineNuxtModule<ModuleOptions>({
 
             updateRuntimeConfig({
                 _shopify: config,
+
+                public: { _shopify: publicConfig },
             })
 
             log.success('Finished setup')

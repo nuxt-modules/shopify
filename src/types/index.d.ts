@@ -1,6 +1,7 @@
 import type {
-    ShopifyAdminConfig,
+    PublicShopifyConfig,
     ShopifyConfig,
+    ShopifyAdminConfig,
     ShopifyStorefrontConfig,
 } from './shopify'
 import type { HookResult, Nuxt } from '@nuxt/schema'
@@ -31,6 +32,10 @@ declare module '@nuxt/schema' {
     interface RuntimeConfig {
         _shopify?: ShopifyConfig
         _sandbox?: Record<string, SandboxConfig>
+    }
+
+    interface PublicRuntimeConfig {
+        _shopify?: PublicShopifyConfig
     }
 
     interface NuxtHooks {

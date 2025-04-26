@@ -3,11 +3,12 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "dev": "nuxi dev",
-        "build": "nuxi build",
-        "prepare": "nuxi prepare",
-        "analyze": "nuxi analyze",
-        "cleanup": "nuxi cleanup && rm -rf node_modules"
+        "dev": "nuxt dev",
+        "build": "nuxt build",
+        "prepare": "nuxt prepare",
+        "analyze": "nuxt analyze",
+        "cleanup": "nuxt cleanup",
+        "typecheck": "vue-tsc --noEmit"
     },
     "dependencies": {
         "nuxt": "^3.16.2",

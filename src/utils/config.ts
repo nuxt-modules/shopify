@@ -1,4 +1,4 @@
-import type { ModuleOptions, ShopifyConfig } from '../types'
+import type { ModuleOptions, ShopifyConfig, PublicShopifyConfig } from '../types'
 
 import { z } from 'zod'
 
@@ -13,7 +13,7 @@ const ignores = [
     '!.nuxt',
 ]
 
-export const useShopifyConfig = (options: ModuleOptions): ShopifyConfig => {
+export const useShopifyConfig = (options: ModuleOptions): { config: ShopifyConfig, publicConfig?: PublicShopifyConfig } => {
     const getClientConfig = <T extends ShopifyClientType>(clientType: T, documents: string[] = []) => {
         const clientOptions = options.clients?.[clientType] as ShopifyConfig['clients'][T]
         if (!clientOptions) return
@@ -32,6 +32,7 @@ export const useShopifyConfig = (options: ModuleOptions): ShopifyConfig => {
     const storefront = getClientConfig(ShopifyClientType.Storefront, [
         '**/*.{gql,graphql,ts,js}',
         '!**/*.admin.{gql,graphql,ts,js}',
+        ...(options.clients?.storefront?.client ? ['**/*.vue'] : []),
         ...ignores,
     ])
 
@@ -40,15 +41,34 @@ export const useShopifyConfig = (options: ModuleOptions): ShopifyConfig => {
         ...ignores,
     ])
 
-    return {
+    const config = {
         name: options.name,
         logger: options.logger,
         clients: {
             ...(storefront && { storefront }),
             ...(admin && { admin }),
-
         },
     } satisfies ShopifyConfig
+
+    let publicConfig
+
+    if (storefront) {
+        const {
+            privateAccessToken: _privateAccessToken,
+            skipCodegen: _skipCodegen,
+            sandbox: _sandbox,
+            documents: _documents,
+            client: _client,
+            ...publicShopifyConfig
+        } = storefront
+
+        publicConfig = publicShopifyConfig satisfies PublicShopifyConfig
+    }
+
+    return {
+        config,
+        publicConfig,
+    }
 }
 
 export const useShopifyConfigSchema = (options: ModuleOptions) => {
@@ -56,6 +76,7 @@ export const useShopifyConfigSchema = (options: ModuleOptions) => {
         apiVersion: z.string().min(1),
         sandbox: z.boolean().optional(),
         documents: z.array(z.string()).optional(),
+        client: z.boolean().optional(),
     })
 
     const schema = z.object({

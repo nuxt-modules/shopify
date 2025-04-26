@@ -17,6 +17,7 @@ export type ShopifyClientCustomConfig = {
     skipCodegen?: boolean
     sandbox?: boolean // defaults to true
     documents?: string[]
+    client?: boolean // defaults to false
 }
 
 export type ShopifyStorefrontConfig = StorefrontOptions & ShopifyClientCustomConfig
@@ -32,6 +33,12 @@ export type ShopifyConfig<S = ShopifyStorefrontConfig, A = ShopifyAdminConfig> =
         [ShopifyClientType.Admin]?: A
     }
 }
+
+// Optional public config for client side usage
+export type PublicShopifyConfig = Omit<
+    ShopifyStorefrontConfig,
+    'privateAccessToken' | 'skipCodegen' | 'sandbox' | 'documents' | 'client'
+>
 
 // Options for custom templates
 export type ShopifyTemplateOptions = {

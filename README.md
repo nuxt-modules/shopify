@@ -4,6 +4,7 @@
 
 # Nuxt Shopify
 
+[![Github Actions][github-actions-src]][github-actions-href]
 [![NPM version][npm-version-src]][npm-version-href]
 [![NPM downloads][npm-downloads-src]][npm-downloads-href]
 [![License][license-src]][license-href]
@@ -168,14 +169,17 @@ For a full example, see [Admin API examples](https://konkonam.github.io/nuxt-sho
 
 Published under the [MIT License](https://github.com/konkonam/nuxt-shopify/tree/main/LICENSE).
 
+[github-actions-src]: https://github.com/konkonam/nuxt-shopify/actions/workflows/test.yml/badge.svg
+[github-actions-href]: https://github.com/konkonam/nuxt-shopify/actions
+
 [npm-version-src]: https://img.shields.io/npm/v/@konkonam/nuxt-shopify/latest.svg?style=flat&colorA=18181B&colorB=31C553
 [npm-version-href]: https://npmjs.com/package/@konkonam/nuxt-shopify
 
 [npm-downloads-src]: https://img.shields.io/npm/dm/@konkonam/nuxt-shopify.svg?style=flat&colorA=18181B&colorB=31C553
 [npm-downloads-href]: https://npmjs.com/package/@konkonam/nuxt-shopify
 
-[license-src]: https://img.shields.io/github/license/konkonam/nuxt-shopify.svg?style=flat&colorA=18181B&colorB=28CF8D
+[license-src]: https://img.shields.io/github/license/konkonam/nuxt-shopify.svg?style=flat&colorA=18181B&colorB=31C553
 [license-href]: https://github.com/konkonam/nuxt-shopify/tree/main/LICENSE
 
-[nuxt-src]: https://img.shields.io/badge/Nuxt-18181B?logo=nuxt.js
+[nuxt-src]: https://img.shields.io/badge/Nuxt-18181B?logo=nuxt
 [nuxt-href]: https://nuxt.com
