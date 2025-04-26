@@ -18,16 +18,16 @@ Easily integrate shopify into your nuxt app.
 
 ## 🚀 Features
 
-Hot-reloaded auto-generated typescript types from GraphQL operations for easy access to the Shopify APIs:
+Automatically generates and hot-reloads TypeScript types from your Shopify GraphQL operations:
 
 ![nuxt-shopify-demo](https://raw.githubusercontent.com/konkonam/nuxt-shopify/refs/heads/main/docs/public/demo.gif)
 
 - Plug & play Shopify integration
-- Server & client side
 - Fully typed GraphQL operations with hot-reloading
 - Nuxt 3 & 4 ready
 - Storefront and Admin API support
 - Customizable GraphQL code generation
+- Server & client side
 - Sandboxed GraphiQL Explorer integration
 
 ## 📦 Setup
@@ -97,7 +97,7 @@ The easiest way is with the `useStorefront` composable, directly inside of your 
 > You can add it in the module config: `clients > storefront > publicAccessToken`
 
 ```html
-// ~/components/Products.vue
+<!-- ~/components/Products.vue -->
 
 <script type="setup" setup lang="ts">
 const storefront = useStorefront()
