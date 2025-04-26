@@ -23,6 +23,7 @@ Hot-reloaded auto-generated typescript types from GraphQL operations for easy ac
 ![nuxt-shopify-demo](https://raw.githubusercontent.com/konkonam/nuxt-shopify/refs/heads/main/docs/public/demo.gif)
 
 - Plug & play Shopify integration
+- Server & client side
 - Fully typed GraphQL operations with hot-reloading
 - Nuxt 3 & 4 ready
 - Storefront and Admin API support
@@ -93,6 +94,45 @@ The module exposes utilities to access each API via Nitro endpoints.
 #### Storefront API example
 
 You can use the `useStorefront` utility to access the storefront API:
+The Storefront API can be used on the client and on the server.
+
+##### Client
+
+> [!NOTE]
+> To access the `useStorefront` composable on the client side, make sure you have
+> set the option `clients > storefront > client` to `true`
+
+```html
+// ~/components/Products.vue
+
+<script type="setup" setup lang="ts">
+const storefront = useStorefront()
+
+const { data } = await storefront.request(`#graphql
+    query FetchProducts($first: Int) {
+        products(first: $first) {
+            nodes {
+                id
+                title
+                description
+            }
+        }
+    }
+`, {
+    variables: {
+        first: 3,
+    },
+})
+</script>
+
+<template>
+    <div>
+        <pre>{{ data?.products }}</pre>
+    </div>
+</template>
+```
+
+##### Server
 
 ```typescript
 // ~/server/api/products.ts
