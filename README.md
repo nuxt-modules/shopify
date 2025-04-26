@@ -27,7 +27,7 @@ Automatically generates and hot-reloads TypeScript types from your Shopify Graph
 - Nuxt 3 & 4 ready
 - Storefront and Admin API support
 - Customizable GraphQL code generation
-- Server & client side
+- Server & client side usage
 - Sandboxed GraphiQL Explorer integration
 
 ## 📦 Setup
@@ -114,7 +114,11 @@ The module exposes utilities to access each API via Nitro endpoints.
 
 #### Storefront API example
 
-You can use the `useStorefront` utility to access the storefront API:
+You can use the `useStorefront` utility to access the storefront API.
+
+> [!WARNING]
+> The public access key will be exposed publicly in the nuxt runtime config.
+> If you want to stay fully server side, set a private access token instead: `clients > storefront > privateAccessToken`
 
 ```typescript
 // ~/server/api/products.ts

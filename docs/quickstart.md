@@ -103,6 +103,10 @@ The module exposes utilities to access each API via Nitro endpoints.
 
 #### Storefront API example
 
+> [!WARNING]
+> The public access key will be exposed publicly in the nuxt runtime config.
+> If you want to stay fully server side, set a private access token instead: `clients > storefront > privateAccessToken`
+
 Obtain a list of products from the storefront API with the `useStorefront` utility:
 
 ```typescript
