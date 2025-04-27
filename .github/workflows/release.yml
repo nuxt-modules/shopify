@@ -31,5 +31,4 @@ jobs:
 
       - name: Release module
         run: |
-          bun set //registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}
           bun run release || true
