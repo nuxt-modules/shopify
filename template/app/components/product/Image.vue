@@ -39,7 +39,7 @@ const handleImageLoad = () => requestAnimationFrame(() => {
             :src="props.product.featuredImage?.url"
             :alt="props.product.title"
             placeholder
-            class="aspect-square max-w-full max-h-full mx-auto rounded-lg animate-pop-up select-none"
+            class="aspect-square max-w-full max-h-full mx-auto rounded-lg animate-pop-up select-none mt-[50%] -translate-y-1/2"
             @load="handleImageLoad"
         />
     </div>

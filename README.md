@@ -79,7 +79,7 @@ The easiest way is with the `useStorefront` composable, directly inside of your 
 > To access the `useStorefront` composable on the client side, make sure you have added a public access token.
 > You can add it in the module config: `clients > storefront > publicAccessToken`
 
-```html
+```vue
 <!-- ~/pages/your-page.vue -->
 
 <script type="setup" setup lang="ts">
@@ -115,7 +115,7 @@ The module exposes utilities to access each API via Nitro endpoints.
 
 You can use the `useStorefront` utility to access the storefront API:
 
-```typescript
+```ts
 // ~/server/api/products.ts
 
 export default defineEventHandler(async () => {
@@ -146,7 +146,7 @@ Read more about the [codegen configuration](https://konkonam.github.io/nuxt-shop
 
 Now we can call the API at `/api/products` to obtain the first three products:
 
-```html
+```vue
 <!-- ~/pages/your-page.vue -->
 
 <script setup lang="ts">
@@ -166,7 +166,7 @@ type checking.
 Files ending with `.admin.ts` or `.admin.gql` will automatically be processed for the admin API.
 We can use the `useAdmin` utility to access the admin API in a nitro event handler:
 
-```typescript
+```ts
 // ~/server/api/your-admin-api-handler.ts
 
 export default defineEventHandler(async () => {

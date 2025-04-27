@@ -72,6 +72,12 @@ export default defineNuxtConfig({
         server: {
             allowedHosts: ['.ngrok-free.app'],
         },
+
+        optimizeDeps: {
+            include: [
+                'zod',
+            ],
+        },
     },
 
     fonts: {

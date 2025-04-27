@@ -2,12 +2,8 @@
 import type { FetchCollectionsQuery } from '#shopify/storefront'
 
 import * as locales from '@nuxt/ui/locale'
-import { useElementBounding } from '@vueuse/core'
 
 const { locale } = useI18n()
-
-const navigation = ref<HTMLElement>()
-const navigationBounding = useElementBounding(navigation)
 
 const lang = computed(() => locales[locale.value].code)
 const dir = computed(() => locales[locale.value].dir)
@@ -17,12 +13,6 @@ useHead({
         lang,
         dir,
     },
-    meta: [
-        {
-            name: 'robots',
-            content: 'noindex, nofollow',
-        },
-    ],
 })
 
 const { data, error } = await useFetch<FetchCollectionsQuery>('/api/collections', {
@@ -41,8 +31,6 @@ if (error.value) {
 }
 
 const collections = computed(() => data.value!.collections.edges)
-
-provide('navigation:bounding', navigationBounding)
 </script>
 
 <template>

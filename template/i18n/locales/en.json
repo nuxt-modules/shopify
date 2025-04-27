@@ -5,6 +5,7 @@
         "cta": "Shop Now"
     },
     "footer": {
-        "copyright": "Zoltan Lukacs, Frederik Bußmann. All rights reserved."
+        "message": "Released under the MIT License.",
+        "copyright": "Copyright © 2024-present Zoltan Lukacs, Frederik Bußmann"
     }
 }

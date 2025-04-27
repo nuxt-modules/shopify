@@ -3,8 +3,6 @@ import type { FilterState } from '~/components/Filters.vue'
 
 import { useMediaQuery } from '@vueuse/core'
 
-import { USeparator } from '#components'
-
 definePageMeta({
     validate: route => typeof route.params.handle === 'string',
     layout: 'listing',
@@ -145,7 +143,3 @@ const onChange = (state: FilterState) => {
         </div>
     </div>
 </template>
-
-<style scoped>
-/* Styles handled by Nuxt UI's utility classes */
-</style>

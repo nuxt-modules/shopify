@@ -127,7 +127,7 @@ The module exposes utilities to access each API via Nitro endpoints.
 
 Obtain a list of products from the storefront API with the `useStorefront` utility:
 
-```typescript
+```ts
 // ~/server/api/products.ts
 
 export default defineEventHandler(async () => {
