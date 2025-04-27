@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import type { ProductVariant } from '#shopify/storefront'
-
 definePageMeta({
     validate: route => typeof route.params.handle === 'string',
     layout: 'detail',
@@ -18,8 +16,6 @@ const { data } = await useFetch('/api/product', {
 })
 
 const product = computed(() => data.value?.product)
-const _variants = computed(() => product.value?.variants?.edges)
-const selectedVariant = ref<ProductVariant | null>(product.value?.variants?.edges?.[0]?.node ?? null)
 </script>
 
 <template>
@@ -50,7 +46,6 @@ const selectedVariant = ref<ProductVariant | null>(product.value?.variants?.edge
                     color="primary"
                     class="flex items-center justify-center p-4"
                     @click="addItems({
-                        merchandiseId: selectedVariant?.id ?? '',
                         quantity: 1,
                     })"
                 >
@@ -62,7 +57,6 @@ const selectedVariant = ref<ProductVariant | null>(product.value?.variants?.edge
                     color="primary"
                     class="flex items-center justify-center p-4"
                     @click="addItems({
-                        merchandiseId: selectedVariant?.id ?? '',
                         quantity: 1,
                     })"
                 >

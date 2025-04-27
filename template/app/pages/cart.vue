@@ -51,7 +51,7 @@ const handleRemoveItem = async (lineId: string) => {
             <div class="flex flex-col gap-16">
                 <template
                     v-for="item in cart.cartItems.value"
-                    :key="item.id"
+                    :key="item.node.id"
                 >
                     <div
                         class="flex flex-row items-center justify-between gap-16 py-16"
@@ -81,7 +81,7 @@ const handleRemoveItem = async (lineId: string) => {
             <div class="flex flex-row items-center justify-between mt-4">
                 <div class="flex items-center gap-2">
                     <span class="text-xl font-bold">Total Items:</span>
-                    <span class="text-xl font-bold">{{ cart.numItems }}</span>
+                    <span class="text-xl font-bold">0</span>
                 </div>
                 <UButton
                     :disabled="checkoutLoading"

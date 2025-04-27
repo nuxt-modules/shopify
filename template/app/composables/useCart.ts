@@ -1,9 +1,11 @@
+import type { FetchCartQuery } from '#shopify/storefront'
+
 export async function useCart() {
     const toast = useToast()
 
     const id = useLocalStorage<string | null>('shopify-cart-id', null)
 
-    const cartItems = useState<unknown[]>('cart-items', () => [])
+    const cartItems = useState<NonNullable<FetchCartQuery['cart']>['lines']['edges']>('cart-items', () => [])
 
     const first = ref(10)
 

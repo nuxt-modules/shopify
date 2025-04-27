@@ -49,6 +49,7 @@
         "typecheck:playground": "bun run --filter=playground --env-file=.env --elide-lines=100 typecheck",
         "typecheck:playground-v4": "bun run --filter=playground-v4 --env-file=.env --elide-lines=100 typecheck",
         "typecheck:template": "bun run --filter=./template --env-file=.env --elide-lines=100 typecheck",
+        "typecheck:all": "bun run --filter=* --env-file=.env --elide-lines=100 typecheck",
         "analyze": "bun run --filter=./playgrounds/playground --env-file=.env --elide-lines=100 analyze",
         "prepare": "nuxt-module-build prepare",
         "prepare:dev": "bun run --filter={./playgrounds/*,./template} --env-file=.env --elide-lines=100 prepare",
