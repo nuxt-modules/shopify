@@ -3,7 +3,7 @@ const currentYear = computed(() => new Date().getFullYear())
 </script>
 
 <template>
-    <footer class="py-16 bg-gradient-to-br from-gray-800 to-gray-900 text-white">
+    <footer class="py-16 var(--bg-ui-color) border-t border-[var(--ui-border)]">
         <UContainer class="flex flex-row gap-4">
             <div>
                 <span class="font-bold">Categories</span>

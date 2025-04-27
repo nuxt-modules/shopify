@@ -105,9 +105,9 @@ const onChange = (state: FilterState) => {
             <USeparator />
         </div>
         <div class="flex flex-row gap-16 grow">
-            <aside class="hidden lg:flex w-1/4 min-w-64">
+            <aside class="hidden lg:flex w-1/4 min-w-64 sticky">
                 <Filters
-                    class="sticky top-8 h-full"
+                    class="sticky top-20 mb-auto"
                     @change="onChange"
                 />
             </aside>

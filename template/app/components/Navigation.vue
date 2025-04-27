@@ -44,6 +44,8 @@ const items = computed(() => [
         {
             icon: theme.currentIcon.value,
             onSelect: theme.swap,
+            description: 'Toggle color theme',
+            class: 'cursor-pointer',
         },
         {
             icon: icons.account,
@@ -58,7 +60,7 @@ const items = computed(() => [
             onSelect: () => {
                 open.value = !open.value
             },
-            class: 'menu-button md:hidden',
+            class: 'menu-button md:hidden cursor-pointer',
         },
     ],
 ])
@@ -69,8 +71,16 @@ const items = computed(() => [
         <UContainer class="flex flex-row justify-evenly items-center">
             <NuxtLink
                 to="/"
-                class="block mr-4"
+                class="flex items-center gap-3 mr-4"
             >
+                <NuxtImg
+                    src="/img/logo.png"
+                    class="h-5 w-auto"
+                    :class="{
+                        invert: theme.colorMode.value === 'light',
+                    }"
+                />
+
                 Nuxt Shopify
             </NuxtLink>
 
@@ -100,10 +110,18 @@ const items = computed(() => [
                     class="border-y border-[var(--ui-border)] grow bg-[var(--ui-bg)] py-4 duration-100"
                 />
 
-                <div
-                    class="-z-10 fixed inset-0 backdrop-blur-xs"
-                    @click="open = false"
-                />
+                <Transition
+                    enter-from-class="opacity-0"
+                    enter-to-class="opacity-100"
+                    leave-from-class="opacity-100"
+                    leave-to-class="opacity-0"
+                >
+                    <div
+                        v-if="open"
+                        class="-z-10 fixed inset-0 top-12 backdrop-blur-xs transition-opacity duration-100"
+                        @click="open = false"
+                    />
+                </Transition>
             </template>
         </UCollapsible>
     </div>

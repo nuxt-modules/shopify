@@ -10,7 +10,7 @@
 [![License][license-src]][license-href]
 [![Nuxt][nuxt-src]][nuxt-href]
 
-Easily integrate shopify into your nuxt app.
+Easily integrate Shopify into your Nuxt app.
 
 - 📚 [Documentation](https://konkonam.github.io/nuxt-shopify)
 - ✨ [Release Notes](https://github.com/konkonam/nuxt-shopify/tree/main/CHANGELOG.md)
@@ -24,10 +24,10 @@ Automatically generates and hot-reloads TypeScript types from your Shopify Graph
 
 - Plug & play Shopify integration
 - Fully typed GraphQL operations with hot-reloading
-- Nuxt 3 & 4 ready
+- Tested with Nuxt 3 & 4
 - Storefront and Admin API support
 - Customizable GraphQL code generation
-- Server & client side usage
+- Server & client side support
 - Sandboxed GraphiQL Explorer integration
 
 ## 📦 Setup
