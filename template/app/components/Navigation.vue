@@ -5,20 +5,10 @@ const props = defineProps<{
     collections: FetchCollectionsQuery['collections']['edges']
 }>()
 
-const mobileNav = ref<HTMLElement>()
-const open = ref(false)
-
 const theme = useTheme()
 
-useHead({
-    bodyAttrs: {
-        class: computed(() => open.value ? 'overflow-hidden' : ''),
-    },
-})
-
-onClickOutside(mobileNav, () => {
-    open.value = false
-}, { ignore: ['.menu-button'] })
+const mobileNav = ref<HTMLElement>()
+const open = ref(false)
 
 const collections = props.collections
     .map(collection => ({
@@ -51,10 +41,18 @@ const items = computed(() => [
             onSelect: () => {
                 open.value = !open.value
             },
-            class: 'menu-button lg:hidden cursor-pointer',
+            class: 'menu-button cursor-pointer lg:hidden',
         },
     ],
 ])
+
+useHead({
+    bodyAttrs: {
+        class: computed(() => open.value ? 'overflow-hidden' : ''),
+    },
+})
+
+onClickOutside(mobileNav, () => open.value = false, { ignore: ['.menu-button'] })
 </script>
 
 <template>

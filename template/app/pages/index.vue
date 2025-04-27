@@ -9,7 +9,7 @@ const { t } = useI18n()
             :subtitle="t('hero.subtitle')"
             :cta-text="t('hero.cta')"
             cta-link="/collection/shirts"
-            class="mt-16"
+            class="mt-6 md:mt-16 mb-16"
         />
     </div>
 </template>

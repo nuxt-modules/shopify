@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import type { FilterState } from '~/components/Filters.vue'
 
-import { useMediaQuery } from '@vueuse/core'
-
 definePageMeta({
     validate: route => typeof route.params.handle === 'string',
     layout: 'listing',
@@ -21,53 +19,8 @@ const { data } = await useFetch('/api/collection', {
     },
 })
 
-const isExtraLargeScreen = useMediaQuery('(min-width: 1280px)')
-const isLargeScreen = useMediaQuery('(min-width: 1024px)')
-const isMediumScreen = useMediaQuery('(min-width: 768px)')
-const isSmallScreen = useMediaQuery('(min-width: 480px)')
-
 const collection = computed(() => data.value?.collection)
 const products = computed(() => collection.value?.products.edges ?? [])
-
-const isLastColumn = (index: number) => {
-    if (isExtraLargeScreen.value) {
-        return (index + 1) % 3 === 0
-    }
-
-    if (isLargeScreen.value) {
-        return (index + 1) % 2 === 0
-    }
-
-    if (isMediumScreen.value) {
-        return (index + 1) % 2 === 0
-    }
-
-    if (isSmallScreen.value) {
-        return (index + 1) % 1 === 0
-    }
-
-    return false
-}
-
-const isLastRow = (index: number) => {
-    if (isExtraLargeScreen.value) {
-        return index >= products.value.length - 3
-    }
-
-    if (isLargeScreen.value) {
-        return index >= products.value.length - 2
-    }
-
-    if (isMediumScreen.value) {
-        return index >= products.value.length - 2
-    }
-
-    if (isSmallScreen.value) {
-        return index >= products.value.length - 1
-    }
-
-    return false
-}
 
 const onChange = (state: FilterState) => {
     console.log(state)
@@ -102,6 +55,7 @@ const onChange = (state: FilterState) => {
 
             <USeparator />
         </div>
+
         <div class="flex flex-row gap-16 grow">
             <aside class="hidden lg:flex w-1/4 min-w-64 sticky">
                 <Filters
@@ -118,23 +72,37 @@ const onChange = (state: FilterState) => {
                     <div class="relative">
                         <ProductCard
                             :product="product"
-                            :index="index"
-                            padded
+                            class="h-full"
                         />
 
                         <USeparator
-                            v-if="!isLastColumn(index)"
                             orientation="vertical"
                             :ui="{
-                                root: 'absolute -right-8 top-0 h-full transition-colors duration-200',
+                                root: [
+                                    'absolute',
+                                    '-right-8',
+                                    'top-0',
+                                    'h-full',
+                                    'transition-colors',
+                                    'duration-200',
+                                    'hidden',
+                                    ...[index % 2 > 0 ? 'md:hidden' : 'md:block'],
+                                    ...[index % 3 > 1 ? 'xl:hidden' : 'xl:block'],
+                                ],
                             }"
                         />
 
                         <USeparator
-                            v-if="!isLastRow(index)"
                             orientation="horizontal"
                             :ui="{
-                                root: 'absolute -bottom-8 left-0 w-full transition-colors duration-200',
+                                root: [
+                                    'absolute',
+                                    '-bottom-8',
+                                    'left-0',
+                                    'w-full',
+                                    'transition-colors',
+                                    'duration-200',
+                                ],
                             }"
                         />
                     </div>

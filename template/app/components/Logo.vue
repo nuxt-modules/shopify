@@ -1,14 +1,3 @@
-<script setup lang="ts">
-const theme = useTheme()
-
-const invert = ref(false)
-
-onMounted(() => {
-    console.log(theme.colorMode.value)
-    invert.value = theme.colorMode.value !== 'dark'
-})
-</script>
-
 <template>
     <NuxtLink
         to="/"

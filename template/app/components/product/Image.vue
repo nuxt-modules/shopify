@@ -4,7 +4,6 @@ import type { ProductFieldsFragment } from '#shopify/storefront'
 const props = defineProps<{
     product: Partial<ProductFieldsFragment>
     size?: 'sm' | 'md' | 'lg'
-    padded?: boolean
 }>()
 
 const emits = defineEmits<{
@@ -29,17 +28,14 @@ const handleImageLoad = () => requestAnimationFrame(() => {
                 'max-w-128': props.size === 'md',
                 'max-w-256': props.size === 'lg',
             },
-            {
-                'p-4': props.padded,
-            },
         ]"
-        class="aspect-square rounded-lg bg-[#D8DBDF]"
+        class="aspect-square rounded-lg bg-gray-200 flex items-center justify-center p-4"
     >
         <NuxtImg
             :src="props.product.featuredImage?.url"
             :alt="props.product.title"
             placeholder
-            class="aspect-square max-w-full max-h-full mx-auto rounded-lg animate-pop-up select-none mt-[50%] -translate-y-1/2"
+            class="rounded-lg max-w-full max-h-full animate-pop-up select-none grow-0 shrink-0"
             @load="handleImageLoad"
         />
     </div>

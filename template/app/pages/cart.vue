@@ -32,14 +32,14 @@ const handleRemoveItem = async (lineId: string) => {
 </script>
 
 <template>
-    <div class="flex flex-col gap-6 p-4">
+    <div class="flex flex-col gap-4 pt-6">
         <h1 class="text-3xl font-bold">
-            Your Cart
+            Cart
         </h1>
 
         <div
             v-if="cart.cartItems.value.length === 0"
-            class="text-lg text-gray-600"
+            class="text-lg text-[var(--ui-text-muted)]"
         >
             Your cart is empty.
         </div>

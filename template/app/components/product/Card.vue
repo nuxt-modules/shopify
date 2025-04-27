@@ -5,7 +5,6 @@ import { z } from 'zod'
 
 const props = defineProps<{
     product: NonNullable<FetchCollectionQuery['collection']>['products']['edges'][0]
-    index: number
     padded?: boolean
 }>()
 
@@ -25,7 +24,7 @@ const price = computed(() => {
         currency: 'EUR',
     })
 
-    return formatter.format(props.product.node.priceRange.minVariantPrice.amount)
+    return formatter.format(props.product.node?.priceRange.minVariantPrice.amount)
 })
 
 const handleAddToCart = async (quantity: number) => {
@@ -36,17 +35,19 @@ const handleAddToCart = async (quantity: number) => {
 </script>
 
 <template>
-    <div class="flex flex-row">
-        <UCard class="flex flex-col">
-            <div class="relative flex flex-col gap-4">
+    <div class="flex flex-row max-w-full">
+        <UCard
+            class="flex flex-col max-w-full h-full"
+            :ui="{
+                body: 'h-full',
+            }"
+        >
+            <div class="relative flex flex-col gap-4 h-full">
                 <NuxtLink
-                    :to="getProductAppUrl(props.product.node.handle)"
-                    class="flex flex-col gap-4"
+                    :to="getProductAppUrl(props.product.node!.handle)"
+                    class="flex flex-col gap-4 grow"
                 >
-                    <ProductImage
-                        :product="props.product.node"
-                        :padded="props.padded"
-                    />
+                    <ProductImage :product="props.product.node!" />
 
                     <div class="px-4">
                         <div class="flex flex-row justify-between">
@@ -56,7 +57,7 @@ const handleAddToCart = async (quantity: number) => {
                         </div>
 
                         <h2 class="font-bold">
-                            {{ props.product.node.title }}
+                            {{ props.product.node?.title }}
                         </h2>
                     </div>
                 </NuxtLink>
