@@ -1,4 +1,6 @@
 <script setup lang="ts">
+const { t } = useI18n()
+
 const currentYear = computed(() => new Date().getFullYear())
 </script>
 
@@ -96,7 +98,7 @@ const currentYear = computed(() => new Date().getFullYear())
             </div>
 
             <div class="mt-8 text-sm">
-                <p>&copy; {{ currentYear }} Zoltan Lukacs, Frederik Bußmann. All rights reserved.</p>
+                <p>&copy; {{ currentYear }} {{ t('footer.copyright') }}</p>
             </div>
         </UContainer>
     </footer>

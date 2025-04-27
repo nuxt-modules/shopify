@@ -10,10 +10,8 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-    subtitle: 'Discover our hand picked collection of timeless vintage pieces',
     ctaText: 'Shop Collection',
     ctaLink: '/collection/all',
-    imageUrl: '/images/hero-bg.jpg',
 })
 </script>
 

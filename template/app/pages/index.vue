@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { UseElementBoundingReturn } from '@vueuse/core'
 
+const { t } = useI18n()
+
 const navigationBounding = inject<UseElementBoundingReturn>('navigation:bounding')
 </script>
 
@@ -12,7 +14,8 @@ const navigationBounding = inject<UseElementBoundingReturn>('navigation:bounding
             }"
         >
             <Hero
-                title="Discover our hand picked collection of timeless vintage pieces"
+                :title="t('hero.title')"
+                :subtitle="t('hero.subtitle')"
                 class="mt-16"
             />
         </section>
