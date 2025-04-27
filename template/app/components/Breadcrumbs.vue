@@ -1,11 +1,8 @@
 <script setup lang="ts">
 const route = useRoute()
-const router = useRouter()
 
 const items = computed(() => {
     const items = route.path.split('/').map((path, index) => {
-        console.log(router.getRoutes())
-
         if (index === 0) {
             return {
                 label: 'Home',

@@ -1,3 +1,7 @@
+# 0.0.17
+- Added shop template (wip)
+- Added cli command "init" to initialize the template
+
 # 0.0.16
 - Added client side Storefront API access
 - Updated documentation

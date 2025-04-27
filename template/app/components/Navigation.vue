@@ -20,16 +20,7 @@ onClickOutside(mobileNav, () => {
     open.value = false
 }, { ignore: ['.menu-button'] })
 
-// @TODO: find a dynamic solution
-const selectedCollections = [
-    'Shirts',
-    'Jackets',
-    'Jeans & Pants',
-    'Sweatshirts & Pullovers',
-]
-
 const collections = props.collections
-    .filter(collection => selectedCollections.includes(collection.node.title))
     .map(collection => ({
         label: collection.node.title,
         to: getCollectionAppUrl(collection.node.handle),
@@ -38,7 +29,7 @@ const collections = props.collections
 const items = computed(() => [
     collections.map(collection => ({
         ...collection,
-        class: 'hidden md:block',
+        class: 'hidden lg:block',
     })),
     [
         {
@@ -60,7 +51,7 @@ const items = computed(() => [
             onSelect: () => {
                 open.value = !open.value
             },
-            class: 'menu-button md:hidden cursor-pointer',
+            class: 'menu-button lg:hidden cursor-pointer',
         },
     ],
 ])
@@ -69,20 +60,7 @@ const items = computed(() => [
 <template>
     <div class="border-b border-[var(--ui-border)] relative z-10">
         <UContainer class="flex flex-row justify-evenly items-center">
-            <NuxtLink
-                to="/"
-                class="flex items-center gap-3 mr-4"
-            >
-                <NuxtImg
-                    src="/img/logo.png"
-                    class="h-5 w-auto"
-                    :class="{
-                        invert: theme.colorMode.value === 'light',
-                    }"
-                />
-
-                Nuxt Shopify
-            </NuxtLink>
+            <Logo />
 
             <UNavigationMenu
                 highlight
@@ -95,7 +73,7 @@ const items = computed(() => [
 
         <UCollapsible
             :open="open"
-            class="absolute top-full w-full md:hidden"
+            class="absolute top-full w-full lg:hidden"
         >
             <template #content>
                 <UNavigationMenu

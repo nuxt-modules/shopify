@@ -16,6 +16,8 @@ const navigationBounding = inject<UseElementBoundingReturn>('navigation:bounding
             <Hero
                 :title="t('hero.title')"
                 :subtitle="t('hero.subtitle')"
+                :cta-text="t('hero.cta')"
+                cta-link="/collection/shirts"
                 class="mt-16"
             />
         </section>

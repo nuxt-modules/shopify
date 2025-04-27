@@ -4,27 +4,20 @@ import type { FetchCollectionQuery } from '#shopify/storefront'
 import { z } from 'zod'
 
 const props = defineProps<{
-    product: FetchCollectionQuery['collection']['products']['edges']
+    product: NonNullable<FetchCollectionQuery['collection']>['products']['edges'][0]
     index: number
     padded?: boolean
 }>()
 
-const _emit = defineEmits<{
-    (e: 'addToCart', quantity: number): void
-}>()
-
 const schema = z.object({
-    merchandiseId: z.string(),
     quantity: z.number().min(1),
 })
 
 const state = reactive<z.infer<typeof schema>>({
-    merchandiseId: props.product?.node.variants.edges[0].node.id,
     quantity: 1,
 })
 
 const { addItems } = await useCart()
-const _imgLoading = ref(true)
 
 const price = computed(() => {
     const formatter = new Intl.NumberFormat('de-DE', {
@@ -37,7 +30,6 @@ const price = computed(() => {
 
 const handleAddToCart = async (quantity: number) => {
     await addItems({
-        merchandiseId: props.product.node.variants.edges[0].node.id,
         quantity,
     })
 }
@@ -56,26 +48,24 @@ const handleAddToCart = async (quantity: number) => {
                         :padded="props.padded"
                     />
 
-                    <div class="flex flex-row justify-between">
-                        <span class="text-sm text-gray-500">
-                            quality: <span class="text-emerald-400 font-bold">good</span>
-                        </span>
+                    <div class="px-4">
+                        <div class="flex flex-row justify-between">
+                            <span class="block font-bold text-sm">
+                                {{ price }}
+                            </span>
+                        </div>
 
-                        <span class="block font-bold text-sm">
-                            {{ price }}
-                        </span>
+                        <h2 class="font-bold">
+                            {{ props.product.node.title }}
+                        </h2>
                     </div>
-
-                    <h2 class="font-bold">
-                        {{ props.product.node.title }}
-                    </h2>
                 </NuxtLink>
 
                 <UForm
                     :state="state"
                     :schema="schema"
                     :validate-on="['change']"
-                    class="flex flex-col gap-4"
+                    class="flex flex-col gap-4 px-4 pb-4"
                 >
                     <div class="flex flex-row gap-4 justify-between">
                         <UFormField
@@ -95,6 +85,7 @@ const handleAddToCart = async (quantity: number) => {
                             variant="soft"
                             color="secondary"
                             type="submit"
+                            class="cursor-pointer"
                             @click.prevent="handleAddToCart(state.quantity)"
                         />
                     </div>

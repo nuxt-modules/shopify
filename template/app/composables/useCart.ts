@@ -1,5 +1,3 @@
-import { useLocalStorage } from '@vueuse/core'
-
 export async function useCart() {
     const toast = useToast()
 
@@ -35,7 +33,7 @@ export async function useCart() {
         }
     }
 
-    const addItems = async (...items: { merchandiseId: string, quantity: number }[]) => {
+    const addItems = async (...items: { quantity: number }[]) => {
         try {
             const { data: _data, error } = await useFetch('/api/cart/add-items', {
                 method: 'POST',

@@ -56,6 +56,12 @@ export default defineNuxtConfig({
         },
     },
 
+    routeRules: {
+        '/collection': {
+            redirect: '/',
+        },
+    },
+
     future: {
         compatibilityVersion: 4,
     },
