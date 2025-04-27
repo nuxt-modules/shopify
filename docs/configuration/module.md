@@ -12,12 +12,12 @@ export default defineNuxtConfig({
         name: 'quickstart-abcd1234',
         clients: {
             storefront: {
-                apiVersion: '2024-10',
+                apiVersion: '2025-04',
                 publicAccessToken: 'YOUR_ACCESS_TOKEN',
             },
 
             admin: {
-                apiVersion: '2024-10',
+                apiVersion: '2025-04',
                 accessToken: 'YOUR_ACCESS_TOKEN',
             },
         },
@@ -41,7 +41,7 @@ export default defineNuxtConfig({
         clients: {                                          // Available shopify clients.
 
             storefront: {                                   // Storefront client options.
-                apiVersion: '2024-10',                      // API version to use.
+                apiVersion: '2025-04',                      // API version to use.
                 publicAccessToken: 'YOUR_ACCESS_TOKEN',     // Public access token to use.
                 privateAccessToken: 'YOUR_ACCESS_TOKEN',    // Private access token to use.
                 sandbox: true,                              // Enable sandbox for the client.
@@ -50,7 +50,7 @@ export default defineNuxtConfig({
             },
             
             admin: {                                        // Admin client options.
-                apiVersion: '2024-10',                      // API version to use.
+                apiVersion: '2025-04',                      // API version to use.
                 accessToken: 'YOUR_ACCESS_TOKEN',           // Access token to use.
                 sandbox: true,                              // Enable sandbox for the client.
                 skipCodegen: false,                         // Skip code generation for the client.
@@ -76,7 +76,7 @@ export default defineNuxtConfig({
 
         clients: {
             storefront: {
-                apiVersion: '2024-10',
+                apiVersion: '2025-04',
                 publicAccessToken: 'YOUR_ACCESS_TOKEN',
             },
         },
@@ -93,7 +93,7 @@ export default defineNuxtConfig({
 
         clients: {
             admin: {
-                apiVersion: '2024-10',
+                apiVersion: '2025-04',
                 accessToken: 'YOUR_ACCESS_TOKEN',
             },
         },

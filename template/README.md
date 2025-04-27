@@ -2,45 +2,40 @@
   <img height="107" src="https://raw.githubusercontent.com/konkonam/nuxt-shopify/refs/heads/main/docs/public/logo-readme.png">
 </p>
 
-# Nuxt Shopify Template
+# Nuxt Shopify Template (WIP)
 
 [![Github Actions][github-actions-src]][github-actions-href]
 [![License][license-src]][license-href]
 [![Nuxt][nuxt-src]][nuxt-href]
 
-A minimal, production-ready Shopify Template built with Nuxt.
+> [!WARN]
+> This template is a work in progress and is not yet ready for production use. Please check back later for updates.
 
-- 🏀 [Online demo](https://nuxt-shopify.vercel.app)
+- 🏀 [Online demo](https://example.com)
 - 📚 [Documentation](https://konkonam.github.io/nuxt-shopify)
 
 ## 📦 Setup
 
-Run the following command to set up the shop template:
+Run the following command to clone the shop template:
 
 ```sh
+npx @konkonam/nuxt-shopify my-shop
+```
+
+Install the dependencies:
+
+```sh
+cd my-shop
+
 npm install
 ```
 
-Add your Shopify configuration to the `nuxt.config.ts`:
+Create a `.env` file in the root of the project and add your Shopify credentials:
 
-```ts
-export default defineNuxtConfig({
-    shopify: {
-        name: 'quickstart-abcd1234',
-        clients: {
-            storefront: {
-                apiVersion: '2024-10',
-                publicAccessToken: 'YOUR_ACCESS_TOKEN',
-            },
-
-            // Optional: You can also use the built-in admin API support
-            admin: {
-                apiVersion: '2024-10',
-                accessToken: 'YOUR_ACCESS_TOKEN',
-            },
-        },
-    },
-})
+```sh
+NUXT_SHOPIFY_NAME="quickstart-abcd1234"
+NUXT_SHOPIFY_API_VERSION="2025-04"
+NUXT_SHOPIFY_STOREFRONT_PUBLIC_ACCESS_TOKEN="YOUR_PUBLIC_ACCESS_TOKEN"
 ```
 
 That's it! The template is ready.
@@ -81,25 +76,11 @@ The template uses `vue-tsc` to make sure all types are correct, you can run it w
 npm run typecheck
 ```
 
-## 🤝 Contributing
-
-1. Clone this repository
-2. Create a `.env` file (see [`.env.example`](https://github.com/konkonam/nuxt-shopify/tree/main/.env.example))
-3. Install dependencies using:
-    ```bash
-    bun install
-    ```
-4. Run `bun run prepare:dev` to generate type stubs.
-5. Start the default [playground](https://github.com/konkonam/nuxt-shopify/tree/main/playgrounds/playground) with:
-    ```bash
-    bun run dev
-    ```
-
 ## 📜 License
 
 Published under the [MIT License](https://github.com/konkonam/nuxt-shopify/tree/main/LICENSE).
 
-[github-actions-src]: https://github.com/konkonam/nuxt-shopify/actions/workflows/test-template.yml/badge.svg
+[github-actions-src]: https://github.com/konkonam/nuxt-shopify/actions/workflows/test.yml/badge.svg
 [github-actions-href]: https://github.com/konkonam/nuxt-shopify/actions
 
 [license-src]: https://img.shields.io/github/license/konkonam/nuxt-shopify.svg?style=flat&colorA=18181B&colorB=31C553

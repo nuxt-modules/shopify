@@ -56,12 +56,12 @@ export default defineNuxtConfig({
         name: 'quickstart-abcd1234',
         clients: {
             storefront: {
-                apiVersion: '2024-10',
+                apiVersion: '2025-04',
                 publicAccessToken: 'YOUR_ACCESS_TOKEN',
             },
 
             admin: {
-                apiVersion: '2024-10',
+                apiVersion: '2025-04',
                 accessToken: 'YOUR_ACCESS_TOKEN',
             },
         },

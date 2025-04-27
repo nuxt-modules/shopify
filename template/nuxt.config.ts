@@ -135,12 +135,12 @@ export default defineNuxtConfig({
     },
 
     shopify: {
-        name: process.env.NUXT_SHOPIFY_STOREFRONT_NAME as string,
+        name: process.env.NUXT_SHOPIFY_NAME as string,
 
         clients: {
             storefront: {
-                apiVersion: process.env.NUXT_SHOPIFY_STOREFRONT_API_VERSION as string,
-                publicAccessToken: process.env.NUXT_SHOPIFY_STOREFRONT_PUBLIC_TOKEN as string,
+                apiVersion: process.env.NUXT_SHOPIFY_API_VERSION as string,
+                publicAccessToken: process.env.NUXT_SHOPIFY_STOREFRONT_PUBLIC_ACCESS_TOKEN as string,
             },
         },
     },
