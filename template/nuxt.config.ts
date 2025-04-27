@@ -116,7 +116,7 @@ export default defineNuxtConfig({
     },
 
     image: {
-        densities: [1, 2, 3],
+        densities: [1, 2],
     },
 
     shopify: {

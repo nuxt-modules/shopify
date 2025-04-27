@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import { defineCommand, runMain } from 'citty'
 import log from 'consola'
 import { downloadTemplate } from 'giget'

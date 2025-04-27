@@ -1,3 +1,6 @@
+# 0.0.18
+- Fixed cli command "init" to initialize the template
+
 # 0.0.17
 - Added shop template (wip)
 - Added cli command "init" to initialize the template
