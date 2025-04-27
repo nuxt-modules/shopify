@@ -72,7 +72,7 @@ The easiest way is with the `useStorefront` composable, directly inside of your 
 > To access the `useStorefront` composable on the client side, make sure you have added a public access token.
 > You can add it in the module config: `clients > storefront > publicAccessToken`
 
-```vue
+```html
 <!-- ~/components/Products.vue -->
 
 <script setup lang="ts">
