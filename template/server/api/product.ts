@@ -1,8 +1,5 @@
 import { z } from 'zod'
 
-import { IMAGE_FRAGMENT, PRICE_FRAGMENT, PRODUCT_FRAGMENT } from '../graphql'
-import { extract } from '../utils/extract'
-
 const schema = z.object({
     handle: z.string(),
 })

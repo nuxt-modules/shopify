@@ -1,8 +1,5 @@
 import { z } from 'zod'
 
-import { CART_LINE_CONNECTION_FRAGMENT, IMAGE_FRAGMENT, PRICE_FRAGMENT, PRODUCT_VARIANT_FRAGMENT } from '../../graphql'
-import { cartLineInputSchema, connectionParamsSchema } from '../../graphql/validation'
-
 const schema = z.object({
     id: z.string(),
     items: z.array(cartLineInputSchema),

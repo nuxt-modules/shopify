@@ -1,7 +1,3 @@
-import { COLLECTION_CONNECTION_FRAGMENT, COLLECTION_FRAGMENT, IMAGE_FRAGMENT } from '../graphql'
-import { connectionParamsSchema } from '../graphql/validation'
-import { extract } from '../utils/extract'
-
 export default defineEventHandler(async (event) => {
     const variables = await readValidatedBody(event, connectionParamsSchema.parse)
     const storefront = useStorefront()

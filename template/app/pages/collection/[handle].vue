@@ -30,12 +30,12 @@ const onChange = (state: FilterState) => {
 <template>
     <div class="flex flex-col gap-8">
         <div class="flex flex-col gap-2">
-            <div class="flex flex-row gap-16 grow">
-                <h2 class="text-2xl font-bold">
+            <div class="flex flex-col grow gap-2 md:flex-row md:gap-16">
+                <h1 class="text-2xl font-bold">
                     {{ collection?.title }}
-                </h2>
+                </h1>
 
-                <div class="flex grow justify-end">
+                <div class="flex grow md:justify-end">
                     <div class="flex flex-row gap-2">
                         <UButton
                             variant="outline"

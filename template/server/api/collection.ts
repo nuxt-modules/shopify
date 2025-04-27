@@ -1,9 +1,5 @@
 import { z } from 'zod'
 
-import { COLLECTION_FRAGMENT, IMAGE_FRAGMENT, PRICE_FRAGMENT, PRODUCT_CONNECTION_FRAGMENT } from '../graphql'
-import { connectionParamsSchema } from '../graphql/validation'
-import { extract } from '../utils/extract'
-
 const schema = z.object({
     handle: z.string(),
 }).extend({

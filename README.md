@@ -82,7 +82,7 @@ The easiest way is with the `useStorefront` composable, directly inside of your 
 ```html
 <!-- ~/pages/your-page.vue -->
 
-<script type="setup" setup lang="ts">
+<script setup lang="ts">
 const storefront = useStorefront()
 
 const { data } = await storefront.request(`#graphql
