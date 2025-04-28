@@ -12,4 +12,5 @@ export const icons = {
     menu: 'hugeicons:menu-01',
     globe: 'hugeicons:globe-02',
     close: 'hugeicons:cancel-01',
+    github: 'hugeicons:github-01',
 }

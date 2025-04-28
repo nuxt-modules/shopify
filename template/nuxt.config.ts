@@ -12,7 +12,8 @@ export default defineNuxtConfig({
     appConfig: {
         ui: {
             colors: {
-                primary: 'indigo',
+                primary: 'red',
+                neutral: 'neutral',
             },
 
             card: {

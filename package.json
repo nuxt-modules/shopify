@@ -36,7 +36,7 @@
     },
     "scripts": {
         "build": "nuxt-module-build build",
-        "build:template": "bun run --filter=./template build",
+        "build:template": "bun run --filter=./template --env-file=.env --elide-lines=100 build",
         "build:docs": "vitepress build docs",
         "dev": "bun run --filter=playground --env-file=.env --elide-lines=100 dev",
         "dev:v4": "bun run --filter=playground-v4 --env-file=.env --elide-lines=100 dev",

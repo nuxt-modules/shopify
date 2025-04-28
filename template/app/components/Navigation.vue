@@ -24,33 +24,29 @@ const items = computed(() => [
     [
         {
             icon: isDark.value ? icons.sun : icons.moon,
-            onSelect: swap,
             description: 'Toggle color theme',
             class: 'px-2 md:px-3 cursor-pointer',
+            onSelect: swap,
         },
         {
             icon: languageNavOpen.value ? icons.close : icons.globe,
-            onSelect: () => {
-                languageNavOpen.value = !languageNavOpen.value
-            },
             class: 'px-2 md:px-3 language-button cursor-pointer',
+            onSelect: () => languageNavOpen.value = !languageNavOpen.value,
         },
         {
             icon: icons.account,
-            to: getAccountAppUrl(),
             class: 'px-2 md:px-3',
+            to: getAccountAppUrl(),
         },
         {
             icon: icons.cart,
-            to: getCartAppUrl(),
             class: 'px-2 md:px-3',
+            to: getCartAppUrl(),
         },
         {
             icon: mobileNavOpen.value ? icons.close : icons.menu,
-            onSelect: () => {
-                mobileNavOpen.value = !mobileNavOpen.value
-            },
             class: 'px-2 md:px-3 menu-button cursor-pointer lg:hidden',
+            onSelect: () => mobileNavOpen.value = !mobileNavOpen.value,
         },
     ],
 ])

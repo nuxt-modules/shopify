@@ -5,7 +5,6 @@ import { z } from 'zod'
 
 const props = defineProps<{
     product: NonNullable<FetchCollectionQuery['collection']>['products']['edges'][0]
-    padded?: boolean
 }>()
 
 const schema = z.object({
@@ -84,7 +83,6 @@ const handleAddToCart = async (quantity: number) => {
                             :trailing-icon="icons.cartAdd"
                             label="Add to cart"
                             variant="soft"
-                            color="secondary"
                             type="submit"
                             class="cursor-pointer"
                             @click.prevent="handleAddToCart(state.quantity)"
