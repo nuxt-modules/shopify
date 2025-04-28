@@ -1,6 +1,10 @@
+<script setup lang="ts">
+const localePath = useLocalePath()
+</script>
+
 <template>
     <NuxtLink
-        to="/"
+        :to="localePath('/')"
         class="flex items-center gap-3 mr-4 shrink-0"
     >
         <NuxtImg

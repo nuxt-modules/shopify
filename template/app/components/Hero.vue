@@ -11,6 +11,8 @@ const props = withDefaults(defineProps<Props>(), {
     ctaText: 'Shop Collection',
     ctaLink: '/collection/all',
 })
+
+const localePath = useLocalePath()
 </script>
 
 <template>
@@ -26,7 +28,7 @@ const props = withDefaults(defineProps<Props>(), {
 
             <div>
                 <NuxtLink
-                    :to="props.ctaLink"
+                    :to="localePath(props.ctaLink)"
                     class="inline-block bg-[var(--ui-bg-inverted)] brightness-90 px-8 py-4 rounded-full text-lg font-medium
                            transition-[filter,scale,box-shadow] duration-300 text-[var(--ui-text-inverted)] hover:brightness-100
                            hover:scale-105 shadow-lg hover:shadow-xl animate-fade-in-delay-2"

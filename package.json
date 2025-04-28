@@ -36,7 +36,7 @@
     },
     "scripts": {
         "build": "nuxt-module-build build",
-        "build:template": "bun run --filter=./template --env-file=.env --elide-lines=100 build",
+        "build:template": "bun run --filter=./template build",
         "build:docs": "vitepress build docs",
         "dev": "bun run --filter=playground --env-file=.env --elide-lines=100 dev",
         "dev:v4": "bun run --filter=playground-v4 --env-file=.env --elide-lines=100 dev",
@@ -48,7 +48,7 @@
         "typecheck": "vue-tsc --noEmit",
         "typecheck:playground": "bun run --filter=playground --env-file=.env --elide-lines=100 typecheck",
         "typecheck:playground-v4": "bun run --filter=playground-v4 --env-file=.env --elide-lines=100 typecheck",
-        "typecheck:template": "bun run --filter=./template --env-file=.env --elide-lines=100 typecheck",
+        "typecheck:template": "bun run --filter=./template typecheck",
         "typecheck:all": "bun run --filter=* --env-file=.env --elide-lines=100 typecheck",
         "analyze": "bun run --filter=./playgrounds/playground --env-file=.env --elide-lines=100 analyze",
         "prepare": "nuxt-module-build prepare",
@@ -81,6 +81,7 @@
         "eslint": "^9.25.1",
         "nuxt": "^3.17.0",
         "unbuild": "^3.5.0",
+        "vercel": "^41.6.2",
         "vitepress": "^1.6.3",
         "vitest": "^3.1.2",
         "vue-tsc": "^2.2.10"

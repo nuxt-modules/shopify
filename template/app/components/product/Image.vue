@@ -29,7 +29,7 @@ const handleImageLoad = () => requestAnimationFrame(() => {
                 'max-w-256': props.size === 'lg',
             },
         ]"
-        class="aspect-square rounded-lg bg-gray-200 flex items-center justify-center p-4"
+        class="aspect-square rounded-lg rounded-b-none bg-[var(--ui-bg-muted)] flex items-center justify-center p-4"
     >
         <NuxtImg
             :src="props.product.featuredImage?.url"

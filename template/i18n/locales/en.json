@@ -4,6 +4,18 @@
         "subtitle": "Explore our curated selection of vintage clothing, featuring unique pieces that tell a story. Each item is handpicked for its quality and style, ensuring you find something truly special.",
         "cta": "Shop Now"
     },
+    "filter": {
+        "label": "Filter"
+    },
+    "sort": {
+        "label": "Sort",
+        "by": "Sort by",
+        "ascending": "ascending",
+        "descending": "descending"
+    },
+    "navigation": {
+        "label": "Navigation"
+    },
     "footer": {
         "message": "Released under the MIT License.",
         "copyright": "Copyright © 2024-present Zoltan Lukacs, Frederik Bußmann"

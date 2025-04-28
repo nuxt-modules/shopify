@@ -105,15 +105,6 @@ watchDebounced(state, async () => {
                     />
                 </UFormField>
             </div>
-
-            <USeparator label="navigation" />
-
-            <UPagination
-                v-model:page="state.pagination.first"
-                :sibling-count="1"
-                :total="100"
-                class="mx-auto"
-            />
         </UForm>
     </div>
 </template>

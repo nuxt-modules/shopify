@@ -5,10 +5,10 @@ const props = defineProps<{
     collections: FetchCollectionsQuery['collections']['edges']
 }>()
 
-const theme = useTheme()
+const { isDark, swap } = useTheme()
 
-const mobileNav = ref<HTMLElement>()
-const open = ref(false)
+const mobileNavOpen = ref(false)
+const languageNavOpen = ref(false)
 
 const collections = props.collections
     .map(collection => ({
@@ -23,36 +23,43 @@ const items = computed(() => [
     })),
     [
         {
-            icon: theme.currentIcon.value,
-            onSelect: theme.swap,
+            icon: isDark.value ? icons.sun : icons.moon,
+            onSelect: swap,
             description: 'Toggle color theme',
-            class: 'cursor-pointer',
+            class: 'px-2 md:px-3 cursor-pointer',
+        },
+        {
+            icon: languageNavOpen.value ? icons.close : icons.globe,
+            onSelect: () => {
+                languageNavOpen.value = !languageNavOpen.value
+            },
+            class: 'px-2 md:px-3 language-button cursor-pointer',
         },
         {
             icon: icons.account,
             to: getAccountAppUrl(),
+            class: 'px-2 md:px-3',
         },
         {
             icon: icons.cart,
             to: getCartAppUrl(),
+            class: 'px-2 md:px-3',
         },
         {
-            icon: open.value ? icons.close : icons.menu,
+            icon: mobileNavOpen.value ? icons.close : icons.menu,
             onSelect: () => {
-                open.value = !open.value
+                mobileNavOpen.value = !mobileNavOpen.value
             },
-            class: 'menu-button cursor-pointer lg:hidden',
+            class: 'px-2 md:px-3 menu-button cursor-pointer lg:hidden',
         },
     ],
 ])
 
 useHead({
     bodyAttrs: {
-        class: computed(() => open.value ? 'overflow-hidden' : ''),
+        class: computed(() => mobileNavOpen.value ? 'overflow-hidden' : ''),
     },
 })
-
-onClickOutside(mobileNav, () => open.value = false, { ignore: ['.menu-button'] })
 </script>
 
 <template>
@@ -69,36 +76,13 @@ onClickOutside(mobileNav, () => open.value = false, { ignore: ['.menu-button'] }
             />
         </UContainer>
 
-        <UCollapsible
-            :open="open"
-            class="absolute top-full w-full lg:hidden"
-        >
-            <template #content>
-                <UNavigationMenu
-                    ref="mobileNav"
-                    highlight
-                    highlight-color="primary"
-                    orientation="vertical"
-                    :items="collections.map(collection => ({
-                        ...collection,
-                        onSelect: () => open = false,
-                    }))"
-                    class="border-y border-[var(--ui-border)] grow bg-[var(--ui-bg)] py-4 duration-100"
-                />
+        <NavigationMobile
+            v-model="mobileNavOpen"
+            :collections="collections"
+        />
 
-                <Transition
-                    enter-from-class="opacity-0"
-                    enter-to-class="opacity-100"
-                    leave-from-class="opacity-100"
-                    leave-to-class="opacity-0"
-                >
-                    <div
-                        v-if="open"
-                        class="-z-10 fixed inset-0 top-12 backdrop-blur-xs transition-opacity duration-100"
-                        @click="open = false"
-                    />
-                </Transition>
-            </template>
-        </UCollapsible>
+        <NavigationLanguage
+            v-model="languageNavOpen"
+        />
     </div>
 </template>

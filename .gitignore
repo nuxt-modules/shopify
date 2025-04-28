@@ -38,3 +38,4 @@ logs
 # certificates
 *.pem
 .env*.local
+.vercel

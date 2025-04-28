@@ -8,11 +8,22 @@
 [![License][license-src]][license-href]
 [![Nuxt][nuxt-src]][nuxt-href]
 
-> [!WARN]
+[![Deploy with Vercel][vercel-src]][vercel-href]
+
+> [!WARNING]
 > This template is a work in progress and is not yet ready for production use. Please check back later for updates.
 
-- 🏀 [Online demo](https://example.com)
-- 📚 [Documentation](https://konkonam.github.io/nuxt-shopify)
+- 🏀 [Online demo](https://nuxt-shopify.vercel.app/)
+- 📚 [Nuxt Module documentation](https://konkonam.github.io/nuxt-shopify)
+
+## ⚡️ Features
+
+- **Nuxt 3**: The latest version of Nuxt with improved performance and features.
+- **Nuxt Shopify**: A Nuxt module for Shopify that provides a simple and powerful way to integrate Shopify.
+- **Tailwind CSS**: A utility-first CSS framework for rapid UI development.
+- **Nuxt i18n**: Built-in page localizations.
+- **ESLint**: Minimally configured ESLint for code quality.
+- **Vue-Tsc**: Fully type-safe, guaranteed.
 
 ## 📦 Setup
 
@@ -22,11 +33,15 @@ Run the following command to clone the shop template:
 npx @konkonam/nuxt-shopify my-shop
 ```
 
-Install the dependencies:
+Now you can navigate to the `my-shop` directory:
 
 ```sh
 cd my-shop
+```
 
+Install the dependencies:
+
+```sh
 npm install
 ```
 
@@ -38,7 +53,7 @@ NUXT_SHOPIFY_API_VERSION="2025-04"
 NUXT_SHOPIFY_STOREFRONT_PUBLIC_ACCESS_TOKEN="YOUR_PUBLIC_ACCESS_TOKEN"
 ```
 
-That's it! The template is ready.
+And that's it! Now your template is ready to use.
 
 ## 🛠️ Usage
 
@@ -88,3 +103,6 @@ Published under the [MIT License](https://github.com/konkonam/nuxt-shopify/tree/
 
 [nuxt-src]: https://img.shields.io/badge/Nuxt-18181B?logo=nuxt
 [nuxt-href]: https://nuxt.com
+
+[vercel-src]: https://vercel.com/button
+[vercel-href]: https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fkonkonam%2Fnuxt-shopify%2Ftree%2Fmain%2Ftemplate

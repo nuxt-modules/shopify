@@ -3,13 +3,20 @@ export default function useTheme() {
 
     const mode = computed(() => colorMode.value)
 
-    const currentIcon = computed(() => mode.value === 'dark' ? 'hugeicons:sun-02' : 'hugeicons:moon-02')
+    const isDark = computed({
+        get() {
+            return colorMode.value === 'dark'
+        },
+        set(_isDark) {
+            colorMode.preference = _isDark ? 'dark' : 'light'
+        },
+    })
 
     const swap = () => colorMode.preference = mode.value === 'dark' ? 'light' : 'dark'
 
     return {
         colorMode,
-        currentIcon,
+        isDark,
         swap,
     }
 }

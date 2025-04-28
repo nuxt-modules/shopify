@@ -56,12 +56,6 @@ export default defineNuxtConfig({
         },
     },
 
-    routeRules: {
-        '/collection': {
-            redirect: '/',
-        },
-    },
-
     future: {
         compatibilityVersion: 4,
     },
@@ -79,7 +73,10 @@ export default defineNuxtConfig({
 
     vite: {
         server: {
-            allowedHosts: ['.ngrok-free.app'],
+            allowedHosts: [
+                '.ngrok-free.app',
+                '.vercel.app',
+            ],
         },
 
         optimizeDeps: {
