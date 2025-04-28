@@ -59,7 +59,7 @@ useHead({
 </script>
 
 <template>
-    <div class="border-b border-[var(--ui-border)] relative z-10">
+    <div class="border-b border-[var(--ui-border-muted)] relative z-10">
         <UContainer class="flex flex-row justify-evenly items-center">
             <Logo />
 

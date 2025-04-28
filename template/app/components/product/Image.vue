@@ -29,13 +29,13 @@ const handleImageLoad = () => requestAnimationFrame(() => {
                 'max-w-256': props.size === 'lg',
             },
         ]"
-        class="aspect-square rounded-lg rounded-b-none bg-[var(--ui-bg-muted)] flex items-center justify-center p-4"
+        class="aspect-square flex items-center justify-center"
     >
         <NuxtImg
             :src="props.product.featuredImage?.url"
             :alt="props.product.title"
             placeholder
-            class="rounded-lg max-w-full max-h-full animate-pop-up select-none grow-0 shrink-0"
+            class="max-w-full max-h-full animate-pop-up select-none grow-0 shrink-0"
             @load="handleImageLoad"
         />
     </div>

@@ -37,8 +37,10 @@ const handleAddToCart = async (quantity: number) => {
     <div class="flex flex-row max-w-full">
         <UCard
             class="flex flex-col max-w-full h-full"
+            variant="soft"
             :ui="{
                 body: 'h-full',
+                root: 'rounded-none !bg-transparent',
             }"
         >
             <div class="relative flex flex-col gap-4 h-full">
@@ -48,24 +50,22 @@ const handleAddToCart = async (quantity: number) => {
                 >
                     <ProductImage :product="props.product.node!" />
 
-                    <div class="px-4">
-                        <div class="flex flex-row justify-between">
-                            <span class="block font-bold text-sm">
-                                {{ price }}
-                            </span>
-                        </div>
-
-                        <h2 class="font-bold">
-                            {{ props.product.node?.title }}
-                        </h2>
+                    <div class="flex flex-row justify-between">
+                        <span class="block font-bold text-sm">
+                            {{ price }}
+                        </span>
                     </div>
+
+                    <h2 class="font-bold">
+                        {{ props.product.node?.title }}
+                    </h2>
                 </NuxtLink>
 
                 <UForm
                     :state="state"
                     :schema="schema"
                     :validate-on="['change']"
-                    class="flex flex-col gap-4 px-4 pb-4"
+                    class="flex flex-col gap-4"
                 >
                     <div class="flex flex-row gap-4 justify-between">
                         <UFormField
