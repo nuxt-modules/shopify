@@ -24,7 +24,9 @@ jobs:
         run: bun run lint
 
       - name: Typecheck
-        run: bun run typecheck:template
+        run: |
+          bun run prepare:template
+          bun run typecheck:template
 
   deploy:
     runs-on: ubuntu-latest
