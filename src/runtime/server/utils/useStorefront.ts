@@ -1,6 +1,7 @@
 import { createStorefrontApiClient } from '@shopify/storefront-api-client'
+import { createConsola } from 'consola'
 
-import { useRuntimeConfig } from '#imports'
+import { useRuntimeConfig, useNitroApp } from '#imports'
 
 export function useStorefront() {
     const { _shopify } = useRuntimeConfig()
@@ -16,5 +17,15 @@ export function useStorefront() {
         ...options
     } = _shopify.clients.storefront
 
-    return createStorefrontApiClient(options)
+    if (_shopify.logger !== undefined) {
+        options.logger = createConsola(_shopify.logger).withTag('shopify').log
+    }
+
+    useNitroApp().hooks.callHook('storefront:client:create', { options })
+
+    const client = createStorefrontApiClient(options)
+
+    useNitroApp().hooks.callHook('storefront:client:created', { client })
+
+    return client
 }

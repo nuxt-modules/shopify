@@ -14,7 +14,7 @@
 > This template is a work in progress and is not yet ready for production use. Please check back later for updates.
 
 - 🏀 [Online demo](https://nuxt-shopify.vercel.app/)
-- 📚 [Nuxt Module documentation](https://konkonam.github.io/nuxt-shopify)
+- 📚 [Nuxt Shopify documentation](https://konkonam.github.io/nuxt-shopify)
 
 ## ⚡️ Features
 

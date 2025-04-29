@@ -1,6 +1,7 @@
 import { createAdminApiClient } from '@shopify/admin-api-client'
+import { createConsola } from 'consola'
 
-import { useRuntimeConfig } from '#imports'
+import { useRuntimeConfig, useNitroApp } from '#imports'
 
 export function useAdmin() {
     const { _shopify } = useRuntimeConfig()
@@ -16,5 +17,15 @@ export function useAdmin() {
         ...options
     } = _shopify.clients.admin
 
-    return createAdminApiClient(options)
+    if (_shopify.logger !== undefined) {
+        options.logger = createConsola(_shopify.logger).withTag('shopify').log
+    }
+
+    useNitroApp().hooks.callHook('admin:client:create', { options })
+
+    const client = createAdminApiClient(options)
+
+    useNitroApp().hooks.callHook('admin:client:created', { client })
+
+    return client
 }

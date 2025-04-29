@@ -21,11 +21,5 @@ export default defineEventHandler(async (event) => {
         variables: {
             handle: variables.handle,
         },
-    }).then(extract).catch((error: unknown) => {
-        throw createError({
-            statusCode: 500,
-            statusMessage: 'Internal Server Error',
-            data: { error },
-        })
     })
 })

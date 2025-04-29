@@ -8,7 +8,7 @@
         "prepare": "nuxt prepare",
         "analyze": "nuxt analyze",
         "cleanup": "nuxt cleanup",
-        "typecheck": "vue-tsc --noEmit"
+        "typecheck": "nuxt typecheck"
     },
     "dependencies": {
         "nuxt": "^3.17.1",

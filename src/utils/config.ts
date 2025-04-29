@@ -13,7 +13,7 @@ const ignores = [
     '!.nuxt',
 ]
 
-export const useShopifyConfig = (options: ModuleOptions): { config: ShopifyConfig, publicConfig?: PublicShopifyConfig } => {
+export const useShopifyConfig = (options: ModuleOptions) => {
     const getClientConfig = <T extends ShopifyClientType>(clientType: T, documents: string[] = []) => {
         const clientOptions = options.clients?.[clientType] as ShopifyConfig['clients'][T]
         if (!clientOptions) return

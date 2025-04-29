@@ -2,8 +2,8 @@ import type { createAdminApiClient } from '@shopify/admin-api-client'
 import type { createStorefrontApiClient } from '@shopify/storefront-api-client'
 import type { ConsolaOptions } from 'consola'
 
-type StorefrontOptions = Parameters<typeof createStorefrontApiClient>[0]
-type AdminOptions = Parameters<typeof createAdminApiClient>[0]
+export type StorefrontOptions = Parameters<typeof createStorefrontApiClient>[0]
+export type AdminOptions = Parameters<typeof createAdminApiClient>[0]
 
 // The supported client types
 declare enum ShopifyClientType {

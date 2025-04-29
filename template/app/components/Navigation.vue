@@ -10,14 +10,14 @@ const { isDark, swap } = useTheme()
 const mobileNavOpen = ref(false)
 const languageNavOpen = ref(false)
 
-const collections = props.collections
+const collections = computed(() => props.collections
     .map(collection => ({
         label: collection.node.title,
         to: getCollectionAppUrl(collection.node.handle),
-    }))
+    })))
 
 const items = computed(() => [
-    collections.map(collection => ({
+    collections.value.map(collection => ({
         ...collection,
         class: 'hidden lg:block',
     })),

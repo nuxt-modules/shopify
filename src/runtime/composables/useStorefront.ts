@@ -1,13 +1,19 @@
 import { createStorefrontApiClient } from '@shopify/storefront-api-client'
 
-import { useRuntimeConfig } from '#imports'
+import { useRuntimeConfig, useNuxtApp } from '#imports'
 
 export function useStorefront() {
-    const { _shopify } = useRuntimeConfig().public
+    const options = useRuntimeConfig().public?._shopify
 
-    if (!_shopify) {
+    if (!options) {
         throw new Error('Could not create storefront client')
     }
 
-    return createStorefrontApiClient(_shopify)
+    useNuxtApp().hooks.callHook('storefront:client:create', { options })
+
+    const client = createStorefrontApiClient(options)
+
+    useNuxtApp().hooks.callHook('storefront:client:created', { client })
+
+    return client
 }

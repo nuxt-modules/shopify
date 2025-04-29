@@ -45,7 +45,5 @@ export default defineEventHandler(async (event) => {
             handle: variables.handle,
             ...variables.products,
         },
-    }).then(extract).catch((error: unknown) => {
-        console.log(error)
     })
 })

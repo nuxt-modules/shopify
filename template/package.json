@@ -9,7 +9,7 @@
         "prepare": "nuxt prepare",
         "preview": "nuxt preview",
         "cleanup": "nuxt cleanup",
-        "typecheck": "vue-tsc --noEmit",
+        "typecheck": "nuxt typecheck",
         "lint": "eslint ."
     },
     "dependencies": {

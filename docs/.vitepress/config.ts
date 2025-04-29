@@ -58,6 +58,7 @@ export default defineConfig({
                 items: [
                     { text: 'Module config', link: '/configuration/module' },
                     { text: 'Codegen config', link: '/configuration/codegen' },
+                    { text: 'Hooks reference', link: '/configuration/hooks' },
                 ],
             },
         ],

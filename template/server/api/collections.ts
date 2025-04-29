@@ -18,5 +18,5 @@ export default defineEventHandler(async (event) => {
         ${COLLECTION_CONNECTION_FRAGMENT}
     `, {
         variables,
-    }).then(extract)
+    })
 })
