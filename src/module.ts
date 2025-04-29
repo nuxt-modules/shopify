@@ -17,7 +17,7 @@ import {
     installSandbox,
     registerTemplates,
     useShopifyConfig,
-    useShopifyConfigSchema,
+    useShopifyConfigValidation,
 } from './utils'
 import { useLog } from './utils/log'
 
@@ -32,7 +32,7 @@ export default defineNuxtModule<ModuleOptions>({
 
     async setup(options, nuxt) {
         const log = useLog(options.logger)
-        const moduleOptions = useShopifyConfigSchema(options)
+        const moduleOptions = useShopifyConfigValidation(options)
 
         if (!moduleOptions.success) {
             log.info('Skipping setup: config not provided or invalid')

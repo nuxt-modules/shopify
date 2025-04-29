@@ -47,6 +47,8 @@ export default defineNuxtConfig({
                 sandbox: true,                              // Enable sandbox for the client.
                 skipCodegen: false,                         // Skip code generation for the client.
                 documents: []                               // Glob patterns to include in code generation.
+                clientName: 'storefront',                   // Name of the client.
+                retries: 3,                                 // Number of retries for failed requests.
             },
             
             admin: {                                        // Admin client options.
@@ -55,6 +57,8 @@ export default defineNuxtConfig({
                 sandbox: true,                              // Enable sandbox for the client.
                 skipCodegen: false,                         // Skip code generation for the client.
                 documents: []                               // Glob patterns to include in code generation.
+                userAgentPrefix: ''                         // Prefix to include in the User-Agent for requests.
+                retries: 3,                                 // Number of retries for failed requests.
             },
         },
     },

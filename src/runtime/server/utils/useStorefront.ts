@@ -18,7 +18,7 @@ export function useStorefront() {
         ...options
     } = _shopify.clients.storefront
 
-    if (_shopify.logger !== undefined) {
+    if (_shopify.logger) {
         options.logger = createConsola(_shopify.logger).withTag('nuxt-shopify').log
     }
 

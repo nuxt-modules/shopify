@@ -34,10 +34,12 @@ export type ShopifyConfig<S = ShopifyStorefrontConfig, A = ShopifyAdminConfig> =
 }
 
 // Optional public config for client side usage
-export type PublicShopifyConfig = Omit<
-    ShopifyStorefrontConfig,
-    'privateAccessToken' | 'skipCodegen' | 'sandbox' | 'documents'
->
+export type PublicShopifyConfig<S = ShopifyStorefrontConfig> = {
+    logger?: Partial<ConsolaOptions>
+    clients: {
+        [ShopifyClientType.Storefront]?: Omit<S, 'privateAccessToken' | 'skipCodegen' | 'sandbox' | 'documents'>
+    }
+}
 
 // Options for custom templates
 export type ShopifyTemplateOptions = {

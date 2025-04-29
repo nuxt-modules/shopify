@@ -4,7 +4,7 @@ export default defineNuxtConfig({
         '@nuxt/ui',
         '@nuxtjs/i18n',
         '@vueuse/nuxt',
-        '@konkonam/nuxt-shopify',
+        '../src/module',
     ],
 
     css: ['~/assets/css/main.css'],
@@ -135,6 +135,10 @@ export default defineNuxtConfig({
 
     shopify: {
         name: process.env.NUXT_SHOPIFY_NAME as string,
+
+        logger: {
+            level: 999,
+        },
 
         clients: {
             storefront: {
