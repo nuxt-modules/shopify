@@ -1,3 +1,8 @@
+# 0.0.21
+- Improved config validation
+- Fixed logging problems
+- Added client side logging
+
 # 0.0.20
 - Fixed build declarations
 
