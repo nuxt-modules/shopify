@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { FetchProductQuery } from '#shopify/storefront'
+
 definePageMeta({
     validate: route => typeof route.params.handle === 'string',
     layout: 'detail',
@@ -8,24 +10,25 @@ const { addItems } = await useCart()
 const route = useRoute()
 const handle = route.params.handle as string
 
-const { data } = await useFetch('/api/product', {
+const { data } = await useFetch<{ data: FetchProductQuery }>('/api/product', {
     method: 'POST',
     body: {
         handle,
     },
 })
 
-const product = computed(() => data.value?.product)
+const product = computed(() => data.value?.data?.product)
 </script>
 
 <template>
-    <Section class="grid grid-cols-2 gap-16">
+    <Section class="grid md:grid-cols-2 gap-16">
         <NuxtImg
             :src="product?.featuredImage?.url"
             :alt="product?.title"
             placeholder
             class="aspect-square w-full rounded-lg border-10 border-[#D8DBDF]"
         />
+
         <div class="flex flex-col gap-4">
             <h2 class="text-2xl font-bold">
                 {{ product?.title }}
@@ -34,6 +37,7 @@ const product = computed(() => data.value?.product)
             <p v-html="product?.descriptionHtml" />
 
             <USeparator />
+
             <div class="w-full text-end mb-8">
                 <span class="text-lg font-bold">
                     {{ product?.priceRange.minVariantPrice.amount }}

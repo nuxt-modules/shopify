@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { FetchCollectionQuery } from '#shopify/storefront'
 import type { FilterState } from '~/components/Filters.vue'
 
 definePageMeta({
@@ -21,7 +22,7 @@ const { data } = await useFetch('/api/collection', {
     },
 })
 
-const collection = computed(() => data.value?.collection)
+const collection = computed(() => data.value?.data?.collection as FetchCollectionQuery['collection'])
 const products = computed(() => collection.value?.products.edges ?? [])
 
 const page = ref(1)

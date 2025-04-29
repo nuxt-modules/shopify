@@ -19,7 +19,7 @@ export function useStorefront() {
     } = _shopify.clients.storefront
 
     if (_shopify.logger) {
-        options.logger = createConsola(_shopify.logger).withTag('nuxt-shopify').log
+        options.logger = createConsola(_shopify.logger).withTag('shopify').log
     }
 
     useNitroApp().hooks.callHook('storefront:client:configure', { options })

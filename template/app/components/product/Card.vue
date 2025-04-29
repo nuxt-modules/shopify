@@ -4,7 +4,7 @@ import type { FetchCollectionQuery } from '#shopify/storefront'
 import { z } from 'zod'
 
 const props = defineProps<{
-    product: NonNullable<FetchCollectionQuery['collection']>['products']['edges'][0]
+    product: NonNullable<FetchCollectionQuery['collection']>['products']['edges'][number]
 }>()
 
 const schema = z.object({
