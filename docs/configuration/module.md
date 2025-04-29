@@ -46,7 +46,7 @@ export default defineNuxtConfig({
                 privateAccessToken: 'YOUR_ACCESS_TOKEN',    // Private access token to use.
                 sandbox: true,                              // Enable sandbox for the client.
                 skipCodegen: false,                         // Skip code generation for the client.
-                documents: []                               // Glob patterns to include in code generation.
+                documents: [],                              // Glob patterns to include in code generation.
                 clientName: 'storefront',                   // Name of the client.
                 retries: 3,                                 // Number of retries for failed requests.
             },
@@ -56,8 +56,9 @@ export default defineNuxtConfig({
                 accessToken: 'YOUR_ACCESS_TOKEN',           // Access token to use.
                 sandbox: true,                              // Enable sandbox for the client.
                 skipCodegen: false,                         // Skip code generation for the client.
-                documents: []                               // Glob patterns to include in code generation.
-                userAgentPrefix: ''                         // Prefix to include in the User-Agent for requests.
+                documents: [],                              // Glob patterns to include in code generation.
+                userAgentPrefix: '',                        // Prefix to include in the User-Agent for requests.
+                isTesting: false,                           // Sets the isTesting flag for the client.
                 retries: 3,                                 // Number of retries for failed requests.
             },
         },

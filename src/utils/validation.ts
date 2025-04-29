@@ -23,6 +23,7 @@ export const useShopifyConfigValidation = (options: ModuleOptions) => {
             admin: clientSchema.extend({
                 accessToken: z.string().min(1),
                 userAgentPrefix: z.string().min(1).optional(),
+                isTesting: z.boolean().optional(),
             }).optional(),
         }),
     })

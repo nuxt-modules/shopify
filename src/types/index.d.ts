@@ -11,8 +11,8 @@ import type { AdminApiClient } from '@shopify/admin-api-client'
 import type { StorefrontApiClient } from '@shopify/storefront-api-client'
 
 export type ModuleOptions = ShopifyConfig<
-    Omit<ShopifyStorefrontConfig, 'storeDomain'>,
-    Omit<ShopifyAdminConfig, 'storeDomain'>
+    Omit<ShopifyStorefrontConfig, 'storeDomain' | 'logger' | 'customFetchApi'>,
+    Omit<ShopifyAdminConfig, 'storeDomain' | 'logger' | 'customFetchApi'>
 >
 
 export type ShopifyConfigHookParams = {
