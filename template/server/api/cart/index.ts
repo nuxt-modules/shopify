@@ -38,7 +38,7 @@ export default defineEventHandler(async (event) => {
                 id: variables.id,
                 ...variables.lines,
             },
-        }).then(extract)
+        })
     }
     catch (error) {
         throw createError({

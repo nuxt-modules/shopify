@@ -64,7 +64,7 @@ export default defineEventHandler(async (event) => {
             })
         }
 
-        return extract(response)
+        return response
     }
     catch (error) {
         console.error('Error removing items from cart:', error)

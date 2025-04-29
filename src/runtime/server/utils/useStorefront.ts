@@ -1,7 +1,8 @@
 import { createStorefrontApiClient } from '@shopify/storefront-api-client'
 import { createConsola } from 'consola'
+import { useNitroApp } from 'nitropack/runtime'
 
-import { useRuntimeConfig, useNitroApp } from '#imports'
+import { useRuntimeConfig } from '#imports'
 
 export function useStorefront() {
     const { _shopify } = useRuntimeConfig()

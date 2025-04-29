@@ -18,7 +18,8 @@ export default defineEventHandler(async (event) => {
 
     try {
         const variables = await readValidatedBody(event, schema.parse)
-        return await storefront.request(query, { variables }).then(extract)
+
+        return await storefront.request(query, { variables })
     }
     catch (error) {
         throw createError({

@@ -12,7 +12,7 @@ export default defineEventHandler(async () => {
   `
 
     try {
-        return await storefront.request(query).then(extract)
+        return await storefront.request(query)
     }
     catch (error) {
         throw createError({

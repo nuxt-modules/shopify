@@ -70,7 +70,7 @@ export default defineEventHandler(async (event) => {
             })
         }
 
-        return extract(response)
+        return response
     }
     catch (error) {
         console.error('Error adding items to cart:', error)

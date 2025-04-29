@@ -24,7 +24,6 @@ jobs:
       - name: Install dependencies
         run: |
           bun install --frozen-lockfile
-          bun run prepare:template
 
       - name: Lint
         run: bun run lint

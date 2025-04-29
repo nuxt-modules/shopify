@@ -1,7 +1,8 @@
 import { createAdminApiClient } from '@shopify/admin-api-client'
 import { createConsola } from 'consola'
+import { useNitroApp } from 'nitropack/runtime'
 
-import { useRuntimeConfig, useNitroApp } from '#imports'
+import { useRuntimeConfig } from '#imports'
 
 export function useAdmin() {
     const { _shopify } = useRuntimeConfig()
