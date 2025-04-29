@@ -15,7 +15,7 @@ useHead({
     },
 })
 
-const { data, error } = await useFetch<FetchCollectionsQuery>('/api/collections', {
+const { data, error } = await useFetch('/api/collections', {
     method: 'POST',
     body: {
         first: 10,
@@ -30,7 +30,7 @@ if (error.value) {
     })
 }
 
-const collections = computed(() => data.value!.collections.edges)
+const collections = computed(() => (data.value?.data as FetchCollectionsQuery)?.collections.edges)
 </script>
 
 <template>
@@ -41,7 +41,7 @@ const collections = computed(() => data.value!.collections.edges)
             <NuxtLoadingIndicator />
 
             <Navigation
-                ref="navigation"
+                v-if="collections"
                 :collections="collections"
                 class="sticky top-0 z-50 bg-[var(--ui-bg)]"
             />

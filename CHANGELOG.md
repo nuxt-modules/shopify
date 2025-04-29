@@ -1,3 +1,9 @@
+# 0.0.19
+- Added nuxt hooks for client configuration and creation
+- Updated documentation for new hooks
+- Updated README + documentation
+- Fixed a misconfiguration in the module config
+
 # 0.0.18
 - Fixed cli command "init" to initialize the template
 

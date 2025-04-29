@@ -39,7 +39,7 @@ Hooks allows you to hook into the different stages of the module lifecycle.
 | Hook                              | Arguments | Environments    | Description                                    |
 | --------------------------------- | :-------: | :-------------: | ---------------------------------------------- |
 | `storefront:client:configure`     | `options` | Server & Client | Called before the storefront client is created |
-| `storefront:client:create`        | `client`  | Client & Client | Called after the storefront client is created  |
+| `storefront:client:create`        | `client`  | Server & Client | Called after the storefront client is created  |
 
 ### Server Hooks (Runtime)
 

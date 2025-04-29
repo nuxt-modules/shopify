@@ -1,5 +1,6 @@
 export default defineEventHandler(async (event) => {
     const variables = await readValidatedBody(event, connectionParamsSchema.parse)
+
     const storefront = useStorefront()
 
     return storefront.request(`#graphql
