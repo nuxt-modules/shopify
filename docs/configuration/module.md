@@ -50,7 +50,7 @@ export default defineNuxtConfig({
                 clientName: 'storefront',                   // Name of the client.
                 retries: 3,                                 // Number of retries for failed requests.
             },
-            
+
             admin: {                                        // Admin client options.
                 apiVersion: '2025-04',                      // API version to use.
                 accessToken: 'YOUR_ACCESS_TOKEN',           // Access token to use.

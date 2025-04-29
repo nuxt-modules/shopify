@@ -4,7 +4,7 @@ export default defineNuxtConfig({
         '@nuxt/ui',
         '@nuxtjs/i18n',
         '@vueuse/nuxt',
-        '../src/module',
+        '@konkonam/nuxt-shopify',
     ],
 
     css: ['~/assets/css/main.css'],
