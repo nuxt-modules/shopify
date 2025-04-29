@@ -95,12 +95,12 @@ declare module '#app' {
         /**
          * Called before the storefront client is created within nuxt
          */
-        'storefront:client:create': ({ options }: ShopifyClientOptionHookParams<Omit<StorefrontOptions, 'privateAccessToken'>>) => HookResult
+        'storefront:client:configure': ({ options }: ShopifyClientOptionHookParams<Omit<StorefrontOptions, 'privateAccessToken'>>) => HookResult
 
         /**
          * Called after the storefront client is created within nuxt
          */
-        'storefront:client:created': ({ client }: ShopifyClientHookParams<StorefrontApiClient>) => HookResult
+        'storefront:client:create': ({ client }: ShopifyClientHookParams<StorefrontApiClient>) => HookResult
     }
 }
 
@@ -109,22 +109,22 @@ declare module 'nitropack' {
         /**
          * Called before the storefront client is created within nitro
          */
-        'storefront:client:create': ({ options }: ShopifyClientOptionHookParams<StorefrontOptions>) => HookResult
+        'storefront:client:configure': ({ options }: ShopifyClientOptionHookParams<StorefrontOptions>) => HookResult
 
         /**
          * Called after the storefront client is created within nitro
          */
-        'storefront:client:created': ({ client }: ShopifyClientHookParams<StorefrontApiClient>) => HookResult
+        'storefront:client:create': ({ client }: ShopifyClientHookParams<StorefrontApiClient>) => HookResult
 
         /**
          * Called after the admin client is created within nitro
          */
-        'admin:client:create': ({ options }: ShopifyClientOptionHookParams<AdminOptions>) => HookResult
+        'admin:client:configure': ({ options }: ShopifyClientOptionHookParams<AdminOptions>) => HookResult
 
         /**
          * Called when the admin client is created within nitro
          */
-        'admin:client:created': ({ client }: ShopifyClientHookParams<AdminApiClient>) => HookResult
+        'admin:client:create': ({ client }: ShopifyClientHookParams<AdminApiClient>) => HookResult
     }
 }
 

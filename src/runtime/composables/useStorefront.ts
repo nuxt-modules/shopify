@@ -9,11 +9,11 @@ export function useStorefront() {
         throw new Error('Could not create storefront client')
     }
 
-    useNuxtApp().hooks.callHook('storefront:client:create', { options })
+    useNuxtApp().hooks.callHook('storefront:client:configure', { options })
 
     const client = createStorefrontApiClient(options)
 
-    useNuxtApp().hooks.callHook('storefront:client:created', { client })
+    useNuxtApp().hooks.callHook('storefront:client:create', { client })
 
     return client
 }

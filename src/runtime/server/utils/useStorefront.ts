@@ -22,11 +22,11 @@ export function useStorefront() {
         options.logger = createConsola(_shopify.logger).withTag('shopify').log
     }
 
-    useNitroApp().hooks.callHook('storefront:client:create', { options })
+    useNitroApp().hooks.callHook('storefront:client:configure', { options })
 
     const client = createStorefrontApiClient(options)
 
-    useNitroApp().hooks.callHook('storefront:client:created', { client })
+    useNitroApp().hooks.callHook('storefront:client:create', { client })
 
     return client
 }

@@ -1,4 +1,4 @@
-# Module hooks reference
+# Module hooks
 
 The module provides several hooks that can be used to customize its behavior. These hooks are available in the `hooks` property of the module configuration and within your nuxt and nitro app.
 
@@ -6,12 +6,12 @@ The module provides several hooks that can be used to customize its behavior. Th
 // ~/server/plugins/your-plugin.ts
 
 export default defineNitroPlugin((nitroApp) => {
-    nitroApp.hook('storefont:client:create', ({ options }) => {
+    nitroApp.hook('storefont:client:configure', ({ options }) => {
         // Modify the options of the client before it is created
         options.logger = logContent => console.log(logContent)
     })
 
-    nitroApp.hook('storefont:client:created', ({ client }) => {
+    nitroApp.hook('storefont:client:create', ({ client }) => {
         // Do something with the client after it is created
         console.log('Storefront client created:', client)
     })
@@ -36,16 +36,16 @@ Hooks allows you to hook into the different stages of the module lifecycle.
 
 ### App Hooks (Runtime)
 
-| Hook                        | Arguments | Environments | Description                                    |
-| --------------------------- | :-------: | :----------: | ---------------------------------------------- |
-| `storefront:client:create`  | `options` | Client       | Called before the storefront client is created |
-| `storefront:client:created` | `client`  | Client       | Called after the storefront client is created  |
+| Hook                              | Arguments | Environments    | Description                                    |
+| --------------------------------- | :-------: | :-------------: | ---------------------------------------------- |
+| `storefront:client:configure`     | `options` | Server & Client | Called before the storefront client is created |
+| `storefront:client:create`        | `client`  | Client & Client | Called after the storefront client is created  |
 
 ### Server Hooks (Runtime)
 
-| Hook                        | Arguments | Environments | Description                                    |
-| --------------------------- | :-------: | :----------: | ---------------------------------------------- |
-| `storefront:client:create`  | `options` | Client       | Called before the storefront client is created |
-| `storefront:client:created` | `client`  | Client       | Called after the storefront client is created  |
-| `admin:client:create`       | `options` | Client       | Called before the storefront client is created |
-| `admin:client:created`      | `client`  | Client       | Called after the storefront client is created  |
+| Hook                              | Arguments | Environments | Description                                    |
+| --------------------------------- | :-------: | :----------: | ---------------------------------------------- |
+| `storefront:client:configure`     | `options` | Server       | Called before the storefront client is created |
+| `storefront:client:create`        | `client`  | Server       | Called after the storefront client is created  |
+| `admin:client:configure`          | `options` | Server       | Called before the storefront client is created |
+| `admin:client:create`             | `client`  | Server       | Called after the storefront client is created  |

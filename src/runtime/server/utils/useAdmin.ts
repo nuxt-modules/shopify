@@ -22,11 +22,11 @@ export function useAdmin() {
         options.logger = createConsola(_shopify.logger).withTag('shopify').log
     }
 
-    useNitroApp().hooks.callHook('admin:client:create', { options })
+    useNitroApp().hooks.callHook('admin:client:configure', { options })
 
     const client = createAdminApiClient(options)
 
-    useNitroApp().hooks.callHook('admin:client:created', { client })
+    useNitroApp().hooks.callHook('admin:client:create', { client })
 
     return client
 }
