@@ -10,10 +10,6 @@ import type { HookResult, Nuxt } from '@nuxt/schema'
 import type { AdminApiClient } from '@shopify/admin-api-client'
 import type { StorefrontApiClient } from '@shopify/storefront-api-client'
 
-import '@nuxt/schema'
-import 'nitropack'
-import '#app'
-
 export type ModuleOptions = ShopifyConfig<
     Omit<ShopifyStorefrontConfig, 'storeDomain'>,
     Omit<ShopifyAdminConfig, 'storeDomain'>

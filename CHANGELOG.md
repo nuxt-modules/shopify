@@ -1,3 +1,6 @@
+# 0.0.20
+- Fixed build declarations
+
 # 0.0.19
 - Added nuxt hooks for client configuration and creation
 - Updated documentation for new hooks

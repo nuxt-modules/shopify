@@ -4,5 +4,4 @@ export default defineBuildConfig({
     entries: [
         'src/commands/init',
     ],
-    declaration: false,
 })
