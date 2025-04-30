@@ -21,5 +21,9 @@ export const COLLECTION_CONNECTION_FRAGMENT = `#graphql
         ...CollectionFields
       }
     }
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+    }
   }
 `
