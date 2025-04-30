@@ -3,8 +3,8 @@ export default defineNuxtConfig({
         '@nuxt/image',
         '@nuxt/ui',
         '@nuxtjs/i18n',
-        '@vueuse/nuxt',
         '../src/module',
+        '@vueuse/nuxt',
     ],
 
     css: ['~/assets/css/main.css'],

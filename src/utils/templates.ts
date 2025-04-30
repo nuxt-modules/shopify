@@ -20,6 +20,7 @@ import {
     generateOperations,
     generateTypes,
 } from './codegen'
+import getUtilsTemplate from '../templates/utils-template'
 
 export function setupWatcher(nuxt: Nuxt, template: NuxtTemplate<ShopifyTemplateOptions>) {
     nuxt.hook('builder:watch', async (_event, file) => {
@@ -96,6 +97,24 @@ export function registerTemplates<T extends ShopifyClientType>(nuxt: Nuxt, clien
             typescript: {
                 tsConfig: {
                     include: [index.filename],
+                },
+            },
+        },
+    })
+}
+
+export function registerUtilsTemplate(nuxt: Nuxt) {
+    const utils = addTypeTemplate<ShopifyTemplateOptions>({
+        filename: `types/shopify/utils.d.ts`,
+        getContents: getUtilsTemplate,
+    })
+
+    nuxt.options = defu(nuxt.options, {
+        alias: { ['#shopify/utils']: utils.filename },
+        nitro: {
+            typescript: {
+                tsConfig: {
+                    include: [utils.filename],
                 },
             },
         },

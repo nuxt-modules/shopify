@@ -61,6 +61,12 @@ export const PRODUCT_CONNECTION_FRAGMENT = `#graphql
         ...ProductFields
       }
     }
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+      startCursor
+      endCursor
+    }
   }
   ${PRODUCT_FRAGMENT}
 `

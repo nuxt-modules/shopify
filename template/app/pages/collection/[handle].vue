@@ -7,28 +7,38 @@ definePageMeta({
 })
 
 const { locale } = useI18n()
+const router = useRouter()
 const route = useRoute()
 const { t } = useI18n()
 
 const handle = route.params.handle as string
 
-const { data } = await useFetch('/api/collection', {
+const page = computed({
+    get: () => Number(route.query.p ?? 1),
+    set: async (value: number) => await router.push({ query: { ...route.query, p: value } }),
+})
+
+const { data, error } = await useFetch('/api/collection', {
     method: 'POST',
     body: {
         handle,
-        first: 6,
+        first: 9,
         language: locale,
     },
     key: computed(() => `collection-${handle}-${locale.value}`),
     watch: [locale],
 })
 
-console.log(data.value)
+if (error.value) {
+    throw createError({
+        statusCode: 500,
+        statusMessage: `Failed to fetch collection with handle: ${handle}`,
+        fatal: true,
+    })
+}
 
 const collection = computed(() => data.value?.collection)
 const products = computed(() => collection.value?.products.edges ?? [])
-
-const page = ref(1)
 
 const currentSort = ref('price')
 
@@ -132,8 +142,6 @@ const onChange = (state: FilterState) => {
 
         <UPagination
             v-model:page="page"
-            :sibling-count="1"
-            :total="100"
             class="mx-auto"
         />
     </div>

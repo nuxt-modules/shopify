@@ -24,6 +24,8 @@ export const COLLECTION_CONNECTION_FRAGMENT = `#graphql
     pageInfo {
       hasNextPage
       hasPreviousPage
+      startCursor
+      endCursor
     }
   }
 `

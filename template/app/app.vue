@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import * as locales from '@nuxt/ui/locale'
 
+const { isDark } = useTheme()
 const { locale } = useI18n()
 
 const lang = computed(() => locales[locale.value].code)
@@ -35,11 +36,9 @@ const collections = computed(() => data.value?.collections.edges)
 </script>
 
 <template>
-    <UApp
-        :locale="locales[locale]"
-    >
+    <UApp :locale="locales[locale]">
         <div class="min-h-screen flex flex-col">
-            <NuxtLoadingIndicator />
+            <NuxtLoadingIndicator :color="isDark ? '#fff' : '#000'" />
 
             <Navigation
                 v-if="collections"
