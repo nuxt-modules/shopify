@@ -17,7 +17,7 @@
         "@konkonam/nuxt-shopify": "^0.0.21",
         "@nuxt/image": "^1.10.0",
         "@nuxt/ui": "^3.1.0",
-        "@nuxtjs/i18n": "^9.5.3",
+        "@nuxtjs/i18n": "^9.5.4",
         "@vueuse/nuxt": "^13.1.0",
         "nuxt": "^3.17.1",
         "zod": "^3.24.3"
