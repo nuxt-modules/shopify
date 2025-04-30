@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { FetchCollectionQuery } from '#shopify/storefront'
 import type { FilterState } from '~/components/Filters.vue'
 
 definePageMeta({
@@ -7,6 +6,7 @@ definePageMeta({
     layout: 'listing',
 })
 
+const { locale } = useI18n()
 const route = useRoute()
 const { t } = useI18n()
 
@@ -16,13 +16,16 @@ const { data } = await useFetch('/api/collection', {
     method: 'POST',
     body: {
         handle,
-        products: {
-            first: 6,
-        },
+        first: 6,
+        language: locale,
     },
+    key: computed(() => `collection-${handle}-${locale.value}`),
+    watch: [locale],
 })
 
-const collection = computed(() => data.value?.data?.collection as FetchCollectionQuery['collection'])
+console.log(data.value)
+
+const collection = computed(() => data.value?.collection)
 const products = computed(() => collection.value?.products.edges ?? [])
 
 const page = ref(1)
@@ -87,7 +90,7 @@ const onChange = (state: FilterState) => {
                     class="relative"
                 >
                     <ProductCard
-                        :product="product"
+                        :product="product.node"
                         class="h-full"
                     />
 

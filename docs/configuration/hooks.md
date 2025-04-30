@@ -6,12 +6,12 @@ The module provides several hooks that can be used to customize its behavior. Th
 // ~/server/plugins/your-plugin.ts
 
 export default defineNitroPlugin((nitroApp) => {
-    nitroApp.hook('storefont:client:configure', ({ options }) => {
+    nitroApp.hooks.hook('storefont:client:configure', ({ options }) => {
         // Modify the options of the client before it is created
         options.logger = logContent => console.log(logContent)
     })
 
-    nitroApp.hook('storefont:client:create', ({ client }) => {
+    nitroApp.hooks.hook('storefont:client:create', ({ client }) => {
         // Do something with the client after it is created
         console.log('Storefront client created:', client)
     })

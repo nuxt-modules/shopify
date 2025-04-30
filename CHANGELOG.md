@@ -1,3 +1,6 @@
+# 0.0.22
+- Added type utils
+
 # 0.0.21
 - Improved config validation
 - Fixed logging problems

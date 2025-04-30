@@ -56,11 +56,6 @@ const handleRemoveItem = async (lineId: string) => {
                     <div
                         class="flex flex-row items-center justify-between gap-16 py-16"
                     >
-                        <ProductImage
-                            :product="item.node.merchandise.product"
-                            padded
-                        />
-
                         <div class="flex flex-col">
                             <span class="font-semibold text-lg">{{ item.node.merchandise.product.title }}</span>
                             <span class="text-sm text-gray-500">Quantity: {{ item.node.quantity }}</span>

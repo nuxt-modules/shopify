@@ -1,6 +1,7 @@
 <script setup lang="ts">
+const { locale, locales } = useI18n()
 const localePath = useLocalePath()
-const { locales } = useI18n()
+const router = useRouter()
 const route = useRoute()
 
 const items = computed(() => {
@@ -16,7 +17,7 @@ const items = computed(() => {
 
             return {
                 label: path.replace(/-/g, ' '),
-                to: localePath(`/${path}`),
+                to: router.getRoutes().find(route => route.path === `/${locale}/${path}`) ? localePath(`/${path}`) : undefined,
             }
         })
 

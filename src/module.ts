@@ -11,6 +11,7 @@ import {
     addServerImports,
     updateRuntimeConfig,
 } from '@nuxt/kit'
+import defu from 'defu'
 import { upperFirst } from 'scule'
 
 import {
@@ -80,6 +81,19 @@ export default defineNuxtModule<ModuleOptions>({
             }
 
             await nuxt.callHook('shopify:config', { nuxt, config })
+
+            const utilsPath = resolver.resolve('./types/utils')
+
+            nuxt.options = defu(nuxt.options, {
+                alias: { ['#shopify/utils']: utilsPath },
+                nitro: {
+                    typescript: {
+                        tsConfig: {
+                            include: [utilsPath],
+                        },
+                    },
+                },
+            })
 
             updateRuntimeConfig({
                 _shopify: config,

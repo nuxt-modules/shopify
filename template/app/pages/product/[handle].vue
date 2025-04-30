@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import type { FetchProductQuery } from '#shopify/storefront'
-
 definePageMeta({
     validate: route => typeof route.params.handle === 'string',
     layout: 'detail',
@@ -10,23 +8,31 @@ const { addItems } = await useCart()
 const route = useRoute()
 const handle = route.params.handle as string
 
-const { data } = await useFetch<{ data: FetchProductQuery }>('/api/product', {
+const { data } = await useFetch('/api/product', {
     method: 'POST',
     body: {
         handle,
     },
 })
 
-const product = computed(() => data.value?.data?.product)
+const product = computed(() => data.value?.product)
+
+const price = computed(() => {
+    const formatter = new Intl.NumberFormat('de-DE', {
+        style: 'currency',
+        currency: 'EUR',
+    })
+
+    // @ts-expect-error TODO: Fix type error
+    return formatter.format(product.value?.priceRange.minVariantPrice.amount)
+})
 </script>
 
 <template>
-    <Section class="grid md:grid-cols-2 gap-16">
-        <NuxtImg
-            :src="product?.featuredImage?.url"
-            :alt="product?.title"
-            placeholder
-            class="aspect-square w-full rounded-lg border-10 border-[#D8DBDF]"
+    <Section class="grid md:grid-cols-2 gap-16 pb-24">
+        <ProductImage
+            :product="product ?? undefined"
+            class="flex flex-col gap-4"
         />
 
         <div class="flex flex-col gap-4">
@@ -34,13 +40,13 @@ const product = computed(() => data.value?.data?.product)
                 {{ product?.title }}
             </h2>
 
-            <p v-html="product?.descriptionHtml" />
+            <p>{{ product?.description }}</p>
 
             <USeparator />
 
             <div class="w-full text-end mb-8">
                 <span class="text-lg font-bold">
-                    {{ product?.priceRange.minVariantPrice.amount }}
+                    {{ price }}
                 </span>
             </div>
 

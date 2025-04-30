@@ -1,14 +1,13 @@
 import { z } from 'zod'
 
-const schema = z.object({
-    handle: z.string(),
-})
-
 export default defineEventHandler(async (event) => {
-    const variables = await readValidatedBody(event, schema.parse)
+    const variables = await readValidatedBody(event, z.object({
+        handle: z.string(),
+    }).parse)
+
     const storefront = useStorefront()
 
-    return storefront.request(`#graphql
+    const { data, errors } = await storefront.request(`#graphql
         query FetchProduct($handle: String) {
             product(handle: $handle) {
                 ...ProductFields
@@ -22,4 +21,8 @@ export default defineEventHandler(async (event) => {
             handle: variables.handle,
         },
     })
+
+    if (errors) throw createError(errors)
+
+    return data
 })

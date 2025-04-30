@@ -1,16 +1,13 @@
 import { z } from 'zod'
 
-const schema = z.object({
-    handle: z.string(),
-}).extend({
-    products: connectionParamsSchema,
-})
-
 export default defineEventHandler(async (event) => {
-    const variables = await readValidatedBody(event, schema.parse)
+    const variables = await readValidatedBody(event, z.object({
+        handle: z.string(),
+    }).merge(connectionParamsSchema).merge(localizationParamsSchema).parse)
+
     const storefront = useStorefront()
 
-    return storefront.request(`#graphql
+    const { data, errors } = await storefront.request(`#graphql
         query FetchCollection(
             $handle: String,
             $after: String,
@@ -19,10 +16,13 @@ export default defineEventHandler(async (event) => {
             $last: Int,
             $reverse: Boolean,
             $sortKey: ProductCollectionSortKeys,
-            $filters: [ProductFilter!]
-        ) {
+            $filters: [ProductFilter!],
+            $language: LanguageCode
+        )
+        @inContext(language: $language) {
             collection(handle: $handle) {
                 ...CollectionFields
+
                 products(
                     after: $after,
                     before: $before,
@@ -41,9 +41,10 @@ export default defineEventHandler(async (event) => {
         ${COLLECTION_FRAGMENT}
         ${PRODUCT_CONNECTION_FRAGMENT}
     `, {
-        variables: {
-            handle: variables.handle,
-            ...variables.products,
-        },
+        variables,
     })
+
+    if (errors) throw createError(errors)
+
+    return data
 })

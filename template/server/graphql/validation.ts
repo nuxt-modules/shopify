@@ -1,3 +1,5 @@
+import type { LanguageCode } from '#shopify/storefront'
+
 import { z } from 'zod'
 
 export const connectionParamsSchema = z.object({
@@ -67,4 +69,8 @@ export const productConnectionParamsSchema = connectionParamsSchema.extend({
 export const cartLineInputSchema = z.object({
     merchandiseId: z.string(),
     quantity: z.number().min(1),
+})
+
+export const localizationParamsSchema = z.object({
+    language: z.string().min(2).max(2).toUpperCase().transform(val => val as LanguageCode),
 })

@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import type { ProductFieldsFragment } from '#shopify/storefront'
+import type { Serialized } from '#shopify/utils'
 
 const props = defineProps<{
-    product: Partial<ProductFieldsFragment>
+    product?: Serialized<ProductFieldsFragment>
+    title?: string
     size?: 'sm' | 'md' | 'lg'
 }>()
 
@@ -11,6 +13,8 @@ const emits = defineEmits<{
 }>()
 
 const imgLoading = ref(true)
+
+const url = computed(() => (props.product?.featuredImage as { url: string })?.url)
 
 const handleImageLoad = () => requestAnimationFrame(() => {
     imgLoading.value = false
@@ -32,8 +36,10 @@ const handleImageLoad = () => requestAnimationFrame(() => {
         class="aspect-square flex items-center justify-center"
     >
         <NuxtImg
-            :src="props.product.featuredImage?.url"
-            :alt="props.product.title"
+            :src="url"
+            :alt="props.product?.featuredImage?.altText ?? props.product?.title ?? undefined"
+            :width="props.product?.featuredImage?.width ?? undefined"
+            :height="props.product?.featuredImage?.height ?? undefined"
             placeholder
             class="max-w-full max-h-full animate-pop-up select-none grow-0 shrink-0"
             @load="handleImageLoad"

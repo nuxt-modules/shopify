@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import type { FetchCollectionsQuery } from '#shopify/storefront'
-
 import * as locales from '@nuxt/ui/locale'
 
 const { locale } = useI18n()
@@ -19,7 +17,10 @@ const { data, error } = await useFetch('/api/collections', {
     method: 'POST',
     body: {
         first: 10,
+        language: locale,
     },
+    key: computed(() => `collections-${locale.value}`),
+    watch: [locale],
 })
 
 if (error.value) {
@@ -30,7 +31,7 @@ if (error.value) {
     })
 }
 
-const collections = computed(() => (data.value?.data as FetchCollectionsQuery)?.collections.edges)
+const collections = computed(() => data.value?.collections.edges)
 </script>
 
 <template>
@@ -42,6 +43,7 @@ const collections = computed(() => (data.value?.data as FetchCollectionsQuery)?.
 
             <Navigation
                 v-if="collections"
+                :key="`navigation-${locale}`"
                 :collections="collections"
                 class="sticky top-0 z-50 bg-[var(--ui-bg)]"
             />

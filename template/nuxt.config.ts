@@ -4,7 +4,7 @@ export default defineNuxtConfig({
         '@nuxt/ui',
         '@nuxtjs/i18n',
         '@vueuse/nuxt',
-        '@konkonam/nuxt-shopify',
+        '../src/module',
     ],
 
     css: ['~/assets/css/main.css'],
@@ -110,17 +110,21 @@ export default defineNuxtConfig({
         locales: [
             {
                 code: 'en',
+                language: 'en',
                 name: 'English',
                 file: 'en.json',
             },
             {
                 code: 'de',
+                language: 'de',
                 name: 'Deutsch',
                 file: 'de.json',
             },
             {
                 code: 'fr',
+                language: 'fr',
                 name: 'Français',
+                file: 'fr.json',
             },
         ],
 
@@ -137,7 +141,7 @@ export default defineNuxtConfig({
         name: process.env.NUXT_SHOPIFY_NAME as string,
 
         logger: {
-            level: 999,
+            level: 1,
         },
 
         clients: {

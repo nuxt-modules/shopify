@@ -1,15 +1,14 @@
 <script setup lang="ts">
 const open = defineModel<boolean>({ default: false })
 
-const { locales } = useI18n()
 const switchLocalePath = useSwitchLocalePath()
+const { locales } = useI18n()
 
 const nav = ref<HTMLElement>()
 
 const items = computed(() => locales.value.map(locale => ({
     label: locale.name,
     to: switchLocalePath(locale.code),
-    onSelect: () => open.value = false,
 })))
 
 onClickOutside(nav, () => open.value = false, { ignore: ['.language-button'] })

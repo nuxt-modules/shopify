@@ -1,7 +1,7 @@
 export default defineNuxtPlugin({
     setup: (nuxtApp) => {
-        nuxtApp.hooks.hook('storefront:client:create', ({ client }) => {
-            console.log('storefront client created', client)
+        nuxtApp.hooks.hook('storefront:client:create', ({ client: _client }) => {
+            console.log('[shopify] storefront client created')
         })
     },
 })

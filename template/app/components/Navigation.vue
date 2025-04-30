@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import type { FetchCollectionsQuery } from '#shopify/storefront'
+import type { Serialized } from '#shopify/utils'
 
 const props = defineProps<{
-    collections: FetchCollectionsQuery['collections']['edges']
+    collections: Serialized<FetchCollectionsQuery>['collections']['edges']
 }>()
 
 const { isDark, swap } = useTheme()

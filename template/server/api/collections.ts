@@ -1,10 +1,11 @@
 export default defineEventHandler(async (event) => {
-    const variables = await readValidatedBody(event, connectionParamsSchema.parse)
+    const variables = await readValidatedBody(event, connectionParamsSchema.merge(localizationParamsSchema).parse)
 
     const storefront = useStorefront()
 
-    return storefront.request(`#graphql
-        query FetchCollections($after: String, $before: String, $first: Int, $last: Int) {
+    const { data, errors } = await storefront.request(`#graphql
+        query FetchCollections($after: String, $before: String, $first: Int, $last: Int, $language: LanguageCode)
+        @inContext(language: $language) {
             collections(
                 after: $after
                 before: $before
@@ -20,4 +21,8 @@ export default defineEventHandler(async (event) => {
     `, {
         variables,
     })
+
+    if (errors) throw createError(errors)
+
+    return data
 })

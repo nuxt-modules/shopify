@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import type { FetchCollectionQuery } from '#shopify/storefront'
+import type { ProductFieldsFragment } from '#shopify/storefront'
+import type { Serialized } from '#shopify/utils'
 
 import { z } from 'zod'
 
 const props = defineProps<{
-    product: NonNullable<FetchCollectionQuery['collection']>['products']['edges'][number]
+    product: Serialized<ProductFieldsFragment>
 }>()
 
 const schema = z.object({
@@ -23,7 +24,8 @@ const price = computed(() => {
         currency: 'EUR',
     })
 
-    return formatter.format(props.product.node?.priceRange.minVariantPrice.amount)
+    // @ts-expect-error TODO: Fix type error
+    return formatter.format(props.product.priceRange.minVariantPrice.amount)
 })
 
 const handleAddToCart = async (quantity: number) => {
@@ -45,10 +47,10 @@ const handleAddToCart = async (quantity: number) => {
         >
             <div class="relative flex flex-col gap-4 h-full">
                 <NuxtLink
-                    :to="getProductAppUrl(props.product.node!.handle)"
+                    :to="getProductAppUrl(props.product.handle)"
                     class="flex flex-col gap-4 grow"
                 >
-                    <ProductImage :product="props.product.node!" />
+                    <ProductImage :product="props.product" />
 
                     <div class="flex flex-row justify-between">
                         <span class="block font-bold text-sm">
@@ -57,7 +59,7 @@ const handleAddToCart = async (quantity: number) => {
                     </div>
 
                     <h2 class="font-bold">
-                        {{ props.product.node?.title }}
+                        {{ props.product.title }}
                     </h2>
                 </NuxtLink>
 
