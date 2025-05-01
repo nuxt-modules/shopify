@@ -3,8 +3,9 @@ export default defineNuxtConfig({
         '@nuxt/image',
         '@nuxt/ui',
         '@nuxtjs/i18n',
-        '../src/module',
         '@vueuse/nuxt',
+        'nuxt-auth-utils',
+        '../src/module',
     ],
 
     css: ['~/assets/css/main.css'],
@@ -55,6 +56,10 @@ export default defineNuxtConfig({
                 search: 'hugeicons:search-01',
             },
         },
+    },
+
+    runtimeConfig: {
+        sessionPassword: process.env.NUXT_SESSION_PASSWORD as string,
     },
 
     future: {

@@ -20,6 +20,7 @@
         "@nuxtjs/i18n": "^9.5.4",
         "@vueuse/nuxt": "^13.1.0",
         "nuxt": "^3.17.1",
+        "nuxt-auth-utils": "^0.5.20",
         "zod": "^3.24.3"
     },
     "devDependencies": {

@@ -1,4 +1,10 @@
 export * from './fragments/utils'
 export * from './fragments/product'
 export * from './fragments/collection'
+export * from './fragments/customer'
 export * from './fragments/cart'
+
+export * from './validation/utils'
+export * from './validation/product'
+export * from './validation/customer'
+export * from './validation/cart'

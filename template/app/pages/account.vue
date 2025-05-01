@@ -11,5 +11,7 @@
         <div class="text-lg text-[var(--ui-text-muted)]">
             Account content goes here
         </div>
+
+        <AccountCreateForm />
     </div>
 </template>

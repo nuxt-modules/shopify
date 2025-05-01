@@ -1,0 +1,40 @@
+import type { LanguageCode } from '#shopify/storefront'
+
+import { z } from 'zod'
+
+export const localizationParamsSchema = z.object({
+    language: z.string().min(2).max(2).toUpperCase().transform(val => val as LanguageCode),
+})
+
+export const connectionParamsSchema = z.object({
+    first: z.number({ coerce: true }).optional(),
+    last: z.number({ coerce: true }).optional(),
+    after: z.string().optional(),
+    before: z.string().optional(),
+})
+
+export const priceRangeFilterSchema = z.object({
+    min: z.number().optional(),
+    max: z.number().optional(),
+})
+
+export const metafieldFilterSchema = z.object({
+    namespace: z.string(),
+    key: z.string(),
+    value: z.string(),
+})
+
+export const categoryFilterSchema = z.object({
+    id: z.string(),
+})
+
+export const taxonomyMetafieldFilterSchema = z.object({
+    namespace: z.string(),
+    key: z.string(),
+    value: z.string(),
+})
+
+export const variantOptionFilterSchema = z.object({
+    name: z.string(),
+    value: z.string(),
+})
