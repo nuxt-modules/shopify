@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import type { FetchCollectionsQuery } from '#shopify/storefront'
-import type { Simplify, SerializeObject } from 'nitropack/types'
-
-type Serialized<T extends object> = Simplify<SerializeObject<T>>
+import type { Serialized } from '#shopify/utils'
 
 const props = defineProps<{
     collections: Serialized<FetchCollectionsQuery>['collections']['edges']
