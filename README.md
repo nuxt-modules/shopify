@@ -10,12 +10,12 @@
 [![License][license-src]][license-href]
 [![Nuxt][nuxt-src]][nuxt-href]
 
-Easily integrate Shopify into your Nuxt app.
+A Shopify GraphQL API-Connector for Nuxt 3 & 4.
 
 - 🛍️ [Store Template](https://github.com/konkonam/nuxt-shopify/tree/main/template)
+- 🏀 [Online Demo (WIP)](https://nuxt-shopify.vercel.app)
 - 📚 [Documentation](https://konkonam.github.io/nuxt-shopify)
 - ✨ [Release Notes](https://github.com/konkonam/nuxt-shopify/tree/main/CHANGELOG.md)
-- 🏀 [Online Playground](https://stackblitz.com/github/konkonam/nuxt-shopify?file=playgrounds%2Fplayground%2Fnuxt.config.ts)
 
 ## 🚀 Features
 
