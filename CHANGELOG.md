@@ -1,3 +1,7 @@
+# 0.0.23
+- Fixed type utils import
+- Bumped dependencies
+
 # 0.0.22
 - Added type utils
 
