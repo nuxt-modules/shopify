@@ -53,7 +53,7 @@
     "template": {
       "name": "nuxt-shopify-template",
       "dependencies": {
-        "@iconify-json/hugeicons": "^1.2.4",
+        "@iconify-json/hugeicons": "^1.2.5",
         "@konkonam/nuxt-shopify": "^0.0.22",
         "@nuxt/image": "^1.10.0",
         "@nuxt/ui": "^3.1.0",
@@ -439,7 +439,7 @@
 
     "@humanwhocodes/retry": ["@humanwhocodes/retry@0.4.2", "", {}, "sha512-xeO57FpIu4p1Ri3Jq/EXq4ClRm86dVF2z/+kvFnyqVYRavTZmaFaUBbWCOuuTh0o/g7DSsk6kc2vrS4Vl5oPOQ=="],
 
-    "@iconify-json/hugeicons": ["@iconify-json/hugeicons@1.2.4", "", { "dependencies": { "@iconify/types": "*" } }, "sha512-Rx1I42/wwqNiWx7rdQxtFWWOF1/DT1IMPrNReBVJiZe7NIdGT6Zv6Jw5gayqUtv7lDmE8eRmgd6MYRoVJrbuoA=="],
+    "@iconify-json/hugeicons": ["@iconify-json/hugeicons@1.2.5", "", { "dependencies": { "@iconify/types": "*" } }, "sha512-luPAFcmQU7eQFHzjtYdYbF5j2h8/6SCv+FGQP7FNJNVBjVGQOyuyum5wXDFEx13F8lGk/AGPVWGqMHp7+HdmJg=="],
 
     "@iconify-json/simple-icons": ["@iconify-json/simple-icons@1.2.33", "", { "dependencies": { "@iconify/types": "*" } }, "sha512-nL5/UmI9x5PQ/AHv6bOaL2pH6twEdEz4pI89efB/K7HFn5etQnxMtGx9DFlOg/sRA2/yFpX8KXvc95CSDv5bJA=="],
 
