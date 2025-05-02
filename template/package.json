@@ -13,7 +13,7 @@
         "lint": "eslint ."
     },
     "dependencies": {
-        "@iconify-json/hugeicons": "^1.2.4",
+        "@iconify-json/hugeicons": "^1.2.5",
         "@konkonam/nuxt-shopify": "^0.0.22",
         "@nuxt/image": "^1.10.0",
         "@nuxt/ui": "^3.1.0",
