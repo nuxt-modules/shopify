@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import type { ProductFieldsFragment } from '#shopify/storefront'
-import type { Serialized } from '#shopify/utils'
+import type { Simplify, SerializeObject } from 'nitropack/types'
 
 import { z } from 'zod'
+
+type Serialized<T extends object> = Simplify<SerializeObject<T>>
 
 const props = defineProps<{
     product: Serialized<ProductFieldsFragment>
