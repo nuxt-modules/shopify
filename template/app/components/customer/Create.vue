@@ -24,8 +24,13 @@ const toast = useToast()
 const onSubmit = async () => await $fetch('/api/customer/create', {
     method: 'POST',
     body: state,
-}).then(() => {
-    toast.add({ title: 'Success', description: 'Login Successful.', color: 'success' })
+}).then((data) => {
+    if (data?.customerCreate?.customer) {
+        toast.add({ title: 'Success', description: 'Login Successful.', color: 'success' })
+    }
+    else {
+        toast.add({ title: 'Error', description: 'Something went wrong.', color: 'error' })
+    }
 }).catch((error) => {
     toast.add({ title: 'Error', description: `Something went wrong. ${error}`, color: 'error' })
 })
@@ -51,14 +56,20 @@ const onSubmit = async () => await $fetch('/api/customer/create', {
                 label="First Name"
                 name="firstName"
             >
-                <UInput v-model="state.firstName" />
+                <UInput
+                    v-model="state.firstName"
+                    autocomplete="given-name"
+                />
             </UFormField>
 
             <UFormField
                 label="Last Name"
                 name="lastName"
             >
-                <UInput v-model="state.lastName" />
+                <UInput
+                    v-model="state.lastName"
+                    autocomplete="family-name"
+                />
             </UFormField>
 
             <UFormField
@@ -66,14 +77,20 @@ const onSubmit = async () => await $fetch('/api/customer/create', {
                 name="email"
                 required
             >
-                <UInput v-model="state.email" />
+                <UInput
+                    v-model="state.email"
+                    autocomplete="email"
+                />
             </UFormField>
 
             <UFormField
                 label="Phone"
                 name="phone"
             >
-                <UInput v-model="state.phone" />
+                <UInput
+                    v-model="state.phone"
+                    autocomplete="tel"
+                />
             </UFormField>
 
             <UFormField
@@ -83,6 +100,7 @@ const onSubmit = async () => await $fetch('/api/customer/create', {
             >
                 <UInput
                     v-model="state.password"
+                    autocomplete="new-password"
                     type="password"
                 />
             </UFormField>

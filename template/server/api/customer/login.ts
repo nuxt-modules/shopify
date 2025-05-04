@@ -16,7 +16,7 @@ export default defineEventHandler(async (event) => {
         },
     })
 
-    if (errors && Object.keys(errors).length) throw createError(errors)
+    if (errors) throw createError(errors)
 
     return data
 })

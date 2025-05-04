@@ -16,8 +16,14 @@ const toast = useToast()
 const onSubmit = async () => await $fetch('/api/customer/login', {
     method: 'POST',
     body: state,
-}).then(() => {
-    toast.add({ title: 'Success', description: 'Login Successful.', color: 'success' })
+}).then((data) => {
+    if (data?.customerAccessTokenCreate?.customerAccessToken) {
+        toast.add({ title: 'Success', description: 'Login Successful.', color: 'success' })
+    }
+    else {
+        console.error('Error:', data)
+        toast.add({ title: 'Error', description: 'Invalid credentials. Please try again.', color: 'error' })
+    }
 }).catch((error) => {
     toast.add({ title: 'Error', description: `Something went wrong. ${error}`, color: 'error' })
 })
@@ -44,7 +50,10 @@ const onSubmit = async () => await $fetch('/api/customer/login', {
                 name="email"
                 required
             >
-                <UInput v-model="state.email" />
+                <UInput
+                    v-model="state.email"
+                    autocomplete="email"
+                />
             </UFormField>
 
             <UFormField
@@ -55,6 +64,7 @@ const onSubmit = async () => await $fetch('/api/customer/login', {
                 <UInput
                     v-model="state.password"
                     type="password"
+                    autocomplete="current-password"
                 />
             </UFormField>
 

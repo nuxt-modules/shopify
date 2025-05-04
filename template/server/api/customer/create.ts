@@ -18,9 +18,5 @@ export default defineEventHandler(async (event) => {
 
     if (errors) throw createError(errors)
 
-    if (!data?.customerCreate) throw createError('Login failed')
-
-    await setUserSession(event, { user: data.customerCreate })
-
     return data
 })
