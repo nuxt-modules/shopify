@@ -16,12 +16,7 @@ export default defineEventHandler(async (event) => {
         },
     })
 
-    if (errors) throw createError(errors)
+    if (errors && Object.keys(errors).length) throw createError(errors)
 
-    await setUserSession(event, {
-        secure: {
-            customerAccessToken: data?.customerAccessTokenCreate?.customerAccessToken,
-        },
-        loggedInAt: new Date(),
-    })
+    return data
 })
