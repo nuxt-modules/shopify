@@ -43,7 +43,6 @@
         "dev:template": "bun run --filter=./template --env-file=.env --elide-lines=100 dev",
         "dev:docs": "vitepress dev docs",
         "preview:docs": "vitepress preview docs",
-        "release": "bunx npm publish --provenance --no-git-checks",
         "lint": "eslint .",
         "typecheck": "vue-tsc --noEmit",
         "typecheck:playground": "bun run --filter=playground --env-file=.env --elide-lines=100 typecheck",
