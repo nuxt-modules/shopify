@@ -36,6 +36,6 @@ jobs:
 
       - name: Release module
         env:
-          NPM_CONFIG_TOKEN: ${{ secrets.NPM_CONFIG_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_CONFIG_TOKEN }}
         run: |
           bun run release || true
