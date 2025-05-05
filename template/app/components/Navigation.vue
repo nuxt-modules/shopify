@@ -1,62 +1,44 @@
 <script setup lang="ts">
 import type { FetchCollectionsQuery } from '#shopify/storefront'
 import type { Serialized } from '#shopify/utils'
+import type { NavigationMenuItem } from '#ui/types'
 
 const props = defineProps<{
     collections: Serialized<FetchCollectionsQuery>['collections']['edges']
 }>()
 
-const { isDark, swap } = useTheme()
+const searchOpen = ref(false)
+const menuOpen = ref(false)
 
-const mobileNavOpen = ref(false)
-const languageNavOpen = ref(false)
-
-const collections = computed(() => props.collections
+const collections = computed<NavigationMenuItem[]>(() => props.collections
     .map(collection => ({
         label: collection.node.title,
         to: getCollectionAppUrl(collection.node.handle),
     })))
 
-const items = computed(() => [
-    collections.value.map(collection => ({
+const navigationItems = computed<NavigationMenuItem[]>(() => collections.value
+    .map(collection => ({
         ...collection,
         class: 'hidden lg:block',
-    })),
-    [
-        {
-            icon: isDark.value ? icons.sun : icons.moon,
-            description: 'Toggle color theme',
-            class: 'px-2 md:px-3 cursor-pointer',
-            onSelect: swap,
-        },
-        {
-            icon: languageNavOpen.value ? icons.close : icons.globe,
-            class: 'px-2 md:px-3 language-button cursor-pointer',
-            onSelect: () => languageNavOpen.value = !languageNavOpen.value,
-        },
-        {
-            icon: icons.account,
-            class: 'px-2 md:px-3',
-            to: getAccountAppUrl(),
-        },
-        {
-            icon: icons.cart,
-            class: 'px-2 md:px-3',
-            to: getCartAppUrl(),
-        },
-        {
-            icon: mobileNavOpen.value ? icons.close : icons.menu,
-            class: 'px-2 md:px-3 menu-button cursor-pointer lg:hidden',
-            onSelect: () => mobileNavOpen.value = !mobileNavOpen.value,
-        },
-    ],
-])
+    })).splice(0, 4))
 
-useHead({
-    bodyAttrs: {
-        class: computed(() => mobileNavOpen.value ? 'overflow-hidden' : ''),
+const navigationActions = computed<NavigationMenuItem[]>(() => [
+    {
+        icon: icons.account,
+        class: 'cursor-pointer px-2 md:px-3',
+        to: getAccountAppUrl(),
     },
-})
+    {
+        icon: icons.cart,
+        class: 'cursor-pointer px-2 md:px-3',
+        to: getCartAppUrl(),
+    },
+    {
+        icon: menuOpen.value ? icons.close : icons.menu,
+        class: 'cursor-pointer px-2 md:px-3 lg:hidden',
+        onSelect: () => menuOpen.value = !menuOpen.value,
+    },
+])
 </script>
 
 <template>
@@ -68,18 +50,30 @@ useHead({
                 highlight
                 highlight-color="primary"
                 orientation="horizontal"
-                :items="items"
+                :items="navigationItems"
                 class="grow"
+            />
+
+            <SearchButton
+                v-model="searchOpen"
+                class="px-2 md:mr-6 xl:mr-8"
+            />
+
+            <UNavigationMenu
+                highlight
+                highlight-color="primary"
+                orientation="horizontal"
+                :items="navigationActions"
             />
         </UContainer>
 
-        <NavigationMobile
-            v-model="mobileNavOpen"
+        <NavigationMenu
+            v-model="menuOpen"
             :collections="collections"
         />
 
-        <NavigationLanguage
-            v-model="languageNavOpen"
+        <NavigationSearch
+            v-model="searchOpen"
         />
     </div>
 </template>

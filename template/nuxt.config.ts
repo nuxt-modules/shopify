@@ -24,6 +24,14 @@ export default defineNuxtConfig({
                 },
             },
 
+            button: {
+                variants: {
+                    variant: {
+                        navigation: 'px-2 md:px-3 hover:bg-elevated/50 text-dimmed hover:text-muted disabled:text-dimmed aria-disabled:text-dimmed focus:outline-none focus-visible:ring-inset focus-visible:ring-2 focus-visible:ring-primary',
+                    },
+                },
+            },
+
             breadcrumb: {
                 slots: {
                     linkLabel: 'truncate mb-[2px]',
@@ -54,6 +62,24 @@ export default defineNuxtConfig({
                 minus: 'hugeicons:minus-sign',
                 plus: 'hugeicons:plus-sign',
                 search: 'hugeicons:search-01',
+            },
+
+            modal: {
+                slots: {
+                    overlay: 'fixed inset-0 bg-black/10 backdrop-blur-xs',
+                },
+            },
+
+            slideover: {
+                slots: {
+                    overlay: 'fixed inset-0 bg-black/10 backdrop-blur-xs',
+                },
+            },
+
+            drawer: {
+                slots: {
+                    overlay: 'fixed inset-0 bg-black/10 backdrop-blur-xs',
+                },
             },
         },
     },

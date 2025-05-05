@@ -18,3 +18,5 @@
     --ui-color-neutral-900: #1A1A1A;
     --ui-color-neutral-950: #0F0F0F;
 }
+
+@source inline("backdrop-blur-xs bg-black/10");

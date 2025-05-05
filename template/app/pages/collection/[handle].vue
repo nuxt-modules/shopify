@@ -7,22 +7,16 @@ definePageMeta({
 })
 
 const { locale } = useI18n()
-const router = useRouter()
 const route = useRoute()
 const { t } = useI18n()
 
 const handle = route.params.handle as string
 
-const page = computed({
-    get: () => Number(route.query.p ?? 1),
-    set: async (value: number) => await router.push({ query: { ...route.query, p: value } }),
-})
-
 const { data, error } = await useFetch('/api/collection', {
     method: 'POST',
     body: {
         handle,
-        first: 9,
+        first: 12,
         language: locale,
     },
     key: computed(() => `collection-${handle}-${locale.value}`),
@@ -138,11 +132,15 @@ const onChange = (state: FilterState) => {
             </div>
         </div>
 
-        <USeparator :label="t('navigation.label')" />
-
-        <UPagination
-            v-model:page="page"
-            class="mx-auto"
-        />
+        <div class="flex justify-center">
+            <UButton
+                variant="soft"
+                :icon="icons.down"
+                color="primary"
+                @click="console.log('Button clicked')"
+            >
+                Load more
+            </UButton>
+        </div>
     </div>
 </template>
