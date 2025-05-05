@@ -17,7 +17,7 @@ const localePath = useLocalePath()
 
 <template>
     <section>
-        <div class="flex flex-col">
+        <div class="flex flex-col min-h-screen">
             <h1 class="text-4xl md:text-5xl font-semibold mb-6 max-w-2xl leading-16 animate-fade-in">
                 {{ props.title }}
             </h1>

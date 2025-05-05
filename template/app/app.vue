@@ -12,6 +12,7 @@ useHead({
         lang,
         dir,
     },
+    title: 'Nuxt Shopify Store Template',
 })
 
 const { data, error } = await useFetch('/api/collections', {
