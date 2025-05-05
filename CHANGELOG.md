@@ -1,3 +1,7 @@
+# 0.0.24
+- Added package build provenance
+- Bumped dependencies
+
 # 0.0.23
 - Fixed type utils import
 - Bumped dependencies
