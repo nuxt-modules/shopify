@@ -1,4 +1,27 @@
 {
+    "navigation": {
+        "label": "Navigation"
+    },
+    "footer": {
+        "message": "Veröffentlicht unter der MIT License.",
+        "github": "Auf GitHub ansehen"
+    },
+    "country": {
+        "label": "Land auswählen",
+        "select": "Wählen Sie ihr Land aus."
+    },
+    "language": {
+        "label": "Sprache auswählen",
+        "select": "Wählen Sie ihre Sprache aus."
+    },
+    "search": {
+        "label": "Suche",
+        "description": "Suche nach Produkten, Kollektionen, Seiten und Artikeln.",
+        "placeholder": "Suche..."
+    },
+    "collections": {
+        "label": "Kollektionen"
+    },
     "hero": {
         "title": "Entdecken Sie unsere sorgfältig ausgewählte Kollektion von Vintage-Kleidung",
         "subtitle": "Durchstöbern Sie unsere kuratierte Auswahl an Vintage-Kleidung mit einzigartigen Stücken, die eine Geschichte erzählen. Jedes Teil ist handverlesen für seine Qualität und seinen Stil, damit Sie etwas wirklich Besonderes finden.",
@@ -12,17 +35,5 @@
         "by": "Sortieren nach",
         "ascending": "aufsteigend",
         "descending": "absteigend"
-    },
-    "navigation": {
-        "label": "Navigation"
-    },
-    "footer": {
-        "message": "Veröffentlicht unter der MIT License.",
-        "github": "Auf GitHub ansehen"
-    },
-    "country": {
-        "us": "Vereinigte Staaten",
-        "de": "Deutschland",
-        "fr": "Frankreich"
     }
 }

@@ -45,8 +45,6 @@ export default defineEventHandler(async (event) => {
         variables,
     })
 
-    console.log(errors)
-
     if (errors) throw createError(errors)
 
     return data

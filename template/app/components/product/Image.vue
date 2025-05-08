@@ -41,7 +41,7 @@ const handleImageLoad = () => requestAnimationFrame(() => {
             :alt="props.product?.featuredImage?.altText ?? props.product?.title ?? undefined"
             :width="props.product?.featuredImage?.width ?? undefined"
             :height="props.product?.featuredImage?.height ?? undefined"
-            sizes="xs:100vw md:50vw lg:40vw xl:33vw"
+            sizes="xs:100vw md:50vw lg:40vw xl:25vw"
             placeholder
             class="max-w-full max-h-full animate-pop-up select-none grow-0 shrink-0"
             @load="handleImageLoad"

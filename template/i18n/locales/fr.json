@@ -1,4 +1,27 @@
 {
+    "navigation": {
+        "label": "Navigation"
+    },
+    "footer": {
+        "message": "Publié sous la licence MIT.",
+        "github": "Voir sur GitHub"
+    },
+    "country": {
+        "label": "Choisir le pays",
+        "select": "Sélectionnez votre pays."
+    },
+    "language": {
+        "label": "Choisir la langue",
+        "select": "Sélectionnez votre langue."
+    },
+    "search": {
+        "label": "Recherche",
+        "description": "Recherchez des produits, des collections, des pages et des articles.",
+        "placeholder": "Rechercher..."
+    },
+    "collections": {
+        "label": "Collections"
+    },
     "hero": {
         "title": "Découvrez notre collection de vêtements vintage soigneusement sélectionnés",
         "subtitle": "Explorez notre sélection de vêtements vintage, comprenant des pièces uniques qui racontent une histoire. Chaque article est choisi à la main pour sa qualité et son style, vous assurant de trouver quelque chose de vraiment spécial.",
@@ -12,17 +35,5 @@
         "by": "Trier par",
         "ascending": "croissant",
         "descending": "décroissant"
-    },
-    "navigation": {
-        "label": "Navigation"
-    },
-    "footer": {
-        "message": "Publié sous la licence MIT.",
-        "github": "Voir sur GitHub"
-    },
-    "country": {
-        "us": "États-Unis",
-        "de": "Allemagne",
-        "fr": "France"
     }
 }

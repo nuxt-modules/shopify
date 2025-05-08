@@ -7,6 +7,8 @@ const props = defineProps<{
 
 const open = defineModel<boolean>({ default: false })
 
+const { t } = useI18n()
+
 const collections = computed(() => props.collections.map(collection => ({
     ...collection,
     onSelect: () => {
@@ -20,7 +22,7 @@ const collections = computed(() => props.collections.map(collection => ({
 <template>
     <USlideover
         v-model:open="open"
-        title="Collections"
+        :title="t('collections.label')"
         :ui="{
             header: 'min-h-0 h-[49px]',
             close: 'top-2 hover:bg-muted text-muted',

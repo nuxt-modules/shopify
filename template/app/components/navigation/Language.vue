@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const switchLocalePath = useSwitchLocalePath()
-const { locale, locales } = useI18n()
+const { t, locale, locales } = useI18n()
 
 const open = ref(false)
 
@@ -10,8 +10,8 @@ const getLanguageLabel = (l?: typeof locale['value']) => `${locales.value?.find(
 <template>
     <UDrawer
         v-model:open="open"
-        title="Language"
-        description="Select your language"
+        :title="t('language.label')"
+        :description="t('language.select')"
         :ui="{ container: 'w-full max-w-(--ui-container) mx-auto px-4 sm:px-6 lg:px-8' }"
     >
         <UButton

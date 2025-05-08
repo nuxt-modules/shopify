@@ -1,4 +1,27 @@
 {
+    "navigation": {
+        "label": "Navigation"
+    },
+    "footer": {
+        "message": "Released under the MIT License.",
+        "github": "View on GitHub"
+    },
+    "country": {
+        "label": "Choose Country",
+        "select": "Select your country."
+    },
+    "language": {
+        "label": "Choose Language",
+        "select": "Select your language."
+    },
+    "search": {
+        "label": "Search",
+        "description": "Search for products, collections, pages, and articles.",
+        "placeholder": "Search..."
+    },
+    "collections": {
+        "label": "Collections"
+    },
     "hero": {
         "title": "Discover our carefully selected vintage clothing collection",
         "subtitle": "Explore our curated selection of vintage clothing, featuring unique pieces that tell a story. Each item is handpicked for its quality and style, ensuring you find something truly special.",
@@ -12,17 +35,5 @@
         "by": "Sort by",
         "ascending": "ascending",
         "descending": "descending"
-    },
-    "navigation": {
-        "label": "Navigation"
-    },
-    "footer": {
-        "message": "Released under the MIT License.",
-        "github": "View on GitHub"
-    },
-    "country": {
-        "us": "United States",
-        "de": "Germany",
-        "fr": "France"
     }
 }

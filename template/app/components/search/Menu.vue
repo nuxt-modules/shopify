@@ -1,6 +1,8 @@
 <script setup lang="ts">
 const open = defineModel<boolean>({ default: false })
 
+const { t } = useI18n()
+
 const groups = ref([
     {
         id: 'queries',
@@ -121,8 +123,8 @@ defineShortcuts({
 <template>
     <UModal
         v-model:open="open"
-        title="Search"
-        description="Search for products, collections, pages, and articles."
+        :title="t('search.label')"
+        :description="t('search.description')"
     >
         <template #content>
             <UCommandPalette

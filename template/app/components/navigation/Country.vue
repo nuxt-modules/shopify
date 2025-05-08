@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const { country: countryCode } = useCountry()
-const { locale } = useI18n()
+const { t, locale } = useI18n()
 
 const { data: countries } = await useFetch('/api/countries', {
     method: 'POST',
@@ -22,8 +22,8 @@ const getCountryLabel = (c?: typeof country['value']) => `${c?.name} (${c?.curre
 <template>
     <UDrawer
         v-model:open="open"
-        title="Country"
-        description="Select your country"
+        :title="t('country.label')"
+        :description="t('country.select')"
         :ui="{ container: 'w-full max-w-(--ui-container) mx-auto px-4 sm:px-6 lg:px-8' }"
     >
         <UButton

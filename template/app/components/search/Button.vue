@@ -1,5 +1,7 @@
 <script setup lang="ts">
 const open = defineModel<boolean>({ default: false })
+
+const { t } = useI18n()
 </script>
 
 <template>
@@ -17,7 +19,7 @@ const open = defineModel<boolean>({ default: false })
         />
 
         <span class="hidden sm:block">
-            Search...
+            {{ t('search.placeholder') }}
         </span>
 
         <UKbd
