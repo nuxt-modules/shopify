@@ -42,7 +42,7 @@ const onSubmit = async () => await $fetch('/api/customer/login', {
         <UForm
             :schema="schema"
             :state="state"
-            class="space-y-4"
+            class="space-y-4 max-w-xl"
             @submit="onSubmit"
         >
             <UFormField
@@ -53,6 +53,7 @@ const onSubmit = async () => await $fetch('/api/customer/login', {
                 <UInput
                     v-model="state.email"
                     autocomplete="email"
+                    class="w-full"
                 />
             </UFormField>
 
@@ -65,14 +66,15 @@ const onSubmit = async () => await $fetch('/api/customer/login', {
                     v-model="state.password"
                     type="password"
                     autocomplete="current-password"
+                    class="w-full"
                 />
             </UFormField>
 
-            <UButton
-                type="submit"
-            >
-                Submit
-            </UButton>
+            <div class="flex justify-end pt-4">
+                <UButton type="submit">
+                    Login
+                </UButton>
+            </div>
         </UForm>
     </div>
 </template>

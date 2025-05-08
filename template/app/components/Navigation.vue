@@ -7,7 +7,9 @@ const props = defineProps<{
     collections: Serialized<FetchCollectionsQuery>['collections']['edges']
 }>()
 
+const searchInitialized = ref(false)
 const searchOpen = ref(false)
+
 const menuOpen = ref(false)
 
 const collections = computed<NavigationMenuItem[]>(() => props.collections
@@ -34,11 +36,14 @@ const navigationActions = computed<NavigationMenuItem[]>(() => [
         to: getCartAppUrl(),
     },
     {
-        icon: menuOpen.value ? icons.close : icons.menu,
+        icon: icons.menu,
         class: 'cursor-pointer px-2 sm:px-3 lg:hidden',
+        active: menuOpen.value,
         onSelect: () => menuOpen.value = !menuOpen.value,
     },
 ])
+
+watch(searchOpen, () => searchInitialized.value = true)
 </script>
 
 <template>
@@ -72,7 +77,8 @@ const navigationActions = computed<NavigationMenuItem[]>(() => [
             :collections="collections"
         />
 
-        <SearchMenu
+        <LazySearchMenu
+            v-if="searchInitialized"
             v-model="searchOpen"
         />
     </div>

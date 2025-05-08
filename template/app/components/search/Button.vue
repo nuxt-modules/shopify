@@ -8,9 +8,6 @@ const { t } = useI18n()
     <UButton
         variant="navigation"
         class="flex items-center cursor-pointer sm:border sm:border-muted sm:radius-sm hover:text-[var(--ui-text)]"
-        :class="{
-            'text-primary': open,
-        }"
         @click="open = true"
     >
         <UIcon

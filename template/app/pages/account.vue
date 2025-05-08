@@ -12,7 +12,7 @@ const logout = () => {
 <template>
     <div class="pt-6 pb-24">
         <h1 class="text-3xl font-bold mb-6">
-            Customer Account
+            Account Login
         </h1>
 
         <div class="text-lg text-[var(--ui-text-muted)] mb-8">

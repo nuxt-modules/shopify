@@ -1,6 +1,7 @@
 <script setup lang="ts">
 const open = defineModel<boolean>({ default: false })
 
+const localePath = useLocalePath()
 const { country } = useCountry()
 const { t, locale } = useI18n()
 
@@ -15,6 +16,7 @@ const { data, status } = await useFetch('/api/search', {
         language: locale,
     },
     watch: [query],
+    lazy: true,
 })
 
 const products = computed(() => data.value?.products.edges ?? [])
@@ -27,7 +29,7 @@ const groups = computed(() => [
         items: products.value.map(product => ({
             label: product.node.title,
             suffix: product.node.description,
-            to: `/product/${product.node.handle}`,
+            to: localePath(`/product/${product.node.handle}`),
             avatar: {
                 // @ts-expect-error TODO: Fix type error
                 src: `${product.node.featuredImage?.url}?width=40&height=40`,
@@ -42,7 +44,7 @@ const groups = computed(() => [
         items: collections.value.map(collection => ({
             label: collection.node.title,
             suffix: collection.node.description,
-            to: `/collection/${collection.node.handle}`,
+            to: localePath(`/collection/${collection.node.handle}`),
             onSelect: () => open.value = false,
         })),
     },
