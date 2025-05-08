@@ -24,6 +24,7 @@ export const PRICE_FRAGMENT = `#graphql
     currencyCode
   }
 `
+
 export const UTILS_FRAGMENT = `
   ${PRICE_FRAGMENT}
   ${IMAGE_FRAGMENT}
