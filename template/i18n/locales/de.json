@@ -16,7 +16,7 @@
     },
     "search": {
         "label": "Suche",
-        "description": "Suche nach Produkten, Kollektionen, Seiten und Artikeln.",
+        "description": "Suche nach Produkten und Kollektionen.",
         "placeholder": "Suche..."
     },
     "collections": {

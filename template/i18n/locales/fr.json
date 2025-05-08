@@ -16,7 +16,7 @@
     },
     "search": {
         "label": "Recherche",
-        "description": "Recherchez des produits, des collections, des pages et des articles.",
+        "description": "Recherche de produits et de collections.",
         "placeholder": "Rechercher..."
     },
     "collections": {

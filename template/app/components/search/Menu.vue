@@ -1,119 +1,54 @@
 <script setup lang="ts">
 const open = defineModel<boolean>({ default: false })
 
-const { t } = useI18n()
+const { country } = useCountry()
+const { t, locale } = useI18n()
 
-const groups = ref([
-    {
-        id: 'queries',
-        label: 'Queries',
-        items: [
-            {
-                label: 'Jacket Yellow',
-                suffix: '32 products found',
-            },
-        ],
+const query = ref('')
+
+const { data, status } = await useFetch('/api/search', {
+    key: `search-${query.value}`,
+    method: 'POST',
+    body: {
+        query,
+        country,
+        language: locale,
     },
+    watch: [query],
+})
+
+const products = computed(() => data.value?.products.edges ?? [])
+const collections = computed(() => data.value?.collections.edges ?? [])
+
+const groups = computed(() => [
     {
         id: 'products',
         label: 'Products',
-        items: [
-            {
-                label: 'Benjamin Canac',
-                suffix: 'benjamincanac',
-                to: 'https://github.com/benjamincanac',
-                target: '_blank',
-                avatar: {
-                    src: 'https://github.com/benjamincanac.png',
-                },
+        items: products.value.map(product => ({
+            label: product.node.title,
+            suffix: product.node.description,
+            to: `/product/${product.node.handle}`,
+            avatar: {
+                // @ts-expect-error TODO: Fix type error
+                src: product.node.featuredImage?.url,
+                alt: product.node.featuredImage?.altText,
             },
-            {
-                label: 'Sylvain Marroufin',
-                suffix: 'smarroufin',
-                to: 'https://github.com/smarroufin',
-                target: '_blank',
-                avatar: {
-                    src: 'https://github.com/smarroufin.png',
-                },
-            },
-            {
-                label: 'Sébastien Chopin',
-                suffix: 'atinux',
-                to: 'https://github.com/atinux',
-                target: '_blank',
-                avatar: {
-                    src: 'https://github.com/atinux.png',
-                },
-            },
-            {
-                label: 'Romain Hamel',
-                suffix: 'romhml',
-                to: 'https://github.com/romhml',
-                target: '_blank',
-                avatar: {
-                    src: 'https://github.com/romhml.png',
-                },
-            },
-            {
-                label: 'Haytham A. Salama',
-                suffix: 'Haythamasalama',
-                to: 'https://github.com/Haythamasalama',
-                target: '_blank',
-                avatar: {
-                    src: 'https://github.com/Haythamasalama.png',
-                },
-            },
-            {
-                label: 'Daniel Roe',
-                suffix: 'danielroe',
-                to: 'https://github.com/danielroe',
-                target: '_blank',
-                avatar: {
-                    src: 'https://github.com/danielroe.png',
-                },
-            },
-            {
-                label: 'Neil Richter',
-                suffix: 'noook',
-                to: 'https://github.com/noook',
-                target: '_blank',
-                avatar: {
-                    src: 'https://github.com/noook.png',
-                },
-            },
-        ],
+            onSelect: () => open.value = false,
+        })),
     },
     {
         id: 'collections',
         label: 'Collections',
-        items: [
-            {
-                label: 'My collection',
-                suffix: 'Has collection content and such. This is a snippet of text that is not too long.',
-            },
-        ],
-    },
-    {
-        id: 'pages',
-        label: 'Pages',
-        items: [
-            {
-                label: 'My page',
-                suffix: 'Has page content and such. This is a snippet of text that is not too long.',
-            },
-        ],
-    },
-    {
-        id: 'articles',
-        label: 'Articles',
-        items: [
-            {
-                label: 'My article',
-                suffix: 'Has article content and such. This is a snippet of text that is not too long.',
-            },
-        ],
+        items: collections.value.map(collection => ({
+            label: collection.node.title,
+            suffix: collection.node.description,
+            to: `/collection/${collection.node.handle}`,
+            onSelect: () => open.value = false,
+        })),
     },
 ])
+
+const updateQuery = useDebounceFn((value: string) => query.value = value, 300)
 
 defineShortcuts({
     meta_k: () => open.value = true,
@@ -129,9 +64,11 @@ defineShortcuts({
         <template #content>
             <UCommandPalette
                 v-model:open="open"
-                placeholder="Search..."
+                :loading="status === 'pending'"
+                :placeholder="t('search.placeholder')"
                 :groups="groups"
                 :close="true"
+                @update:search-term="updateQuery"
             />
         </template>
     </UModal>

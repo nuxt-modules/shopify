@@ -52,7 +52,7 @@ Create a `.env` file in the root of the project and add your Shopify credentials
 ```sh
 NUXT_SHOPIFY_NAME="quickstart-abcd1234"
 NUXT_SHOPIFY_API_VERSION="2025-04"
-NUXT_SHOPIFY_STOREFRONT_PUBLIC_ACCESS_TOKEN="YOUR_PUBLIC_ACCESS_TOKEN"
+NUXT_SHOPIFY_STOREFRONT_PRIVATE_ACCESS_TOKEN="YOUR_PRIVATE_ACCESS_TOKEN"
 ```
 
 And that's it! Now your template is ready to use.
