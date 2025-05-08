@@ -19,5 +19,10 @@
     "footer": {
         "message": "Publié sous la licence MIT.",
         "github": "Voir sur GitHub"
+    },
+    "country": {
+        "us": "États-Unis",
+        "de": "Allemagne",
+        "fr": "France"
     }
 }

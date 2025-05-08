@@ -25,7 +25,7 @@ export default defineConfig({
             { text: 'Examples', link: '/examples/storefront', activeMatch: '/examples/' },
             { text: 'Configuration', link: '/configuration/module', activeMatch: '/configuration/' },
             {
-                text: pkg?.version ?? 'stable',
+                text: pkg?.version ? `v${pkg.version}` : 'stable',
                 items: [
                     {
                         text: 'Changelog',

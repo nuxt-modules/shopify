@@ -17,7 +17,12 @@
         "label": "Navigation"
     },
     "footer": {
-        "message": "Veröffentlich unter der MIT License.",
+        "message": "Veröffentlicht unter der MIT License.",
         "github": "Auf GitHub ansehen"
+    },
+    "country": {
+        "us": "Vereinigte Staaten",
+        "de": "Deutschland",
+        "fr": "Frankreich"
     }
 }

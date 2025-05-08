@@ -1,9 +1,10 @@
-import type { LanguageCode } from '#shopify/storefront'
+import type { CountryCode, LanguageCode } from '#shopify/storefront'
 
 import { z } from 'zod'
 
 export const localizationParamsSchema = z.object({
-    language: z.string().min(2).max(2).toUpperCase().transform(val => val as LanguageCode),
+    language: z.string().min(2).max(2).toUpperCase().optional().transform(val => val as LanguageCode),
+    country: z.string().min(2).max(2).toUpperCase().optional().transform(val => val as CountryCode),
 })
 
 export const connectionParamsSchema = z.object({

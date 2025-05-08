@@ -5,27 +5,23 @@ definePageMeta({
 })
 
 const { addItems } = await useCart()
+const { country } = useCountry()
+const { locale } = useI18n()
 const route = useRoute()
-const handle = route.params.handle as string
+
+const handle = computed(() => route.params.handle as string)
 
 const { data } = await useFetch('/api/product', {
     method: 'POST',
     body: {
         handle,
+        country,
+        language: locale,
     },
+    watch: [locale, country],
 })
 
 const product = computed(() => data.value?.product)
-
-const price = computed(() => {
-    const formatter = new Intl.NumberFormat('de-DE', {
-        style: 'currency',
-        currency: 'EUR',
-    })
-
-    // @ts-expect-error TODO: Fix type error
-    return formatter.format(product.value?.priceRange.minVariantPrice.amount)
-})
 </script>
 
 <template>
@@ -45,9 +41,10 @@ const price = computed(() => {
             <USeparator />
 
             <div class="w-full text-end mb-8">
-                <span class="text-lg font-bold">
-                    {{ price }}
-                </span>
+                <ProductPrice
+                    v-if="product"
+                    :product="product"
+                />
             </div>
 
             <div class="grid grid-cols-2 gap-2">

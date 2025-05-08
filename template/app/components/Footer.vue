@@ -5,41 +5,41 @@ const { t } = useI18n()
 
 const { isDark, swap } = useTheme()
 
-const { data: version } = await useFetch<{ tag_name: string }>('https://api.github.com/repos/konkonam/nuxt-shopify/releases/latest', {
+const { data: version } = await useFetch<{ tag_name?: string }>('https://api.github.com/repos/konkonam/nuxt-shopify/releases/latest', {
     key: 'nuxt-shopify-version',
+    pick: ['tag_name'],
 })
-
-const languageOpen = ref(false)
 
 const items = computed<NavigationMenuItem[]>(() => [
     {
         to: 'https://github.com/konkonam/nuxt-shopify',
-        class: 'text-muted px-3 hover:text-primary',
         label: 'Github',
     },
     {
         to: 'https://nuxt.com/modules/nuxt-shopify',
-        class: 'text-muted px-3 hover:text-primary',
         label: 'Module Page',
     },
     {
         to: 'https://konkonam.github.io/nuxt-shopify',
-        class: 'text-muted px-3 hover:text-primary',
         label: 'Documentation',
     },
     {
         to: 'https://npmjs.com/package/@konkonam/nuxt-shopify',
-        class: 'text-muted px-3 hover:text-primary',
         label: 'NPM Package',
     },
-])
+].map(item => ({
+    ...item,
+    class: 'text-muted px-3 hover:text-primary',
+    target: '_blank',
+    icon: icons.dash,
+})))
 </script>
 
 <template>
     <footer class="pt-8 pb-6 bg-[var(--bg-ui)] border-t border-[var(--ui-border)]">
         <UContainer>
             <div class="md:flex items-center gap-4">
-                <p class="pb-4 pe-3">
+                <p class="pb-2 pe-3 md:pb-4">
                     <span class="text-sm text-muted">
                         Built with
                     </span>
@@ -62,6 +62,8 @@ const items = computed<NavigationMenuItem[]>(() => [
                         orientation="vertical"
                         :ui="{
                             list: 'md:flex',
+                            linkLabelExternalIcon: 'hidden',
+                            linkLeadingIcon: 'size-2.5 mt-0.5 md:hidden',
                         }"
                     />
                 </div>
@@ -69,18 +71,14 @@ const items = computed<NavigationMenuItem[]>(() => [
 
             <USeparator class="my-8 md:my-6" />
 
-            <div class="flex flex-col items-center gap-4 md:flex-row">
-                <p class="text-muted grow">
+            <div class="flex flex-col items-center md:flex-row">
+                <p class="text-muted grow pb-5 md:pb-0">
                     {{ t('footer.message') }}
                 </p>
 
-                <UButton
-                    label="Change Language"
-                    :icon="icons.globe"
-                    variant="navigation"
-                    class="cursor-pointer"
-                    @click="languageOpen = true"
-                />
+                <NavigationCountry class="mb-1 md:mb-0" />
+
+                <NavigationLanguage class="mb-3 md:mb-0" />
 
                 <USeparator
                     orientation="vertical"
@@ -88,20 +86,12 @@ const items = computed<NavigationMenuItem[]>(() => [
                 />
 
                 <UNavigationMenu
-                    highlight
-                    highlight-color="primary"
                     orientation="horizontal"
                     :items="[
                         {
                             icon: isDark ? icons.sun : icons.moon,
                             class: 'cursor-pointer px-3',
                             onSelect: () => swap(),
-                        },
-                        {
-                            icon: icons.npm,
-                            to: 'https://www.npmjs.com/package/@konkonam/nuxt-shopify',
-                            target: '_blank',
-                            class: 'px-3',
                         },
                         {
                             icon: icons.github,
@@ -113,9 +103,5 @@ const items = computed<NavigationMenuItem[]>(() => [
                 />
             </div>
         </UContainer>
-
-        <NavigationLanguage
-            v-model="languageOpen"
-        />
     </footer>
 </template>

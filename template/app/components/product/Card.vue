@@ -18,16 +18,6 @@ const state = reactive<z.infer<typeof schema>>({
 
 const { addItems } = await useCart()
 
-const price = computed(() => {
-    const formatter = new Intl.NumberFormat('de-DE', {
-        style: 'currency',
-        currency: 'EUR',
-    })
-
-    // @ts-expect-error TODO: Fix type error
-    return formatter.format(props.product.priceRange.minVariantPrice.amount)
-})
-
 const handleAddToCart = async (quantity: number) => {
     await addItems({
         quantity,
@@ -53,9 +43,10 @@ const handleAddToCart = async (quantity: number) => {
                     <ProductImage :product="props.product" />
 
                     <div class="flex flex-row justify-between">
-                        <span class="block font-bold text-sm">
-                            {{ price }}
-                        </span>
+                        <ProductPrice
+                            v-if="props.product"
+                            :product="props.product"
+                        />
                     </div>
 
                     <h2 class="font-bold">

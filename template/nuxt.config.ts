@@ -70,7 +70,7 @@ export default defineNuxtConfig({
                 chevronUp: 'hugeicons:arrow-up-01',
                 close: 'hugeicons:cancel-01',
                 ellipsis: 'hugeicons:ease-curve-control-points',
-                external: 'hugeicons:shared-wifi',
+                external: 'hugeicons:arrow-up-right-01',
                 minus: 'hugeicons:minus-sign',
                 plus: 'hugeicons:plus-sign',
                 search: 'hugeicons:search-01',
@@ -153,21 +153,21 @@ export default defineNuxtConfig({
         locales: [
             {
                 code: 'en',
-                language: 'en',
                 name: 'English',
                 file: 'en.json',
+                defaultCountry: 'US',
             },
             {
                 code: 'de',
-                language: 'de',
                 name: 'Deutsch',
                 file: 'de.json',
+                defaultCountry: 'DE',
             },
             {
                 code: 'fr',
-                language: 'fr',
                 name: 'Français',
                 file: 'fr.json',
+                defaultCountry: 'FR',
             },
         ],
 
@@ -178,6 +178,12 @@ export default defineNuxtConfig({
 
     image: {
         densities: [1, 2],
+
+        providers: {
+            shopify: {
+                provider: '~/providers/shopify.ts',
+            },
+        },
     },
 
     shopify: {
@@ -190,7 +196,7 @@ export default defineNuxtConfig({
         clients: {
             storefront: {
                 apiVersion: process.env.NUXT_SHOPIFY_API_VERSION as string,
-                publicAccessToken: process.env.NUXT_SHOPIFY_STOREFRONT_PUBLIC_ACCESS_TOKEN as string,
+                privateAccessToken: process.env.NUXT_SHOPIFY_STOREFRONT_PRIVATE_ACCESS_TOKEN as string,
             },
         },
     },

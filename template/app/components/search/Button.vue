@@ -5,26 +5,29 @@ const open = defineModel<boolean>({ default: false })
 <template>
     <UButton
         variant="navigation"
-        class="flex items-center cursor-pointer md:border md:border-muted md:radius-sm"
+        class="flex items-center cursor-pointer sm:border sm:border-muted sm:radius-sm hover:text-[var(--ui-text)]"
+        :class="{
+            'text-primary': open,
+        }"
         @click="open = true"
     >
         <UIcon
             :name="icons.search"
-            class="size-5 md:mr-1"
+            class="size-5 sm:mr-1"
         />
 
-        <span class="hidden md:block">
+        <span class="hidden sm:block">
             Search...
         </span>
 
         <UKbd
             value="meta"
-            class="ml-3 hidden text-dimmed md:flex"
+            class="ml-3 hidden text-dimmed sm:flex"
         />
 
         <UKbd
             value="k"
-            class="hidden text-dimmed mr-0.5 md:flex"
+            class="hidden text-dimmed mr-0.5 sm:flex"
         />
     </UButton>
 </template>

@@ -1,30 +1,39 @@
 <script setup lang="ts">
-import type { NavigationMenuItem } from '@nuxt/ui'
-
-const open = defineModel<boolean>({ default: false })
-
 const switchLocalePath = useSwitchLocalePath()
-const { locales } = useI18n()
+const { locale, locales } = useI18n()
 
-const items = computed<NavigationMenuItem[]>(() => locales.value.map(locale => ({
-    label: locale.name,
-    to: switchLocalePath(locale.code),
-    onSelect: () => open.value = false,
-})))
+const open = ref(false)
+
+const getLanguageLabel = (l?: typeof locale['value']) => `${locales.value?.find(locale => locale.code === l)?.name}`
 </script>
 
 <template>
     <UDrawer
         v-model:open="open"
-        title="Languages"
+        title="Language"
+        description="Select your language"
+        :ui="{ container: 'w-full max-w-(--ui-container) mx-auto px-4 sm:px-6 lg:px-8' }"
     >
+        <UButton
+            :label="getLanguageLabel(locale)"
+            :icon="icons.language"
+            variant="navigation"
+            class="cursor-pointer shrink"
+            @click="open = true"
+        />
+
         <template #body>
             <UNavigationMenu
                 highlight
                 highlight-color="primary"
                 orientation="vertical"
-                :items="items"
-                class="pb-4"
+                :items="locales?.map(language => ({
+                    label: getLanguageLabel(language.code),
+                    active: language.code === locale,
+                    to: switchLocalePath(language.code),
+                    onSelect: () => open = false,
+                }))"
+                class="pb-6"
             />
         </template>
     </UDrawer>

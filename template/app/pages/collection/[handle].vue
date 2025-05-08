@@ -6,22 +6,26 @@ definePageMeta({
     layout: 'listing',
 })
 
+const { country } = useCountry()
 const { locale } = useI18n()
 const route = useRoute()
 const { t } = useI18n()
 
 const handle = route.params.handle as string
 
-const { data, error } = await useFetch('/api/collection', {
+const fetchProducts = async (language: string, country: string, cursor?: string) => await $fetch('/api/collection', {
     method: 'POST',
     body: {
         handle,
+        country,
+        language,
         first: 12,
-        language: locale,
+        after: cursor,
     },
-    key: computed(() => `collection-${handle}-${locale.value}`),
-    watch: [locale],
 })
+
+const { data, error } = await useAsyncData(`collection-${handle}-${locale.value}`, async () =>
+    await fetchProducts(locale.value, country.value))
 
 if (error.value) {
     throw createError({
@@ -32,13 +36,32 @@ if (error.value) {
 }
 
 const collection = computed(() => data.value?.collection)
-const products = computed(() => collection.value?.products.edges ?? [])
 
+const hasNextPage = ref(collection.value?.products.pageInfo.hasNextPage ?? false)
+const endCursor = ref(collection.value?.products.pageInfo.endCursor ?? undefined)
+const products = ref(collection.value?.products.edges ?? [])
 const currentSort = ref('price')
+
+const loadMore = async () => {
+    if (!hasNextPage.value) return
+
+    const data = await fetchProducts(locale.value, country.value, endCursor.value)
+
+    products.value.push(...data?.collection?.products.edges ?? [])
+    hasNextPage.value = data?.collection?.products.pageInfo.hasNextPage ?? false
+    endCursor.value = data?.collection?.products.pageInfo.endCursor ?? undefined
+}
 
 const onChange = (state: FilterState) => {
     console.log(state)
 }
+
+watch([country, locale], async () => {
+    products.value = []
+    endCursor.value = undefined
+
+    await loadMore()
+})
 </script>
 
 <template>
@@ -64,6 +87,9 @@ const onChange = (state: FilterState) => {
                             size="xs"
                             :icon="icons.sortAsc"
                             :label="`${t('sort.by')} ${currentSort}: ${t('sort.ascending')}`"
+                            :ui="{
+                                label: 'hidden sm:block',
+                            }"
                         />
 
                         <UButton
@@ -132,12 +158,15 @@ const onChange = (state: FilterState) => {
             </div>
         </div>
 
-        <div class="flex justify-center">
+        <div
+            v-if="hasNextPage"
+            class="flex justify-center"
+        >
             <UButton
                 variant="soft"
                 :icon="icons.down"
                 color="primary"
-                @click="console.log('Button clicked')"
+                @click="loadMore"
             >
                 Load more
             </UButton>

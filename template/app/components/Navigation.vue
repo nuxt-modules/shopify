@@ -19,23 +19,23 @@ const collections = computed<NavigationMenuItem[]>(() => props.collections
 const navigationItems = computed<NavigationMenuItem[]>(() => collections.value
     .map(collection => ({
         ...collection,
-        class: 'hidden lg:block',
+        class: 'px-3 hidden lg:block hover:text-primary',
     })).splice(0, 4))
 
 const navigationActions = computed<NavigationMenuItem[]>(() => [
     {
         icon: icons.account,
-        class: 'cursor-pointer px-2 md:px-3',
+        class: 'cursor-pointer px-2 sm:px-3',
         to: getAccountAppUrl(),
     },
     {
         icon: icons.cart,
-        class: 'cursor-pointer px-2 md:px-3',
+        class: 'cursor-pointer px-2 sm:px-3',
         to: getCartAppUrl(),
     },
     {
         icon: menuOpen.value ? icons.close : icons.menu,
-        class: 'cursor-pointer px-2 md:px-3 lg:hidden',
+        class: 'cursor-pointer px-2 sm:px-3 lg:hidden',
         onSelect: () => menuOpen.value = !menuOpen.value,
     },
 ])
@@ -56,7 +56,7 @@ const navigationActions = computed<NavigationMenuItem[]>(() => [
 
             <SearchButton
                 v-model="searchOpen"
-                class="px-2 md:mr-6 xl:mr-8"
+                class="px-2 sm:mr-6 xl:mr-8"
             />
 
             <UNavigationMenu
@@ -72,7 +72,7 @@ const navigationActions = computed<NavigationMenuItem[]>(() => [
             :collections="collections"
         />
 
-        <NavigationSearch
+        <SearchMenu
             v-model="searchOpen"
         />
     </div>

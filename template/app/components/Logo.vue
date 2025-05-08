@@ -10,8 +10,10 @@ const localePath = useLocalePath()
         <NuxtImg
             src="/img/logo.png"
             class="h-5 w-auto light:invert"
+            width="50"
+            height="22"
         />
 
-        Nuxt Shopify
+        Demo Store
     </NuxtLink>
 </template>

@@ -17,9 +17,10 @@ export default defineEventHandler(async (event) => {
             $reverse: Boolean,
             $sortKey: ProductCollectionSortKeys,
             $filters: [ProductFilter!],
-            $language: LanguageCode
+            $language: LanguageCode,
+            $country: CountryCode,
         )
-        @inContext(language: $language) {
+        @inContext(language: $language, country: $country) {
             collection(handle: $handle) {
                 ...CollectionFields
 
@@ -43,6 +44,8 @@ export default defineEventHandler(async (event) => {
     `, {
         variables,
     })
+
+    console.log(errors)
 
     if (errors) throw createError(errors)
 

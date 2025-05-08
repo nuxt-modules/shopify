@@ -12,6 +12,8 @@ const collections = computed(() => props.collections.map(collection => ({
     onSelect: () => {
         open.value = false
     },
+    class: 'text-muted px-3 hover:text-primary data-active:text-primary',
+    icon: icons.dash,
 })))
 </script>
 
@@ -30,6 +32,10 @@ const collections = computed(() => props.collections.map(collection => ({
                 highlight-color="primary"
                 orientation="vertical"
                 :items="collections"
+                :ui="{
+                    linkLabelExternalIcon: 'hidden',
+                    linkLeadingIcon: 'size-2.5 mt-0.5 text-muted',
+                }"
                 class="pb-4"
             />
         </template>
