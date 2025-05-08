@@ -7,8 +7,8 @@
 [![Github Actions][github-actions-src]][github-actions-href]
 [![NPM version][npm-version-src]][npm-version-href]
 [![NPM downloads][npm-downloads-src]][npm-downloads-href]
+[![NPM last update][npm-last-update-src]][npm-last-update-href]
 [![License][license-src]][license-href]
-[![Nuxt][nuxt-src]][nuxt-href]
 
 A Shopify GraphQL API-Connector for Nuxt 3 & 4.
 
@@ -222,8 +222,8 @@ Published under the [MIT License](https://github.com/konkonam/nuxt-shopify/tree/
 [npm-downloads-src]: https://img.shields.io/npm/dm/@konkonam/nuxt-shopify.svg?style=flat&colorA=18181B&colorB=31C553
 [npm-downloads-href]: https://npmjs.com/package/@konkonam/nuxt-shopify
 
+[npm-last-update-src]: https://img.shields.io/npm/last-update/%40konkonam%2Fnuxt-shopify.svg?style=flat&colorA=18181B&colorB=31C553
+[npm-last-update-href]: https://npmjs.com/package/@konkonam/nuxt-shopify
+
 [license-src]: https://img.shields.io/github/license/konkonam/nuxt-shopify.svg?style=flat&colorA=18181B&colorB=31C553
 [license-href]: https://github.com/konkonam/nuxt-shopify/tree/main/LICENSE
-
-[nuxt-src]: https://img.shields.io/badge/Nuxt-18181B?logo=nuxt
-[nuxt-href]: https://nuxt.com
