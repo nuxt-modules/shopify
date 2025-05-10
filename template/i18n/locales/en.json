@@ -27,6 +27,9 @@
     "collections": {
         "label": "Collections"
     },
+    "listing": {
+        "loadMore": "Load More"
+    },
     "filter": {
         "label": "Filter"
     },
