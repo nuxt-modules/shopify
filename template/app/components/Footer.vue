@@ -82,7 +82,7 @@ const items = computed<NavigationMenuItem[]>(() => [
 
                 <USeparator
                     orientation="vertical"
-                    class="h-5 mx-2 hidden md:block"
+                    class="h-5 mx-6 hidden md:block"
                 />
 
                 <UNavigationMenu

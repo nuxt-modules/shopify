@@ -1,108 +1,118 @@
 {
-    "name": "@konkonam/nuxt-shopify",
-    "version": "0.0.24",
-    "license": "MIT",
-    "type": "module",
-    "description": "Easily integrate shopify into your nuxt 3 app 🚀",
-    "workspaces": [
-        ".",
-        "template",
-        "playgrounds/*"
-    ],
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/konkonam/nuxt-shopify.git"
-    },
-    "homepage": "https://konkonam.github.io/nuxt-shopify",
-    "exports": {
-        ".": {
-            "types": "./dist/types.d.mts",
-            "import": "./dist/module.mjs"
-        }
-    },
-    "main": "./dist/module.mjs",
-    "typesVersions": {
-        "*": {
-            ".": [
-                "./dist/types.d.mts"
-            ]
-        }
-    },
-    "files": [
-        "dist"
-    ],
-    "bin": {
-        "init": "dist/commands/init.mjs"
-    },
-    "scripts": {
-        "build": "nuxt-module-build build",
-        "build:template": "bun run --filter=./template --env-file=.env --elide-lines=100 build",
-        "build:docs": "vitepress build docs",
-        "dev": "bun run --filter=playground --env-file=.env --elide-lines=100 dev",
-        "dev:v4": "bun run --filter=playground-v4 --env-file=.env --elide-lines=100 dev",
-        "dev:template": "bun run --filter=./template --env-file=.env --elide-lines=100 dev",
-        "dev:docs": "vitepress dev docs",
-        "preview:docs": "vitepress preview docs",
-        "lint": "eslint .",
-        "typecheck": "vue-tsc --noEmit",
-        "typecheck:playground": "bun run --filter=playground --env-file=.env --elide-lines=100 typecheck",
-        "typecheck:playground-v4": "bun run --filter=playground-v4 --env-file=.env --elide-lines=100 typecheck",
-        "typecheck:template": "bun run --filter=./template typecheck",
-        "typecheck:all": "bun run --filter=* typecheck",
-        "analyze": "bun run --filter=./playgrounds/playground --env-file=.env --elide-lines=100 analyze",
-        "prepare": "nuxt-module-build prepare",
-        "prepare:dev": "bun run --filter={./playgrounds/*,./template} --env-file=.env --elide-lines=100 prepare",
-        "prepare:template": "bun run --filter=./template prepare",
-        "cleanup": "bun run --filter={./playgrounds/*,./template} --env-file=.env --elide-lines=100 cleanup && nuxt cleanup"
-    },
-    "dependencies": {
-        "@graphql-codegen/cli": "^5.0.6",
-        "@graphql-codegen/import-types-preset": "^3.0.0",
-        "@shopify/admin-api-client": "^1.0.8",
-        "@shopify/api-codegen-preset": "^1.1.7",
-        "@shopify/graphql-codegen": "^0.1.0",
-        "@shopify/storefront-api-client": "^1.0.7",
-        "citty": "^0.1.6",
-        "consola": "^3.4.2",
-        "defu": "^6.1.4",
-        "giget": "^2.0.0",
-        "h3": "^1.15.3",
-        "minimatch": "^10.0.1",
-        "scule": "^1.3.0",
-        "zod": "^3.24.4"
-    },
-    "devDependencies": {
-        "@nuxt/eslint-config": "^1.3.0",
-        "@nuxt/kit": "^3.17.2",
-        "@nuxt/module-builder": "^1.0.1",
-        "@nuxt/schema": "^3.17.2",
-        "@nuxt/test-utils": "^3.18.0",
-        "@types/bun": "^1.2.12",
-        "eslint": "^9.26.0",
-        "nuxt": "^3.17.2",
-        "typescript": "^5.8.3",
-        "unbuild": "^3.5.0",
-        "vercel": "^41.7.4",
-        "vitepress": "^1.6.3",
-        "vitest": "^3.1.3",
-        "vue-tsc": "^2.2.10"
-    },
-    "keywords": [
-        "nuxt",
-        "nuxt3",
-        "nuxt4",
-        "nuxtjs",
-        "nuxt-module",
-        "shopify",
-        "ecommerce",
-        "storefront",
-        "storefront-api",
-        "admin-api",
-        "graphql",
-        "typescript",
-        "codegen"
-    ],
-    "engines": {
-        "node": "^18.x || ^20.x || ^22.x"
+  "name": "@konkonam/nuxt-shopify",
+  "version": "0.0.24",
+  "license": "MIT",
+  "type": "module",
+  "description": "Easily integrate shopify into your nuxt 3 app 🚀",
+  "workspaces": [
+    ".",
+    "template",
+    "playgrounds/*"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/konkonam/nuxt-shopify.git"
+  },
+  "homepage": "https://konkonam.github.io/nuxt-shopify",
+  "exports": {
+    ".": {
+      "types": "./dist/types.d.mts",
+      "import": "./dist/module.mjs"
     }
+  },
+  "main": "./dist/module.mjs",
+  "typesVersions": {
+    "*": {
+      ".": [
+        "./dist/types.d.mts"
+      ]
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "bin": {
+    "init": "dist/commands/init.mjs"
+  },
+  "scripts": {
+    "build": "nuxt-module-build build",
+    "build:template": "bun run --filter=./template --env-file=.env --elide-lines=100 build",
+    "build:docs": "vitepress build docs",
+    "dev": "bun run --filter=playground --env-file=.env --elide-lines=100 dev",
+    "dev:v4": "bun run --filter=playground-v4 --env-file=.env --elide-lines=100 dev",
+    "dev:template": "bun run --filter=./template --env-file=.env --elide-lines=100 dev",
+    "dev:docs": "vitepress dev docs",
+    "preview:docs": "vitepress preview docs",
+    "lint": "eslint .",
+    "typecheck": "vue-tsc --noEmit",
+    "typecheck:playground": "bun run --filter=playground --env-file=.env --elide-lines=100 typecheck",
+    "typecheck:playground-v4": "bun run --filter=playground-v4 --env-file=.env --elide-lines=100 typecheck",
+    "typecheck:template": "bun run --filter=./template typecheck",
+    "typecheck:all": "bun run --filter=* typecheck",
+    "analyze": "bun run --filter=./playgrounds/playground --env-file=.env --elide-lines=100 analyze",
+    "prepare": "nuxt-module-build prepare",
+    "prepare:dev": "bun run --filter={./playgrounds/*,./template} --env-file=.env --elide-lines=100 prepare",
+    "prepare:template": "bun run --filter=./template prepare",
+    "cleanup": "bun run --filter={./playgrounds/*,./template} --env-file=.env --elide-lines=100 cleanup && nuxt cleanup"
+  },
+  "dependencies": {
+    "@graphql-codegen/cli": "^5.0.6",
+    "@graphql-codegen/import-types-preset": "^3.0.0",
+    "@shopify/admin-api-client": "^1.0.8",
+    "@shopify/api-codegen-preset": "^1.1.7",
+    "@shopify/graphql-codegen": "^0.1.0",
+    "@shopify/storefront-api-client": "^1.0.7",
+    "citty": "^0.1.6",
+    "consola": "^3.4.2",
+    "defu": "^6.1.4",
+    "giget": "^2.0.0",
+    "h3": "^1.15.3",
+    "minimatch": "^10.0.1",
+    "scule": "^1.3.0",
+    "zod": "^3.24.4"
+  },
+  "devDependencies": {
+    "@nuxt/eslint-config": "^1.3.0",
+    "@nuxt/kit": "^3.17.2",
+    "@nuxt/module-builder": "^1.0.1",
+    "@nuxt/schema": "^3.17.2",
+    "@nuxt/test-utils": "^3.18.0",
+    "@types/bun": "^1.2.12",
+    "eslint": "^9.26.0",
+    "nuxt": "^3.17.2",
+    "sharp": "^0.34.1",
+    "typescript": "^5.8.3",
+    "unbuild": "^3.5.0",
+    "vercel": "^41.7.4",
+    "vitepress": "^1.6.3",
+    "vitest": "^3.1.3",
+    "vue-tsc": "^2.2.10"
+  },
+  "keywords": [
+    "nuxt",
+    "nuxt3",
+    "nuxt4",
+    "nuxtjs",
+    "nuxt-module",
+    "shopify",
+    "ecommerce",
+    "storefront",
+    "storefront-api",
+    "admin-api",
+    "graphql",
+    "typescript",
+    "codegen"
+  ],
+  "engines": {
+    "node": "^18.x || ^20.x || ^22.x"
+  },
+  "trustedDependencies": [
+    "@parcel/watcher",
+    "@tailwindcss/oxide",
+    "nuxt-shopify-template",
+    "playground",
+    "playground-v4",
+    "sharp",
+    "unrs-resolver"
+  ]
 }

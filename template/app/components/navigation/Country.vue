@@ -30,7 +30,7 @@ const getCountryLabel = (c?: typeof country['value']) => `${c?.name} (${c?.curre
             :label="getCountryLabel(country)"
             :icon="icons.globe"
             variant="navigation"
-            class="cursor-pointer"
+            class="cursor-pointer md:px-3"
             @click="open = true"
         />
 

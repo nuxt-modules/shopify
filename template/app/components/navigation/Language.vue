@@ -18,7 +18,7 @@ const getLanguageLabel = (l?: typeof locale['value']) => `${locales.value?.find(
             :label="getLanguageLabel(locale)"
             :icon="icons.language"
             variant="navigation"
-            class="cursor-pointer shrink"
+            class="cursor-pointer shrink md:px-3"
             @click="open = true"
         />
 
