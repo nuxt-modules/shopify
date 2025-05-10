@@ -33,7 +33,7 @@ jobs:
         run: bun run lint
 
       - name: Typecheck
-        run: bun run typecheck
+        run: bun run typecheck:all
 
       - name: Build
         run: bun run build
