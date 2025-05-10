@@ -47,7 +47,7 @@ watch(searchOpen, () => searchInitialized.value = true)
 </script>
 
 <template>
-    <div class="border-b border-[var(--ui-border-muted)] relative z-10">
+    <div class="border-b border-[var(--ui-border-muted)] relative z-10 shadow-xs">
         <UContainer class="flex flex-row justify-evenly items-center">
             <Logo />
 

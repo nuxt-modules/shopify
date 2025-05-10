@@ -26,7 +26,6 @@ const collections = computed(() => props.collections.map(collection => ({
         :ui="{
             header: 'min-h-0 h-[49px]',
             close: 'top-2 hover:bg-muted text-muted',
-            content: 'sm:border-l sm:border-[var(--ui-border-muted)]',
         }"
     >
         <template #body>

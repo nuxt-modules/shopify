@@ -1,6 +1,7 @@
 export const icons = {
     cart: 'hugeicons:shopping-bag-01',
     buyNow: 'hugeicons:shopping-bag-check',
+    spinner: 'hugeicons:loading-03',
     cartAdd: 'hugeicons:shopping-bag-add',
     cartRemove: 'hugeicons:shopping-bag-remove',
     account: 'hugeicons:user',

@@ -13,16 +13,26 @@ const { t } = useI18n()
 
 const handle = route.params.handle as string
 
-const fetchProducts = async (language: string, country: string, cursor?: string) => await $fetch('/api/collection', {
-    method: 'POST',
-    body: {
-        handle,
-        country,
-        language,
-        first: 12,
-        after: cursor,
-    },
-})
+const loading = ref(true)
+
+const fetchProducts = async (language: string, country: string, cursor?: string) => {
+    loading.value = true
+
+    const response = await $fetch('/api/collection', {
+        method: 'POST',
+        body: {
+            handle,
+            country,
+            language,
+            first: 12,
+            after: cursor,
+        },
+    })
+
+    loading.value = false
+
+    return response
+}
 
 const { data, error } = await useAsyncData(`collection-${handle}-${locale.value}`, async () =>
     await fetchProducts(locale.value, country.value))
@@ -66,7 +76,7 @@ watch([country, locale], async () => {
 
 <template>
     <div class="flex flex-col gap-8">
-        <div class="flex flex-col gap-4 md:gap-8">
+        <div class="flex flex-col gap-6 md:gap-8">
             <div class="flex flex-col grow gap-5 md:flex-row md:gap-16">
                 <h1 class="text-2xl font-bold">
                     {{ collection?.title }}
@@ -124,8 +134,10 @@ watch([country, locale], async () => {
         >
             <UButton
                 variant="soft"
-                :icon="icons.down"
                 color="primary"
+                :disabled="loading"
+                :trailing-icon="loading ? icons.spinner : icons.down"
+                :ui="{ trailingIcon: loading ? 'animate-spin': '' }"
                 @click="loadMore"
             >
                 Load more
