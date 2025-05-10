@@ -1,3 +1,7 @@
+# 0.0.25
+- Fixed scalar type generation
+- Bumped dependencies
+
 # 0.0.24
 - Added package build provenance
 - Bumped dependencies

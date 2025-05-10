@@ -1,6 +1,6 @@
 {
   "name": "@konkonam/nuxt-shopify",
-  "version": "0.0.24",
+  "version": "0.0.25",
   "license": "MIT",
   "type": "module",
   "description": "Easily integrate shopify into your nuxt 3 app 🚀",
@@ -47,7 +47,7 @@
     "typecheck": "vue-tsc --noEmit",
     "typecheck:playground": "bun run --filter=playground --env-file=.env --elide-lines=100 typecheck",
     "typecheck:playground-v4": "bun run --filter=playground-v4 --env-file=.env --elide-lines=100 typecheck",
-    "typecheck:template": "bun run  --env-file=.env --elide-lines=0 --filter=./template typecheck",
+    "typecheck:template": "bun run --filter=./template typecheck",
     "typecheck:all": "bun run --filter=* typecheck",
     "analyze": "bun run --filter=./playgrounds/playground --env-file=.env --elide-lines=100 analyze",
     "prepare": "nuxt-module-build prepare",
