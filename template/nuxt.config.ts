@@ -130,6 +130,8 @@ export default defineNuxtConfig({
         },
     },
 
+    telemetry: false,
+
     fonts: {
         families: [
             {

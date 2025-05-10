@@ -32,7 +32,6 @@ logs
 !.env.example
 !**/.env.example
 
-.envrc
 .direnv
 
 # certificates
