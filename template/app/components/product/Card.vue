@@ -8,6 +8,8 @@ const props = defineProps<{
     product: Serialized<ProductFieldsFragment>
 }>()
 
+const { t } = useI18n()
+
 const schema = z.object({
     quantity: z.number().min(1),
 })
@@ -66,7 +68,7 @@ const state = reactive<z.infer<typeof schema>>({
 
                         <UButton
                             :trailing-icon="icons.cartAdd"
-                            label="Add to cart"
+                            :label="t('product.addToCart')"
                             variant="soft"
                             type="submit"
                             class="cursor-pointer"

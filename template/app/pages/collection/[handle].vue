@@ -13,7 +13,7 @@ const { t } = useI18n()
 
 const handle = route.params.handle as string
 
-const loading = ref(true)
+const loading = ref(false)
 
 const fetchProducts = async (language: string, country: string, cursor?: string) => {
     loading.value = true
@@ -140,7 +140,7 @@ watch([country, locale], async () => {
                 :ui="{ trailingIcon: loading ? 'animate-spin': '' }"
                 @click="loadMore"
             >
-                Load more
+                {{ t('listing.loadMore') }}
             </UButton>
         </div>
     </div>

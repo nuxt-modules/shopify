@@ -19,13 +19,16 @@
         "description": "Suche nach Produkten und Kollektionen.",
         "placeholder": "Suche..."
     },
-    "collections": {
-        "label": "Kollektionen"
-    },
     "hero": {
         "title": "Entdecken Sie unsere sorgfältig ausgewählte Kollektion von Vintage-Kleidung",
         "subtitle": "Durchstöbern Sie unsere kuratierte Auswahl an Vintage-Kleidung mit einzigartigen Stücken, die eine Geschichte erzählen. Jedes Teil ist handverlesen für seine Qualität und seinen Stil, damit Sie etwas wirklich Besonderes finden.",
         "cta": "Jetzt Shoppen"
+    },
+    "collections": {
+        "label": "Kollektionen"
+    },
+    "listing": {
+        "loadMore": "Mehr Laden"
     },
     "filter": {
         "label": "Filter"
@@ -35,5 +38,8 @@
         "by": "Sortieren nach",
         "ascending": "aufsteigend",
         "descending": "absteigend"
+    },
+    "product": {
+        "addToCart": "In den Warenkorb"
     }
 }

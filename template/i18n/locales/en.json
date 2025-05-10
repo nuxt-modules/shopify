@@ -19,13 +19,13 @@
         "description": "Search for different products and collections.",
         "placeholder": "Search..."
     },
-    "collections": {
-        "label": "Collections"
-    },
     "hero": {
         "title": "Discover our carefully selected vintage clothing collection",
         "subtitle": "Explore our curated selection of vintage clothing, featuring unique pieces that tell a story. Each item is handpicked for its quality and style, ensuring you find something truly special.",
         "cta": "Shop Now"
+    },
+    "collections": {
+        "label": "Collections"
     },
     "filter": {
         "label": "Filter"
@@ -35,5 +35,8 @@
         "by": "Sort by",
         "ascending": "ascending",
         "descending": "descending"
+    },
+    "product": {
+        "addToCart": "Add to Cart"
     }
 }
