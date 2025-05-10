@@ -5,7 +5,6 @@ import type { Serialized } from '#shopify/utils'
 const props = defineProps<{
     product?: Serialized<ProductFieldsFragment>
     title?: string
-    size?: 'sm' | 'md' | 'lg'
 }>()
 
 const emits = defineEmits<{
@@ -24,15 +23,9 @@ const handleImageLoad = () => requestAnimationFrame(() => {
 
 <template>
     <div
-        :class="[
-            imgLoading ? 'animate-pulse' : '',
-            {
-                'max-w-full': !props.size,
-                'max-w-64': props.size === 'sm',
-                'max-w-128': props.size === 'md',
-                'max-w-256': props.size === 'lg',
-            },
-        ]"
+        :class="{
+            'animate-pulse': imgLoading,
+        }"
         class="aspect-square flex items-center justify-center"
     >
         <NuxtImg

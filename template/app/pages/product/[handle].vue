@@ -4,12 +4,15 @@ definePageMeta({
     layout: 'detail',
 })
 
-const { addItems } = await useCart()
 const { country } = useCountry()
 const { locale } = useI18n()
 const route = useRoute()
 
 const handle = computed(() => route.params.handle as string)
+
+const state = reactive({
+    quantity: 1,
+})
 
 const { data } = await useFetch('/api/product', {
     method: 'POST',
@@ -25,51 +28,71 @@ const product = computed(() => data.value?.product)
 </script>
 
 <template>
-    <Section class="grid md:grid-cols-2 gap-16 pb-24">
-        <ProductImage
-            :product="product ?? undefined"
-            class="flex flex-col gap-4"
-        />
-
-        <div class="flex flex-col gap-4">
-            <h2 class="text-2xl font-bold">
+    <div>
+        <div class="flex flex-col gap-2 lg:hidden">
+            <h1 class="text-xl font-bold lg:text-2xl">
                 {{ product?.title }}
-            </h2>
+            </h1>
 
-            <p>{{ product?.description }}</p>
+            <ProductPrice
+                :product="product"
+                class="shrink"
+            />
+        </div>
 
-            <USeparator />
+        <div class="lg:grid lg:grid-cols-12 lg:pt-8">
+            <ProductImage
+                :product="product ?? undefined"
+                class="py-6 lg:pt-0 lg:col-span-6"
+            />
 
-            <div class="w-full text-end mb-8">
-                <ProductPrice
-                    v-if="product"
-                    :product="product"
-                />
-            </div>
+            <div class="flex flex-col gap-4 lg:col-span-4 lg:col-start-8">
+                <div class="flex-col gap-2 hidden lg:flex lg:pb-4">
+                    <h2 class="text-2xl font-bold">
+                        {{ product?.title }}
+                    </h2>
 
-            <div class="grid grid-cols-2 gap-2">
-                <UButton
-                    size="xl"
-                    color="primary"
-                    class="flex items-center justify-center p-4"
-                    @click="addItems({
-                        quantity: 1,
-                    })"
-                >
-                    Buy now
-                </UButton>
+                    <ProductPrice
+                        :product="product"
+                        class="shrink"
+                    />
+                </div>
 
-                <UButton
-                    size="xl"
-                    color="primary"
-                    class="flex items-center justify-center p-4"
-                    @click="addItems({
-                        quantity: 1,
-                    })"
-                >
-                    Add to cart
-                </UButton>
+                <p>{{ product?.description }}</p>
+
+                <USeparator class="my-4 lg:my-8" />
+
+                <div class="flex justify-between items-center gap-6 lg:gap-12">
+                    <UFormField name="quantity">
+                        <UInputNumber
+                            v-model="state.quantity"
+                            size="lg"
+                            :min="1"
+                            :max="10"
+                            class="w-24 lg:w-28"
+                            :ui="{
+                                base: 'py-3',
+                            }"
+                        />
+                    </UFormField>
+
+                    <UButton
+                        size="lg"
+                        color="primary"
+                        variant="soft"
+                        :icon="icons.cartAdd"
+                        class="flex items-center justify-center p-3 grow"
+                    >
+                        <span>Add to cart</span>
+
+                        <ProductPrice
+                            :product="product"
+                            class="lg:hidden"
+                            inline
+                        />
+                    </UButton>
+                </div>
             </div>
         </div>
-    </Section>
+    </div>
 </template>

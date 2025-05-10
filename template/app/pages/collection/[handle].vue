@@ -114,47 +114,7 @@ watch([country, locale], async () => {
             </aside>
 
             <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-16">
-                <div
-                    v-for="(product, index) in products"
-                    :key="product.node.id"
-                    class="relative"
-                >
-                    <ProductCard
-                        :product="product.node"
-                        class="h-full"
-                    />
-
-                    <USeparator
-                        orientation="vertical"
-                        :ui="{
-                            root: [
-                                'absolute',
-                                '-right-8',
-                                'top-0',
-                                'h-full',
-                                'transition-colors',
-                                'duration-200',
-                                'hidden',
-                                ...[index % 2 > 0 ? 'md:hidden' : 'md:block'],
-                                ...[index % 3 > 1 ? 'xl:hidden' : 'xl:block'],
-                            ],
-                        }"
-                    />
-
-                    <USeparator
-                        orientation="horizontal"
-                        :ui="{
-                            root: [
-                                'absolute',
-                                '-bottom-8',
-                                'left-0',
-                                'w-full',
-                                'transition-colors',
-                                'duration-200',
-                            ],
-                        }"
-                    />
-                </div>
+                <ProductListing :products="products" />
             </div>
         </div>
 

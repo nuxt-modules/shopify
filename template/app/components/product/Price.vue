@@ -3,14 +3,17 @@ import type { ProductFieldsFragment } from '#shopify/storefront'
 import type { Serialized } from '#shopify/utils'
 
 const props = defineProps<{
-    product: Serialized<ProductFieldsFragment>
+    product?: Serialized<ProductFieldsFragment> | null
+    inline?: boolean
 }>()
 
 const { country } = useCountry()
 const { locale } = useI18n()
 
 const price = computed(() => {
-    const currencyCode = props.product.priceRange.minVariantPrice.currencyCode
+    const currencyCode = props.product?.priceRange.minVariantPrice.currencyCode
+
+    if (!currencyCode) return ''
 
     const formatter = new Intl.NumberFormat(`${locale.value}-${country.value}`, {
         style: 'currency',
@@ -23,7 +26,21 @@ const price = computed(() => {
 </script>
 
 <template>
-    <span class="block font-bold text-sm">
+    <span
+        v-if="props.product"
+        :class="{
+            'block font-medium text-muted text-xl': !props.inline,
+            'opacity-70': props.inline,
+        }"
+    >
+        <template v-if="props.inline">
+            [
+        </template>
+
         {{ price }}
+
+        <template v-if="props.inline">
+            ]
+        </template>
     </span>
 </template>

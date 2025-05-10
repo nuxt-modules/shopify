@@ -15,14 +15,6 @@ const schema = z.object({
 const state = reactive<z.infer<typeof schema>>({
     quantity: 1,
 })
-
-const { addItems } = await useCart()
-
-const handleAddToCart = async (quantity: number) => {
-    await addItems({
-        quantity,
-    })
-}
 </script>
 
 <template>
@@ -35,23 +27,25 @@ const handleAddToCart = async (quantity: number) => {
                 root: 'rounded-none !bg-transparent',
             }"
         >
-            <div class="relative flex flex-col gap-4 h-full">
+            <div class="relative flex flex-col gap-6 h-full">
                 <NuxtLink
                     :to="getProductAppUrl(props.product.handle)"
-                    class="flex flex-col gap-4 grow"
+                    class="flex flex-col grow"
                 >
-                    <ProductImage :product="props.product" />
+                    <ProductImage
+                        :product="props.product"
+                        class="pb-6"
+                    />
 
-                    <div class="flex flex-row justify-between">
-                        <ProductPrice
-                            v-if="props.product"
-                            :product="props.product"
-                        />
-                    </div>
-
-                    <h2 class="font-bold">
+                    <p class="text-xl font-bold pb-2 lg:text-lg">
                         {{ props.product.title }}
-                    </h2>
+                    </p>
+
+                    <ProductPrice
+                        v-if="props.product"
+                        :product="props.product"
+                        class="lg:text-lg"
+                    />
                 </NuxtLink>
 
                 <UForm
@@ -61,14 +55,12 @@ const handleAddToCart = async (quantity: number) => {
                     class="flex flex-col gap-4"
                 >
                     <div class="flex flex-row gap-4 justify-between">
-                        <UFormField
-                            name="quantity"
-                            class="w-24"
-                        >
+                        <UFormField name="quantity">
                             <UInputNumber
                                 v-model="state.quantity"
                                 :min="1"
                                 :max="10"
+                                class="w-24"
                             />
                         </UFormField>
 
@@ -78,7 +70,6 @@ const handleAddToCart = async (quantity: number) => {
                             variant="soft"
                             type="submit"
                             class="cursor-pointer"
-                            @click.prevent="handleAddToCart(state.quantity)"
                         />
                     </div>
                 </UForm>
