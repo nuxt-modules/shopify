@@ -17,7 +17,9 @@
     "search": {
         "label": "Search",
         "description": "Search for different products and collections.",
-        "placeholder": "Search..."
+        "placeholder": "Search...",
+        "products": "Products",
+        "collections": "Collections"
     },
     "hero": {
         "title": "Discover our carefully selected vintage clothing collection",
@@ -40,6 +42,7 @@
         "descending": "descending"
     },
     "product": {
+        "label": "Product",
         "addToCart": "Add to Cart"
     }
 }

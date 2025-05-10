@@ -17,7 +17,9 @@
     "search": {
         "label": "Suche",
         "description": "Suche nach Produkten und Kollektionen.",
-        "placeholder": "Suche..."
+        "placeholder": "Suche...",
+        "products": "Produkte",
+        "collections": "Kollektionen"
     },
     "hero": {
         "title": "Entdecken Sie unsere sorgfältig ausgewählte Kollektion von Vintage-Kleidung",
@@ -40,6 +42,7 @@
         "descending": "absteigend"
     },
     "product": {
+        "label": "Produkt",
         "addToCart": "In den Warenkorb"
     }
 }

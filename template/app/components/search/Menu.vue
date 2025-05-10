@@ -25,7 +25,7 @@ const collections = computed(() => data.value?.collections.edges ?? [])
 const groups = computed(() => [
     {
         id: 'products',
-        label: 'Products',
+        label: t('search.products'),
         items: products.value.map(product => ({
             label: product.node.title,
             suffix: product.node.description,
@@ -40,7 +40,7 @@ const groups = computed(() => [
     },
     {
         id: 'collections',
-        label: 'Collections',
+        label: t('search.collections'),
         items: collections.value.map(collection => ({
             label: collection.node.title,
             suffix: collection.node.description,
