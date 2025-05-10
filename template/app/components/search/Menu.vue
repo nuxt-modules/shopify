@@ -31,7 +31,6 @@ const groups = computed(() => [
             suffix: product.node.description,
             to: localePath(`/product/${product.node.handle}`),
             avatar: {
-                // @ts-expect-error TODO: Fix type error
                 src: `${product.node.featuredImage?.url}?width=40&height=40`,
                 alt: product.node.featuredImage?.altText,
             },

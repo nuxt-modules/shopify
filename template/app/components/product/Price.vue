@@ -15,13 +15,14 @@ const price = computed(() => {
 
     if (!currencyCode) return ''
 
+    const rawPrice = Number(props.product.priceRange.minVariantPrice.amount)
+
     const formatter = new Intl.NumberFormat(`${locale.value}-${country.value}`, {
         style: 'currency',
         currency: currencyCode,
     })
 
-    // @ts-expect-error TODO: Fix type error
-    return formatter.format(props.product.priceRange.minVariantPrice.amount)
+    return formatter.format(rawPrice)
 })
 </script>
 

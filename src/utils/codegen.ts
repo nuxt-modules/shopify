@@ -39,10 +39,25 @@ const getIntrospection = (options: ShopifyTemplateOptions) => {
     return `https://shopify.dev/${clientType}-graphql-direct-proxy/${clientConfig.apiVersion}/`
 }
 
+const generateConfig = {
+    defaultScalarType: 'unknown',
+    scalars: {
+        Color: 'string',
+        DateTime: 'string',
+        Decimal: 'string',
+        HTML: 'string',
+        ID: 'string',
+        ISO8601DateTime: 'string',
+        UnsignedInt64: 'string',
+        URL: 'string',
+    },
+}
+
 export const generateIntrospection: NuxtTemplate<ShopifyTemplateOptions>['getContents'] = async (data) => {
     const config = {
         schema: getIntrospection(data.options),
         plugins: ['introspection'],
+        config: generateConfig,
     } satisfies Types.ConfiguredOutput
 
     await data.nuxt.callHook(`${data.options.clientType}:generate:introspection`, {
@@ -64,6 +79,7 @@ export const generateTypes: NuxtTemplate<ShopifyTemplateOptions>['getContents'] 
     const config = {
         schema: getIntrospection(data.options),
         plugins: ['typescript'],
+        config: generateConfig,
     } satisfies Types.ConfiguredOutput
 
     await data.nuxt.callHook(`${data.options.clientType}:generate:types`, {
@@ -106,6 +122,7 @@ export const generateOperations: NuxtTemplate<ShopifyTemplateOptions>['getConten
                 )
             },
         },
+        config: generateConfig,
     } satisfies Types.ConfiguredOutput
 
     await data.nuxt.callHook(`${data.options.clientType}:generate:operations`, {
