@@ -17,7 +17,7 @@ const {
     loadMore,
 } = useListing(handle)
 
-await load()
+const data = await load()
 
 const currentSort = ref('price')
 </script>
@@ -27,7 +27,7 @@ const currentSort = ref('price')
         <div class="flex flex-col gap-6 md:gap-8">
             <div class="flex flex-col grow gap-5 md:flex-row md:gap-16">
                 <h1 class="text-2xl font-bold">
-                    <!-- {{ collection?.title }} -->
+                    {{ data?.collection?.title }}
                 </h1>
 
                 <div class="flex grow justify-between md:justify-end gap-4">

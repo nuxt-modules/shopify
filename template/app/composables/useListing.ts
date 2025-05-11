@@ -12,6 +12,8 @@ export const useListing = (handle: string) => {
     const hasNextPage = ref(false)
     const endCursor = ref<string | undefined>(undefined)
 
+    const currentPage = computed(() => Number.parseInt(route.query.p as string || '1', 10))
+
     const onLoad = (response: Serialized<FetchCollectionQuery>) => {
         hasNextPage.value = response?.collection?.products.pageInfo.hasNextPage ?? false
         endCursor.value = response?.collection?.products.pageInfo.endCursor ?? undefined
@@ -21,15 +23,13 @@ export const useListing = (handle: string) => {
     const fetchProducts = async (params: { cursor?: string, pages?: number } = {}) => {
         loading.value = true
 
-        const currentPage = Number.parseInt(route.query.p as string || '1', 10)
-
         const response = await $fetch('/api/collection', {
             method: 'POST',
             body: {
                 handle,
                 country: country.value,
                 language: locale.value,
-                first: 12 * (params.pages || currentPage),
+                first: 12 * (params.pages || 1),
                 after: params.cursor,
             },
         })
@@ -39,16 +39,19 @@ export const useListing = (handle: string) => {
         return response
     }
 
-    const load = () => useAsyncData(`collection-${handle}-${locale.value}`, async () => await fetchProducts())
-        .then(({ data, error }) => {
-            if (error.value) throw createError({
-                statusCode: 500,
-                statusMessage: `Error fetching collection with handle: ${handle}`,
-                fatal: true,
-            })
-
-            if (data.value) onLoad(data.value)
+    const load = () => useAsyncData(`collection-${handle}-${locale.value}`, async () => await fetchProducts({
+        pages: currentPage.value,
+    })).then(({ data, error }) => {
+        if (error.value) throw createError({
+            statusCode: 500,
+            statusMessage: `Error fetching collection with handle: ${handle}`,
+            fatal: true,
         })
+
+        if (data.value) onLoad(data.value)
+
+        return data.value
+    })
 
     const loadMore = async () => {
         if (!hasNextPage.value) return
@@ -59,8 +62,7 @@ export const useListing = (handle: string) => {
 
         onLoad(data)
 
-        const currentPage = Number.parseInt(route.query.p as string || '1', 10)
-        await router.replace({ query: { ...route.query, p: currentPage + 1 } })
+        await router.replace({ query: { ...route.query, p: currentPage.value + 1 } })
     }
 
     return {
