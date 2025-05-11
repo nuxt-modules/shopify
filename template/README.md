@@ -8,8 +8,6 @@
 [![License][license-src]][license-href]
 [![Nuxt][nuxt-src]][nuxt-href]
 
-[![Deploy with Vercel][vercel-src]][vercel-href]
-
 > [!WARNING]
 > This template is a work in progress and is not yet ready for production use. Please check back later for updates.
 
@@ -26,6 +24,14 @@
 - **Nuxt i18n**: Built-in page localizations.
 - **ESLint**: Minimally configured ESLint for code quality.
 - **Vue-Tsc**: Fully type-safe, guaranteed.
+
+Deploy to vercel:
+
+[![Deploy with Vercel][vercel-src]][vercel-href]
+
+Deploy to Cloudflare:
+
+[![Deploy with Cloudflare][cloudflare-src]][cloudflare-href]
 
 ## 📦 Setup
 
@@ -108,3 +114,6 @@ Published under the [MIT License](https://github.com/konkonam/nuxt-shopify/tree/
 
 [vercel-src]: https://vercel.com/button
 [vercel-href]: https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fkonkonam%2Fnuxt-shopify%2Ftree%2Fmain%2Ftemplate
+
+[cloudflare-src]: https://deploy.workers.cloudflare.com/button
+[cloudflare-href]: https://deploy.workers.cloudflare.com/?url=https%3A%2F%2Fgithub.com%2Fkonkonam%2Fnuxt-shopify%2Ftree%2Fmain%2Ftemplate
