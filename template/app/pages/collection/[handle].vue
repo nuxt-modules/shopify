@@ -1,77 +1,25 @@
 <script setup lang="ts">
-import type { FilterState } from '~/components/Filters.vue'
-
 definePageMeta({
     validate: route => typeof route.params.handle === 'string',
     layout: 'listing',
 })
 
-const { country } = useCountry()
-const { locale } = useI18n()
 const route = useRoute()
 const { t } = useI18n()
 
 const handle = route.params.handle as string
 
-const loading = ref(false)
+const {
+    products,
+    loading,
+    hasNextPage,
+    load,
+    loadMore,
+} = useListing(handle)
 
-const fetchProducts = async (language: string, country: string, cursor?: string) => {
-    loading.value = true
+await load()
 
-    const response = await $fetch('/api/collection', {
-        method: 'POST',
-        body: {
-            handle,
-            country,
-            language,
-            first: 12,
-            after: cursor,
-        },
-    })
-
-    loading.value = false
-
-    return response
-}
-
-const { data, error } = await useAsyncData(`collection-${handle}-${locale.value}`, async () =>
-    await fetchProducts(locale.value, country.value))
-
-if (error.value) {
-    throw createError({
-        statusCode: 500,
-        statusMessage: `Failed to fetch collection with handle: ${handle}`,
-        fatal: true,
-    })
-}
-
-const collection = computed(() => data.value?.collection)
-
-const hasNextPage = ref(collection.value?.products.pageInfo.hasNextPage ?? false)
-const endCursor = ref(collection.value?.products.pageInfo.endCursor ?? undefined)
-const products = ref(collection.value?.products.edges ?? [])
 const currentSort = ref('price')
-
-const loadMore = async () => {
-    if (!hasNextPage.value) return
-
-    const data = await fetchProducts(locale.value, country.value, endCursor.value)
-
-    products.value.push(...data?.collection?.products.edges ?? [])
-    hasNextPage.value = data?.collection?.products.pageInfo.hasNextPage ?? false
-    endCursor.value = data?.collection?.products.pageInfo.endCursor ?? undefined
-}
-
-const onChange = (state: FilterState) => {
-    console.log(state)
-}
-
-watch([country, locale], async () => {
-    products.value = []
-    endCursor.value = undefined
-
-    await loadMore()
-})
 </script>
 
 <template>
@@ -79,7 +27,7 @@ watch([country, locale], async () => {
         <div class="flex flex-col gap-6 md:gap-8">
             <div class="flex flex-col grow gap-5 md:flex-row md:gap-16">
                 <h1 class="text-2xl font-bold">
-                    {{ collection?.title }}
+                    <!-- {{ collection?.title }} -->
                 </h1>
 
                 <div class="flex grow justify-between md:justify-end gap-4">
@@ -119,7 +67,6 @@ watch([country, locale], async () => {
             <aside class="hidden lg:flex w-1/4 min-w-64 sticky">
                 <Filters
                     class="sticky top-20 mb-auto"
-                    @change="onChange"
                 />
             </aside>
 

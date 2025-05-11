@@ -11,6 +11,20 @@ import { upperFirst } from 'scule'
 
 import { useLog } from './log'
 
+const generateConfig = {
+    defaultScalarType: 'unknown',
+    scalars: {
+        Color: 'string',
+        DateTime: 'string',
+        Decimal: 'string',
+        HTML: 'string',
+        ID: 'string',
+        ISO8601DateTime: 'string',
+        UnsignedInt64: 'string',
+        URL: 'string',
+    },
+}
+
 async function extractResult(input: Promise<Types.FileOutput[]>) {
     try {
         return (await input)?.at(0)?.content ?? ''
@@ -37,20 +51,6 @@ const getIntrospection = (options: ShopifyTemplateOptions) => {
     }
 
     return `https://shopify.dev/${clientType}-graphql-direct-proxy/${clientConfig.apiVersion}/`
-}
-
-const generateConfig = {
-    defaultScalarType: 'unknown',
-    scalars: {
-        Color: 'string',
-        DateTime: 'string',
-        Decimal: 'string',
-        HTML: 'string',
-        ID: 'string',
-        ISO8601DateTime: 'string',
-        UnsignedInt64: 'string',
-        URL: 'string',
-    },
 }
 
 export const generateIntrospection: NuxtTemplate<ShopifyTemplateOptions>['getContents'] = async (data) => {
