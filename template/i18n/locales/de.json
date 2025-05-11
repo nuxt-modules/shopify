@@ -39,7 +39,10 @@
         "label": "Sortieren",
         "by": "Sortieren nach",
         "ascending": "aufsteigend",
-        "descending": "absteigend"
+        "descending": "absteigend",
+        "price": "Preis",
+        "releaseDate": "Veröffentlicht am",
+        "relevance": "Relevanz"
     },
     "product": {
         "label": "Produkt",

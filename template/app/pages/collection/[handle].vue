@@ -23,20 +23,46 @@ const currentSort = ref('price')
 </script>
 
 <template>
-    <div class="flex flex-col gap-6 lg:gap-0">
+    <div>
         <h1 class="text-2xl font-bold">
             {{ data?.collection?.title }}
         </h1>
 
-        <div class="relative">
-            <div
-                class="sticky top-16 z-10 w-full flex justify-between gap-6 md:gap-8 lg:justify-end"
+        <div class="py-4 flex justify-between gap-6 md:gap-8 lg:justify-end">
+            <UDrawer
+                :ui="{ container: 'w-full max-w-(--ui-container) mx-auto px-4 sm:px-6 lg:px-8' }"
             >
+                <UButton
+                    variant="outline"
+                    size="xs"
+                    :icon="icons.filter"
+                    :label="t('filter.label')"
+                    class="lg:hidden"
+                />
+
+                <template #content>
+                    <Filters
+                        class="p-4 pb-10 w-full shadow"
+                    />
+                </template>
+            </UDrawer>
+
+            <div class="flex flex-row gap-2 md:gap-4">
+                <UButton
+                    variant="outline"
+                    size="xs"
+                    :icon="icons.sortAsc"
+                    :label="`${t('sort.by')} ${currentSort}: ${t('sort.ascending')}`"
+                    :ui="{
+                        label: 'hidden sm:block',
+                    }"
+                />
+
                 <UPopover
                     :content="{
-                        align: 'start',
+                        align: 'end',
                         side: 'bottom',
-                        sideOffset: 17,
+                        sideOffset: 12,
                     }"
                     :ui="{
                         content: 'max-w-[320px] w-full',
@@ -45,69 +71,36 @@ const currentSort = ref('price')
                     <UButton
                         variant="outline"
                         size="xs"
-                        :icon="icons.filter"
-                        :label="t('filter.label')"
-                        class="bg-[var(--ui-bg)] hover:bg-muted lg:hidden"
+                        :icon="icons.sort"
+                        :label="t('sort.label')"
                     />
 
                     <template #content>
-                        <Filters
-                            class="p-4 w-full"
+                        <USelect
+                            v-model="currentSort"
+                            :items="[
+                                { label: t('sort.price'), value: 'price' },
+                                { label: t('sort.releaseDate'), value: 'releaseDate' },
+                                { label: t('sort.relevance'), value: 'relevance' },
+                            ]"
+                            class="min-w-42"
                         />
                     </template>
                 </UPopover>
-
-                <div class="flex flex-row gap-2 md:gap-4">
-                    <UButton
-                        variant="outline"
-                        size="xs"
-                        :icon="icons.sortAsc"
-                        :label="`${t('sort.by')} ${currentSort}: ${t('sort.ascending')}`"
-                        :ui="{
-                            label: 'hidden sm:block',
-                        }"
-                        class="bg-[var(--ui-bg)] hover:bg-muted"
-                    />
-
-                    <UPopover
-                        :content="{
-                            align: 'end',
-                            side: 'bottom',
-                            sideOffset: 17,
-                        }"
-                        :ui="{
-                            content: 'max-w-[320px] w-full',
-                        }"
-                    >
-                        <UButton
-                            variant="outline"
-                            size="xs"
-                            :icon="icons.sort"
-                            :label="t('sort.label')"
-                            class="bg-[var(--ui-bg)] hover:bg-muted"
-                        />
-
-                        <template #content>
-                            <div class="p-4 w-full">
-                                Sort comes here
-                            </div>
-                        </template>
-                    </UPopover>
-                </div>
             </div>
+        </div>
 
-            <USeparator class="mt-4 mb-8" />
+        <USeparator class="mb-8" />
 
-            <div class="flex flex-row gap-16 grow mb-16">
-                <aside class="hidden top-6 lg:flex w-1/4 min-w-64 sticky">
-                    <Filters
-                        class="sticky top-20 mb-auto"
-                    />
-                </aside>
+        <div class="flex flex-row gap-16 grow mb-16">
+            <aside class="hidden top-6 lg:flex w-1/4 min-w-64 sticky">
+                <Filters
+                    class="sticky top-20 mb-auto"
+                />
+            </aside>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-16">
-                    <ProductListing :products="products" />
-                </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-16">
+                <ProductListing :products="products" />
             </div>
         </div>
 

@@ -39,7 +39,10 @@
         "label": "Sort",
         "by": "Sort by",
         "ascending": "ascending",
-        "descending": "descending"
+        "descending": "descending",
+        "price": "Price",
+        "releaseDate": "Release Date",
+        "relevance": "Relevance"
     },
     "product": {
         "label": "Product",

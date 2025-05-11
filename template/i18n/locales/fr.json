@@ -39,7 +39,10 @@
         "label": "Trier",
         "by": "Trier par",
         "ascending": "croissant",
-        "descending": "décroissant"
+        "descending": "décroissant",
+        "price": "Prix",
+        "releaseDate": "Date de Publication",
+        "relevance": "Pertinence"
     },
     "product": {
         "label": "Produit",
