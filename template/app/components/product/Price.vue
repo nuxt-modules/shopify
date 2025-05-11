@@ -4,6 +4,7 @@ import type { Serialized } from '#shopify/utils'
 
 const props = defineProps<{
     product?: Serialized<ProductFieldsFragment> | null
+    quantity?: number
     inline?: boolean
 }>()
 
@@ -36,6 +37,10 @@ const price = computed(() => {
     >
         <template v-if="props.inline">
             [
+        </template>
+
+        <template v-if="props.quantity && props.quantity > 1">
+            {{ props.quantity }} x
         </template>
 
         {{ price }}

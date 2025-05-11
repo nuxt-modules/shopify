@@ -1,5 +1,4 @@
 import type { FetchCollectionQuery, ProductFieldsFragment } from '#shopify/storefront'
-import type { Serialized } from '#shopify/utils'
 
 export const useListing = (handle: string) => {
     const { country } = useCountry()
@@ -14,30 +13,24 @@ export const useListing = (handle: string) => {
 
     const currentPage = computed(() => Number.parseInt(route.query.p as string || '1', 10))
 
-    const onLoad = (response: Serialized<FetchCollectionQuery>) => {
-        hasNextPage.value = response?.collection?.products.pageInfo.hasNextPage ?? false
-        endCursor.value = response?.collection?.products.pageInfo.endCursor ?? undefined
-        products.value = [...products.value, ...(response?.collection?.products.edges ?? [])]
+    const onLoad = (data: MaybeRef<FetchCollectionQuery | undefined>) => {
+        hasNextPage.value = unref(data)?.collection?.products.pageInfo.hasNextPage ?? false
+        endCursor.value = unref(data)?.collection?.products.pageInfo.endCursor ?? undefined
+        products.value = [...products.value, ...(unref(data)?.collection?.products.edges ?? [])]
+
+        return unref(data)
     }
 
-    const fetchProducts = async (params: { cursor?: string, pages?: number } = {}) => {
-        loading.value = true
-
-        const response = await $fetch('/api/collection', {
-            method: 'POST',
-            body: {
-                handle,
-                country: country.value,
-                language: locale.value,
-                first: 12 * (params.pages || 1),
-                after: params.cursor,
-            },
-        })
-
-        loading.value = false
-
-        return response
-    }
+    const fetchProducts = async (params: { cursor?: string, pages?: number } = {}) => await $fetch('/api/collection', {
+        method: 'POST',
+        body: {
+            handle,
+            country: country.value,
+            language: locale.value,
+            first: 12 * (params.pages || 1),
+            after: params.cursor,
+        },
+    })
 
     const load = () => useAsyncData(`collection-${handle}-${locale.value}`, async () => await fetchProducts({
         pages: currentPage.value,
@@ -48,21 +41,19 @@ export const useListing = (handle: string) => {
             fatal: true,
         })
 
-        if (data.value) onLoad(data.value)
-
-        return data.value
+        return onLoad(data)
     })
 
     const loadMore = async () => {
         if (!hasNextPage.value) return
 
-        const data = await fetchProducts({ cursor: endCursor.value, pages: 1 })
+        loading.value = true
 
-        if (!data) return
+        await fetchProducts({ cursor: endCursor.value, pages: 1 })
+            .then(data => onLoad(data))
+            .then(() => router.replace({ query: { ...route.query, p: currentPage.value + 1 } }))
 
-        onLoad(data)
-
-        await router.replace({ query: { ...route.query, p: currentPage.value + 1 } })
+        loading.value = false
     }
 
     return {

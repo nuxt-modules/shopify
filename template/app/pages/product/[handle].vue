@@ -5,7 +5,7 @@ definePageMeta({
 })
 
 const { country } = useCountry()
-const { locale } = useI18n()
+const { t, locale } = useI18n()
 const route = useRoute()
 
 const handle = computed(() => route.params.handle as string)
@@ -62,16 +62,15 @@ const product = computed(() => data.value?.product)
 
                 <USeparator class="my-4 lg:my-8" />
 
-                <div class="flex justify-between items-center gap-6 lg:gap-12">
+                <div class="flex flex-col items-end sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-6 lg:gap-12">
                     <UFormField name="quantity">
                         <UInputNumber
                             v-model="state.quantity"
-                            size="lg"
                             :min="1"
                             :max="10"
                             class="w-24 lg:w-28"
                             :ui="{
-                                base: 'py-3',
+                                base: 'sm:py-3',
                             }"
                         />
                     </UFormField>
@@ -83,10 +82,11 @@ const product = computed(() => data.value?.product)
                         :icon="icons.cartAdd"
                         class="flex items-center justify-center p-3 grow"
                     >
-                        <span>Add to cart</span>
+                        <span>{{ t('product.addToCart') }}</span>
 
                         <ProductPrice
                             :product="product"
+                            :quantity="state.quantity"
                             class="lg:hidden"
                             inline
                         />
