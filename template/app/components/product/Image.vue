@@ -17,6 +17,7 @@ const url = computed(() => (props.product?.featuredImage as { url: string })?.ur
 
 const handleImageLoad = () => requestAnimationFrame(() => {
     imgLoading.value = false
+
     emits('load')
 })
 </script>
@@ -26,7 +27,7 @@ const handleImageLoad = () => requestAnimationFrame(() => {
         :class="{
             'animate-pulse': imgLoading,
         }"
-        class="aspect-square flex items-center justify-center max-w-full"
+        class="flex items-center justify-center max-w-full"
     >
         <NuxtImg
             provider="shopify"
@@ -35,8 +36,8 @@ const handleImageLoad = () => requestAnimationFrame(() => {
             :width="props.product?.featuredImage?.width ?? undefined"
             :height="props.product?.featuredImage?.height ?? undefined"
             sizes="xs:100vw md:50vw lg:40vw xl:25vw"
+            class="aspect-square max-w-full max-h-full animate-pop-up select-none object-contain"
             placeholder
-            class="max-w-full max-h-full animate-pop-up select-none grow-0 shrink-0"
             @load="handleImageLoad"
         />
     </div>

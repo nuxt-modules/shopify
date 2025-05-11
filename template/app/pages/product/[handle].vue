@@ -43,7 +43,7 @@ const product = computed(() => data.value?.product)
         <div class="lg:grid lg:grid-cols-12 lg:pt-8">
             <ProductImage
                 :product="product ?? undefined"
-                class="py-6 lg:pt-0 lg:col-span-6"
+                class="my-6 lg:mt-0 lg:col-span-6"
             />
 
             <div class="flex flex-col gap-4 lg:col-span-4 lg:col-start-8">
