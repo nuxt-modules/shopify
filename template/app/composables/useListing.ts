@@ -57,6 +57,22 @@ export const useListing = (handle: string) => {
         loading.value = false
     }
 
+    const reset = async () => {
+        loading.value = true
+
+        products.value = []
+        hasNextPage.value = false
+        endCursor.value = undefined
+
+        await fetchProducts({ pages: 1 })
+            .then(data => onLoad(data))
+            .then(() => router.replace({ query: { ...route.query, p: undefined } }))
+
+        loading.value = false
+    }
+
+    watch([country, locale], async () => await reset())
+
     return {
         products,
         loading,

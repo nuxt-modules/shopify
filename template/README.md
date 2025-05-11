@@ -116,4 +116,4 @@ Published under the [MIT License](https://github.com/konkonam/nuxt-shopify/tree/
 [vercel-href]: https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fkonkonam%2Fnuxt-shopify%2Ftree%2Fmain%2Ftemplate
 
 [cloudflare-src]: https://deploy.workers.cloudflare.com/button
-[cloudflare-href]: https://deploy.workers.cloudflare.com/?url=https%3A%2F%2Fgithub.com%2Fkonkonam%2Fnuxt-shopify%2Ftree%2Fmain%2Ftemplate
+[cloudflare-href]: https://deploy.workers.cloudflare.com/?url=https%3A%2F%2Fgithub.com%2Fkonkonam%2Fnuxt-shopify%2Ftemplate

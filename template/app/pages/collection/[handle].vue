@@ -32,13 +32,30 @@ const currentSort = ref('price')
             <div
                 class="sticky top-16 z-10 w-full flex justify-between gap-6 md:gap-8 lg:justify-end"
             >
-                <UButton
-                    variant="outline"
-                    size="xs"
-                    :icon="icons.filter"
-                    :label="t('filter.label')"
-                    class="bg-[var(--ui-bg)] hover:bg-muted lg:hidden"
-                />
+                <UPopover
+                    :content="{
+                        align: 'start',
+                        side: 'bottom',
+                        sideOffset: 17,
+                    }"
+                    :ui="{
+                        content: 'max-w-[320px] w-full',
+                    }"
+                >
+                    <UButton
+                        variant="outline"
+                        size="xs"
+                        :icon="icons.filter"
+                        :label="t('filter.label')"
+                        class="bg-[var(--ui-bg)] hover:bg-muted lg:hidden"
+                    />
+
+                    <template #content>
+                        <Filters
+                            class="p-4 w-full"
+                        />
+                    </template>
+                </UPopover>
 
                 <div class="flex flex-row gap-2 md:gap-4">
                     <UButton
@@ -52,13 +69,30 @@ const currentSort = ref('price')
                         class="bg-[var(--ui-bg)] hover:bg-muted"
                     />
 
-                    <UButton
-                        variant="outline"
-                        size="xs"
-                        :icon="icons.sort"
-                        :label="t('sort.label')"
-                        class="bg-[var(--ui-bg)] hover:bg-muted"
-                    />
+                    <UPopover
+                        :content="{
+                            align: 'end',
+                            side: 'bottom',
+                            sideOffset: 17,
+                        }"
+                        :ui="{
+                            content: 'max-w-[320px] w-full',
+                        }"
+                    >
+                        <UButton
+                            variant="outline"
+                            size="xs"
+                            :icon="icons.sort"
+                            :label="t('sort.label')"
+                            class="bg-[var(--ui-bg)] hover:bg-muted"
+                        />
+
+                        <template #content>
+                            <div class="p-4 w-full">
+                                Sort comes here
+                            </div>
+                        </template>
+                    </UPopover>
                 </div>
             </div>
 
