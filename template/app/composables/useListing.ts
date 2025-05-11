@@ -12,6 +12,7 @@ export const useListing = (handle: string) => {
     const endCursor = ref<string | undefined>(undefined)
 
     const currentPage = computed(() => Number.parseInt(route.query.p as string || '1', 10))
+    const key = computed(() => `collection-${handle}-${locale.value}-${country.value}`)
 
     const onLoad = (data: MaybeRef<FetchCollectionQuery | undefined>) => {
         hasNextPage.value = unref(data)?.collection?.products.pageInfo.hasNextPage ?? false
@@ -32,7 +33,7 @@ export const useListing = (handle: string) => {
         },
     })
 
-    const load = () => useAsyncData(`collection-${handle}-${locale.value}`, async () => await fetchProducts({
+    const load = () => useAsyncData(key, async () => await fetchProducts({
         pages: currentPage.value,
     })).then(({ data, error }) => {
         if (error.value) throw createError({

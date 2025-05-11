@@ -27,11 +27,11 @@
 
 Deploy to vercel:
 
-[![Deploy with Vercel][vercel-src]][vercel-href]
+[![Deploy to Vercel][vercel-src]][vercel-href]
 
 Deploy to Cloudflare:
 
-[![Deploy with Cloudflare][cloudflare-src]][cloudflare-href]
+[![Deploy to Cloudflare][cloudflare-src]][cloudflare-href]
 
 ## 📦 Setup
 
