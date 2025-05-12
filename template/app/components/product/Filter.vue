@@ -16,15 +16,15 @@ const props = defineProps<{
     filter: FilterFieldsFragment
 }>()
 
-const value = defineModel<FilterValue>()
+const _value = defineModel<FilterValue>()
 
 const type = computed(() => props.filter.type)
 
-const priceRange = computed(() => props.filter.type === 'PRICE_RANGE'
+const _priceRange = computed(() => props.filter.type === 'PRICE_RANGE'
     ? (JSON.parse(props.filter.values?.[0]?.input as string) as PriceRangeInput)
     : undefined)
 
-const list = computed(() => props.filter.type === 'LIST'
+const _list = computed(() => props.filter.type === 'LIST'
     ? (JSON.parse(props.filter.values?.[0]?.input as string) as ListInput)
     : undefined)
 
