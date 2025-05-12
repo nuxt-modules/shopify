@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import type { ProductFieldsFragment } from '#shopify/storefront'
-import type { Serialized } from '#shopify/utils'
 
 const props = defineProps<{
-    product?: Serialized<ProductFieldsFragment>
+    product?: ProductFieldsFragment
     title?: string
 }>()
 

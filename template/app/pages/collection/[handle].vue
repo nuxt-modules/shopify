@@ -20,16 +20,21 @@ const {
 const data = await load()
 
 const currentSort = ref('price')
+
+const collection = computed(() => data?.collection)
+const filters = computed(() => collection.value?.products?.filters ?? [])
 </script>
 
 <template>
     <div>
         <h1 class="text-2xl font-bold">
-            {{ data?.collection?.title }}
+            {{ collection?.title }}
         </h1>
 
         <div class="py-4 flex justify-between gap-6 md:gap-8 lg:justify-end">
             <UDrawer
+                title="Filters"
+                description="Quickly find the perfect vintage piece that suits you"
                 :ui="{ container: 'w-full max-w-(--ui-container) mx-auto px-4 sm:px-6 lg:px-8' }"
             >
                 <UButton
@@ -40,9 +45,10 @@ const currentSort = ref('price')
                     class="lg:hidden"
                 />
 
-                <template #content>
+                <template #body>
                     <Filters
-                        class="p-4 pb-10 w-full shadow"
+                        class="pt-4 pb-10 w-full"
+                        :filters="filters"
                     />
                 </template>
             </UDrawer>
@@ -76,14 +82,36 @@ const currentSort = ref('price')
                     />
 
                     <template #content>
-                        <USelect
-                            v-model="currentSort"
+                        <UNavigationMenu
+                            highlight
+                            highlight-color="primary"
+                            orientation="vertical"
                             :items="[
-                                { label: t('sort.price'), value: 'price' },
-                                { label: t('sort.releaseDate'), value: 'releaseDate' },
-                                { label: t('sort.relevance'), value: 'relevance' },
+                                {
+                                    label: t('sort.price'),
+                                    active: currentSort === 'price',
+                                    onSelect: () => {
+                                        currentSort = 'price'
+                                        load()
+                                    },
+                                },
+                                {
+                                    label: t('sort.relevance'),
+                                    active: currentSort === 'relevance',
+                                    onSelect: () => {
+                                        currentSort = 'relevance'
+                                        load()
+                                    },
+                                },
+                                {
+                                    label: t('sort.releaseDate'),
+                                    active: currentSort === 'releaseDate',
+                                    onSelect: () => {
+                                        currentSort = 'releaseDate'
+                                        load()
+                                    },
+                                },
                             ]"
-                            class="min-w-42"
                         />
                     </template>
                 </UPopover>
@@ -93,10 +121,16 @@ const currentSort = ref('price')
         <USeparator class="mb-8" />
 
         <div class="flex flex-row gap-16 grow mb-16">
-            <aside class="hidden top-6 lg:flex w-1/4 min-w-64 sticky">
-                <Filters
-                    class="sticky top-20 mb-auto"
-                />
+            <aside class="hidden top-20 lg:block w-1/4 min-w-64 sticky mb-auto">
+                <h2 class="text-xl font-bold pb-2">
+                    Filters
+                </h2>
+
+                <p class="pb-6">
+                    Quickly find the perfect vintage piece that suits you
+                </p>
+
+                <Filters :filters="filters" />
             </aside>
 
             <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-16">

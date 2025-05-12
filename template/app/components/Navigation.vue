@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import type { FetchCollectionsQuery } from '#shopify/storefront'
-import type { Serialized } from '#shopify/utils'
 import type { NavigationMenuItem } from '#ui/types'
 
 const props = defineProps<{
-    collections: Serialized<FetchCollectionsQuery>['collections']['edges']
+    collections: FetchCollectionsQuery['collections']['edges']
 }>()
 
 const searchInitialized = ref(false)

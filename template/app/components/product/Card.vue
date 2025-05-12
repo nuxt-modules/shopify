@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import type { ProductFieldsFragment } from '#shopify/storefront'
-import type { Serialized } from '#shopify/utils'
 
 import { z } from 'zod'
 
 const props = defineProps<{
-    product: Serialized<ProductFieldsFragment>
+    product: ProductFieldsFragment
 }>()
 
 const { t } = useI18n()

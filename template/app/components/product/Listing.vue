@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import type { ProductConnectionFieldsFragment } from '#shopify/storefront'
-import type { Serialized } from '#shopify/utils'
 
 const props = defineProps<{
-    products: Serialized<ProductConnectionFieldsFragment>['edges']
+    products: ProductConnectionFieldsFragment['edges']
 }>()
 </script>
 

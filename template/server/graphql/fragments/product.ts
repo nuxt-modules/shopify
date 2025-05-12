@@ -61,6 +61,9 @@ export const PRODUCT_CONNECTION_FRAGMENT = `#graphql
         ...ProductFields
       }
     }
+    filters {
+      ...FilterFields
+    }
     pageInfo {
       hasNextPage
       hasPreviousPage
@@ -69,4 +72,5 @@ export const PRODUCT_CONNECTION_FRAGMENT = `#graphql
     }
   }
   ${PRODUCT_FRAGMENT}
+  ${FILTERS_FRAGMENT}
 `

@@ -25,6 +25,21 @@ export const PRICE_FRAGMENT = `#graphql
   }
 `
 
+export const FILTERS_FRAGMENT = `#graphql
+  fragment FilterFields on Filter {
+    id
+    label
+    presentation
+    type
+    values {
+      count
+      id
+      input
+      label
+    }
+  }
+`
+
 export const UTILS_FRAGMENT = `
   ${PRICE_FRAGMENT}
   ${IMAGE_FRAGMENT}
