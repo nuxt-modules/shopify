@@ -20,6 +20,7 @@ const generateConfig = {
         HTML: 'string',
         ID: 'string',
         ISO8601DateTime: 'string',
+        JSON: 'string',
         UnsignedInt64: 'string',
         URL: 'string',
     },
