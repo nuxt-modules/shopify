@@ -20,25 +20,16 @@ const filterComponents = computed(() => props.filters.map(filter => ({
     filter,
 })))
 
-const state = reactive({})
+console.log(props.filters)
 </script>
 
 <template>
-    <div class="flex flex-col gap-4">
-        <UForm
-            :state="state"
-            :validate-on="['change']"
-            class="gap-2 flex flex-col"
-        >
-            <template
-                v-for="({ component, filter }, index) in filterComponents"
-                :key="`filter-${index}`"
-            >
-                <component
-                    :is="component"
-                    :filter="filter"
-                />
-            </template>
-        </UForm>
+    <div class="flex flex-col gap-6">
+        <component
+            :is="component"
+            v-for="({ component, filter }, index) in filterComponents"
+            :key="`filter-${index}`"
+            :filter="filter"
+        />
     </div>
 </template>
