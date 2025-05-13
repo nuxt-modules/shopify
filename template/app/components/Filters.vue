@@ -5,6 +5,21 @@ const props = defineProps<{
     filters: FilterFieldsFragment[]
 }>()
 
+const filterComponents = computed(() => props.filters.map(filter => ({
+    component: (() => {
+        switch (filter.id) {
+            case 'filter.v.price':
+                return resolveComponent('FiltersPrice')
+            case 'filter.v.availability':
+                return resolveComponent('FiltersAvailability')
+            default:
+                return `No template found for filter type ${filter.id}`
+        }
+    })(),
+
+    filter,
+})))
+
 const state = reactive({})
 </script>
 
@@ -16,11 +31,11 @@ const state = reactive({})
             class="gap-2 flex flex-col"
         >
             <template
-                v-for="(filter, index) in props.filters"
-                :key="index"
+                v-for="({ component, filter }, index) in filterComponents"
+                :key="`filter-${index}`"
             >
-                <FiltersPrice
-                    v-if="filter.type === 'PRICE_RANGE'"
+                <component
+                    :is="component"
                     :filter="filter"
                 />
             </template>

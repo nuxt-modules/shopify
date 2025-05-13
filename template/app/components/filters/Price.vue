@@ -1,11 +1,16 @@
 <script setup lang="ts">
 import type { ProductFilter, FilterFieldsFragment } from '#shopify/storefront'
+import type { UpdateFilterFn } from '../../../types/filter'
+
+type FilterType = Pick<ProductFilter, 'price'>
 
 const props = defineProps<{
     filter: FilterFieldsFragment
 }>()
 
-const priceRange = computed(() => JSON.parse(props.filter.values?.[0]?.input as string ?? '') as Pick<ProductFilter, 'price'>)
+const emits = defineEmits<UpdateFilterFn>()
+
+const priceRange = computed(() => JSON.parse(props.filter.values?.[0]?.input as string ?? '') as FilterType)
 
 const value = ref([priceRange.value.price?.min ?? 0, priceRange.value.price?.max ?? 0])
 </script>
@@ -27,6 +32,12 @@ const value = ref([priceRange.value.price?.min ?? 0, priceRange.value.price?.max
             :step="1"
             class="pt-2"
             tooltip
+            @change="emits('update:filter', 'price', {
+                price: {
+                    min: value[0],
+                    max: value[1],
+                },
+            })"
         />
     </UFormField>
 </template>
