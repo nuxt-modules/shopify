@@ -8,7 +8,7 @@ const props = defineProps<{
     filter: FilterFieldsFragment
 }>()
 
-const emits = defineEmits<UpdateFilterFn>()
+const _emits = defineEmits<UpdateFilterFn>()
 
 const available = computed(() => props.filter.values?.map(value => JSON.parse(value.input as string) as FilterType))
 
