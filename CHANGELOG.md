@@ -1,3 +1,7 @@
+# 0.0.26
+- Fixed JSON scalar type generation
+- Bumped dependencies
+
 # 0.0.25
 - Fixed scalar type generation
 - Bumped dependencies
