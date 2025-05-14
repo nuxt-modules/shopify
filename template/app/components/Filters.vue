@@ -1,9 +1,14 @@
 <script setup lang="ts">
-import type { FilterFieldsFragment } from '#shopify/storefront'
+import type { FilterFieldsFragment, ProductFilter } from '#shopify/storefront'
+
+import { queryToFilters, filtersToQuery } from '~/shared/filters'
 
 const props = defineProps<{
     filters: FilterFieldsFragment[]
 }>()
+
+const router = useRouter()
+const route = useRoute()
 
 const filterComponents = computed(() => props.filters.map(filter => ({
     component: (() => {
@@ -20,7 +25,17 @@ const filterComponents = computed(() => props.filters.map(filter => ({
     filter,
 })))
 
-console.log(props.filters)
+const onUpdate = (type: keyof ProductFilter, value: ProductFilter) => {
+    const filters = queryToFilters(route.query)
+
+    router.replace({ query: {
+        ...route.query,
+        ...filtersToQuery({
+            ...filters,
+            ...value,
+        }),
+    } })
+}
 </script>
 
 <template>
@@ -30,6 +45,7 @@ console.log(props.filters)
             v-for="({ component, filter }, index) in filterComponents"
             :key="`filter-${index}`"
             :filter="filter"
+            @update:filter="onUpdate"
         />
     </div>
 </template>

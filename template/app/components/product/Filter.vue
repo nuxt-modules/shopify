@@ -27,8 +27,6 @@ const _priceRange = computed(() => props.filter.type === 'PRICE_RANGE'
 const _list = computed(() => props.filter.type === 'LIST'
     ? (JSON.parse(props.filter.values?.[0]?.input as string) as ListInput)
     : undefined)
-
-console.log(props.filter)
 </script>
 
 <template>

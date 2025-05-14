@@ -62,7 +62,7 @@ const product = computed(() => data.value?.product)
 
                 <USeparator class="my-4 lg:my-8" />
 
-                <div class="flex flex-col items-end sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-6 lg:gap-12">
+                <div class="flex flex-row justify-between items-center gap-6 lg:gap-12">
                     <UFormField name="quantity">
                         <UInputNumber
                             v-model="state.quantity"
@@ -70,7 +70,7 @@ const product = computed(() => data.value?.product)
                             :max="10"
                             class="w-24 lg:w-28"
                             :ui="{
-                                base: 'sm:py-3',
+                                base: 'py-3',
                             }"
                         />
                     </UFormField>
@@ -82,7 +82,7 @@ const product = computed(() => data.value?.product)
                         :icon="icons.cartAdd"
                         class="flex items-center justify-center p-3 grow"
                     >
-                        <span>{{ t('product.addToCart') }}</span>
+                        <span class="hidden sm:block">{{ t('product.addToCart') }}</span>
 
                         <ProductPrice
                             :product="product"

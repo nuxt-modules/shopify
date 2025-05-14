@@ -33,7 +33,8 @@
         "loadMore": "Load More"
     },
     "filter": {
-        "label": "Filter"
+        "label": "Filter",
+        "clear": "Clear"
     },
     "sort": {
         "label": "Sort",

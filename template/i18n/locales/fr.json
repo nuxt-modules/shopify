@@ -33,7 +33,8 @@
         "loadMore": "Charger Plus"
     },
     "filter": {
-        "label": "Filtrer"
+        "label": "Filtrer",
+        "clear": "Réinitialiser"
     },
     "sort": {
         "label": "Trier",

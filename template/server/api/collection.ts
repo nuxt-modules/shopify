@@ -3,6 +3,7 @@ import { z } from 'zod'
 export default defineEventHandler(async (event) => {
     const variables = await readValidatedBody(event, z.object({
         handle: z.string(),
+        filters: productFilterSchema,
     }).merge(connectionParamsSchema).merge(localizationParamsSchema).parse)
 
     const storefront = useStorefront()

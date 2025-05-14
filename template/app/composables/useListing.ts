@@ -1,4 +1,6 @@
-import type { FetchCollectionQuery, ProductFieldsFragment } from '#shopify/storefront'
+import type { ProductConnectionFieldsFragment, FetchCollectionQuery, ProductFieldsFragment } from '#shopify/storefront'
+
+import { queryToFilters } from '~/shared/filters'
 
 export const useListing = (handle: string) => {
     const { country } = useCountry()
@@ -8,16 +10,20 @@ export const useListing = (handle: string) => {
 
     const loading = ref(false)
     const products = ref<{ cursor: string, node: ProductFieldsFragment }[]>([])
+    const filters = ref<ProductConnectionFieldsFragment['filters']>([])
     const hasNextPage = ref(false)
     const endCursor = ref<string | undefined>(undefined)
 
     const currentPage = computed(() => Number.parseInt(route.query.p as string || '1', 10))
     const key = computed(() => `collection-${handle}-${locale.value}-${country.value}`)
+    const routeFilters = computed(() => queryToFilters(route.query))
+    const activeFilterCount = computed(() => Object.keys(routeFilters.value).length)
 
     const onLoad = (data: MaybeRef<FetchCollectionQuery | undefined>) => {
         hasNextPage.value = unref(data)?.collection?.products.pageInfo.hasNextPage ?? false
         endCursor.value = unref(data)?.collection?.products.pageInfo.endCursor ?? undefined
         products.value = [...products.value, ...(unref(data)?.collection?.products.edges ?? [])]
+        filters.value = unref(data)?.collection?.products.filters ?? []
 
         return unref(data)
     }
@@ -26,6 +32,7 @@ export const useListing = (handle: string) => {
         method: 'POST',
         body: {
             handle,
+            filters: routeFilters.value,
             country: country.value,
             language: locale.value,
             first: 12 * (params.pages || 1),
@@ -71,12 +78,14 @@ export const useListing = (handle: string) => {
         loading.value = false
     }
 
-    watch([country, locale], async () => await reset())
+    watch([country, locale, () => route.query.filters], async () => await reset())
 
     return {
         products,
         loading,
         hasNextPage,
+        filters,
+        activeFilterCount,
         load,
         loadMore,
     }

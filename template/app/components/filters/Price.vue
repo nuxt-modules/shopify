@@ -2,15 +2,13 @@
 import type { ProductFilter, FilterFieldsFragment } from '#shopify/storefront'
 import type { UpdateFilterFn } from '../../../types/filter'
 
-type FilterType = Pick<ProductFilter, 'price'>
-
 const props = defineProps<{
     filter: FilterFieldsFragment
 }>()
 
 const emits = defineEmits<UpdateFilterFn>()
 
-const priceRange = computed(() => JSON.parse(props.filter.values?.[0]?.input as string ?? '') as FilterType)
+const priceRange = computed(() => JSON.parse(props.filter.values?.[0]?.input ?? '') as Pick<ProductFilter, 'price'>)
 
 const value = ref([priceRange.value.price?.min ?? 0, priceRange.value.price?.max ?? 0])
 </script>

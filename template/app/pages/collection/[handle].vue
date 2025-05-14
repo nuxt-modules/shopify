@@ -4,6 +4,7 @@ definePageMeta({
     layout: 'listing',
 })
 
+const router = useRouter()
 const route = useRoute()
 const { t } = useI18n()
 
@@ -11,8 +12,10 @@ const handle = route.params.handle as string
 
 const {
     products,
+    filters,
     loading,
     hasNextPage,
+    activeFilterCount,
     load,
     loadMore,
 } = useListing(handle)
@@ -22,7 +25,10 @@ const data = await load()
 const currentSort = ref('price')
 
 const collection = computed(() => data?.collection)
-const filters = computed(() => collection.value?.products?.filters ?? [])
+
+const resetFilters = async () => {
+    await router.replace({ query: { ...route.query, filters: undefined } })
+}
 </script>
 
 <template>
@@ -31,7 +37,7 @@ const filters = computed(() => collection.value?.products?.filters ?? [])
             {{ collection?.title }}
         </h1>
 
-        <div class="py-4 flex justify-between gap-6 md:gap-8 lg:justify-end">
+        <div class="py-4 flex gap-1 lg:gap-8 lg:justify-end">
             <UDrawer
                 title="Filters"
                 description="Quickly find the perfect vintage piece that suits you"
@@ -42,7 +48,7 @@ const filters = computed(() => collection.value?.products?.filters ?? [])
                     variant="outline"
                     size="xs"
                     :icon="icons.filter"
-                    :label="t('filter.label')"
+                    :label="`${t('filter.label')} ${activeFilterCount > 0 ? `(${activeFilterCount})` : ''}`"
                     class="lg:hidden"
                 />
 
@@ -54,7 +60,18 @@ const filters = computed(() => collection.value?.products?.filters ?? [])
                 </template>
             </UDrawer>
 
-            <div class="flex flex-row gap-2 md:gap-4">
+            <UButton
+                v-if="activeFilterCount > 0"
+                variant="link"
+                color="neutral"
+                size="xs"
+                :icon="icons.close"
+                :label="t('filter.clear')"
+                class="lg:hidden"
+                @click="resetFilters"
+            />
+
+            <div class="flex flex-row gap-3 ml-auto md:gap-4">
                 <UButton
                     variant="outline"
                     size="xs"
@@ -123,9 +140,22 @@ const filters = computed(() => collection.value?.products?.filters ?? [])
 
         <div class="flex flex-row gap-16 grow mb-16">
             <aside class="hidden top-20 lg:block w-1/4 min-w-64 sticky mb-auto">
-                <h2 class="text-xl font-bold pb-2">
-                    Filters
-                </h2>
+                <div class="flex items-center justify-between pb-2">
+                    <h2 class="text-xl font-bold">
+                        Filters
+                    </h2>
+
+                    <UButton
+                        v-if="activeFilterCount > 0"
+                        variant="link"
+                        color="neutral"
+                        size="xs"
+                        :icon="icons.close"
+                        :label="t('filter.clear')"
+                        class="pt-1.5 cursor-pointer"
+                        @click="resetFilters"
+                    />
+                </div>
 
                 <p class="pb-6">
                     Quickly find the perfect vintage piece that suits you
@@ -134,9 +164,7 @@ const filters = computed(() => collection.value?.products?.filters ?? [])
                 <Filters :filters="filters" />
             </aside>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-16">
-                <ProductListing :products="products" />
-            </div>
+            <ProductListing :products="products" />
         </div>
 
         <div
@@ -149,6 +177,7 @@ const filters = computed(() => collection.value?.products?.filters ?? [])
                 :disabled="loading"
                 :trailing-icon="loading ? icons.spinner : icons.down"
                 :ui="{ trailingIcon: loading ? 'animate-spin': '' }"
+                class="cursor-pointer"
                 @click="loadMore"
             >
                 {{ t('listing.loadMore') }}

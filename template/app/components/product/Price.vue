@@ -31,7 +31,7 @@ const price = computed(() => {
         v-if="props.product"
         :class="{
             'block font-medium text-muted text-xl': !props.inline,
-            'opacity-70': props.inline,
+            'sm:opacity-80': props.inline,
         }"
     >
         <template v-if="props.inline">
