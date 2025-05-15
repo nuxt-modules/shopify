@@ -19,7 +19,7 @@ export function useAdmin() {
     } = _shopify.clients.admin
 
     if (_shopify.logger) {
-        options.logger = createConsola(_shopify.logger).withTag('shopify').debug
+        options.logger = createConsola(_shopify.logger).withTag('shopify').trace
     }
 
     useNitroApp().hooks.callHook('admin:client:configure', { options })

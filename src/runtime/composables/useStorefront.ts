@@ -15,7 +15,7 @@ export function useStorefront() {
     } = _shopify.clients.storefront
 
     if (_shopify.logger) {
-        options.logger = createConsola(_shopify.logger).withTag('shopify').debug
+        options.logger = createConsola(_shopify.logger).withTag('shopify').trace
     }
 
     useNuxtApp().hooks.callHook('storefront:client:configure', { options })

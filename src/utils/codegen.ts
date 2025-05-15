@@ -1,30 +1,16 @@
-import type { ShopifyClientType } from './config'
 import type { InterfaceExtensionsParams, ShopifyTemplateOptions } from '../types'
 import type { Types } from '@graphql-codegen/plugin-helpers'
 import type { NuxtTemplate } from '@nuxt/schema'
 
 import { generate } from '@graphql-codegen/cli'
 import { preset, pluckConfig } from '@shopify/graphql-codegen'
+import { LogLevels } from 'consola'
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { upperFirst } from 'scule'
 
+import { ShopifyClientType } from './config'
 import { useLog } from './log'
-
-const generateConfig = {
-    defaultScalarType: 'unknown',
-    scalars: {
-        Color: 'string',
-        DateTime: 'string',
-        Decimal: 'string',
-        HTML: 'string',
-        ID: 'string',
-        ISO8601DateTime: 'string',
-        JSON: 'string',
-        UnsignedInt64: 'string',
-        URL: 'string',
-    },
-}
 
 async function extractResult(input: Promise<Types.FileOutput[]>) {
     try {
@@ -54,11 +40,37 @@ const getIntrospection = (options: ShopifyTemplateOptions) => {
     return `https://shopify.dev/${clientType}-graphql-direct-proxy/${clientConfig.apiVersion}/`
 }
 
+const getTypescriptPluginConfig = (options: ShopifyTemplateOptions) => {
+    if (options.clientType !== ShopifyClientType.Storefront) return 'typescript'
+
+    return {
+        typescript: {
+            useTypeImports: true,
+            defaultScalarType: 'unknown',
+            useImplementingTypes: true,
+            enumsAsTypes: true,
+            scalars: {
+                DateTime: 'string',
+                Decimal: 'string',
+                HTML: 'string',
+                URL: 'string',
+                Color: 'string',
+                UnsignedInt64: 'string',
+                ISO8601DateTime: 'string',
+                JSON: 'string',
+            },
+        },
+    }
+}
+
 export const generateIntrospection: NuxtTemplate<ShopifyTemplateOptions>['getContents'] = async (data) => {
     const config = {
         schema: getIntrospection(data.options),
-        plugins: ['introspection'],
-        config: generateConfig,
+        plugins: [{
+            introspection: {
+                minify: true,
+            },
+        }],
     } satisfies Types.ConfiguredOutput
 
     await data.nuxt.callHook(`${data.options.clientType}:generate:introspection`, {
@@ -69,7 +81,7 @@ export const generateIntrospection: NuxtTemplate<ShopifyTemplateOptions>['getCon
     return extractResult(generate({
         overwrite: true,
         ignoreNoDocuments: true,
-        silent: true,
+        silent: useLog().level < LogLevels.debug,
         generates: {
             [data.options.filename]: config,
         },
@@ -79,8 +91,7 @@ export const generateIntrospection: NuxtTemplate<ShopifyTemplateOptions>['getCon
 export const generateTypes: NuxtTemplate<ShopifyTemplateOptions>['getContents'] = async (data) => {
     const config = {
         schema: getIntrospection(data.options),
-        plugins: ['typescript'],
-        config: generateConfig,
+        plugins: [getTypescriptPluginConfig(data.options)],
     } satisfies Types.ConfiguredOutput
 
     await data.nuxt.callHook(`${data.options.clientType}:generate:types`, {
@@ -91,7 +102,7 @@ export const generateTypes: NuxtTemplate<ShopifyTemplateOptions>['getContents'] 
     return extractResult(generate({
         overwrite: true,
         ignoreNoDocuments: true,
-        silent: true,
+        silent: useLog().level < LogLevels.debug,
         generates: {
             [data.options.filename]: config,
         },
@@ -123,7 +134,6 @@ export const generateOperations: NuxtTemplate<ShopifyTemplateOptions>['getConten
                 )
             },
         },
-        config: generateConfig,
     } satisfies Types.ConfiguredOutput
 
     await data.nuxt.callHook(`${data.options.clientType}:generate:operations`, {
@@ -133,11 +143,11 @@ export const generateOperations: NuxtTemplate<ShopifyTemplateOptions>['getConten
 
     return extractResult(generate({
         overwrite: true,
-        silent: true,
-        // @ts-expect-error weird behavior
-        pluckConfig,
+        silent: useLog().level < LogLevels.debug,
         generates: {
             [data.options.filename]: config,
         },
+        // @ts-expect-error weird behavior
+        pluckConfig,
     }, false))
 }
