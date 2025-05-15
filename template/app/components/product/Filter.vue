@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { FilterFieldsFragment, FilterValue } from '#shopify/storefront'
+import type { FilterValue, ProductConnectionFieldsFragment } from '#shopify/storefront'
 
 type PriceRangeInput = {
     price: {
@@ -13,7 +13,7 @@ type ListInput = {
 }
 
 const props = defineProps<{
-    filter: FilterFieldsFragment
+    filter: ProductConnectionFieldsFragment['filters'][number]
 }>()
 
 const _value = defineModel<FilterValue>()

@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import type { ProductFilter, FilterFieldsFragment } from '#shopify/storefront'
+import type { ProductFilter, ProductConnectionFieldsFragment } from '#shopify/storefront'
 import type { UpdateFilterFn } from '../../../types/filter'
 
 const props = defineProps<{
-    filter: FilterFieldsFragment
+    filter: ProductConnectionFieldsFragment['filters'][number]
 }>()
 
 const emits = defineEmits<UpdateFilterFn>()

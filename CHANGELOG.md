@@ -1,3 +1,7 @@
+# 0.0.27
+- Updated codegen config handling
+- Updated log levels for API clients and codegen
+
 # 0.0.26
 - Fixed JSON scalar type generation
 - Bumped dependencies

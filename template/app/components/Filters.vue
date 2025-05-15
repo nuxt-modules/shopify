@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import type { FilterFieldsFragment, ProductFilter } from '#shopify/storefront'
+import type { ProductFilter, ProductConnectionFieldsFragment } from '#shopify/storefront'
 
 import { queryToFilters, filtersToQuery } from '~/shared/filters'
 
 const props = defineProps<{
-    filters: FilterFieldsFragment[]
+    filters: ProductConnectionFieldsFragment['filters']
 }>()
 
 const router = useRouter()
