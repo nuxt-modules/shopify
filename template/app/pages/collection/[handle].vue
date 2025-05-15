@@ -4,27 +4,57 @@ definePageMeta({
     layout: 'listing',
 })
 
+const {
+    filters: activeFilters,
+    count: activeFilterCount,
+} = useFilters()
+
+const { country } = useCountry()
+const { locale } = useI18n()
 const router = useRouter()
 const route = useRoute()
 const { t } = useI18n()
 
 const handle = route.params.handle as string
 
-const {
-    products,
-    filters,
-    loading,
-    hasNextPage,
-    activeFilterCount,
-    load,
-    loadMore,
-} = useListing(handle)
+const endCursor = ref<string | null>()
 
-const data = await load()
+const { data, error, status, refresh } = await useFetch('/api/collection', {
+    method: 'POST',
+    body: {
+        handle,
+        first: 12,
+        after: endCursor,
+        language: locale,
+        country: country,
+        filters: activeFilters,
+    },
+    watch: [
+        locale,
+        country,
+        () => route.query.filters,
+    ],
+})
+
+if (error.value) throw createError({
+    statusCode: 500,
+    statusMessage: `Failed to fetch collection with handle ${handle}`,
+    fatal: true,
+})
+
+endCursor.value = data.value?.collection?.products?.pageInfo?.endCursor
+
+const products = computed(() => data.value?.collection?.products?.edges || [])
+const filters = computed(() => data.value?.collection?.products?.filters || [])
+const hasNextPage = computed(() => data.value?.collection?.products?.pageInfo?.hasNextPage)
 
 const currentSort = ref('price')
 
-const collection = computed(() => data?.collection)
+const loadMore = async () => {
+    if (!hasNextPage.value) return
+
+    await refresh()
+}
 
 const resetFilters = async () => {
     await router.replace({ query: { ...route.query, filters: undefined } })
@@ -34,7 +64,7 @@ const resetFilters = async () => {
 <template>
     <div>
         <h1 class="text-2xl font-bold">
-            {{ collection?.title }}
+            {{ data?.collection?.title }}
         </h1>
 
         <div class="py-4 flex gap-1 lg:gap-8 lg:justify-end">
@@ -110,7 +140,6 @@ const resetFilters = async () => {
                                     active: currentSort === 'price',
                                     onSelect: () => {
                                         currentSort = 'price'
-                                        load()
                                     },
                                 },
                                 {
@@ -118,7 +147,6 @@ const resetFilters = async () => {
                                     active: currentSort === 'relevance',
                                     onSelect: () => {
                                         currentSort = 'relevance'
-                                        load()
                                     },
                                 },
                                 {
@@ -126,7 +154,6 @@ const resetFilters = async () => {
                                     active: currentSort === 'releaseDate',
                                     onSelect: () => {
                                         currentSort = 'releaseDate'
-                                        load()
                                     },
                                 },
                             ]"
@@ -174,9 +201,9 @@ const resetFilters = async () => {
             <UButton
                 variant="soft"
                 color="primary"
-                :disabled="loading"
-                :trailing-icon="loading ? icons.spinner : icons.down"
-                :ui="{ trailingIcon: loading ? 'animate-spin': '' }"
+                :disabled="status === 'pending'"
+                :trailing-icon="status === 'pending' ? icons.spinner : icons.down"
+                :ui="{ trailingIcon: status === 'pending' ? 'animate-spin': '' }"
                 class="cursor-pointer"
                 @click="loadMore"
             >

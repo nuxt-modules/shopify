@@ -5,7 +5,10 @@ export const useFilters = () => {
 
     const filters = computed(() => queryToFilters(route.query))
 
+    const count = computed(() => Object.keys(filters.value).length)
+
     return {
         filters,
+        count,
     }
 }

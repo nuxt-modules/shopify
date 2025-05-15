@@ -3,9 +3,9 @@ export default defineNuxtConfig({
         '@nuxt/image',
         '@nuxt/ui',
         '@nuxtjs/i18n',
+        '@konkonam/nuxt-shopify',
         '@vueuse/nuxt',
         'nuxt-auth-utils',
-        '@konkonam/nuxt-shopify',
     ],
 
     app: {
@@ -192,7 +192,7 @@ export default defineNuxtConfig({
         name: process.env.NUXT_SHOPIFY_NAME as string,
 
         logger: {
-            level: 1,
+            level: 3,
         },
 
         clients: {

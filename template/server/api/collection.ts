@@ -3,7 +3,7 @@ import { z } from 'zod'
 export default defineEventHandler(async (event) => {
     const variables = await readValidatedBody(event, z.object({
         handle: z.string(),
-        filters: productFilterSchema,
+        filters: productFilterSchema.optional(),
     }).merge(connectionParamsSchema).merge(localizationParamsSchema).parse)
 
     const storefront = useStorefront()
@@ -19,7 +19,7 @@ export default defineEventHandler(async (event) => {
             $sortKey: ProductCollectionSortKeys,
             $filters: [ProductFilter!],
             $language: LanguageCode,
-            $country: CountryCode,
+            $country: CountryCode
         )
         @inContext(language: $language, country: $country) {
             collection(handle: $handle) {

@@ -58,7 +58,7 @@ const product = computed(() => data.value?.product)
                     />
                 </div>
 
-                <p>{{ product?.description }}</p>
+                <p v-html="product?.descriptionHtml" />
 
                 <USeparator class="my-4 lg:my-8" />
 
