@@ -5,6 +5,7 @@ import { queryToFilters, filtersToQuery } from '~/shared/filters'
 
 const props = defineProps<{
     filters: ProductConnectionFieldsFragment['filters']
+    heading?: boolean
 }>()
 
 const { count } = useFilters()
@@ -50,26 +51,28 @@ const reset = async () => {
 
 <template>
     <div>
-        <div class="flex items-center justify-between pb-2">
-            <h2 class="text-xl font-bold">
-                Filters
-            </h2>
+        <template v-if="props.heading">
+            <div class="flex items-center justify-between pb-2">
+                <h2 class="text-xl font-bold">
+                    Filters
+                </h2>
 
-            <UButton
-                v-if="count > 0"
-                variant="link"
-                color="neutral"
-                size="xs"
-                :icon="icons.close"
-                :label="t('filter.clear')"
-                class="pt-1.5 cursor-pointer"
-                @click="reset"
-            />
-        </div>
+                <UButton
+                    v-if="count > 0"
+                    variant="link"
+                    color="neutral"
+                    size="xs"
+                    :icon="icons.close"
+                    :label="t('filter.clear')"
+                    class="pt-1.5 cursor-pointer"
+                    @click="reset"
+                />
+            </div>
 
-        <p class="pb-6">
-            Quickly find the perfect vintage piece that suits you
-        </p>
+            <p class="pb-6">
+                Quickly find the perfect vintage piece that suits you
+            </p>
+        </template>
 
         <div class="flex flex-col gap-6">
             <component

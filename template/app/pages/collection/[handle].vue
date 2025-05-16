@@ -71,7 +71,10 @@ const loadMore = async () => {
 
         <div class="flex flex-row gap-16 grow mb-16">
             <aside class="hidden top-20 lg:block w-1/4 min-w-64 sticky mb-auto">
-                <Filters :filters="filters" />
+                <Filters
+                    :filters="filters"
+                    heading
+                />
             </aside>
 
             <ProductListing :products="products" />
