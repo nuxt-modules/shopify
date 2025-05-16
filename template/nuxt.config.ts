@@ -98,6 +98,11 @@ export default defineNuxtConfig({
 
     runtimeConfig: {
         sessionPassword: process.env.NUXT_SESSION_PASSWORD as string,
+
+        products: {
+            perPage: 12,
+            limit: 250,
+        },
     },
 
     future: {
