@@ -7,19 +7,23 @@ definePageMeta({
 const { filters: activeFilters } = useFilters()
 const { country } = useCountry()
 const { locale } = useI18n()
-const router = useRouter()
 const route = useRoute()
-const { t } = useI18n()
 
 const handle = route.params.handle as string
 
-const getKey = () => `collection-${handle}-${locale.value}-${country.value}-${route.query.p}-${activeFilters.value}`
+const getKey = () => `collection-${handle}-${locale.value}-${country.value}`
 
-const { data, error, status } = await useAsyncData(getKey(), async () => $fetch('/api/collection', {
+const startCursor = ref<string>()
+const endCursor = ref<string>()
+
+const { data, error } = await useAsyncData(getKey(), () => $fetch('/api/collection', {
     method: 'POST',
     body: {
         handle,
-        first: 12 * (Number(route.query.p) || 1),
+        first: startCursor.value ? undefined : 12,
+        last: startCursor.value ? 12 : undefined,
+        before: startCursor.value,
+        after: endCursor.value,
         language: locale.value,
         country: country.value,
         filters: activeFilters.value,
@@ -29,7 +33,8 @@ const { data, error, status } = await useAsyncData(getKey(), async () => $fetch(
         locale,
         country,
         activeFilters,
-        () => route.query.p,
+        startCursor,
+        endCursor,
     ],
 })
 
@@ -39,19 +44,28 @@ if (error.value) throw createError({
     fatal: true,
 })
 
-const products = computed(() => data.value?.collection?.products?.edges || [])
-const filters = computed(() => data.value?.collection?.products?.filters || [])
-const hasNextPage = computed(() => data.value?.collection?.products?.pageInfo?.hasNextPage ?? false)
+const products = computed(() => data.value?.collection?.products)
+const filters = computed(() => products.value?.filters ?? [])
 
-const loadMore = async () => {
-    if (!hasNextPage.value) return
-
-    await router.replace({
-        query: {
-            ...route.query,
-            p: Number(route.query.p || 1) + 1,
-        },
+const toTop = () => {
+    window.scrollTo({
+        top: 0,
+        behavior: 'smooth',
     })
+}
+
+const loadPrevious = () => {
+    endCursor.value = undefined
+    startCursor.value = products.value?.pageInfo.startCursor ?? undefined
+
+    toTop()
+}
+
+const loadNext = () => {
+    startCursor.value = undefined
+    endCursor.value = products.value?.pageInfo.endCursor ?? undefined
+
+    toTop()
 }
 </script>
 
@@ -69,7 +83,7 @@ const loadMore = async () => {
 
         <USeparator class="mb-8" />
 
-        <div class="flex flex-row gap-16 grow mb-16">
+        <div class="flex flex-row gap-16 grow">
             <aside class="hidden top-20 lg:block w-1/4 min-w-64 sticky mb-auto">
                 <Filters
                     :filters="filters"
@@ -77,24 +91,11 @@ const loadMore = async () => {
                 />
             </aside>
 
-            <ProductListing :products="products" />
-        </div>
-
-        <div
-            v-if="hasNextPage"
-            class="flex justify-center"
-        >
-            <UButton
-                variant="soft"
-                color="primary"
-                :disabled="status === 'pending'"
-                :trailing-icon="status === 'pending' ? icons.spinner : icons.down"
-                :ui="{ trailingIcon: status === 'pending' ? 'animate-spin': '' }"
-                class="cursor-pointer"
-                @click="loadMore"
-            >
-                {{ t('listing.loadMore') }}
-            </UButton>
+            <ProductListing
+                :products="products"
+                @load-previous="loadPrevious"
+                @load-next="loadNext"
+            />
         </div>
     </div>
 </template>

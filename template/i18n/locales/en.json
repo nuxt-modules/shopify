@@ -30,7 +30,8 @@
         "label": "Collections"
     },
     "listing": {
-        "loadMore": "Load More"
+        "loadPrevious": "Load Previous",
+        "loadNext": "Load Next"
     },
     "filter": {
         "label": "Filter",

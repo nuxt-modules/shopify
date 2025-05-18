@@ -21,7 +21,7 @@ const reset = async () => {
 
 <template>
     <UDrawer
-        title="Filters"
+        :title="t('filter.label')"
         description="Quickly find the perfect vintage piece that suits you"
         :ui="{ container: 'w-full max-w-(--ui-container) mx-auto px-4 sm:px-6 lg:px-8' }"
         handle-only

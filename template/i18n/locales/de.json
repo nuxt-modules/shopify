@@ -30,7 +30,8 @@
         "label": "Kollektionen"
     },
     "listing": {
-        "loadMore": "Mehr Laden"
+        "loadPrevious": "Vorherige laden",
+        "loadNext": "Nächste laden"
     },
     "filter": {
         "label": "Filter",

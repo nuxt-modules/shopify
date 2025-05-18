@@ -11,12 +11,8 @@ export const filtersToQuery = (filters: ProductFilter): LocationQuery => {
     return query
 }
 
-export const queryToFilters = (query: LocationQuery): ProductFilter => {
-    let filters: ProductFilter = {}
-
+export const queryToFilters = (query: LocationQuery): ProductFilter | undefined => {
     if (query.filters && typeof query.filters === 'string') {
-        filters = JSON.parse(query.filters) as ProductFilter
+        return JSON.parse(query.filters) as ProductFilter
     }
-
-    return filters
 }

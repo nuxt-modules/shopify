@@ -23,5 +23,6 @@ export const icons = {
     collection: 'hugeicons:pathfinder-trim',
     article: 'hugeicons:news-01',
     query: 'hugeicons:bubble-chat-search',
-    down: 'hugeicons:arrow-down-01',
+    arrowDown: 'hugeicons:arrow-down-01',
+    arrowUp: 'hugeicons:arrow-up-01',
 }

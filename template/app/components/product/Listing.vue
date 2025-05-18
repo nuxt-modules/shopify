@@ -1,16 +1,19 @@
 <script setup lang="ts">
 import type { ProductConnectionFieldsFragment } from '#shopify/storefront'
 
-import { queryToFilters } from '~/shared/filters'
-
 const props = defineProps<{
-    products: ProductConnectionFieldsFragment['edges']
+    products?: ProductConnectionFieldsFragment
 }>()
 
+const emits = defineEmits<{
+    loadPrevious: []
+    loadNext: []
+}>()
+
+const { count } = useFilters()
 const router = useRouter()
 const route = useRoute()
-
-const filters = computed(() => queryToFilters(route.query))
+const { t } = useI18n()
 
 const resetFilters = async () => {
     await router.replace({ query: { ...route.query, filters: undefined } })
@@ -18,51 +21,83 @@ const resetFilters = async () => {
 </script>
 
 <template>
-    <div class="grid w-full grid-cols-1 gap-16 md:grid-cols-2 xl:grid-cols-3">
+    <div>
         <div
-            v-for="(product, index) in props.products"
-            :key="product.node.id"
-            class="relative"
+            v-if="props.products?.pageInfo.hasPreviousPage"
+            class="flex w-full justify-center pb-8 md:mb-8"
         >
-            <ProductCard
-                :product="product.node"
-                class="h-full"
-            />
+            <UButton
+                variant="soft"
+                color="primary"
+                class="cursor-pointer"
+                :icon="icons.arrowUp"
+                @click="emits('loadPrevious')"
+            >
+                {{ t('listing.loadPrevious') }}
+            </UButton>
+        </div>
 
-            <USeparator
-                orientation="vertical"
-                :ui="{
-                    root: [
-                        'absolute',
-                        '-right-8',
-                        'top-0',
-                        'h-full',
-                        'transition-colors',
-                        'duration-200',
-                        'hidden',
-                        ...[index % 2 > 0 ? 'md:hidden' : 'md:block'],
-                        ...[index % 3 > 1 ? 'xl:hidden' : 'xl:block'],
-                    ],
-                }"
-            />
+        <div class="grid w-full grid-cols-1 gap-16 md:grid-cols-2 xl:grid-cols-3 pb-8">
+            <div
+                v-for="(product, index) in props.products?.edges"
+                :key="product.node.id"
+                class="relative"
+            >
+                <ProductCard
+                    :product="product.node"
+                    class="h-full"
+                />
 
-            <USeparator
-                orientation="horizontal"
-                :ui="{
-                    root: [
-                        'absolute',
-                        '-bottom-8',
-                        'left-0',
-                        'w-full',
-                        'transition-colors',
-                        'duration-200',
-                    ],
-                }"
-            />
+                <USeparator
+                    orientation="vertical"
+                    :ui="{
+                        root: [
+                            'absolute',
+                            '-right-8',
+                            'top-0',
+                            'h-full',
+                            'transition-colors',
+                            'duration-200',
+                            'hidden',
+                            ...[index % 2 > 0 ? 'md:hidden' : 'md:block'],
+                            ...[index % 3 > 1 ? 'xl:hidden' : 'xl:block'],
+                        ],
+                    }"
+                />
+
+                <USeparator
+                    orientation="horizontal"
+                    :ui="{
+                        root: [
+                            'absolute',
+                            '-bottom-8',
+                            'left-0',
+                            'w-full',
+                            'transition-colors',
+                            'duration-200',
+                        ],
+                    }"
+                />
+            </div>
         </div>
 
         <div
-            v-if="products.length === 0"
+            v-if="props.products?.pageInfo.hasNextPage"
+            class="flex w-full justify-center mt-16"
+        >
+            <UButton
+                variant="soft"
+                color="primary"
+                class="cursor-pointer"
+                :icon="icons.arrowDown"
+                @click="emits('loadNext')"
+            >
+                {{ t('listing.loadNext') }}
+            </UButton>
+        </div>
+
+        <div
+            v-if="!props.products || props.products.edges.length === 0"
             class="flex flex-col justify-center items-center col-span-full text-center"
         >
             <div class="flex items-center pb-2 gap-2">
@@ -77,7 +112,7 @@ const resetFilters = async () => {
             </div>
 
             <UButton
-                v-if="Object.keys(filters).length > 0"
+                v-if="count > 0"
                 variant="ghost"
                 @click="resetFilters"
             >
