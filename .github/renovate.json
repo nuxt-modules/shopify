@@ -1,7 +1,8 @@
 {
     "$schema": "https://docs.renovatebot.com/renovate-schema.json",
     "extends": [
-        "group:allNonMajor"
+        "group:allNonMajor",
+        "schedule:weekly"
     ],
     "onboarding": false,
     "automerge": true,
