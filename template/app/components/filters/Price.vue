@@ -10,7 +10,11 @@ const emits = defineEmits<UpdateFilterFn>()
 
 const priceRange = computed(() => JSON.parse(props.filter.values?.[0]?.input ?? '') as Pick<ProductFilter, 'price'>)
 
-const value = ref([priceRange.value.price?.min ?? 0, priceRange.value.price?.max ?? 0])
+const state = reactive(priceRange.value ?? { price: { min: 0, max: 0 } })
+
+const update = () => {
+    emits('update:filter', 'price', state as Pick<ProductFilter, 'price'>)
+}
 </script>
 
 <template>
@@ -19,23 +23,34 @@ const value = ref([priceRange.value.price?.min ?? 0, priceRange.value.price?.max
         name="price"
     >
         <div class="flex items-center justify-between">
-            <span>{{ value[0] }}</span>
-            <span>{{ value[1] }}</span>
-        </div>
+            <UFormField
+                name="price.min"
+                :label="$t('filters.price.min')"
+                class="w-24"
+            >
+                <UInputNumber
+                    v-model="state.price!.min"
+                    :min="0"
+                    :max="state.price!.max ?? undefined"
+                    orientation="vertical"
+                    class="w-24"
+                    @change="update"
+                />
+            </UFormField>
 
-        <USlider
-            v-model="value"
-            :min="priceRange.price?.min ?? 0"
-            :max="priceRange.price?.max ?? 0"
-            :step="1"
-            class="pt-2"
-            tooltip
-            @change="emits('update:filter', 'price', {
-                price: {
-                    min: value[0],
-                    max: value[1],
-                },
-            })"
-        />
+            <UFormField
+                name="price.max"
+                :label="$t('filters.price.max')"
+                class="w-24"
+            >
+                <UInputNumber
+                    v-model="state.price!.max"
+                    :min="state.price!.min ?? undefined"
+                    orientation="vertical"
+                    class="w-24"
+                    @change="update"
+                />
+            </UFormField>
+        </div>
     </UFormField>
 </template>

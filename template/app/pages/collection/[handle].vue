@@ -11,12 +11,12 @@ const route = useRoute()
 
 const handle = route.params.handle as string
 
-const getKey = () => `collection-${handle}-${locale.value}-${country.value}`
+const key = computed(() => `collection-${handle}-${locale.value}-${country.value}`)
 
 const startCursor = ref<string>()
 const endCursor = ref<string>()
 
-const { data, error } = await useAsyncData(getKey(), () => $fetch('/api/collection', {
+const { data, error } = await useAsyncData(key, () => $fetch('/api/collection', {
     method: 'POST',
     body: {
         handle,

@@ -33,9 +33,14 @@
         "loadPrevious": "Load Previous",
         "loadNext": "Load Next"
     },
-    "filter": {
+    "filters": {
         "label": "Filter",
-        "clear": "Clear"
+        "clear": "Clear",
+        "price": {
+            "label": "Price",
+            "min": "from",
+            "max": "to"
+        }
     },
     "sort": {
         "label": "Sort",

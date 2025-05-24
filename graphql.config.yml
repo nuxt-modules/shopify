@@ -1,3 +1,2 @@
 schema:
   - ./playgrounds/playground/.nuxt/schema/storefront.schema.json
-  - ./playgrounds/playground/.nuxt/schema/admin.schema.json

@@ -21,7 +21,7 @@ const reset = async () => {
 
 <template>
     <UDrawer
-        :title="t('filter.label')"
+        :title="t('filters.label')"
         description="Quickly find the perfect vintage piece that suits you"
         :ui="{ container: 'w-full max-w-(--ui-container) mx-auto px-4 sm:px-6 lg:px-8' }"
         handle-only
@@ -30,7 +30,7 @@ const reset = async () => {
             variant="outline"
             size="xs"
             :icon="icons.filter"
-            :label="`${t('filter.label')} ${count > 0 ? `(${count})` : ''}`"
+            :label="`${t('filters.label')} ${count > 0 ? `(${count})` : ''}`"
             class="lg:hidden"
         />
 
@@ -48,7 +48,7 @@ const reset = async () => {
         color="neutral"
         size="xs"
         :icon="icons.close"
-        :label="t('filter.clear')"
+        :label="t('filters.clear')"
         class="lg:hidden"
         @click="reset"
     />

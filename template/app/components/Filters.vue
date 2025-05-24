@@ -63,7 +63,7 @@ const reset = async () => {
                     color="neutral"
                     size="xs"
                     :icon="icons.close"
-                    :label="t('filter.clear')"
+                    :label="t('filters.clear')"
                     class="pt-1.5 cursor-pointer"
                     @click="reset"
                 />
