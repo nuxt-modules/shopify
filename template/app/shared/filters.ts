@@ -5,7 +5,11 @@ export const filtersToQuery = (filters: ProductFilter): LocationQuery => {
     const query: LocationQuery = {}
 
     if (Object.keys(filters).length > 0) {
-        query.filters = JSON.stringify(filters)
+        const filtersString = JSON.stringify(filters)
+
+        if (filtersString.length > 2) {
+            query.filters = filtersString
+        }
     }
 
     return query

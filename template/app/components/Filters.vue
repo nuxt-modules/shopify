@@ -5,13 +5,14 @@ import { queryToFilters, filtersToQuery } from '~/shared/filters'
 
 const props = defineProps<{
     filters: ProductConnectionFieldsFragment['filters']
-    heading?: boolean
 }>()
 
-const { count } = useFilters()
+const emits = defineEmits<{
+    reset: []
+}>()
+
 const router = useRouter()
 const route = useRoute()
-const { t } = useI18n()
 
 const filterComponents = computed(() => props.filters.map(filter => ({
     component: (() => {
@@ -28,60 +29,28 @@ const filterComponents = computed(() => props.filters.map(filter => ({
     filter,
 })))
 
-const onUpdate = (type: keyof ProductFilter, value: ProductFilter) => {
+const onUpdate = async <T extends keyof ProductFilter>(type: T, value: ProductFilter[T]) => {
+    emits('reset')
+
     const filters = queryToFilters(route.query)
 
-    router.replace({ query: {
-        ...route.query,
-        ...filtersToQuery({
+    await router.replace({
+        query: filtersToQuery({
             ...filters,
-            ...value,
+            [type]: value,
         }),
-    } })
-}
-
-const reset = async () => {
-    await router.replace({ query: {
-        ...route.query,
-        filters: undefined,
-        p: undefined,
-    } })
+    })
 }
 </script>
 
 <template>
-    <div>
-        <template v-if="props.heading">
-            <div class="flex items-center justify-between pb-2">
-                <h2 class="text-xl font-bold">
-                    Filters
-                </h2>
-
-                <UButton
-                    v-if="count > 0"
-                    variant="link"
-                    color="neutral"
-                    size="xs"
-                    :icon="icons.close"
-                    :label="t('filters.clear')"
-                    class="pt-1.5 cursor-pointer"
-                    @click="reset"
-                />
-            </div>
-
-            <p class="pb-6">
-                Quickly find the perfect vintage piece that suits you
-            </p>
-        </template>
-
-        <div class="flex flex-col gap-6">
-            <component
-                :is="component"
-                v-for="({ component, filter }, index) in filterComponents"
-                :key="`filter-${index}`"
-                :filter="filter"
-                @update:filter="onUpdate"
-            />
-        </div>
+    <div class="flex flex-col gap-6">
+        <component
+            :is="component"
+            v-for="({ component, filter }, index) in filterComponents"
+            :key="`filter-${index}`"
+            :filter="filter"
+            @update:filter="onUpdate"
+        />
     </div>
 </template>

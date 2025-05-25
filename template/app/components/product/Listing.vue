@@ -8,16 +8,13 @@ const props = defineProps<{
 const emits = defineEmits<{
     loadPrevious: []
     loadNext: []
+    resetFilters: []
 }>()
 
 const { count } = useFilters()
-const router = useRouter()
-const route = useRoute()
 const { t } = useI18n()
 
-const resetFilters = async () => {
-    await router.replace({ query: { ...route.query, filters: undefined } })
-}
+watch(() => props.products, value => console.log('new products', value), { immediate: true })
 </script>
 
 <template>
@@ -114,7 +111,7 @@ const resetFilters = async () => {
             <UButton
                 v-if="count > 0"
                 variant="ghost"
-                @click="resetFilters"
+                @click="emits('resetFilters')"
             >
                 Reset filters
             </UButton>

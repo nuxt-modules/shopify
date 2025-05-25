@@ -40,6 +40,11 @@
             "label": "Price",
             "min": "from",
             "max": "to"
+        },
+        "availability": {
+            "label": "Availability",
+            "true": "In Stock",
+            "false": "Out of Stock"
         }
     },
     "sort": {

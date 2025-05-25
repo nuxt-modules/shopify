@@ -2,36 +2,46 @@
 import type { ProductFilter, ProductConnectionFieldsFragment } from '#shopify/storefront'
 import type { UpdateFilterFn } from '../../../types/filter'
 
+import { queryToFilters } from '~/shared/filters'
+
 const props = defineProps<{
     filter: ProductConnectionFieldsFragment['filters'][number]
 }>()
 
 const emits = defineEmits<UpdateFilterFn>()
 
+const route = useRoute()
+const { t } = useI18n()
+
 const priceRange = computed(() => JSON.parse(props.filter.values?.[0]?.input ?? '') as Pick<ProductFilter, 'price'>)
 
-const state = reactive(priceRange.value ?? { price: { min: 0, max: 0 } })
+const state = reactive(
+    queryToFilters(route.query)?.price
+    ?? priceRange.value?.price
+    ?? { min: 0, max: 100 },
+)
 
 const update = () => {
-    emits('update:filter', 'price', state as Pick<ProductFilter, 'price'>)
+    emits('update:filter', 'price', state)
 }
 </script>
 
 <template>
-    <UFormField
-        :label="props.filter.label"
-        name="price"
-    >
+    <div>
+        <p class="text-sm font-semibold mb-2">
+            {{ props.filter.label }}
+        </p>
+
         <div class="flex items-center justify-between">
             <UFormField
-                name="price.min"
-                :label="$t('filters.price.min')"
+                name="min"
+                :label="t('filters.price.min')"
                 class="w-24"
             >
                 <UInputNumber
-                    v-model="state.price!.min"
+                    v-model="state.min"
                     :min="0"
-                    :max="state.price!.max ?? undefined"
+                    :max="state.max ?? undefined"
                     orientation="vertical"
                     class="w-24"
                     @change="update"
@@ -39,18 +49,18 @@ const update = () => {
             </UFormField>
 
             <UFormField
-                name="price.max"
-                :label="$t('filters.price.max')"
+                name="max"
+                :label="t('filters.price.max')"
                 class="w-24"
             >
                 <UInputNumber
-                    v-model="state.price!.max"
-                    :min="state.price!.min ?? undefined"
+                    v-model="state.max"
+                    :min="state.min ?? undefined"
                     orientation="vertical"
                     class="w-24"
                     @change="update"
                 />
             </UFormField>
         </div>
-    </UFormField>
+    </div>
 </template>
