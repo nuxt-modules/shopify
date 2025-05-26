@@ -83,7 +83,7 @@
     "sharp": "^0.34.1",
     "typescript": "^5.8.3",
     "unbuild": "^3.5.0",
-    "vercel": "^41.7.8",
+    "vercel": "^42.1.1",
     "vitepress": "^1.6.3",
     "vitest": "^3.1.4",
     "vue-tsc": "^2.2.10"
