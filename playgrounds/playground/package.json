@@ -11,7 +11,7 @@
         "typecheck": "nuxt typecheck"
     },
     "dependencies": {
-        "nuxt": "^3.17.3",
-        "zod": "^3.25.7"
+        "nuxt": "^3.17.4",
+        "zod": "^3.25.28"
     }
 }
