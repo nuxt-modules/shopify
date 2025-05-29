@@ -2,6 +2,8 @@
 const { t } = useI18n()
 
 const currentSort = ref('price')
+
+const open = ref(false)
 </script>
 
 <template>
@@ -17,6 +19,7 @@ const currentSort = ref('price')
         />
 
         <UPopover
+            v-model:open="open"
             :content="{
                 align: 'end',
                 side: 'bottom',
@@ -44,6 +47,7 @@ const currentSort = ref('price')
                             active: currentSort === 'price',
                             onSelect: () => {
                                 currentSort = 'price'
+                                open = false
                             },
                         },
                         {
@@ -51,6 +55,7 @@ const currentSort = ref('price')
                             active: currentSort === 'relevance',
                             onSelect: () => {
                                 currentSort = 'relevance'
+                                open = false
                             },
                         },
                         {
@@ -58,6 +63,7 @@ const currentSort = ref('price')
                             active: currentSort === 'releaseDate',
                             onSelect: () => {
                                 currentSort = 'releaseDate'
+                                open = false
                             },
                         },
                     ]"

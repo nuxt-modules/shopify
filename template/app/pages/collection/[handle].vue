@@ -12,12 +12,20 @@ const route = useRoute()
 
 const handle = route.params.handle as string
 
-const key = computed(() => `collection-${handle}-${locale.value}-${country.value}-${route.query}`)
+const key = computed(() => [
+    'collection',
+    handle,
+    locale.value,
+    country.value,
+    startCursor.value,
+    endCursor.value,
+    route.query.filters,
+].join('-'))
 
 const startCursor = ref<string>()
 const endCursor = ref<string>()
 
-const { data, error } = await useAsyncData(key, () => $fetch('/api/collection', {
+const { data, error, status } = await useAsyncData(key, () => $fetch('/api/collection', {
     method: 'POST',
     body: {
         handle,
@@ -29,15 +37,7 @@ const { data, error } = await useAsyncData(key, () => $fetch('/api/collection', 
         country: country.value,
         filters: activeFilters.value,
     },
-}), {
-    watch: [
-        locale,
-        country,
-        activeFilters,
-        startCursor,
-        endCursor,
-    ],
-})
+}))
 
 if (error.value) throw createError({
     statusCode: 500,
@@ -69,22 +69,33 @@ const loadNext = () => {
     toTop()
 }
 
-const resetFilters = async () => {
-    startCursor.value = undefined
-    endCursor.value = undefined
-
-    await router.replace({ query: {
-        ...route.query,
-        filters: undefined,
-    } })
-}
-
 const onFilterUpdate = () => {
     startCursor.value = undefined
     endCursor.value = undefined
 
     toTop()
 }
+
+const resetFilters = async () => {
+    console.log('Resetting filters')
+
+    router.replace({ query: {
+        ...route.query,
+        filters: undefined,
+    } })
+
+    startCursor.value = undefined
+    endCursor.value = undefined
+
+    toTop()
+}
+
+watch([locale, country], () => {
+    startCursor.value = undefined
+    endCursor.value = undefined
+
+    toTop()
+})
 </script>
 
 <template>
@@ -113,7 +124,6 @@ const onFilterUpdate = () => {
                         class="pt-4 pb-10 w-full"
                         :filters="filters"
                         @update="onFilterUpdate"
-                        @reset="resetFilters"
                     />
                 </template>
             </UDrawer>
@@ -160,12 +170,13 @@ const onFilterUpdate = () => {
                 <Filters
                     :filters="filters"
                     @update="onFilterUpdate"
-                    @reset="resetFilters"
                 />
             </aside>
 
             <ProductListing
+                :key="key"
                 :products="products"
+                :status="status"
                 @reset-filters="resetFilters"
                 @load-previous="loadPrevious"
                 @load-next="loadNext"

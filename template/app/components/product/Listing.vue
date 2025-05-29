@@ -1,8 +1,10 @@
 <script setup lang="ts">
+import type { AsyncDataRequestStatus } from '#app'
 import type { ProductConnectionFieldsFragment } from '#shopify/storefront'
 
 const props = defineProps<{
     products?: ProductConnectionFieldsFragment
+    status?: AsyncDataRequestStatus
 }>()
 
 const emits = defineEmits<{
@@ -13,8 +15,6 @@ const emits = defineEmits<{
 
 const { count } = useFilters()
 const { t } = useI18n()
-
-watch(() => props.products, value => console.log('new products', value), { immediate: true })
 </script>
 
 <template>
@@ -94,7 +94,14 @@ watch(() => props.products, value => console.log('new products', value), { immed
         </div>
 
         <div
-            v-if="!props.products || props.products.edges.length === 0"
+            v-if="props.status === 'pending'"
+            class="flex justify-center pt-8"
+        >
+            Loading...
+        </div>
+
+        <div
+            v-else-if="!props.products || props.products.edges.length === 0"
             class="flex flex-col justify-center items-center col-span-full text-center"
         >
             <div class="flex items-center pb-2 gap-2">

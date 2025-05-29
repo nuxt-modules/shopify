@@ -4,17 +4,13 @@ import type { ProductFilter, ProductConnectionFieldsFragment } from '#shopify/st
 import { queryToFilters, filtersToQuery } from '~/shared/filters'
 
 const props = defineProps<{
-    filters: ProductConnectionFieldsFragment['filters']
-}>()
-
-const emits = defineEmits<{
-    reset: []
+    filters?: ProductConnectionFieldsFragment['filters']
 }>()
 
 const router = useRouter()
 const route = useRoute()
 
-const filterComponents = computed(() => props.filters.map(filter => ({
+const filterComponents = computed(() => props.filters?.map(filter => ({
     component: (() => {
         switch (filter.id) {
             case 'filter.v.price':
@@ -30,8 +26,6 @@ const filterComponents = computed(() => props.filters.map(filter => ({
 })))
 
 const onUpdate = async <T extends keyof ProductFilter>(type: T, value: ProductFilter[T]) => {
-    emits('reset')
-
     const filters = queryToFilters(route.query)
 
     await router.replace({

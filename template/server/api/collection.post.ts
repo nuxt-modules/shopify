@@ -6,8 +6,6 @@ export default defineEventHandler(async (event) => {
         filters: productFilterSchema.optional(),
     }).merge(connectionParamsSchema).merge(localizationParamsSchema).parse)
 
-    console.log(variables.filters)
-
     const storefront = useStorefront()
 
     const { data, errors } = await storefront.request(`#graphql
