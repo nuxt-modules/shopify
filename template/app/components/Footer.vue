@@ -5,10 +5,7 @@ const { t } = useI18n()
 
 const { isDark, swap } = useTheme()
 
-const { data: version } = await useFetch<{ tag_name?: string }>('https://api.github.com/repos/konkonam/nuxt-shopify/releases/latest', {
-    key: 'nuxt-shopify-version',
-    pick: ['tag_name'],
-})
+const { data: version } = await useFetch('/api/version')
 
 const items = computed<NavigationMenuItem[]>(() => [
     {
@@ -47,7 +44,7 @@ const items = computed<NavigationMenuItem[]>(() => [
                     <br>
 
                     <span class="font-bold">
-                        Nuxt Shopify v{{ version?.tag_name }}
+                        Nuxt Shopify v{{ version }}
                     </span>
                 </p>
 

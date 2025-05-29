@@ -3,8 +3,8 @@ const { country: countryCode } = useCountry()
 const { t, locale } = useI18n()
 
 const { data: countries } = await useFetch('/api/countries', {
+    key: `countries`,
     method: 'POST',
-    key: `countries-${locale.value}`,
     body: {
         language: locale,
     },

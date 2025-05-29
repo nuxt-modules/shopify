@@ -17,26 +17,6 @@ useHead({
     },
     title: 'Nuxt Shopify Demo Store',
 })
-
-const { data, error } = await useFetch('/api/collections', {
-    method: 'POST',
-    body: {
-        first: 10,
-        language: locale,
-    },
-    key: computed(() => `collections-${locale.value}`),
-    watch: [locale],
-})
-
-if (error.value) {
-    throw createError({
-        statusCode: 500,
-        statusMessage: 'Failed to fetch collections',
-        fatal: true,
-    })
-}
-
-const collections = computed(() => data.value?.collections.edges)
 </script>
 
 <template>
@@ -44,12 +24,7 @@ const collections = computed(() => data.value?.collections.edges)
         <div class="min-h-screen flex flex-col">
             <NuxtLoadingIndicator :color="isDark ? '#fff' : '#000'" />
 
-            <Navigation
-                v-if="collections"
-                :key="`navigation-${locale}`"
-                :collections="collections"
-                class="sticky top-0 z-50 bg-[var(--ui-bg)]"
-            />
+            <Navigation class="sticky top-0 z-50 bg-[var(--ui-bg)]" />
 
             <NuxtLayout class="flex flex-col grow">
                 <NuxtPage />

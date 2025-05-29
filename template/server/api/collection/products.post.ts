@@ -9,7 +9,7 @@ export default defineEventHandler(async (event) => {
     const storefront = useStorefront()
 
     const { data, errors } = await storefront.request(`#graphql
-        query FetchCollection(
+        query FetchListing(
             $handle: String,
             $after: String,
             $before: String,
@@ -23,8 +23,6 @@ export default defineEventHandler(async (event) => {
         )
         @inContext(language: $language, country: $country) {
             collection(handle: $handle) {
-                ...CollectionFields
-
                 products(
                     after: $after,
                     before: $before,
@@ -40,7 +38,6 @@ export default defineEventHandler(async (event) => {
         }
         ${IMAGE_FRAGMENT}
         ${PRICE_FRAGMENT}
-        ${COLLECTION_FRAGMENT}
         ${PRODUCT_CONNECTION_FRAGMENT}
     `, {
         variables,

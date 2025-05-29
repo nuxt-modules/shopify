@@ -1,27 +1,44 @@
 <script setup lang="ts">
-import type { FetchCollectionsQuery } from '#shopify/storefront'
 import type { NavigationMenuItem } from '#ui/types'
 
-const props = defineProps<{
-    collections: FetchCollectionsQuery['collections']['edges']
-}>()
+const { country } = useCountry()
+const { locale } = useI18n()
+
+const { data, error } = await useFetch('/api/collections', {
+    key: 'collections',
+    method: 'POST',
+    body: {
+        first: 10,
+        language: locale,
+        country: country,
+    },
+    watch: [locale, country],
+})
+
+if (error.value) {
+    throw createError({
+        statusCode: 500,
+        statusMessage: 'Failed to fetch collections',
+        fatal: true,
+    })
+}
 
 const searchInitialized = ref(false)
 const searchOpen = ref(false)
 
 const menuOpen = ref(false)
 
-const collections = computed<NavigationMenuItem[]>(() => props.collections
-    .map(collection => ({
+const collections = computed<NavigationMenuItem[]>(() => data.value?.collections.edges
+    ?.map(collection => ({
         label: collection.node.title,
         to: getCollectionAppUrl(collection.node.handle),
-    })))
+    })) ?? [])
 
 const navigationItems = computed<NavigationMenuItem[]>(() => collections.value
     .map(collection => ({
         ...collection,
         class: 'px-3 hidden lg:block hover:text-primary',
-    })).splice(0, 4))
+    })))
 
 const navigationActions = computed<NavigationMenuItem[]>(() => [
     {
