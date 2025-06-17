@@ -25,6 +25,9 @@ jobs:
         run: |
           bun install --frozen-lockfile
 
+      - name: Prepare module
+        run: bun run prepare:dev
+
       - name: Lint
         run: bun run lint
 
