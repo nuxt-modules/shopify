@@ -3,11 +3,7 @@ export default defineNuxtConfig({
         '../../src/module',
     ],
 
-    future: {
-        compatibilityVersion: 4,
-    },
-
-    compatibilityDate: '2024-11-07',
+    compatibilityDate: '2025-06-17',
 
     shopify: {
         name: process.env.NUXT_SHOPIFY_NAME as string,
