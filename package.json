@@ -36,7 +36,7 @@
   },
   "scripts": {
     "build": "nuxt-module-build build",
-    "build:template": "bun run --filter=./template --env-file=.env --elide-lines=100 build",
+    "build:template": "bun run --filter=./template build",
     "build:docs": "vitepress build docs",
     "dev": "bun run --filter=playground --env-file=.env --elide-lines=100 dev",
     "dev:v4": "bun run --filter=playground-v4 --env-file=.env --elide-lines=100 dev",
@@ -45,15 +45,15 @@
     "preview:docs": "vitepress preview docs",
     "lint": "eslint .",
     "typecheck": "vue-tsc --noEmit",
-    "typecheck:playground": "bun run --filter=playground --env-file=.env --elide-lines=100 typecheck",
-    "typecheck:playground-v4": "bun run --filter=playground-v4 --env-file=.env --elide-lines=100 typecheck",
+    "typecheck:playground": "bun run --filter=playground typecheck",
+    "typecheck:playground-v4": "bun run --filter=playground-v4 typecheck",
     "typecheck:template": "bun run --filter=./template typecheck",
     "typecheck:all": "bun run --filter=* typecheck",
-    "analyze": "bun run --filter=./playgrounds/playground --env-file=.env --elide-lines=100 analyze",
+    "analyze": "bun run --filter=./playgrounds/playground analyze",
     "prepare": "nuxt-module-build prepare",
-    "prepare:dev": "bun run --filter={./playgrounds/*,./template} --env-file=.env --elide-lines=100 prepare",
+    "prepare:dev": "bun run --filter={./playgrounds/*,./template} prepare",
     "prepare:template": "bun run --filter=./template prepare",
-    "cleanup": "bun run --filter={./playgrounds/*,./template} --env-file=.env --elide-lines=100 cleanup && nuxt cleanup"
+    "cleanup": "bun run --filter={./playgrounds/*,./template} cleanup && nuxt cleanup"
   },
   "dependencies": {
     "@graphql-codegen/cli": "^5.0.7",
