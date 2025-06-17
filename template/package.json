@@ -21,11 +21,11 @@
         "@vueuse/nuxt": "^13.3.0",
         "nuxt": "^3.17.5",
         "nuxt-auth-utils": "^0.5.20",
-        "zod": "^3.25.56"
+        "zod": "^3.25.67"
     },
     "devDependencies": {
         "@nuxt/eslint-config": "^1.4.1",
-        "eslint": "^9.28.0",
+        "eslint": "^9.29.0",
         "vue-tsc": "^2.2.10"
     }
 }
