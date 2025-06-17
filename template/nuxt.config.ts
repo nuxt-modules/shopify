@@ -1,11 +1,11 @@
 export default defineNuxtConfig({
     modules: [
+        '@konkonam/nuxt-shopify',
         '@nuxt/image',
         '@nuxt/ui',
         '@nuxtjs/i18n',
         '@vueuse/nuxt',
         'nuxt-auth-utils',
-        '../src/module',
     ],
 
     app: {
