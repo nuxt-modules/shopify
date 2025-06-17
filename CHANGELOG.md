@@ -1,3 +1,6 @@
+# 0.0.28
+- Bumped dependencies
+
 # 0.0.27
 - Updated codegen config handling
 - Updated log levels for API clients and codegen
