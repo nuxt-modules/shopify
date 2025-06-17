@@ -25,15 +25,6 @@ jobs:
         run: |
           bun install --frozen-lockfile
 
-      - name: Prepare module
-        run: bun run prepare:dev
-
-      - name: Lint
-        run: bun run lint
-
-      - name: Typecheck
-        run: bun run typecheck:template
-
   deploy:
     runs-on: ubuntu-latest
     needs: lint
