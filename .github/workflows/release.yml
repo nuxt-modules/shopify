@@ -32,8 +32,14 @@ jobs:
       - name: Lint
         run: bun run lint
 
-      - name: Typecheck
-        run: bun run typecheck:all
+      - name: Typecheck Module
+        run: bun run typecheck
+
+      - name: Typecheck Playground
+        run: bun run typecheck:playground
+
+      - name: Typecheck V4 Playground
+        run: bun run typecheck:playground-v4
 
       - name: Build
         run: bun run build

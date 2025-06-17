@@ -51,7 +51,7 @@
     "typecheck:all": "bun run --filter=* typecheck",
     "analyze": "bun run --filter=./playgrounds/playground --env-file=.env --elide-lines=100 analyze",
     "prepare": "nuxt-module-build prepare",
-    "prepare:dev": "bun run --filter={./playgrounds/*,./template} prepare",
+    "prepare:dev": "bun run --filter={./playgrounds/*,./template} --env-file=.env --elide-lines=100 prepare",
     "prepare:template": "bun run --filter=./template prepare",
     "cleanup": "bun run --filter={./playgrounds/*,./template} --env-file=.env --elide-lines=100 cleanup && nuxt cleanup"
   },
