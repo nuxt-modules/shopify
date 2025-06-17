@@ -3,9 +3,9 @@ export default defineNuxtConfig({
         '@nuxt/image',
         '@nuxt/ui',
         '@nuxtjs/i18n',
-        '@konkonam/nuxt-shopify',
         '@vueuse/nuxt',
         'nuxt-auth-utils',
+        '../src/module',
     ],
 
     app: {
