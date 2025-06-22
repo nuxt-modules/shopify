@@ -3,7 +3,7 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "build": "nuxt build --preset vercel",
+        "build": "nuxt build",
         "dev": "nuxt dev",
         "generate": "nuxt generate",
         "prepare": "nuxt prepare",
@@ -21,6 +21,8 @@
         "@vueuse/nuxt": "^13.3.0",
         "nuxt": "^3.17.5",
         "nuxt-auth-utils": "^0.5.20",
+        "vue": "latest",
+        "vue-router": "latest",
         "zod": "^3.25.67"
     },
     "devDependencies": {

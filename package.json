@@ -109,10 +109,12 @@
   "trustedDependencies": [
     "@parcel/watcher",
     "@tailwindcss/oxide",
+    "esbuild",
     "nuxt-shopify-template",
     "playground",
     "playground-v4",
     "sharp",
-    "unrs-resolver"
+    "unrs-resolver",
+    "vue-demi"
   ]
 }

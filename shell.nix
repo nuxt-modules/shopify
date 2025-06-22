@@ -9,5 +9,6 @@ in pkgs.mkShell {
         pkgs.bun
         pkgs.git
         pkgs.nodejs
+        pkgs.nodePackages.vercel
     ];
 }
