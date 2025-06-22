@@ -45,6 +45,9 @@ jobs:
       - name: Pull Vercel Environment Information
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
 
+      - name: Pull Build Environment Variables
+        run: vercel env pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+
       - name: Build Template
         run: vercel build --prod
 
