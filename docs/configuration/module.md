@@ -38,7 +38,7 @@ export default defineNuxtConfig({
     shopify: {
         name: 'quickstart-abcd1234',                        // Shopify app name.
         
-        clients: {                                          // Available shopify clients.
+        clients: {                                          // Available Shopify clients.
 
             storefront: {                                   // Storefront client options.
                 apiVersion: '2025-04',                      // API version to use.
@@ -64,7 +64,14 @@ export default defineNuxtConfig({
         },
     },
 
-    logger: {}                                              // Optional module logger configuration (Consola options).
+    logger: {},                                             // Optional module logger configuration (Consola options).
+
+    autoImports: {                                          // Auto-imports configuration.
+
+        graphql: true,                                      // Auto-import from `~/graphql` directory.
+        storefront: true,                                   // Auto-import generated types for the storefront client.
+        admin: true,                                        // Auto-import generated types for the admin client.
+    },
 })
 ```
 

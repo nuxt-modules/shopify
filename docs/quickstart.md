@@ -42,12 +42,12 @@ export default defineNuxtConfig({
 })
 ```
 
-You can see the `name` of your shopify store in the url when you are in the Shopify admin, for example: `https://admin.shopify.com/store/quickstart-abcd1234`.
+You can see the `name` of your Shopify store in the url when you are in the Shopify admin, for example: `https://admin.shopify.com/store/quickstart-abcd1234`.
 
 To get the `publicAccessToken` for your store you need to [enable storefront API access](https://shopify.dev/docs/storefronts/headless/building-with-the-storefront-api/getting-started#step-1-enable-storefront-api-access), which involves installing the [Headless channel from the Shopify App Store](https://apps.shopify.com/headless).
 
 > [!WARNING]
-> The public access key will be exposed publicly in the nuxt runtime config.
+> The public access key will be exposed publicly in the Nuxt runtime config.
 > If you want to stay fully server side, set a private access token instead: `clients > storefront > privateAccessToken`
 
 ## Usage

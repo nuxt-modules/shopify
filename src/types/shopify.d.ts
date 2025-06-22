@@ -27,6 +27,11 @@ export type ShopifyClientConfig = ShopifyStorefrontConfig | ShopifyAdminConfig
 export type ShopifyConfig<S = ShopifyStorefrontConfig, A = ShopifyAdminConfig> = {
     name: string
     logger?: Partial<ConsolaOptions>
+    autoImports?: {
+        graphql?: boolean
+        storefront?: boolean
+        admin?: boolean
+    }
     clients: {
         [ShopifyClientType.Storefront]?: S
         [ShopifyClientType.Admin]?: A

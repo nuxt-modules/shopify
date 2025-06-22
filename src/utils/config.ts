@@ -45,6 +45,7 @@ export const useShopifyConfig = (options: ModuleOptions) => {
         return {
             name: options.name,
             logger: options.logger,
+            autoImports: options.autoImports,
             clients: {
                 ...(storefront && { storefront }),
                 ...(admin && { admin }),

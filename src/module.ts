@@ -13,13 +13,14 @@ import {
 } from '@nuxt/kit'
 import { upperFirst } from 'scule'
 
-import { registerUtilsTemplate,
+import {
     installSandbox,
     registerTemplates,
+    registerAutoImports,
+    useLog,
     useShopifyConfig,
     useShopifyConfigValidation,
 } from './utils'
-import { useLog } from './utils/log'
 
 export default defineNuxtModule<ModuleOptions>({
     meta: {
@@ -81,13 +82,13 @@ export default defineNuxtModule<ModuleOptions>({
 
             await nuxt.callHook('shopify:config', { nuxt, config })
 
-            registerUtilsTemplate(nuxt)
-
             updateRuntimeConfig({
                 _shopify: config,
 
                 public: { _shopify: publicConfig },
             })
+
+            registerAutoImports(nuxt, config)
 
             log.success('Finished setup')
         }

@@ -1,6 +1,6 @@
 # Module hooks
 
-The module provides several hooks that can be used to customize its behavior. These hooks are available in the `hooks` property of the module configuration and within your nuxt and nitro app.
+The module provides several hooks that can be used to customize its behavior. These hooks are available in the `hooks` property of the module configuration and within your Nuxt and nitro app.
 
 ```ts
 // ~/server/plugins/your-plugin.ts

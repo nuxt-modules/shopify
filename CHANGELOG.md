@@ -33,7 +33,7 @@
 - Fixed build declarations
 
 # 0.0.19
-- Added nuxt hooks for client configuration and creation
+- Added Nuxt hooks for client configuration and creation
 - Updated documentation for new hooks
 - Updated README + documentation
 - Fixed a misconfiguration in the module config
@@ -54,7 +54,7 @@
 - Bumped dependencies
 
 # 0.0.14
-- Removed nuxt prepare check
+- Removed Nuxt prepare check
 
 # 0.0.13
 - Fixed release

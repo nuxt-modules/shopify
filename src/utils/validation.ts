@@ -14,6 +14,15 @@ export const useShopifyConfigValidation = (options: ModuleOptions) => {
     const schema = z.object({
         name: z.string().min(1),
         logger: z.any().optional(),
+        autoImports: z.object({
+            graphql: z.boolean().optional().default(true),
+            storefront: z.boolean().optional().default(true),
+            admin: z.boolean().optional().default(true),
+        }).optional().default({
+            graphql: true,
+            storefront: true,
+            admin: true,
+        }),
         clients: z.object({
             storefront: clientSchema.extend({
                 publicAccessToken: z.string().min(1).optional(),

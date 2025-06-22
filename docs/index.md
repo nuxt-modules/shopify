@@ -24,16 +24,22 @@ hero:
 features:
   - title: Storefront API
     icon: 🛍️
-    details: "Integrate the shopify storefront API into your nuxt app"
+    details: "Integrate the Shopify storefront API into your Nuxt app"
     link: "/examples/storefront"
   - title: Admin API
     icon: 🔐
-    details: "Connect to the shopify admin API"
+    details: "Connect to the Shopify admin API"
     link: "/examples/admin"
-  - title: Typed operations
-    icon: ⚡️
-    details: "Fully typed GraphQL operations with hot-reloading"
-  - title: GraphiQL Explorer
+  - title: Fully Typed
+    icon: 🔗
+    details: "TypeScript types for your GraphQL operations on server and client"
+  - title: Hot Reloading
+    icon: 🔥
+    details: "Automatically re-generates types when your GraphQL queries change"
+  - title: Integrated Sandbox
     icon: 🧭
-    details: "Integrates the GraphiQL Explorer for faster development"
+    details: "GraphiQL Explorer integration for testing and development"
+  - title: Auto-Imports
+    icon: 📦
+    details: "Auto-imports your GraphQL queries and all generated types"
 ---
