@@ -1,5 +1,3 @@
-import type { CountryCode, LanguageCode } from '#shopify/storefront'
-
 import { z } from 'zod'
 
 export const localizationParamsSchema = z.object({

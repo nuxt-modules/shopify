@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import type { ProductFieldsFragment } from '#shopify/storefront'
-
 import { z } from 'zod'
 
 const props = defineProps<{

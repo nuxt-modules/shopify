@@ -1,13 +1,9 @@
 <script setup lang="ts">
-import type { ProductFilter, ProductConnectionFieldsFragment } from '#shopify/storefront'
 import type { CheckboxGroupItem, CheckboxGroupValue } from '#ui/types'
-import type { UpdateFilterFn } from '../../../types/filter'
 
 const props = defineProps<{
     filter: ProductConnectionFieldsFragment['filters'][number]
 }>()
-
-const emits = defineEmits<UpdateFilterFn>()
 
 const { filters } = useFilters()
 const { t } = useI18n()
@@ -32,7 +28,7 @@ const update = () => {
         else if (value.value[0] === 'false') state.available = false
     }
 
-    emits('update:filter', 'available', state.available)
+    // emits('update:filter', 'available', state.available)
 }
 </script>
 

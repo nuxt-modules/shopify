@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import type { ProductFieldsFragment } from '#shopify/storefront'
-
 const props = defineProps<{
     product?: ProductFieldsFragment | null
     quantity?: number

@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import type { ProductFilter, ProductConnectionFieldsFragment } from '#shopify/storefront'
-
 import { queryToFilters, filtersToQuery } from '~/shared/filters'
 
 const props = defineProps<{

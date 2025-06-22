@@ -1,4 +1,3 @@
-import type { ProductFilter } from '#shopify/storefront'
 import type { LocationQuery } from 'vue-router'
 
 export const filtersToQuery = (filters: ProductFilter): LocationQuery => {
