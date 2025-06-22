@@ -11,7 +11,7 @@ const { t } = useI18n()
         @click="open = true"
     >
         <UIcon
-            :name="icons.search"
+            name="hugeicons:search-01"
             class="size-5 sm:mr-1"
         />
 

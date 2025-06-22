@@ -11,7 +11,7 @@ const open = ref(false)
         <UButton
             variant="outline"
             size="xs"
-            :icon="icons.sortAsc"
+            icon="hugeicons:sort-by-up-02"
             :label="`${t('sort.by')} ${currentSort}: ${t('sort.ascending')}`"
             :ui="{
                 label: 'hidden sm:block',
@@ -32,7 +32,7 @@ const open = ref(false)
             <UButton
                 variant="outline"
                 size="xs"
-                :icon="icons.sort"
+                icon="hugeicons:sorting-05"
                 :label="t('sort.label')"
             />
 

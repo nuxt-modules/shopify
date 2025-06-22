@@ -28,7 +28,7 @@ const getCountryLabel = (c?: typeof country['value']) => `${c?.name} (${c?.curre
     >
         <UButton
             :label="getCountryLabel(country)"
-            :icon="icons.globe"
+            icon="hugeicons:globe-02"
             variant="navigation"
             class="cursor-pointer md:px-3"
             @click="open = true"

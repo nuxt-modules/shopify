@@ -110,7 +110,7 @@ watch([locale, country], () => {
             <UButton
                 variant="outline"
                 size="xs"
-                :icon="icons.filter"
+                icon="hugeicons:filter-horizontal"
                 :label="`${t('filters.label')} ${activeFilterCount > 0 ? `(${activeFilterCount})` : ''}`"
                 class="lg:hidden"
             />
@@ -129,7 +129,7 @@ watch([locale, country], () => {
             variant="link"
             color="neutral"
             size="xs"
-            :icon="icons.close"
+            icon="hugeicons:cancel-01"
             :label="t('filters.clear')"
             class="lg:hidden"
             @click="resetFilters"
@@ -152,7 +152,7 @@ watch([locale, country], () => {
                     variant="link"
                     color="neutral"
                     size="xs"
-                    :icon="icons.close"
+                    icon="hugeicons:cancel-01"
                     :label="t('filters.clear')"
                     class="pt-1.5 cursor-pointer"
                     @click="resetFilters"
@@ -178,7 +178,7 @@ watch([locale, country], () => {
                     variant="soft"
                     color="primary"
                     class="cursor-pointer"
-                    :icon="icons.arrowUp"
+                    icon="hugeicons:arrow-up-01"
                     @click="loadPrevious"
                 >
                     {{ t('listing.loadPrevious') }}
@@ -237,7 +237,7 @@ watch([locale, country], () => {
                     variant="soft"
                     color="primary"
                     class="cursor-pointer"
-                    :icon="icons.arrowDown"
+                    icon="hugeicons:arrow-down-01"
                     @click="loadNext"
                 >
                     {{ t('listing.loadNext') }}

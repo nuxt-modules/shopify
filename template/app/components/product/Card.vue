@@ -7,6 +7,8 @@ const props = defineProps<{
 
 const { t } = useI18n()
 
+const url = getProductAppUrl(props.product.handle)
+
 const schema = z.object({
     quantity: z.number().min(1),
 })
@@ -28,7 +30,7 @@ const state = reactive<z.infer<typeof schema>>({
         >
             <div class="relative flex flex-col gap-6 h-full">
                 <NuxtLink
-                    :to="getProductAppUrl(props.product.handle)"
+                    :to="url"
                     class="flex flex-col grow"
                 >
                     <ProductImage
@@ -64,7 +66,7 @@ const state = reactive<z.infer<typeof schema>>({
                         </UFormField>
 
                         <UButton
-                            :trailing-icon="icons.cartAdd"
+                            trailing-icon="hugeicons:shopping-bag-01"
                             :label="t('product.addToCart')"
                             variant="soft"
                             type="submit"

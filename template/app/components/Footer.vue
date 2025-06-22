@@ -28,7 +28,7 @@ const items = computed<NavigationMenuItem[]>(() => [
     ...item,
     class: 'text-muted px-3 hover:text-primary',
     target: '_blank',
-    icon: icons.dash,
+    icon: 'hugeicons:solid-line-01',
 })))
 </script>
 
@@ -86,12 +86,12 @@ const items = computed<NavigationMenuItem[]>(() => [
                     orientation="horizontal"
                     :items="[
                         {
-                            icon: isDark ? icons.sun : icons.moon,
+                            icon: isDark ? 'hugeicons:sun-02' : 'hugeicons:moon-02',
                             class: 'cursor-pointer px-3',
                             onSelect: () => swap(),
                         },
                         {
-                            icon: icons.github,
+                            icon: 'hugeicons:github-01',
                             to: 'https://github.com/konkonam/nuxt-shopify/tree/main/template',
                             target: '_blank',
                             class: 'px-3',

@@ -42,17 +42,17 @@ const navigationItems = computed<NavigationMenuItem[]>(() => collections.value
 
 const navigationActions = computed<NavigationMenuItem[]>(() => [
     {
-        icon: icons.account,
+        icon: 'hugeicons:user',
         class: 'cursor-pointer px-2 sm:px-3',
         to: getAccountAppUrl(),
     },
     {
-        icon: icons.cart,
+        icon: 'hugeicons:shopping-bag-01',
         class: 'cursor-pointer px-2 sm:px-3',
         to: getCartAppUrl(),
     },
     {
-        icon: icons.menu,
+        icon: 'hugeicons:menu-collapse',
         class: 'cursor-pointer px-2 sm:px-3 lg:hidden',
         active: menuOpen.value,
         onSelect: () => menuOpen.value = !menuOpen.value,

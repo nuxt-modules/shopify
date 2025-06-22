@@ -15,7 +15,7 @@ const collections = computed(() => props.collections.map(collection => ({
         open.value = false
     },
     class: 'text-muted px-3 hover:text-primary data-active:text-primary',
-    icon: icons.dash,
+    icon: 'hugeicons:solid-line-01',
 })))
 </script>
 

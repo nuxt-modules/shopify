@@ -79,7 +79,7 @@ const product = computed(() => data.value?.product)
                         size="lg"
                         color="primary"
                         variant="soft"
-                        :icon="icons.cartAdd"
+                        icon="hugeicons:shopping-bag-01"
                         class="flex items-center justify-center p-3 grow"
                     >
                         <span class="hidden sm:block">{{ t('product.addToCart') }}</span>

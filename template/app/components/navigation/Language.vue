@@ -16,7 +16,7 @@ const getLanguageLabel = (l?: typeof locale['value']) => `${locales.value?.find(
     >
         <UButton
             :label="getLanguageLabel(locale)"
-            :icon="icons.language"
+            icon="hugeicons:language-circle"
             variant="navigation"
             class="cursor-pointer shrink md:px-3"
             @click="open = true"
