@@ -9,6 +9,7 @@ docs/.vitepress/cache
 
 # dependencies
 node_modules
+package-lock.json
 bun.lockb
 yarn.lock
 
