@@ -1,3 +1,7 @@
+# 0.0.29
+- Added auto-imports
+- Removed unnecessary utils
+
 # 0.0.28
 - Bumped dependencies
 
