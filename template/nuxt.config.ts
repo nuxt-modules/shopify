@@ -1,6 +1,6 @@
 export default defineNuxtConfig({
     modules: [
-        '../src/module',
+        '@konkonam/nuxt-shopify',
         '@nuxt/image',
         '@nuxt/ui',
         '@nuxtjs/i18n',
