@@ -36,10 +36,10 @@ features:
   - title: Hot Reloading
     icon: 🔥
     details: "Automatically re-generates types when your GraphQL queries change"
-  - title: Integrated Sandbox
-    icon: 🧭
-    details: "GraphiQL Explorer integration for testing and development"
   - title: Auto-Imports
     icon: 📦
     details: "Auto-imports your GraphQL queries and all generated types"
+  - title: Integrated Sandbox
+    icon: 🧭
+    details: "GraphiQL Explorer integration for testing and development"
 ---
