@@ -70,7 +70,6 @@
       "devDependencies": {
         "@nuxt/eslint-config": "^1.4.1",
         "eslint": "^9.29.0",
-        "typescript": "^5.8.3",
         "vue-tsc": "^2.2.10",
       },
     },
