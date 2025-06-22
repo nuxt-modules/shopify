@@ -50,4 +50,4 @@ jobs:
         run: bun run build:template
 
       - name: Deploy Project to Vercel
-        run: vercel deploy --prod --prebuilt --archive=tgz --token=${{ secrets.VERCEL_TOKEN }}
+        run: cd template && vercel deploy --prod --prebuilt --archive=tgz --token=${{ secrets.VERCEL_TOKEN }}
