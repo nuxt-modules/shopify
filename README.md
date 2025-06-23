@@ -27,7 +27,7 @@ Automatically generates and hot-reloads TypeScript types from your GraphQL opera
 - 🛒 Storefront and Admin API support
 - ⚙️ Customizable GraphQL code generation
 - 🧩 GraphQL fragments support
-- 📦 Auto-imports for GraphQL queries, fragments and generated types
+- 📦 Auto-imports for GraphQL queries and generated types
 - 🧪 Tested with Nuxt 3 & 4
 - 🌐 Server & client side support
 - 🔐 Secure access token handling
