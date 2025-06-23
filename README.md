@@ -17,7 +17,7 @@ Easy Shopify GraphQL API-Connector for Nuxt 3 & 4.
 - 📚 [Documentation](https://konkonam.github.io/nuxt-shopify)
 - ✨ [Release Notes](https://github.com/konkonam/nuxt-shopify/tree/main/CHANGELOG.md)
 
-## 🚀 Features
+## ⚡️ Features
 
 Automatically generates and hot-reloads TypeScript types from your GraphQL operations
 
