@@ -12,14 +12,14 @@ export default function useErrors(nuxtApp: NuxtApp, errors: ClientResponse['erro
 
     if (shouldThrow && errors?.graphQLErrors?.length) {
         throw createError({
-            statusCode: 500,
+            statusCode: errors.networkStatusCode ?? 500,
             statusMessage: errors.graphQLErrors.map(error => `${tag} GraphQL Error: ${error.message}: ${error.path?.join('.')}`).join(', '),
         })
     }
 
     if (shouldThrow && errors?.message) {
         throw createError({
-            statusCode: errors?.networkStatusCode ?? 500,
+            statusCode: errors.networkStatusCode ?? 500,
             statusMessage: `${tag} Error: ${errors.message}`,
         })
     }
