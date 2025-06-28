@@ -3,7 +3,7 @@ export default defineEventHandler(async (event) => {
 
     const storefront = useStorefront()
 
-    const { data, errors } = await storefront.request(`#graphql
+    const { data } = await storefront.request(`#graphql
         mutation customerCreate($input: CustomerCreateInput!) {
             customerCreate(input: $input) {
                 ...CustomerCreateFields
@@ -15,8 +15,6 @@ export default defineEventHandler(async (event) => {
             input,
         },
     })
-
-    if (errors) throw createError(errors)
 
     return data
 })

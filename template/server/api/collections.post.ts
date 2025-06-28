@@ -3,7 +3,7 @@ export default defineEventHandler(async (event) => {
 
     const storefront = useStorefront()
 
-    const { data, errors } = await storefront.request(`#graphql
+    const { data } = await storefront.request(`#graphql
         query FetchCollections($after: String, $before: String, $first: Int, $last: Int, $language: LanguageCode)
         @inContext(language: $language) {
             collections(
@@ -21,8 +21,6 @@ export default defineEventHandler(async (event) => {
     `, {
         variables,
     })
-
-    if (errors) throw createError(errors)
 
     return data
 })

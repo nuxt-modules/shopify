@@ -8,7 +8,7 @@ export default defineEventHandler(async (event) => {
 
     const storefront = useStorefront()
 
-    const { data, errors } = await storefront.request(`#graphql
+    const { data } = await storefront.request(`#graphql
         query FetchListing(
             $handle: String,
             $after: String,
@@ -42,8 +42,6 @@ export default defineEventHandler(async (event) => {
     `, {
         variables,
     })
-
-    if (errors) throw createError(errors)
 
     return data
 })

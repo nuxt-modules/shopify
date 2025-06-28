@@ -17,7 +17,7 @@ const key = computed(() => [
     country.value,
 ].join('-'))
 
-const { data, error } = await useFetch('/api/collection', {
+const { data } = await useFetch('/api/collection', {
     key,
     method: 'POST',
     body: {
@@ -25,12 +25,6 @@ const { data, error } = await useFetch('/api/collection', {
         language: locale.value,
         country: country.value,
     },
-})
-
-if (error.value) throw createError({
-    statusCode: 500,
-    statusMessage: `Failed to fetch collection with handle ${handle}`,
-    fatal: true,
 })
 </script>
 

@@ -3,7 +3,7 @@ export default defineEventHandler(async (event) => {
 
     const storefront = useStorefront()
 
-    const { data, errors } = await storefront.request(`#graphql
+    const { data } = await storefront.request(`#graphql
         query FetchCountries($language: LanguageCode, $country: CountryCode) 
         @inContext(language: $language, country: $country) {
             localization {
@@ -25,8 +25,6 @@ export default defineEventHandler(async (event) => {
     `, {
         variables,
     })
-
-    if (errors) throw createError(errors)
 
     return data
 })

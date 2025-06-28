@@ -8,7 +8,7 @@ export default defineEventHandler(async (event) => {
 
     const storefront = useStorefront()
 
-    const { data, errors } = await storefront.request(`#graphql
+    const { data } = await storefront.request(`#graphql
         query predictiveSearch($query: String, $first: Int, $language: LanguageCode, $country: CountryCode)
         @inContext(language: $language, country: $country) {
             products(first: $first, query: $query) {
@@ -37,8 +37,6 @@ export default defineEventHandler(async (event) => {
     `, {
         variables,
     })
-
-    if (errors) throw createError(errors)
 
     return data
 })
