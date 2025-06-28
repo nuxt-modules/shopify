@@ -1,4 +1,4 @@
-import { createAdminApiClient } from '@shopify/admin-api-client'
+import { type AdminApiClient, createAdminApiClient } from '@shopify/admin-api-client'
 import { createConsola } from 'consola'
 import { useNitroApp } from 'nitropack/runtime'
 
@@ -6,7 +6,7 @@ import useErrors from './useErrors'
 
 import { useRuntimeConfig } from '#imports'
 
-export function useAdmin() {
+export function useAdmin(): AdminApiClient {
     const { _shopify } = useRuntimeConfig()
 
     if (!_shopify?.clients.admin) {
@@ -30,7 +30,7 @@ export function useAdmin() {
 
     const { request, ...rest } = createAdminApiClient(options)
 
-    const wrappedRequest: ReturnType<typeof createAdminApiClient>['request'] = async (...params) => {
+    const wrappedRequest: AdminApiClient['request'] = async (...params) => {
         const response = await request(...params)
 
         if (response.errors) useErrors(nitroApp, response.errors, _shopify.errors?.throw ?? false)
