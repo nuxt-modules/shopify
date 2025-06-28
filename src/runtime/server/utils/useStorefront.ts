@@ -1,5 +1,3 @@
-import type { StorefrontApiClient } from '@shopify/storefront-api-client'
-
 import { createStorefrontApiClient } from '@shopify/storefront-api-client'
 import { createConsola } from 'consola'
 import { useNitroApp } from 'nitropack/runtime'
@@ -32,7 +30,7 @@ export function useStorefront() {
 
     const { request, ...rest } = createStorefrontApiClient(options)
 
-    const wrappedRequest: StorefrontApiClient['request'] = async (...params) => {
+    const wrappedRequest: ReturnType<typeof createStorefrontApiClient>['request'] = async (...params) => {
         const response = await request(...params)
 
         if (response.errors) useErrors(nitroApp, response.errors, _shopify.errors?.throw ?? false)
