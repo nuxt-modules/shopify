@@ -25,7 +25,7 @@ const key = computed(() => [
     route.query.filters,
 ].join('-'))
 
-const { data, error, status } = await useFetch('/api/collection/products', {
+const { data, status } = await useFetch('/api/collection/products', {
     key,
     method: 'POST',
     body: {
@@ -38,12 +38,6 @@ const { data, error, status } = await useFetch('/api/collection/products', {
         before,
         after,
     },
-})
-
-if (error.value) throw createError({
-    statusCode: 500,
-    statusMessage: `Failed to fetch collection with handle ${props.handle}`,
-    fatal: true,
 })
 
 const products = computed(() => data.value?.collection?.products)

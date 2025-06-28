@@ -20,7 +20,7 @@ export default function useErrors(nuxtApp: NuxtApp, errors: ClientResponse['erro
     if (shouldThrow && errors?.message) {
         throw createError({
             statusCode: errors?.networkStatusCode ?? 500,
-            statusMessage: `${tag} Error ${errors?.networkStatusCode ?? 500}: ${errors.message}`,
+            statusMessage: `${tag} Error: ${errors.message}`,
         })
     }
 }

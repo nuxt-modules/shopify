@@ -1,4 +1,6 @@
-import { type AdminApiClient, createAdminApiClient } from '@shopify/admin-api-client'
+import type { AdminApiClient } from '@shopify/admin-api-client'
+
+import { createAdminApiClient } from '@shopify/admin-api-client'
 import { createConsola } from 'consola'
 import { useNitroApp } from 'nitropack/runtime'
 

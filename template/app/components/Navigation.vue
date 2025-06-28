@@ -4,7 +4,7 @@ import type { NavigationMenuItem } from '#ui/types'
 const { country } = useCountry()
 const { locale } = useI18n()
 
-const { data, error } = await useFetch('/api/collections', {
+const { data } = await useFetch('/api/collections', {
     key: 'collections',
     method: 'POST',
     body: {
@@ -14,14 +14,6 @@ const { data, error } = await useFetch('/api/collections', {
     },
     watch: [locale, country],
 })
-
-if (error.value) {
-    throw createError({
-        statusCode: 500,
-        statusMessage: 'Failed to fetch collections',
-        fatal: true,
-    })
-}
 
 const searchInitialized = ref(false)
 const searchOpen = ref(false)

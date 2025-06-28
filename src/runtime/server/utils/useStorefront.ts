@@ -1,4 +1,6 @@
-import { type StorefrontApiClient, createStorefrontApiClient } from '@shopify/storefront-api-client'
+import type { StorefrontApiClient } from '@shopify/storefront-api-client'
+
+import { createStorefrontApiClient } from '@shopify/storefront-api-client'
 import { createConsola } from 'consola'
 import { useNitroApp } from 'nitropack/runtime'
 

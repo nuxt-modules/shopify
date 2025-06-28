@@ -1,6 +1,8 @@
 import type { ClientResponse } from '@shopify/graphql-client'
 import type { NitroApp } from 'nitropack'
 
+import { createError } from '#imports'
+
 export default function useErrors(nitroApp: NitroApp, errors: ClientResponse['errors'], shouldThrow: boolean) {
     const tag = '[shopify]'
 
@@ -9,10 +11,16 @@ export default function useErrors(nitroApp: NitroApp, errors: ClientResponse['er
     }
 
     if (shouldThrow && errors?.graphQLErrors?.length) {
-        throw new Error(errors.graphQLErrors.map(error => `${tag} GraphQL Error: ${error.message}: ${error.path?.join('.')}`).join(', '))
+        throw createError({
+            statusCode: errors.networkStatusCode ?? 500,
+            statusMessage: errors.graphQLErrors.map(error => `${tag} GraphQL Error: ${error.message}: ${error.path?.join('.')}`).join(', '),
+        })
     }
 
     if (shouldThrow && errors?.message) {
-        throw new Error(`${tag} Error ${errors?.networkStatusCode ?? 500}: ${errors.message}`)
+        throw createError({
+            statusCode: errors.networkStatusCode ?? 500,
+            statusMessage: `${tag} Error: ${errors.message}`,
+        })
     }
 }
