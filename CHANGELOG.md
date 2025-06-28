@@ -1,3 +1,7 @@
+# 0.0.30
+- Added error handling
+- Bumped dependencies
+
 # 0.0.29
 - Added auto-imports
 - Removed unnecessary utils
