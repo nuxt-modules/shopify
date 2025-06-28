@@ -1,17 +1,33 @@
 <script setup lang="ts">
 import type { NavigationMenuItem } from '#ui/types'
 
+const storefront = useStorefront()
 const { country } = useCountry()
 const { locale } = useI18n()
 
-const { data } = await useFetch('/api/collections', {
-    key: 'collections',
-    method: 'POST',
-    body: {
+const { data } = await useAsyncData('collections', async () => await storefront.request(`#graphql
+    query FetchCollections($after: String, $before: String, $first: Int, $last: Int, $language: LanguageCode)
+    @inContext(language: $language) {
+        collections(
+            after: $after
+            before: $before
+            first: $first
+            last: $last
+        ) {
+            ...CollectionConnectionFields
+        }
+    }
+    ${IMAGE_FRAGMENT}
+    ${COLLECTION_FRAGMENT}
+    ${COLLECTION_CONNECTION_FRAGMENT}
+`, {
+    variables: connectionParamsSchema.merge(localizationParamsSchema).parse({
         first: 10,
-        language: locale,
-        country: country,
-    },
+        language: locale.value,
+        country: country.value,
+    }),
+}), {
+    transform: data => data.data?.collections?.edges,
     watch: [locale, country],
 })
 
@@ -20,7 +36,7 @@ const searchOpen = ref(false)
 
 const menuOpen = ref(false)
 
-const collections = computed<NavigationMenuItem[]>(() => data.value?.collections.edges
+const collections = computed<NavigationMenuItem[]>(() => data.value
     ?.map(collection => ({
         label: collection.node.title,
         to: getCollectionAppUrl(collection.node.handle),

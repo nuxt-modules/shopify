@@ -2,20 +2,47 @@
 const open = defineModel<boolean>({ default: false })
 
 const localePath = useLocalePath()
+const storefront = useStorefront()
 const { country } = useCountry()
 const { t, locale } = useI18n()
 
 const query = ref('')
 
-const { data, status } = await useFetch('/api/search', {
-    key: `search-${query.value}`,
-    method: 'POST',
-    body: {
-        query,
-        country,
-        language: locale,
-    },
-    watch: [query],
+const { data, status } = await useAsyncData(`search-${query.value}`, async () => await storefront.request(`#graphql
+    query predictiveSearch($query: String, $first: Int, $language: LanguageCode, $country: CountryCode)
+    @inContext(language: $language, country: $country) {
+        products(first: $first, query: $query) {
+            edges {
+                node {
+                    handle
+                    title
+                    description
+                    featuredImage {
+                        ...ImageFields
+                    }
+                }
+            }
+        }
+        collections(first: $first, query: $query) {
+            edges {
+                node {
+                    handle
+                    title
+                    description
+                }
+            }
+        }
+    }
+    ${IMAGE_FRAGMENT}
+`, {
+    variables: predictiveSearchParamsSchema.parse({
+        query: query.value,
+        country: country.value,
+        language: locale.value,
+    }),
+}), {
+    transform: data => data.data,
+    watch: [query, country, locale],
     lazy: true,
 })
 

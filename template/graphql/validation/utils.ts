@@ -12,6 +12,11 @@ export const connectionParamsSchema = z.object({
     before: z.string().optional(),
 })
 
+export const predictiveSearchParamsSchema = z.object({
+    query: z.string(),
+    first: z.number({ coerce: true }).optional().default(5),
+}).merge(localizationParamsSchema)
+
 export const priceRangeFilterSchema = z.object({
     min: z.number().optional(),
     max: z.number().optional(),
