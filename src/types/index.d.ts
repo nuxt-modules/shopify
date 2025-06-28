@@ -8,6 +8,7 @@ import type {
 } from './shopify'
 import type { HookResult, Nuxt } from '@nuxt/schema'
 import type { AdminApiClient } from '@shopify/admin-api-client'
+import type { ResponseErrors } from '@shopify/graphql-client'
 import type { StorefrontApiClient } from '@shopify/storefront-api-client'
 
 export type ModuleOptions = ShopifyConfig<
@@ -26,6 +27,10 @@ export type ShopifyClientOptionHookParams<T = StorefrontOptions | AdminOptions> 
 
 export type ShopifyClientHookParams<T = StorefrontApiClient | AdminApiClient> = {
     client: T
+}
+
+export type ShopifyErrorHookParams = {
+    errors: ResponseErrors
 }
 
 export type ShopifyTemplateHookParams = {
@@ -97,6 +102,11 @@ declare module '#app' {
          * Called after the storefront client is created within nuxt
          */
         'storefront:client:create': ({ client }: ShopifyClientHookParams<StorefrontApiClient>) => HookResult
+
+        /**
+         * Called when the storefront client throws an error within nuxt
+         */
+        'storefront:client:errors': ({ errors }: ShopifyErrorHookParams) => HookResult
     }
 }
 
@@ -113,6 +123,11 @@ declare module 'nitropack' {
         'storefront:client:create': ({ client }: ShopifyClientHookParams<StorefrontApiClient>) => HookResult
 
         /**
+         * Called when the storefront client throws an error within nitro
+         */
+        'storefront:client:errors': ({ errors }: ShopifyErrorHookParams) => HookResult
+
+        /**
          * Called after the admin client is created within nitro
          */
         'admin:client:configure': ({ options }: ShopifyClientOptionHookParams<AdminOptions>) => HookResult
@@ -121,6 +136,11 @@ declare module 'nitropack' {
          * Called when the admin client is created within nitro
          */
         'admin:client:create': ({ client }: ShopifyClientHookParams<AdminApiClient>) => HookResult
+
+        /**
+         * Called when the admin client throws an error within nitro
+         */
+        'admin:client:errors': ({ errors }: ShopifyErrorHookParams) => HookResult
     }
 }
 

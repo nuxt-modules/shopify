@@ -41,6 +41,7 @@ export default defineNuxtConfig({
         clients: {                                          // Available Shopify clients.
 
             storefront: {                                   // Storefront client options.
+
                 apiVersion: '2025-04',                      // API version to use.
                 publicAccessToken: 'YOUR_ACCESS_TOKEN',     // Public access token to use.
                 privateAccessToken: 'YOUR_ACCESS_TOKEN',    // Private access token to use.
@@ -52,6 +53,7 @@ export default defineNuxtConfig({
             },
 
             admin: {                                        // Admin client options.
+
                 apiVersion: '2025-04',                      // API version to use.
                 accessToken: 'YOUR_ACCESS_TOKEN',           // Access token to use.
                 sandbox: true,                              // Enable sandbox for the client.
@@ -71,6 +73,11 @@ export default defineNuxtConfig({
         graphql: true,                                      // Auto-import from `~/graphql` directory.
         storefront: true,                                   // Auto-import generated types for the storefront client.
         admin: true,                                        // Auto-import generated types for the admin client.
+    },
+
+    errors: {                                               // Error handling configuration.
+
+        throw: true,                                        // Throw errors instead of returning them in the response.
     },
 })
 ```

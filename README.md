@@ -23,14 +23,16 @@ Automatically generates and hot-reloads TypeScript types from your GraphQL opera
 
 - 🔌 Plug & play Shopify integration
 - 🔗 Fully typed fetch client from GraphQL queries
+- 🔐 Secure access token handling
 - 🔥 Hot-reloads types automatically when queries change
 - 🛒 Storefront and Admin API support
-- ⚙️ Customizable GraphQL code generation
+- 🌐 Server & client side support
+- 🚩 Error handling optimized for Nuxt
 - 🧩 GraphQL fragments support
+- ⚙️ Customizable GraphQL code generation
 - 📦 Auto-imports for GraphQL queries and generated types
 - 🧪 Tested with Nuxt 3 & 4
-- 🌐 Server & client side support
-- 🔐 Secure access token handling
+- 🔄 Hooks for customizing the module behavior
 - 🏖️ Sandbox integrated with GraphiQL Explorer
 
 ## 📦 Setup
@@ -229,6 +231,39 @@ query FetchProducts($first: Int) {
 You can place this query in a `.gql`, `.ts` or `.vue` file and use it in your requests. The module will be able to import the fragment and allow you to use it directly within your GraphQL operation.
 
 Files placed in the `~/graphql` directory will be automatically imported by the module, so it is recommended to organize your fragments there.
+
+### Handling errors
+
+By default, the module will throw an error if the storefront or admin client encounters an error instead of returning the errors object in the response.
+This is done so that Nuxt can take over the error handling.
+
+You can customize this behavior by setting the `errors.throw` option in the module config.
+
+```ts
+export default defineNuxtConfig({
+    shopify: {
+        errors: {
+            throw: false,
+        },
+    },
+})
+```
+
+This will prevent the module from throwing an error and instead return the error response.
+
+The module also provides hooks to handle errors.
+
+```ts
+// ~/server/plugins/your-plugin.ts
+export default defineNitroPlugin((nitroApp) => {
+    nitroApp.hooks.hook('storefront:client:errors', ({ errors }) => {
+        // Do something with the errors
+        console.log('Storefront client errors:', errors)
+    })
+})
+```
+
+Read more about all available hooks in our [hooks documentation](https://konkonam.github.io/nuxt-shopify/configuration/hooks).
 
 ## 🤝 Contributing
 

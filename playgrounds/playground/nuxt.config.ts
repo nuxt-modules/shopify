@@ -11,7 +11,7 @@ export default defineNuxtConfig({
         name: process.env.NUXT_SHOPIFY_NAME as string,
 
         logger: {
-            level: 999,
+            level: 3,
         },
 
         clients: {

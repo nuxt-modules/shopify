@@ -32,6 +32,9 @@ export type ShopifyConfig<S = ShopifyStorefrontConfig, A = ShopifyAdminConfig> =
         storefront?: boolean
         admin?: boolean
     }
+    errors?: {
+        throw?: boolean
+    }
     clients: {
         [ShopifyClientType.Storefront]?: S
         [ShopifyClientType.Admin]?: A
@@ -41,6 +44,9 @@ export type ShopifyConfig<S = ShopifyStorefrontConfig, A = ShopifyAdminConfig> =
 // Optional public config for client side usage
 export type PublicShopifyConfig<S = ShopifyStorefrontConfig> = {
     logger?: Partial<ConsolaOptions>
+    errors?: {
+        throw?: boolean
+    }
     clients: {
         [ShopifyClientType.Storefront]?: Omit<S, 'privateAccessToken' | 'skipCodegen' | 'sandbox' | 'documents'>
     }

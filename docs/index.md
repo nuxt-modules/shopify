@@ -39,6 +39,15 @@ features:
   - title: Auto-Imports
     icon: 📦
     details: "Auto-imports your GraphQL queries and all generated types"
+  - title: Error Handling
+    icon: 🚩
+    details: "Error handling optimized for Nuxt"
+  - title: GraphQL Fragments
+    icon: 🧩
+    details: "Support for GraphQL fragments"
+  - title: Hooks
+    icon: 🔄
+    details: "Hooks for customizing the module behavior"
   - title: Integrated Sandbox
     icon: 🧭
     details: "GraphiQL Explorer integration for testing and development"

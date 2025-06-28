@@ -23,6 +23,11 @@ export const useShopifyConfigValidation = (options: ModuleOptions) => {
             storefront: true,
             admin: true,
         }),
+        errors: z.object({
+            throw: z.boolean().optional().default(true),
+        }).optional().default({
+            throw: true,
+        }),
         clients: z.object({
             storefront: clientSchema.extend({
                 publicAccessToken: z.string().min(1).optional(),

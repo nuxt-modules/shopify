@@ -1,5 +1,9 @@
+import type { StorefrontApiClient } from '@shopify/storefront-api-client'
+
 import { createStorefrontApiClient } from '@shopify/storefront-api-client'
 import { createConsola } from 'consola'
+
+import useErrors from './useErrors'
 
 import { useRuntimeConfig, useNuxtApp } from '#imports'
 
@@ -18,11 +22,23 @@ export function useStorefront() {
         options.logger = createConsola(_shopify.logger).withTag('shopify').trace
     }
 
-    useNuxtApp().hooks.callHook('storefront:client:configure', { options })
+    const nuxtApp = useNuxtApp()
 
-    const client = createStorefrontApiClient(options)
+    nuxtApp.hooks.callHook('storefront:client:configure', { options })
 
-    useNuxtApp().hooks.callHook('storefront:client:create', { client })
+    const { request, ...rest } = createStorefrontApiClient(options)
+
+    const wrappedRequest: StorefrontApiClient['request'] = async (...params) => {
+        const response = await request(...params)
+
+        if (response.errors) useErrors(nuxtApp, response.errors, _shopify.errors?.throw ?? false)
+
+        return response
+    }
+
+    const client = { request: wrappedRequest, ...rest }
+
+    nuxtApp.hooks.callHook('storefront:client:create', { client })
 
     return client
 }
