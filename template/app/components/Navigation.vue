@@ -5,7 +5,9 @@ const storefront = useStorefront()
 const { country } = useCountry()
 const { locale } = useI18n()
 
-const { data } = await useAsyncData('collections', async () => await storefront.request(`#graphql
+const key = computed(() => `collections-${locale.value}-${country.value}`)
+
+const { data } = await useAsyncData(key, async () => await storefront.request(`#graphql
     query FetchCollections($after: String, $before: String, $first: Int, $last: Int, $language: LanguageCode)
     @inContext(language: $language) {
         collections(
@@ -28,7 +30,6 @@ const { data } = await useAsyncData('collections', async () => await storefront.
     }),
 }), {
     transform: data => data.data?.collections?.edges,
-    watch: [locale, country],
 })
 
 const searchInitialized = ref(false)

@@ -1,22 +1,43 @@
 <script setup lang="ts">
 const { country: countryCode } = useCountry()
+const storefront = useStorefront()
 const { t, locale } = useI18n()
 
-const { data: countries } = await useFetch('/api/countries', {
-    key: `countries`,
-    method: 'POST',
-    body: {
-        language: locale,
-    },
-    watch: [locale],
-    transform: data => data?.localization?.availableCountries,
+const key = computed(() => `countries-${locale.value}`)
+
+const { data } = await useAsyncData(key, async () => await storefront.request(`#graphql
+    query FetchCountries($language: LanguageCode, $country: CountryCode) 
+    @inContext(language: $language, country: $country) {
+        localization {
+            availableCountries {
+                isoCode
+                name
+
+                availableLanguages {
+                    isoCode
+                }
+
+                currency {
+                    isoCode
+                    symbol
+                }
+            }
+        }
+    }
+`, {
+    variables: localizationParamsSchema.parse({
+        language: locale.value,
+        country: countryCode.value,
+    }),
+}), {
+    transform: data => data.data?.localization?.availableCountries,
 })
 
 const open = ref(false)
 
-const country = computed(() => countries.value?.find(c => c.isoCode === countryCode.value))
+const country = computed(() => data.value?.find(c => c.isoCode === countryCode.value))
 
-const getCountryLabel = (c?: typeof country['value']) => `${c?.name} (${c?.currency?.isoCode} ${c?.currency?.symbol})`
+const getCountryLabel = (c?: typeof country.value) => `${c?.name} (${c?.currency?.isoCode} ${c?.currency?.symbol})`
 </script>
 
 <template>
@@ -39,7 +60,7 @@ const getCountryLabel = (c?: typeof country['value']) => `${c?.name} (${c?.curre
                 highlight
                 highlight-color="primary"
                 orientation="vertical"
-                :items="countries?.map(country => ({
+                :items="data?.map(country => ({
                     label: getCountryLabel(country),
                     active: country.isoCode === countryCode,
                     onSelect: () => {
