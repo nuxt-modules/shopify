@@ -10,20 +10,11 @@ const { data } = await useAsyncData(key, async () => await storefront.request(`#
     @inContext(language: $language, country: $country) {
         localization {
             availableCountries {
-                isoCode
-                name
-
-                availableLanguages {
-                    isoCode
-                }
-
-                currency {
-                    isoCode
-                    symbol
-                }
+                ...CountryFields
             }
         }
     }
+    ${COUNTRY_FRAGMENT}
 `, {
     variables: localizationParamsSchema.parse({
         language: locale.value,
