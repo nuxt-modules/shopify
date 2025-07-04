@@ -1,15 +1,23 @@
-<script setup lang="ts">
-const { t } = useI18n()
+<script setup>
+const { locale } = useI18n()
+
+const { data } = await useAsyncData(`page-home-${locale.value}`, async () =>
+    await queryCollection('content').path(`/${locale.value}/`).first())
+
+useHead({
+    title: data.value.title,
+    meta: [
+        {
+            name: 'description',
+            content: data.value.description,
+        },
+    ],
+})
 </script>
 
 <template>
-    <div class="flex flex-col gap-16">
-        <Hero
-            :title="t('hero.title')"
-            :subtitle="t('hero.subtitle')"
-            :cta-text="t('hero.cta')"
-            cta-link="/collection/shirts"
-            class="mt-6 md:mt-16 mb-16"
-        />
-    </div>
+    <ContentRenderer
+        :value="data"
+        class="my-4 prose"
+    />
 </template>

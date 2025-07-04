@@ -87,7 +87,6 @@ watch([locale, country], () => {
         </UDrawer>
 
         <UButton
-            v-if="false"
             variant="link"
             color="neutral"
             size="xs"
@@ -109,7 +108,6 @@ watch([locale, country], () => {
                 </h2>
 
                 <UButton
-                    v-if="false"
                     variant="link"
                     color="neutral"
                     size="xs"

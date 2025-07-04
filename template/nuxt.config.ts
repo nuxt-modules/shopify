@@ -1,6 +1,7 @@
 export default defineNuxtConfig({
     modules: [
         '@konkonam/nuxt-shopify',
+        '@nuxt/content',
         '@nuxt/image',
         '@nuxt/ui',
         '@nuxtjs/i18n',
@@ -21,6 +22,13 @@ export default defineNuxtConfig({
     },
 
     css: ['~/assets/css/main.css'],
+
+    content: {
+        database: {
+            type: 'sqlite',
+            filename: 'db.sqlite',
+        },
+    },
 
     runtimeConfig: {
         sessionPassword: process.env.NUXT_SESSION_PASSWORD as string,
@@ -97,12 +105,6 @@ export default defineNuxtConfig({
                 name: 'Deutsch',
                 file: 'de.json',
                 defaultCountry: 'DE',
-            },
-            {
-                code: 'fr',
-                name: 'Français',
-                file: 'fr.json',
-                defaultCountry: 'FR',
             },
         ],
 
