@@ -3,10 +3,8 @@ const props = defineProps<{
     handle: string
 }>()
 
-const { filters: activeFilters, count: activeFilterCount } = useFilters()
 const { t, locale } = useI18n()
 const { country } = useCountry()
-const router = useRouter()
 const route = useRoute()
 
 const before = ref<string>()
@@ -30,7 +28,6 @@ const { data, status } = await useFetch('/api/collection/products', {
     method: 'POST',
     body: {
         handle: props.handle,
-        filters: activeFilters,
         language: locale,
         country,
         first,
@@ -41,7 +38,6 @@ const { data, status } = await useFetch('/api/collection/products', {
 })
 
 const products = computed(() => data.value?.collection?.products)
-const filters = computed(() => products.value?.filters ?? [])
 
 const toTop = () => {
     window.scrollTo({
@@ -60,27 +56,6 @@ const loadPrevious = () => {
 const loadNext = () => {
     before.value = undefined
     after.value = products.value?.pageInfo.endCursor ?? undefined
-
-    toTop()
-}
-
-const onFilterUpdate = () => {
-    before.value = undefined
-    after.value = undefined
-
-    toTop()
-}
-
-const resetFilters = async () => {
-    console.log('Resetting filters')
-
-    router.replace({ query: {
-        ...route.query,
-        filters: undefined,
-    } })
-
-    before.value = undefined
-    after.value = undefined
 
     toTop()
 }
@@ -105,28 +80,20 @@ watch([locale, country], () => {
                 variant="outline"
                 size="xs"
                 icon="hugeicons:filter-horizontal"
-                :label="`${t('filters.label')} ${activeFilterCount > 0 ? `(${activeFilterCount})` : ''}`"
                 class="lg:hidden"
             />
 
-            <template #body>
-                <ProductFilters
-                    class="pt-4 pb-10 w-full"
-                    :filters="filters"
-                    @update="onFilterUpdate"
-                />
-            </template>
+            <template #body />
         </UDrawer>
 
         <UButton
-            v-if="activeFilterCount > 0"
+            v-if="false"
             variant="link"
             color="neutral"
             size="xs"
             icon="hugeicons:cancel-01"
             :label="t('filters.clear')"
             class="lg:hidden"
-            @click="resetFilters"
         />
 
         <Sortings />
@@ -142,25 +109,19 @@ watch([locale, country], () => {
                 </h2>
 
                 <UButton
-                    v-if="activeFilterCount > 0"
+                    v-if="false"
                     variant="link"
                     color="neutral"
                     size="xs"
                     icon="hugeicons:cancel-01"
                     :label="t('filters.clear')"
                     class="pt-1.5 cursor-pointer"
-                    @click="resetFilters"
                 />
             </div>
 
             <p class="pb-6">
                 Quickly find the perfect vintage piece that suits you
             </p>
-
-            <ProductFilters
-                :filters="filters"
-                @update="onFilterUpdate"
-            />
         </aside>
 
         <div>
@@ -259,14 +220,6 @@ watch([locale, country], () => {
                         No products found
                     </p>
                 </div>
-
-                <UButton
-                    v-if="activeFilterCount > 0"
-                    variant="ghost"
-                    @click="resetFilters"
-                >
-                    Reset filters
-                </UButton>
             </div>
         </div>
     </div>
