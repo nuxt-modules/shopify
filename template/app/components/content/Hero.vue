@@ -38,6 +38,7 @@
                     'text-xs',
                     'transition-[filter]',
                     'duration-150',
+                    'ease-in-out',
                     'bg-gradient-to-br',
                     'from-green-400',
                     'to-green-500',

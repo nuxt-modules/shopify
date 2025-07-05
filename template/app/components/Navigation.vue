@@ -4,6 +4,7 @@ import type { NavigationMenuItem } from '#ui/types'
 const storefront = useStorefront()
 const { country } = useCountry()
 const { locale } = useI18n()
+const { y: scrollY } = useScroll(document)
 
 const key = computed(() => `collections-${locale.value}-${country.value}`)
 
@@ -36,6 +37,7 @@ const searchInitialized = ref(false)
 const searchOpen = ref(false)
 
 const menuOpen = ref(false)
+const menuCollapsed = ref(false)
 
 const collections = computed<NavigationMenuItem[]>(() => data.value
     ?.map(collection => ({
@@ -69,43 +71,64 @@ const navigationActions = computed<NavigationMenuItem[]>(() => [
 ])
 
 watch(searchOpen, () => searchInitialized.value = true)
+watch(scrollY, () => menuCollapsed.value = scrollY.value > 20)
 </script>
 
 <template>
-    <div class="border-b border-[var(--ui-border-muted)] relative z-10 shadow-xs">
-        <UContainer class="flex flex-row justify-evenly items-center">
-            <Logo />
+    <div class="h-12">
+        <div
+            :class="[
+                'border-b',
+                'border-[var(--ui-border-muted)]',
+                'relative',
+                'z-10',
+                'shadow-xs',
+                'flex',
+                'flex-col',
+                'justify-center',
+                'transition-[height]',
+                'duration-150',
+                'ease-in-out',
+                {
+                    'h-16 md:h-18': !menuCollapsed,
+                    'h-12': menuCollapsed,
+                },
+            ]"
+        >
+            <UContainer class="flex flex-row justify-evenly items-center">
+                <Logo />
 
-            <UNavigationMenu
-                highlight
-                highlight-color="primary"
-                orientation="horizontal"
-                :items="navigationItems"
-                class="grow"
-                :ui="{ linkLabel: 'font-normal' }"
+                <UNavigationMenu
+                    highlight
+                    highlight-color="primary"
+                    orientation="horizontal"
+                    :items="navigationItems"
+                    class="grow"
+                    :ui="{ linkLabel: 'font-normal' }"
+                />
+
+                <SearchButton
+                    v-model="searchOpen"
+                    class="px-2 sm:mr-6 xl:mr-8"
+                />
+
+                <UNavigationMenu
+                    highlight
+                    highlight-color="primary"
+                    orientation="horizontal"
+                    :items="navigationActions"
+                />
+            </UContainer>
+
+            <NavigationMenu
+                v-model="menuOpen"
+                :collections="collections"
             />
 
-            <SearchButton
+            <LazySearchMenu
+                v-if="searchInitialized"
                 v-model="searchOpen"
-                class="px-2 sm:mr-6 xl:mr-8"
             />
-
-            <UNavigationMenu
-                highlight
-                highlight-color="primary"
-                orientation="horizontal"
-                :items="navigationActions"
-            />
-        </UContainer>
-
-        <NavigationMenu
-            v-model="menuOpen"
-            :collections="collections"
-        />
-
-        <LazySearchMenu
-            v-if="searchInitialized"
-            v-model="searchOpen"
-        />
+        </div>
     </div>
 </template>

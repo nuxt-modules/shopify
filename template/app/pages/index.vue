@@ -18,6 +18,6 @@ useHead({
 <template>
     <ContentRenderer
         :value="data"
-        class="my-4"
+        class="mt-10 md:mt-8"
     />
 </template>

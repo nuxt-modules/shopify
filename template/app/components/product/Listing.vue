@@ -80,7 +80,7 @@ watch([locale, country], () => {
                 variant="outline"
                 size="xs"
                 icon="hugeicons:filter-horizontal"
-                class="lg:hidden"
+                class="px-2 lg:hidden"
             />
 
             <template #body />
@@ -92,7 +92,7 @@ watch([locale, country], () => {
             size="xs"
             icon="hugeicons:cancel-01"
             :label="t('filters.clear')"
-            class="lg:hidden"
+            class="hidden"
         />
 
         <Sortings />
@@ -113,7 +113,7 @@ watch([locale, country], () => {
                     size="xs"
                     icon="hugeicons:cancel-01"
                     :label="t('filters.clear')"
-                    class="pt-1.5 cursor-pointer"
+                    class="hidden pt-1.5 cursor-pointer"
                 />
             </div>
 
