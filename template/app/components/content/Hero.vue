@@ -1,0 +1,59 @@
+<template>
+    <div class="sm:flex items-center gap-8">
+        <div
+            :class="[
+                'inline-block',
+                'relative',
+                'shrink-0',
+                'font-thin',
+                'text-3xl',
+                'leading-14',
+                'max-w-[800px]',
+                '[&>*]:inline',
+                '[&>:not(a)]:font-headings',
+                '[&>*>strong]:font-black',
+                '[&>*>strong]:text-transparent',
+                '[&>*>strong]:bg-clip-text',
+                '[&>*>strong]:bg-gradient-to-br',
+                '[&>*>strong]:from-green-400',
+                '[&>*>strong]:to-green-500',
+                '[&>*>strong]:drop-shadow-xl',
+                '[&>*>strong]:drop-shadow-green-500/30',
+                'sm:text-4xl',
+                'sm:leading-20px',
+                'md:mt-8',
+                'md:leading-22',
+                'md:text-5xl',
+                'md:tracking-wide',
+            ]"
+        >
+            <slot />
+
+            <UButton
+                to="https://github.com/konkonam/nuxt-shopify"
+                :class="[
+                    'absolute',
+                    'bottom-2.5',
+                    '-right-1',
+                    'text-xs',
+                    'transition-[filter]',
+                    'duration-150',
+                    'bg-gradient-to-br',
+                    'from-green-400',
+                    'to-green-500',
+                    'hover:drop-shadow-xl',
+                    'hover:drop-shadow-green-500/20',
+                    'sm:text-sm',
+                    'sm:bottom-2',
+                    'sm:-right-2',
+                    'md:text-xl',
+                    'md:bottom-5',
+                    'md:-right-8',
+                    'md:py-2',
+                    'md:px-4',
+                ]"
+                label="View on GitHub"
+            />
+        </div>
+    </div>
+</template>

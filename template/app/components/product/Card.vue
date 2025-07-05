@@ -28,24 +28,28 @@ const state = reactive<z.infer<typeof schema>>({
                 root: 'rounded-none !bg-transparent',
             }"
         >
-            <div class="relative flex flex-col gap-6 h-full">
+            <div class="relative flex flex-col h-full">
                 <NuxtLink
                     :to="url"
                     class="flex flex-col grow"
                 >
                     <ProductImage
                         :product="props.product"
-                        class="pb-6"
+                        class="mb-6 rounded-md overflow-hidden"
                     />
 
-                    <p class="text-xl font-bold pb-2 lg:text-lg">
+                    <p class="text-sm font-headings font-extralight pb-2 lg:text-lg">
                         {{ props.product.title }}
                     </p>
+                </NuxtLink>
 
+                <NuxtLink
+                    :to="url"
+                    class="mt-2 mb-3 md:mb-5"
+                >
                     <ProductPrice
                         v-if="props.product"
                         :product="props.product"
-                        class="lg:text-lg"
                     />
                 </NuxtLink>
 
@@ -70,7 +74,7 @@ const state = reactive<z.infer<typeof schema>>({
                             :label="t('product.addToCart')"
                             variant="soft"
                             type="submit"
-                            class="cursor-pointer"
+                            class="cursor-pointer px-4"
                         />
                     </div>
                 </UForm>

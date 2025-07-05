@@ -43,6 +43,7 @@ const getCountryLabel = (c?: typeof country.value) => `${c?.name} (${c?.currency
             icon="hugeicons:globe-02"
             variant="navigation"
             class="cursor-pointer md:px-3"
+            :ui="{ label: 'font-normal' }"
             @click="open = true"
         />
 

@@ -15,18 +15,22 @@ const { t } = useI18n()
             class="size-5 sm:mr-1"
         />
 
-        <span class="hidden sm:block">
+        <span class="hidden text-xs sm:block">
             {{ t('search.placeholder') }}
         </span>
 
         <UKbd
             value="meta"
-            class="ml-3 hidden text-dimmed sm:flex"
+            class="hidden ml-3 text-dimmed ring-0 sm:flex"
         />
+
+        <span class="hidden mb-1 -mx-1 text-xs text-dimmed sm:block">
+            +
+        </span>
 
         <UKbd
             value="k"
-            class="hidden text-dimmed mr-0.5 sm:flex"
+            class="hidden text-dimmed mr-0.5 ring-0 sm:flex"
         />
     </UButton>
 </template>

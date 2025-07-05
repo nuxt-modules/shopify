@@ -43,7 +43,7 @@ const items = computed<NavigationMenuItem[]>(() => [
 
                     <br>
 
-                    <span class="font-bold">
+                    <span class="font-medium">
                         Nuxt Shopify v{{ version }}
                     </span>
                 </p>
@@ -59,6 +59,7 @@ const items = computed<NavigationMenuItem[]>(() => [
                         orientation="vertical"
                         :ui="{
                             list: 'md:flex',
+                            linkLabel: 'font-normal',
                             linkLabelExternalIcon: 'hidden',
                             linkLeadingIcon: 'size-2.5 mt-0.5 md:hidden',
                         }"

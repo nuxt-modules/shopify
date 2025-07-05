@@ -19,6 +19,7 @@ const getLanguageLabel = (l?: typeof locale['value']) => `${locales.value?.find(
             icon="hugeicons:language-circle"
             variant="navigation"
             class="cursor-pointer shrink md:px-3"
+            :ui="{ label: 'font-normal' }"
             @click="open = true"
         />
 

@@ -18,6 +18,6 @@ useHead({
 <template>
     <ContentRenderer
         :value="data"
-        class="my-4 prose"
+        class="my-4"
     />
 </template>

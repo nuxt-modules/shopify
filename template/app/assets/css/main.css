@@ -5,19 +5,25 @@
 @import "./animations.css";
 
 @theme static {
-    --font-sans: 'Jura', sans-serif;
+    --font-sans: 'Satoshi', sans-serif;
+    --font-headings: 'Plus Jakarta Sans', sans-serif;
 
-    --color-green-50: #E0F2E8;
-    --color-green-100: #BFEDD4;
-    --color-green-200: #8EE3B8;
-    --color-green-300: #4DD48E;
-    --color-green-400: #00B85E;
-    --color-green-500: #009649;
-    --color-green-600: #00733C;
-    --color-green-700: #005B30;
-    --color-green-800: #014926;
-    --color-green-900: #074224;
-    --color-green-950: #031F10;
+    --radius-xs: 1rem;
+    --radius-sm: 1.25rem;
+    --radius-md: 1.5rem;
+    --radius-lg: 1.75rem;
+
+    --color-green-50: #E8F5EC;
+    --color-green-100: #D1F0DA;
+    --color-green-200: #A5E6C0;
+    --color-green-300: #6DD89A;
+    --color-green-400: #2BC46E;
+    --color-green-500: #00A855;
+    --color-green-600: #008544;
+    --color-green-700: #006B36;
+    --color-green-800: #01552A;
+    --color-green-900: #0A4A28;
+    --color-green-950: #052818;
 
     --ui-color-neutral-50: #F2F2F2;
     --ui-color-neutral-100: #DDDDDD;
