@@ -105,7 +105,13 @@ watch(scrollY, () => menuCollapsed.value = scrollY.value > 20, { immediate: true
                     orientation="horizontal"
                     :items="navigationItems"
                     class="grow"
-                    :ui="{ linkLabel: 'font-normal' }"
+                    :class="{
+                        '[&_a]:after:-bottom-5': !menuCollapsed,
+                    }"
+                    :ui="{
+                        linkLabel: 'font-normal',
+                        link: 'after:transition-[bottom] after:duration-150 after:ease-in-out after:absolute',
+                    }"
                 />
 
                 <SearchButton

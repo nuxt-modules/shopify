@@ -60,7 +60,7 @@ const { data: products } = await useAsyncData(key, async () => await storefront.
                 v-for="product in products"
                 :key="product.node.id"
                 :product="product.node"
-                class="w-[260px] shrink-0"
+                class="w-[300px] shrink-0"
             />
         </div>
     </div>

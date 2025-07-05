@@ -41,6 +41,7 @@
                     'transition-[filter]',
                     'duration-150',
                     'ease-in-out',
+                    'rounded-3xl',
                     'hover:drop-shadow-xl',
                     'hover:drop-shadow-green-500/20',
                     'sm:text-sm',

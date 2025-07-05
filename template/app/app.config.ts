@@ -14,6 +14,9 @@ export default defineAppConfig({
         },
 
         button: {
+            slots: {
+                base: 'font-normal',
+            },
             variants: {
                 variant: {
                     navigation: 'px-2 md:px-3 hover:bg-elevated/50 text-dimmed hover:text-muted disabled:text-dimmed aria-disabled:text-dimmed focus:outline-none focus-visible:ring-inset focus-visible:ring-2 focus-visible:ring-primary',
@@ -23,12 +26,12 @@ export default defineAppConfig({
 
         breadcrumb: {
             slots: {
-                linkLabel: 'truncate mb-[2px]',
+                linkLabel: 'truncate mb-[2px] font-normal',
                 separator: 'flex -mb-[2px]',
                 variants: {
                     active: {
                         false: {
-                            link: 'text-[var(--ui-text-muted)] font-medium mb-[2px]',
+                            link: 'text-[var(--ui-text-muted)] mb-[2px]',
                         },
                     },
                 },

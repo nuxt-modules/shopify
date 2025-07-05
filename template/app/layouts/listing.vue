@@ -3,7 +3,7 @@ const { t } = useI18n()
 </script>
 
 <template>
-    <UContainer class="flex flex-col gap-1 pt-4 pb-18">
+    <UContainer class="flex flex-col gap-1 pt-10 pb-18">
         <UBreadcrumb
             :items="[
                 {

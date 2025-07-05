@@ -29,14 +29,14 @@ const product = computed(() => data.value?.product)
 
 <template>
     <div>
-        <div class="flex flex-col gap-2 lg:hidden">
-            <h1 class="text-xl font-bold lg:text-2xl">
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-10 sm:justify-between lg:hidden">
+            <h1 class="text-xl lg:text-2xl">
                 {{ product?.title }}
             </h1>
 
             <ProductPrice
                 :product="product"
-                class="shrink"
+                class="shrink mt-2 sm:mt-0 text-lg"
             />
         </div>
 
@@ -48,7 +48,7 @@ const product = computed(() => data.value?.product)
 
             <div class="flex flex-col gap-4 lg:col-span-4 lg:col-start-8">
                 <div class="flex-col gap-2 hidden lg:flex lg:pb-4">
-                    <h2 class="text-2xl font-bold">
+                    <h2 class="text-2xl">
                         {{ product?.title }}
                     </h2>
 
