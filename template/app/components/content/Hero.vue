@@ -31,22 +31,22 @@
 
             <UButton
                 to="https://github.com/konkonam/nuxt-shopify"
+                variant="outline"
                 :class="[
                     'absolute',
                     'bottom-2.5',
                     '-right-1',
                     'text-xs',
+                    'ring-primary',
                     'transition-[filter]',
                     'duration-150',
                     'ease-in-out',
-                    'bg-gradient-to-br',
-                    'from-green-400',
-                    'to-green-500',
                     'hover:drop-shadow-xl',
                     'hover:drop-shadow-green-500/20',
                     'sm:text-sm',
                     'sm:bottom-2',
                     'sm:-right-2',
+                    'md:ring-2',
                     'md:text-xl',
                     'md:bottom-5',
                     'md:-right-8',

@@ -3,5 +3,11 @@
 ::
 
 ::product-slider{handle="shirts" country="US" language="en" first="8"}
-## Discover our latest products
+## Our latest products
+::
+
+::prose
+## This is some test text
+
+Yes, you've heard it right! This is a test text to show how the theme works. You can write your posts in Markdown, and they will be rendered beautifully.
 ::

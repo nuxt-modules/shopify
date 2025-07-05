@@ -71,7 +71,7 @@ const navigationActions = computed<NavigationMenuItem[]>(() => [
 ])
 
 watch(searchOpen, () => searchInitialized.value = true)
-watch(scrollY, () => menuCollapsed.value = scrollY.value > 20)
+watch(scrollY, () => menuCollapsed.value = scrollY.value > 20, { immediate: true })
 </script>
 
 <template>
@@ -89,6 +89,7 @@ watch(scrollY, () => menuCollapsed.value = scrollY.value > 20)
                 'transition-[height]',
                 'duration-150',
                 'ease-in-out',
+                'bg-[var(--ui-bg)]',
                 {
                     'h-16 md:h-18': !menuCollapsed,
                     'h-12': menuCollapsed,

@@ -50,17 +50,17 @@ const { data: products } = await useAsyncData(key, async () => await storefront.
 </script>
 
 <template>
-    <div class="my-16 md:mt-24">
+    <div>
         <div class="prose mb-10 md:mb-14">
             <slot />
         </div>
 
-        <div class="flex gap-12">
+        <div class="flex gap-16">
             <ProductCard
                 v-for="product in products"
                 :key="product.node.id"
                 :product="product.node"
-                class="w-full"
+                class="w-[260px] shrink-0"
             />
         </div>
     </div>

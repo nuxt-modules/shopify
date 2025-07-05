@@ -93,7 +93,7 @@
   h4,
   h5,
   h6 {
-    @apply font-headings font-extralight my-2 mb-4 leading-tight empty:hidden;
+    @apply font-headings font-extralight mt-2 mb-6 leading-tight empty:hidden;
   }
 
   h1 {
