@@ -82,6 +82,7 @@ watch(searchOpen, () => searchInitialized.value = true)
                 orientation="horizontal"
                 :items="navigationItems"
                 class="grow"
+                :ui="{ linkLabel: 'font-normal' }"
             />
 
             <SearchButton

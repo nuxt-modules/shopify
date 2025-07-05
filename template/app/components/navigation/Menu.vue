@@ -26,6 +26,7 @@ const collections = computed(() => props.collections.map(collection => ({
         :ui="{
             header: 'min-h-0 h-[49px]',
             close: 'top-2 hover:bg-muted text-muted',
+            title: 'font-normal',
         }"
     >
         <template #body>
@@ -37,6 +38,7 @@ const collections = computed(() => props.collections.map(collection => ({
                 :ui="{
                     linkLabelExternalIcon: 'hidden',
                     linkLeadingIcon: 'size-2.5 mt-0.5 text-muted',
+                    linkLabel: 'font-normal',
                 }"
                 class="pb-4"
             />

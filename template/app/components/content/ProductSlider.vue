@@ -51,7 +51,7 @@ const { data: products } = await useAsyncData(key, async () => await storefront.
 
 <template>
     <div class="my-16 md:mt-24">
-        <div class="prose mb-14">
+        <div class="prose mb-10 md:mb-14">
             <slot />
         </div>
 
