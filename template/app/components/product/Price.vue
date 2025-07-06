@@ -28,7 +28,7 @@ const price = computed(() => {
     <span
         v-if="props.product"
         :class="{
-            'block font-medium text-muted text-right': !props.inline,
+            'block font-medium text-right': !props.inline,
             'sm:opacity-80': props.inline,
         }"
     >

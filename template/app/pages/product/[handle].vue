@@ -5,7 +5,7 @@ definePageMeta({
 })
 
 const { country } = useCountry()
-const { t, locale } = useI18n()
+const { locale } = useI18n()
 const route = useRoute()
 
 const handle = computed(() => route.params.handle as string)
@@ -36,7 +36,7 @@ const product = computed(() => data.value?.product)
 
             <ProductPrice
                 :product="product"
-                class="shrink mt-2 sm:mt-0 text-lg"
+                class="shrink mt-2 text-lg text-primary sm:mt-0"
             />
         </div>
 
@@ -62,7 +62,7 @@ const product = computed(() => data.value?.product)
 
                 <USeparator class="my-4 lg:my-8" />
 
-                <div class="flex flex-row justify-between items-center gap-6 lg:gap-12">
+                <div class="flex flex-col justify-between items-end gap-6 lg:gap-12">
                     <UFormField name="quantity">
                         <UInputNumber
                             v-model="state.quantity"
@@ -70,27 +70,17 @@ const product = computed(() => data.value?.product)
                             :max="10"
                             class="w-24 lg:w-28"
                             :ui="{
-                                base: 'py-3',
+                                base: 'py-3 rounded-full',
                             }"
                         />
                     </UFormField>
 
-                    <UButton
-                        size="lg"
-                        color="primary"
-                        variant="soft"
-                        icon="hugeicons:shopping-bag-01"
-                        class="flex items-center justify-center p-3 grow"
-                    >
-                        <span class="hidden sm:block">{{ t('product.addToCart') }}</span>
-
-                        <ProductPrice
-                            :product="product"
-                            :quantity="state.quantity"
-                            class="lg:hidden"
-                            inline
-                        />
-                    </UButton>
+                    <ProductAddToCart
+                        v-if="product"
+                        :product="product"
+                        :quantity="state.quantity"
+                        class="flex-1 p-3"
+                    />
                 </div>
             </div>
         </div>

@@ -5,8 +5,6 @@ const props = defineProps<{
     product: ProductFieldsFragment
 }>()
 
-const { t } = useI18n()
-
 const url = getProductAppUrl(props.product.handle)
 
 const schema = z.object({
@@ -69,12 +67,14 @@ const state = reactive<z.infer<typeof schema>>({
                             />
                         </UFormField>
 
-                        <UButton
-                            trailing-icon="hugeicons:shopping-bag-01"
-                            :label="t('product.addToCart')"
-                            variant="soft"
-                            type="submit"
-                            class="cursor-pointer px-4"
+                        <ProductAddToCart
+                            v-if="props.product"
+                            :product="props.product"
+                            :quantity="state.quantity"
+                            :ui="{
+                                price: 'hidden',
+                            }"
+                            trailing-icon
                         />
                     </div>
                 </UForm>
