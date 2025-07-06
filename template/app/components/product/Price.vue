@@ -5,7 +5,7 @@ const props = defineProps<{
     inline?: boolean
 }>()
 
-const { country } = useCountry()
+const { country } = useTranslation()
 const { locale } = useI18n()
 
 const price = computed(() => {

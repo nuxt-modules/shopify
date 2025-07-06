@@ -1,10 +1,10 @@
 <script setup lang="ts">
 const open = defineModel<boolean>({ default: false })
 
+const { country, language } = useTranslation()
 const localePath = useLocalePath()
 const storefront = useStorefront()
-const { country } = useCountry()
-const { t, locale } = useI18n()
+const { t } = useI18n()
 
 const query = ref('')
 
@@ -38,11 +38,11 @@ const { data, status } = await useAsyncData(`search-${query.value}`, async () =>
     variables: predictiveSearchParamsSchema.parse({
         query: query.value,
         country: country.value,
-        language: locale.value,
+        language: language.value,
     }),
 }), {
     transform: data => data.data,
-    watch: [query, country, locale],
+    watch: [query, country, language],
     lazy: true,
 })
 

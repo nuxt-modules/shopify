@@ -4,18 +4,12 @@ import { z } from 'zod'
 const props = defineProps<{
     handle: string
     first: string
-    country: CountryCode
-    language: LanguageCode
 }>()
 
+const { country, language } = useTranslation()
 const storefront = useStorefront()
 
-const variables = z.object({
-    handle: z.string(),
-    first: z.preprocess(v => Number(v ?? 0), z.number().int().min(1).max(250)),
-}).merge(localizationParamsSchema).parse(props)
-
-const key = computed(() => `product-slider-${variables.handle}-${variables.language}-${variables.country}`)
+const key = computed(() => `product-slider-${props.handle}-${language.value}-${country.value}`)
 
 const { data: products } = await useAsyncData(key, async () => await storefront.request(`#graphql
     query FetchSliderProducts(
@@ -43,7 +37,14 @@ const { data: products } = await useAsyncData(key, async () => await storefront.
     ${PRICE_FRAGMENT}
     ${PRODUCT_CONNECTION_FRAGMENT}
 `, {
-    variables,
+    variables: z.object({
+        handle: z.string(),
+        first: z.preprocess(v => Number(v ?? 0), z.number().int().min(1).max(250)),
+    }).merge(localizationParamsSchema).parse({
+        ...props,
+        language: language.value,
+        country: country.value,
+    }),
 }), {
     transform: data => data.data?.collection?.products?.edges || [],
 })

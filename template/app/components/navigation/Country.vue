@@ -1,9 +1,9 @@
 <script setup lang="ts">
-const { country: countryCode } = useCountry()
+const { country: countryCode, language } = useTranslation()
 const storefront = useStorefront()
-const { t, locale } = useI18n()
+const { t } = useI18n()
 
-const key = computed(() => `countries-${locale.value}`)
+const key = computed(() => `countries-${language.value}`)
 
 const { data } = await useAsyncData(key, async () => await storefront.request(`#graphql
     query FetchCountries($language: LanguageCode, $country: CountryCode) 
@@ -17,7 +17,7 @@ const { data } = await useAsyncData(key, async () => await storefront.request(`#
     ${COUNTRY_FRAGMENT}
 `, {
     variables: localizationParamsSchema.parse({
-        language: locale.value,
+        language: language.value,
         country: countryCode.value,
     }),
 }), {

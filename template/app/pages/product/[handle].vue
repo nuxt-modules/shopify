@@ -4,8 +4,7 @@ definePageMeta({
     layout: 'detail',
 })
 
-const { country } = useCountry()
-const { locale } = useI18n()
+const { country, language } = useTranslation()
 const route = useRoute()
 
 const handle = computed(() => route.params.handle as string)
@@ -19,9 +18,9 @@ const { data } = await useFetch('/api/product', {
     body: {
         handle,
         country,
-        language: locale,
+        language,
     },
-    watch: [locale, country],
+    watch: [language, country],
 })
 
 const product = computed(() => data.value?.product)

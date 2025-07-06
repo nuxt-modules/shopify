@@ -3,9 +3,9 @@ const props = defineProps<{
     handle: string
 }>()
 
-const { t, locale } = useI18n()
-const { country } = useCountry()
+const { country, language } = useTranslation()
 const route = useRoute()
+const { t } = useI18n()
 
 const before = ref<string>()
 const after = ref<string>()
@@ -16,7 +16,7 @@ const last = computed(() => before.value ? 12 : undefined)
 const key = computed(() => [
     'listing',
     props.handle,
-    locale.value,
+    language.value,
     country.value,
     before.value,
     after.value,
@@ -28,7 +28,7 @@ const { data, status } = await useFetch('/api/collection/products', {
     method: 'POST',
     body: {
         handle: props.handle,
-        language: locale,
+        language,
         country,
         first,
         last,
@@ -60,7 +60,7 @@ const loadNext = () => {
     toTop()
 }
 
-watch([locale, country], () => {
+watch([language, country], () => {
     before.value = undefined
     after.value = undefined
 

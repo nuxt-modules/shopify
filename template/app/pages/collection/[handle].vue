@@ -4,8 +4,7 @@ definePageMeta({
     layout: 'listing',
 })
 
-const { locale } = useI18n()
-const { country } = useCountry()
+const { country, language } = useTranslation()
 const route = useRoute()
 
 const handle = route.params.handle as string
@@ -13,7 +12,7 @@ const handle = route.params.handle as string
 const key = computed(() => [
     'collection',
     handle,
-    locale.value,
+    language.value,
     country.value,
 ].join('-'))
 
@@ -22,7 +21,7 @@ const { data } = await useFetch('/api/collection', {
     method: 'POST',
     body: {
         handle,
-        language: locale.value,
+        language: language.value,
         country: country.value,
     },
 })
