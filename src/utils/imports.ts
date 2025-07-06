@@ -1,13 +1,13 @@
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 import type { Nuxt } from '@nuxt/schema'
+import type { Resolver } from '@nuxt/kit'
 
 import {
     addImports,
     addImportsDir,
     addServerImports,
     addServerImportsDir,
-    type Resolver,
 } from '@nuxt/kit'
 import type { ShopifyConfig } from '../types'
 
