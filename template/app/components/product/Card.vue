@@ -33,7 +33,7 @@ const state = reactive<z.infer<typeof schema>>({
                 >
                     <ProductImage
                         :product="props.product"
-                        class="mb-6 rounded-md overflow-hidden"
+                        class="mb-6"
                     />
 
                     <p class="text-sm font-headings font-extralight pb-2 lg:text-lg">

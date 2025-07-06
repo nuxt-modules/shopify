@@ -7,7 +7,6 @@ const props = defineProps({
     error: Object as () => NuxtError,
 })
 
-const { isDark } = useTheme()
 const { locale, t } = useI18n()
 
 const lang = computed(() => locales[locale.value].code)
@@ -49,7 +48,7 @@ useHead({
 <template>
     <UApp :locale="locales[locale]">
         <div class="min-h-screen flex flex-col">
-            <NuxtLoadingIndicator :color="isDark ? '#fff' : '#000'" />
+            <NuxtLoadingIndicator color="var(--color-green-500)" />
 
             <Navigation class="sticky top-0 z-50 bg-[var(--ui-bg)]" />
 

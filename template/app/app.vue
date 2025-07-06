@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import * as locales from '@nuxt/ui/locale'
 
-const { isDark } = useTheme()
 const { locale } = useI18n()
 
 const lang = computed(() => locales[locale.value].code)
@@ -22,7 +21,7 @@ useHead({
 <template>
     <UApp :locale="locales[locale]">
         <div class="min-h-screen flex flex-col">
-            <NuxtLoadingIndicator :color="isDark ? '#fff' : '#000'" />
+            <NuxtLoadingIndicator color="var(--color-green-500)" />
 
             <Navigation class="sticky top-0 z-50 bg-[var(--ui-bg)]" />
 
