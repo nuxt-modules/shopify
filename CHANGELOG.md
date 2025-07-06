@@ -1,3 +1,7 @@
+# 0.0.31
+- Added flattenConnection util
+- Bumped dependencies
+
 # 0.0.30
 - Added error handling
 - Bumped dependencies
