@@ -2,34 +2,58 @@ import type { ShopifyConfig } from '../types'
 import type { Nuxt } from '@nuxt/schema'
 
 import {
+    addImports,
     addImportsDir,
+    addServerImports,
     addServerImportsDir,
+    type Resolver,
 } from '@nuxt/kit'
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 
 import { useLog } from './log'
 
-export function autoImportDir(path: string) {
+export function autoImportDir(path: string, client: boolean) {
     if (existsSync(path)) {
-        addImportsDir(path)
         addServerImportsDir(path)
+
+        if (client) addImportsDir(path)
     }
 }
 
-export function registerAutoImports(nuxt: Nuxt, config: ShopifyConfig) {
+export function autoImportUtil(name: string, resolver: Resolver, client: boolean) {
+    addServerImports([{
+        from: resolver.resolve(`./runtime/server/utils/${name}`),
+        name: name,
+    }])
+
+    if (client) addImports([{
+        from: resolver.resolve(`./runtime/utils/${name}`),
+        name: name,
+    }])
+}
+
+export function registerUtilImports(resolver: Resolver, client = false) {
+    autoImportUtil('flattenConnection', resolver, client)
+}
+
+export function registerAutoImports(nuxt: Nuxt, config: ShopifyConfig, resolver: Resolver) {
+    const usesClientSide = (config.clients.storefront?.publicAccessToken?.length ?? 0) > 0
+
     if (config.autoImports?.graphql) {
-        autoImportDir(join(nuxt.options.rootDir, 'graphql'))
+        autoImportDir(join(nuxt.options.rootDir, 'graphql'), usesClientSide)
         useLog().debug('Auto-importing GraphQL from `~/graphql` directory')
     }
 
     if (config.autoImports?.storefront) {
-        autoImportDir(join(nuxt.options.buildDir, 'types/storefront'))
+        autoImportDir(join(nuxt.options.buildDir, 'types/storefront'), usesClientSide)
         useLog().debug('Auto-importing Storefront types')
     }
 
     if (config.autoImports?.admin) {
-        autoImportDir(join(nuxt.options.buildDir, 'types/admin'))
+        autoImportDir(join(nuxt.options.buildDir, 'types/admin'), usesClientSide)
         useLog().debug('Auto-importing Admin types')
     }
+
+    registerUtilImports(resolver, usesClientSide)
 }

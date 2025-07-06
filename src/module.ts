@@ -1,22 +1,22 @@
 import type {
+    ModuleOptions,
     ShopifyClientType,
     ShopifyStorefrontConfig,
-    ModuleOptions,
 } from './types'
 
 import {
-    createResolver,
-    defineNuxtModule,
     addImports,
     addServerImports,
+    createResolver,
+    defineNuxtModule,
     updateRuntimeConfig,
 } from '@nuxt/kit'
 import { upperFirst } from 'scule'
 
 import {
     installSandbox,
-    registerTemplates,
     registerAutoImports,
+    registerTemplates,
     useLog,
     useShopifyConfig,
     useShopifyConfigValidation,
@@ -88,7 +88,7 @@ export default defineNuxtModule<ModuleOptions>({
                 public: { _shopify: publicConfig },
             })
 
-            registerAutoImports(nuxt, config)
+            registerAutoImports(nuxt, config, resolver)
 
             log.success('Finished setup')
         }
