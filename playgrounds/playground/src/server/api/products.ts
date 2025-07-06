@@ -2,6 +2,7 @@ import { z } from 'zod'
 
 export default defineCachedEventHandler(async (event) => {
     const schema = z.object({
+        handle: z.string(),
         first: z.preprocess(Number, z.number()),
     })
 
@@ -9,18 +10,35 @@ export default defineCachedEventHandler(async (event) => {
 
     const storefront = useStorefront()
 
-    return storefront.request(`#graphql
-        query FetchProducts($first: Int) {
-            products(first: $first) {
-                nodes {
-                    id
-                    title
-                    description
-                    descriptionHtml
+    const { data } = await storefront.request(`#graphql
+        query FetchProducts(
+        $handle: String,
+        $after: String,
+        $before: String,
+        $first: Int,
+        $last: Int,
+    ) {
+        collection(handle: $handle) {
+            products(
+                after: $after,
+                before: $before,
+                first: $first,
+                last: $last,
+            ) {
+                edges {
+                    cursor
+                    node {
+                        id
+                        title
+                        description
+                    }
                 }
             }
         }
+    }
     `, {
         variables: query,
     })
+
+    return flattenConnection(data?.collection?.products)
 })

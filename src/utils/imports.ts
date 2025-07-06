@@ -22,15 +22,14 @@ export function autoImportDir(path: string, client: boolean) {
 }
 
 export function autoImportUtil(name: string, resolver: Resolver, client: boolean) {
-    addServerImports([{
-        from: resolver.resolve(`./runtime/server/utils/${name}`),
-        name: name,
-    }])
-
-    if (client) addImports([{
+    const imports = [{
         from: resolver.resolve(`./runtime/utils/${name}`),
         name: name,
-    }])
+    }]
+
+    addServerImports(imports)
+
+    if (client) addImports(imports)
 }
 
 export function registerUtilImports(resolver: Resolver, client = false) {
