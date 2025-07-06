@@ -62,7 +62,7 @@ const product = computed(() => data.value?.product)
 
                 <USeparator class="my-4 lg:my-8" />
 
-                <div class="flex flex-col justify-between items-end gap-6 lg:gap-12">
+                <div class="flex flex-col items-end gap-6">
                     <UFormField name="quantity">
                         <UInputNumber
                             v-model="state.quantity"

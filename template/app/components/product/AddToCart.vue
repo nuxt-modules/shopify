@@ -20,7 +20,7 @@ const { t } = useI18n()
         :icon="!trailingIcon ? 'hugeicons:shopping-bag-01' : undefined"
         :trailing-icon="trailingIcon ? 'hugeicons:shopping-bag-01' : undefined"
         class="cursor-pointer flex items-center justify-center grow rounded-full"
-        :ui="{ base: 'ring ring-primary' }"
+        :ui="{ base: 'border border-primary py-1' }"
     >
         <span :class="props.ui?.label">{{ t('product.addToCart') }}</span>
 

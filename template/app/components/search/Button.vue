@@ -24,7 +24,7 @@ const { t } = useI18n()
             class="hidden ml-3 text-dimmed ring-0 sm:flex"
         />
 
-        <span class="hidden mb-1 -mx-1 text-xs text-dimmed sm:block">
+        <span class="hidden mb-0.5 -mx-1 text-xs text-dimmed sm:block">
             +
         </span>
 
