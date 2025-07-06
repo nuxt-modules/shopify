@@ -1,4 +1,3 @@
-import type { ShopifyClientType, ShopifyConfig } from '../types'
 import type { Nuxt } from '@nuxt/schema'
 import type { H3Event } from 'h3'
 
@@ -7,6 +6,7 @@ import { createAdminApiClient } from '@shopify/admin-api-client'
 import { createStorefrontApiClient } from '@shopify/storefront-api-client'
 import { defineEventHandler, readValidatedBody } from 'h3'
 import { z } from 'zod'
+import type { ShopifyClientType, ShopifyConfig } from '../types'
 
 import getSandboxTemplate from '../templates/sandbox-template'
 

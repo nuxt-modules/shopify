@@ -1,8 +1,5 @@
-import type {
-    ShopifyClientType,
-    ShopifyClientConfig,
-    ShopifyTemplateOptions,
-} from '../types'
+import { readFile } from 'node:fs/promises'
+import { dirname, basename, join } from 'node:path'
 import type { Nuxt, NuxtTemplate } from '@nuxt/schema'
 
 import {
@@ -12,8 +9,11 @@ import {
 } from '@nuxt/kit'
 import defu from 'defu'
 import { minimatch } from 'minimatch'
-import { readFile } from 'node:fs/promises'
-import { dirname, basename, join } from 'node:path'
+import type {
+    ShopifyClientType,
+    ShopifyClientConfig,
+    ShopifyTemplateOptions,
+} from '../types'
 
 import {
     generateIntrospection,

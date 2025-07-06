@@ -1,3 +1,7 @@
+import type { HookResult, Nuxt } from '@nuxt/schema'
+import type { AdminApiClient } from '@shopify/admin-api-client'
+import type { ResponseErrors } from '@shopify/graphql-client'
+import type { StorefrontApiClient } from '@shopify/storefront-api-client'
 import type {
     PublicShopifyConfig,
     ShopifyConfig,
@@ -6,10 +10,6 @@ import type {
     StorefrontOptions,
     AdminOptions,
 } from './shopify'
-import type { HookResult, Nuxt } from '@nuxt/schema'
-import type { AdminApiClient } from '@shopify/admin-api-client'
-import type { ResponseErrors } from '@shopify/graphql-client'
-import type { StorefrontApiClient } from '@shopify/storefront-api-client'
 
 export type ModuleOptions = ShopifyConfig<
     Omit<ShopifyStorefrontConfig, 'storeDomain' | 'logger' | 'customFetchApi'>,

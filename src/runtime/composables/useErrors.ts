@@ -1,5 +1,5 @@
-import type { NuxtApp } from '#app'
 import type { ClientResponse } from '@shopify/graphql-client'
+import type { NuxtApp } from '#app'
 
 import { createError } from '#app'
 

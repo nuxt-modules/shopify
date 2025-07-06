@@ -1,13 +1,13 @@
-import type { InterfaceExtensionsParams, ShopifyTemplateOptions } from '../types'
+import { existsSync } from 'node:fs'
+import { join } from 'node:path'
 import type { Types } from '@graphql-codegen/plugin-helpers'
 import type { NuxtTemplate } from '@nuxt/schema'
 
 import { generate } from '@graphql-codegen/cli'
 import { preset, pluckConfig } from '@shopify/graphql-codegen'
 import { LogLevels } from 'consola'
-import { existsSync } from 'node:fs'
-import { join } from 'node:path'
 import { upperFirst } from 'scule'
+import type { InterfaceExtensionsParams, ShopifyTemplateOptions } from '../types'
 
 import { ShopifyClientType } from './config'
 import { useLog } from './log'

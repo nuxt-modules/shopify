@@ -1,9 +1,3 @@
-import type {
-    ModuleOptions,
-    ShopifyClientType,
-    ShopifyStorefrontConfig,
-} from './types'
-
 import {
     addImports,
     addServerImports,
@@ -12,6 +6,11 @@ import {
     updateRuntimeConfig,
 } from '@nuxt/kit'
 import { upperFirst } from 'scule'
+import type {
+    ModuleOptions,
+    ShopifyClientType,
+    ShopifyStorefrontConfig,
+} from './types'
 
 import {
     installSandbox,

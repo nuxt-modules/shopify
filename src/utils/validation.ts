@@ -1,6 +1,5 @@
-import type { ModuleOptions } from '../types'
-
 import { z } from 'zod'
+import type { ModuleOptions } from '../types'
 
 export const useShopifyConfigValidation = (options: ModuleOptions) => {
     const clientSchema = z.object({

@@ -14,7 +14,7 @@
     },
     "dependencies": {
         "@iconify-json/hugeicons": "^1.2.5",
-        "@konkonam/nuxt-shopify": "^0.0.30",
+        "@konkonam/nuxt-shopify": "^0.0.31",
         "@nuxt/content": "^3.6.3",
         "@nuxt/image": "^1.10.0",
         "@nuxt/ui": "^3.1.3",

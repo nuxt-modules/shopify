@@ -1,4 +1,5 @@
-import type { ShopifyConfig } from '../types'
+import { existsSync } from 'node:fs'
+import { join } from 'node:path'
 import type { Nuxt } from '@nuxt/schema'
 
 import {
@@ -8,8 +9,7 @@ import {
     addServerImportsDir,
     type Resolver,
 } from '@nuxt/kit'
-import { existsSync } from 'node:fs'
-import { join } from 'node:path'
+import type { ShopifyConfig } from '../types'
 
 import { useLog } from './log'
 
