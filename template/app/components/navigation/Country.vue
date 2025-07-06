@@ -55,11 +55,15 @@ const getCountryLabel = (c?: typeof country.value) => `${c?.name} (${c?.currency
                 :items="data?.map(country => ({
                     label: getCountryLabel(country),
                     active: country.isoCode === countryCode,
+                    icon: 'hugeicons:solid-line-01',
                     onSelect: () => {
                         countryCode = country.isoCode
                         open = false
                     },
                 }))"
+                :ui="{
+                    linkLeadingIcon: 'size-2.5 mt-0.5 text-muted',
+                }"
                 class="pb-6"
             />
         </template>

@@ -75,7 +75,7 @@ watch(scrollY, () => menuCollapsed.value = scrollY.value > 20, { immediate: true
 </script>
 
 <template>
-    <div class="h-12">
+    <div class="h-12 mb-6">
         <div
             :class="[
                 'border-b',
@@ -124,6 +124,12 @@ watch(scrollY, () => menuCollapsed.value = scrollY.value > 20, { immediate: true
                     highlight-color="primary"
                     orientation="horizontal"
                     :items="navigationActions"
+                    :class="{
+                        '[&_a]:after:-bottom-4 [&_a]:md:after:-bottom-5': !menuCollapsed,
+                    }"
+                    :ui="{
+                        link: 'after:transition-[bottom] after:duration-150 after:ease-in-out after:absolute',
+                    }"
                 />
             </UContainer>
 

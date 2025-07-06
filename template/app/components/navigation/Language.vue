@@ -32,8 +32,12 @@ const getLanguageLabel = (l?: typeof locale['value']) => `${locales.value?.find(
                     label: getLanguageLabel(language.code),
                     active: language.code === locale,
                     to: switchLocalePath(language.code),
+                    icon: 'hugeicons:solid-line-01',
                     onSelect: () => open = false,
                 }))"
+                :ui="{
+                    linkLeadingIcon: 'size-2.5 mt-0.5 text-muted',
+                }"
                 class="pb-6"
             />
         </template>

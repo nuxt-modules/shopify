@@ -18,6 +18,6 @@ useHead({
 <template>
     <ContentRenderer
         :value="data"
-        class="flex flex-col gap-14 my-14 md:gap-24"
+        class="flex flex-col gap-14 my-6 md:gap-24"
     />
 </template>

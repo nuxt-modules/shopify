@@ -24,8 +24,7 @@ const collections = computed(() => props.collections.map(collection => ({
         v-model:open="open"
         :title="t('collections.label')"
         :ui="{
-            header: 'min-h-0 h-[49px]',
-            close: 'top-2 hover:bg-muted text-muted',
+            close: 'hover:bg-muted text-muted',
             title: 'font-normal',
         }"
     >
@@ -38,7 +37,7 @@ const collections = computed(() => props.collections.map(collection => ({
                 :ui="{
                     linkLabelExternalIcon: 'hidden',
                     linkLeadingIcon: 'size-2.5 mt-0.5 text-muted',
-                    linkLabel: 'font-normal',
+                    linkLabel: 'font-normal text-base',
                 }"
                 class="pb-4"
             />

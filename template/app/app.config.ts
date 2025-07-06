@@ -71,6 +71,15 @@ export default defineAppConfig({
         drawer: {
             slots: {
                 overlay: 'fixed inset-0 bg-black/10 backdrop-blur-xs',
+                title: 'font-headings font-normal',
+                description: 'text-dimmed text-sm',
+            },
+        },
+
+        navigationMenu: {
+            slots: {
+                label: 'font-normal',
+                linkLabel: 'font-normal',
             },
         },
     },

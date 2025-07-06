@@ -13,17 +13,17 @@
     --radius-md: 1rem;
     --radius-lg: 1rem;
 
-        --color-green-50: #E8F1DE;
-        --color-green-100: #D8E6C4;
-        --color-green-200: #BFE098;
-        --color-green-300: #9BD160;
-        --color-green-400: #75BC20;
-        --color-green-500: #65A800;
-        --color-green-600: #548500;
-        --color-green-700: #456B00;
-        --color-green-800: #3A5501;
-        --color-green-900: #334A0A;
-        --color-green-950: #1A2805;
+    --color-green-50: #E8F1DE;
+    --color-green-100: #D8E6C4;
+    --color-green-200: #BFE098;
+    --color-green-300: #9BD160;
+    --color-green-400: #75BC20;
+    --color-green-500: #65A800;
+    --color-green-600: #548500;
+    --color-green-700: #456B00;
+    --color-green-800: #3A5501;
+    --color-green-900: #334A0A;
+    --color-green-950: #1A2805;
 
     --ui-color-neutral-50: #F2F2F2;
     --ui-color-neutral-100: #DDDDDD;
@@ -38,4 +38,5 @@
     --ui-color-neutral-950: #0F0F0F;
 }
 
+/** include classes manually in bundle */
 @source inline("backdrop-blur-xs bg-black/10");
