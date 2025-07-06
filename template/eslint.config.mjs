@@ -17,18 +17,4 @@ export default createConfigForNuxt({
         'vue/multi-word-component-names': 'off',
         'vue/no-v-html': 'off',
     },
-}).override('nuxt/import/rules', {
-    rules: {
-        'import/order': ['error', {
-            'groups': [
-                'type',
-                ['builtin', 'external'],
-                ['internal', 'parent', 'sibling', 'index', 'object'],
-            ],
-            'newlines-between': 'always',
-            'alphabetize': {
-                order: 'asc',
-            },
-        }],
-    },
 })
