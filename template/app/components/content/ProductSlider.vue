@@ -46,7 +46,7 @@ const { data: products } = await useAsyncData(key, async () => await storefront.
         country: country.value,
     }),
 }), {
-    transform: data => data.data?.collection?.products?.edges || [],
+    transform: response => flattenConnection(response.data?.collection?.products),
 })
 </script>
 
@@ -59,8 +59,8 @@ const { data: products } = await useAsyncData(key, async () => await storefront.
         <div class="flex gap-16">
             <ProductCard
                 v-for="product in products"
-                :key="product.node.id"
-                :product="product.node"
+                :key="product.id"
+                :product="product"
                 class="w-[300px] shrink-0"
             />
         </div>

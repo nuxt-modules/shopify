@@ -1,9 +1,12 @@
 <script setup lang="ts">
+import { z } from 'zod'
+
 const props = defineProps<{
     handle: string
 }>()
 
 const { country, language, key: translationKey } = useTranslation()
+const storefront = useStorefront()
 const route = useRoute()
 const { t } = useI18n()
 
@@ -22,19 +25,55 @@ const key = computed(() => [
     translationKey.value,
 ].join('-'))
 
-const { data, status } = await useFetch('/api/collection/products', {
-    key,
-    method: 'POST',
-    body: {
+const { data, status } = await useAsyncData(key, async () => await storefront.request(`#graphql
+    query FetchListing(
+        $handle: String,
+        $after: String,
+        $before: String,
+        $first: Int,
+        $last: Int,
+        $reverse: Boolean,
+        $sortKey: ProductCollectionSortKeys,
+        $filters: [ProductFilter!],
+        $language: LanguageCode,
+        $country: CountryCode
+    )
+    @inContext(language: $language, country: $country) {
+        collection(handle: $handle) {
+            products(
+                after: $after,
+                before: $before,
+                first: $first,
+                last: $last,
+                reverse: $reverse,
+                sortKey: $sortKey,
+                filters: $filters
+            ) {
+                ...ProductConnectionFields
+            }
+        }
+    }
+    ${IMAGE_FRAGMENT}
+    ${PRICE_FRAGMENT}
+    ${PRODUCT_CONNECTION_FRAGMENT}
+`, {
+    variables: z.object({
+        handle: z.string(),
+        filters: productFilterSchema.optional(),
+    }).merge(connectionParamsSchema).merge(localizationParamsSchema).parse({
         handle: props.handle,
-        language,
-        country,
-        first,
-        last,
-        before,
-        after,
-    },
+        language: language.value,
+        country: country.value,
+        first: first.value,
+        last: last.value,
+        before: before.value,
+        after: after.value,
+    }),
+}), {
+    transform: response => response.data,
 })
+
+console.log(data.value)
 
 const products = computed(() => data.value?.collection?.products)
 
@@ -102,7 +141,7 @@ watch([language, country], () => {
     <div class="flex flex-row gap-16 grow">
         <aside class="hidden top-20 lg:block w-1/4 min-w-64 sticky mb-auto">
             <div class="flex items-center justify-between pb-2">
-                <h2 class="text-xl font-bold">
+                <h2 class="text-xl font-headings">
                     Filters
                 </h2>
 
@@ -116,7 +155,7 @@ watch([language, country], () => {
                 />
             </div>
 
-            <p class="pb-6">
+            <p class="pb-6 text-dimmed">
                 Quickly find the perfect vintage piece that suits you
             </p>
         </aside>

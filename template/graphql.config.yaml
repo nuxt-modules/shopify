@@ -1,2 +1,6 @@
-schema:
-  - .nuxt/schema/storefront.schema.json
+projects:
+  default:
+    schema: './.nuxt/schema/storefront.schema.json'
+    documents:
+      - './graphql/**/*.{graphql,gql,ts,js}'
+      - './app/components/**/*.{graphql,gql,ts,js,vue}'
