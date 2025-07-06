@@ -3,7 +3,7 @@ const props = defineProps<{
     handle: string
 }>()
 
-const { country, language } = useTranslation()
+const { country, language, key: translationKey } = useTranslation()
 const route = useRoute()
 const { t } = useI18n()
 
@@ -16,11 +16,10 @@ const last = computed(() => before.value ? 12 : undefined)
 const key = computed(() => [
     'listing',
     props.handle,
-    language.value,
-    country.value,
     before.value,
     after.value,
     route.query.filters,
+    translationKey.value,
 ].join('-'))
 
 const { data, status } = await useFetch('/api/collection/products', {

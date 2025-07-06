@@ -4,7 +4,7 @@ definePageMeta({
     layout: 'listing',
 })
 
-const { country, language } = useTranslation()
+const { country, language, key: translationKey } = useTranslation()
 const route = useRoute()
 
 const handle = route.params.handle as string
@@ -12,8 +12,7 @@ const handle = route.params.handle as string
 const key = computed(() => [
     'collection',
     handle,
-    language.value,
-    country.value,
+    translationKey.value,
 ].join('-'))
 
 const { data } = await useFetch('/api/collection', {

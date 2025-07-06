@@ -6,10 +6,10 @@ const props = defineProps<{
     first: string
 }>()
 
-const { country, language } = useTranslation()
+const { country, language, key: translationKey } = useTranslation()
 const storefront = useStorefront()
 
-const key = computed(() => `product-slider-${props.handle}-${language.value}-${country.value}`)
+const key = computed(() => `product-slider-${props.handle}-${translationKey.value}`)
 
 const { data: products } = await useAsyncData(key, async () => await storefront.request(`#graphql
     query FetchSliderProducts(

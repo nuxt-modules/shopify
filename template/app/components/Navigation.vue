@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import type { NavigationMenuItem } from '#ui/types'
 
-const { country, language } = useTranslation()
+const { country, language, key: translationKey } = useTranslation()
 const { y: scrollY } = useScroll(document)
 const storefront = useStorefront()
 
-const key = computed(() => `collections-${language.value}-${country.value}`)
+const key = computed(() => `collections-${translationKey.value}`)
 
 const { data } = await useAsyncData(key, async () => await storefront.request(`#graphql
     query FetchCollections($after: String, $before: String, $first: Int, $last: Int, $language: LanguageCode)

@@ -5,8 +5,7 @@ const props = defineProps<{
     inline?: boolean
 }>()
 
-const { country } = useTranslation()
-const { locale } = useI18n()
+const { key: translationKey } = useTranslation()
 
 const price = computed(() => {
     const currencyCode = props.product?.priceRange.minVariantPrice.currencyCode
@@ -15,7 +14,7 @@ const price = computed(() => {
 
     const rawPrice = Number(props.product.priceRange.minVariantPrice.amount)
 
-    const formatter = new Intl.NumberFormat(`${locale.value}-${country.value}`, {
+    const formatter = new Intl.NumberFormat(translationKey.value, {
         style: 'currency',
         currency: currencyCode,
     })

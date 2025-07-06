@@ -11,8 +11,11 @@ export const useTranslation = () => {
 
     const language = computed(() => locale.value.toUpperCase() as LanguageCode)
 
+    const key = computed(() => `${locale.value}-${country.value}`)
+
     return {
         country,
         language,
+        key,
     }
 }
