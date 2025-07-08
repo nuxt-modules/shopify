@@ -48,6 +48,21 @@ const { data: products } = await useAsyncData(key, async () => await storefront.
 }), {
     transform: response => flattenConnection(response.data?.collection?.products),
 })
+
+const slider = ref<HTMLElement>()
+
+const {
+    index,
+    count,
+    gap,
+    perPage,
+    slideWidth,
+
+    isFirst,
+    isLast,
+    previous,
+    next,
+} = useSlider(slider)
 </script>
 
 <template>
@@ -56,13 +71,58 @@ const { data: products } = await useAsyncData(key, async () => await storefront.
             <slot />
         </div>
 
-        <div class="flex gap-16">
-            <ProductCard
-                v-for="product in products"
-                :key="product.id"
-                :product="product"
-                class="w-[300px] shrink-0"
-            />
+        <div class="relative flex flex-wrap gap-y-10 gap-x-6 justify-center">
+            <div
+                ref="slider"
+                gap="64"
+                class="flex gap-16 overflow-x-auto overflow-y-hidden snap-x"
+            >
+                <ProductCard
+                    v-for="product in products"
+                    :key="product.id"
+                    :product="product"
+                    class="shrink-0 snap-start"
+                    :class="[
+                        'w-full',
+                        'sm:w-[calc(50%-32px)]',
+                        'md:w-[calc(33.333%-43px)]',
+                    ]"
+                />
+            </div>
+
+            <div class="flex w-full justify-center gap-6">
+                <UButton
+                    v-if="!isFirst"
+                    icon="hugeicons:arrow-left-01"
+                    variant="soft"
+                    size="sm"
+                    :ui="{
+                        base: 'rounded-full border border-primary',
+                    }"
+                    @click="previous"
+                />
+
+                <UButton
+                    v-if="!isLast"
+                    icon="hugeicons:arrow-right-01"
+                    variant="soft"
+                    size="sm"
+                    :ui="{
+                        base: 'rounded-full border border-primary',
+                    }"
+                    @click="next"
+                />
+            </div>
+
+            <div>
+                <ul>
+                    <li>index: {{ index }}</li>
+                    <li>count: {{ count }}</li>
+                    <li>gap: {{ gap }}</li>
+                    <li>perPage: {{ perPage }}</li>
+                    <li>slideWidth: {{ slideWidth }}</li>
+                </ul>
+            </div>
         </div>
     </div>
 </template>
