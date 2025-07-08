@@ -52,12 +52,6 @@ const { data: products } = await useAsyncData(key, async () => await storefront.
 const slider = ref<HTMLElement>()
 
 const {
-    index,
-    count,
-    gap,
-    perPage,
-    slideWidth,
-
     isFirst,
     isLast,
     previous,
@@ -67,62 +61,49 @@ const {
 
 <template>
     <div>
-        <div class="prose mb-10 md:mb-14">
+        <UContainer class="prose mb-10 md:mb-14">
             <slot />
-        </div>
+        </UContainer>
 
-        <div class="relative flex flex-wrap gap-y-10 gap-x-6 justify-center">
+        <UContainer class="relative flex flex-wrap gap-y-10 gap-x-6 justify-center !px-0">
             <div
                 ref="slider"
-                gap="64"
-                class="flex gap-16 overflow-x-auto overflow-y-hidden snap-x"
+                class="flex overflow-x-auto overflow-y-hidden snap-x"
             >
                 <ProductCard
                     v-for="product in products"
                     :key="product.id"
                     :product="product"
-                    class="shrink-0 snap-start"
+                    class="shrink-0 snap-start px-4 md:px-6 lg:px-8"
                     :class="[
                         'w-full',
-                        'sm:w-[calc(50%-32px)]',
-                        'md:w-[calc(33.333%-43px)]',
+                        'sm:w-1/2',
+                        'md:w-1/3',
                     ]"
                 />
             </div>
 
-            <div class="flex w-full justify-center gap-6">
-                <UButton
-                    v-if="!isFirst"
-                    icon="hugeicons:arrow-left-01"
-                    variant="soft"
-                    size="sm"
-                    :ui="{
-                        base: 'rounded-full border border-primary',
-                    }"
-                    @click="previous"
-                />
+            <UButton
+                v-if="!isFirst"
+                icon="hugeicons:arrow-left-01"
+                variant="soft"
+                size="sm"
+                :ui="{
+                    base: 'rounded-full border border-primary',
+                }"
+                @click="previous"
+            />
 
-                <UButton
-                    v-if="!isLast"
-                    icon="hugeicons:arrow-right-01"
-                    variant="soft"
-                    size="sm"
-                    :ui="{
-                        base: 'rounded-full border border-primary',
-                    }"
-                    @click="next"
-                />
-            </div>
-
-            <div>
-                <ul>
-                    <li>index: {{ index }}</li>
-                    <li>count: {{ count }}</li>
-                    <li>gap: {{ gap }}</li>
-                    <li>perPage: {{ perPage }}</li>
-                    <li>slideWidth: {{ slideWidth }}</li>
-                </ul>
-            </div>
-        </div>
+            <UButton
+                v-if="!isLast"
+                icon="hugeicons:arrow-right-01"
+                variant="soft"
+                size="sm"
+                :ui="{
+                    base: 'rounded-full border border-primary',
+                }"
+                @click="next"
+            />
+        </UContainer>
     </div>
 </template>

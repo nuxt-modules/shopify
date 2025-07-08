@@ -2,7 +2,6 @@ export const useSlider = (slider: MaybeRef<HTMLElement | undefined>) => {
     const index = ref(0)
     const count = ref(0)
 
-    const gap = ref(0)
     const perPage = ref(0)
     const slideWidth = ref(0)
 
@@ -10,7 +9,7 @@ export const useSlider = (slider: MaybeRef<HTMLElement | undefined>) => {
     const skipUpdateTimeout = ref<NodeJS.Timeout | null>(null)
 
     const isFirst = computed(() => index.value === 0)
-    const isLast = computed(() => index.value === count.value - (perPage.value - 1))
+    const isLast = computed(() => index.value === count.value - (perPage.value - 1) - 1)
 
     const slideToIndex = (index: number) => unref(slider)?.scrollTo({
         left: slideWidth.value * index,
@@ -51,9 +50,8 @@ export const useSlider = (slider: MaybeRef<HTMLElement | undefined>) => {
 
     const updateMetrics = () => {
         count.value = unref(slider)?.children.length ?? 0
-        gap.value = Number(unref(slider)?.getAttribute('gap') ?? 0)
         slideWidth.value = unref(slider)?.children[0]?.clientWidth ?? 1
-        perPage.value = Math.floor((unref(slider)?.clientWidth ?? 0) / slideWidth.value)
+        perPage.value = Math.ceil((unref(slider)?.clientWidth ?? 0) / slideWidth.value)
     }
 
     onMounted(() => {
@@ -70,12 +68,6 @@ export const useSlider = (slider: MaybeRef<HTMLElement | undefined>) => {
     })
 
     return {
-        index,
-        count,
-        gap,
-        perPage,
-        slideWidth,
-
         isFirst,
         isLast,
         previous,

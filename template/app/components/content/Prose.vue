@@ -1,5 +1,5 @@
 <template>
-    <div class="prose">
+    <UContainer class="prose">
         <slot />
-    </div>
+    </UContainer>
 </template>
