@@ -13,7 +13,7 @@
 Easy Shopify GraphQL API-Connector for Nuxt 3 & 4.
 
 - 🛍️ [Store Template](https://github.com/konkonam/nuxt-shopify/tree/main/template)
-- 🏀 [Online Demo (WIP)](https://nuxt-shopify.vercel.app)
+- 🏀 [Online Demo (Coming soon)](https://nuxt-shopify.vercel.app)
 - 📚 [Documentation](https://konkonam.github.io/nuxt-shopify)
 - ✨ [Release Notes](https://github.com/konkonam/nuxt-shopify/tree/main/CHANGELOG.md)
 

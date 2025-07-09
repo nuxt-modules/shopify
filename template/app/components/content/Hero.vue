@@ -1,5 +1,5 @@
 <template>
-    <UContainer class="sm:flex items-center gap-8">
+    <div class="sm:flex items-center gap-8">
         <div
             :class="[
                 'inline-block',
@@ -58,5 +58,5 @@
                 label="View on GitHub"
             />
         </div>
-    </UContainer>
+    </div>
 </template>

@@ -2,6 +2,7 @@
 @import "@nuxt/ui";
 
 @import "./prose.css";
+@import "./utilities.css";
 @import "./animations.css";
 
 @theme static {

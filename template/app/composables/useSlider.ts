@@ -2,6 +2,7 @@ export const useSlider = (slider: MaybeRef<HTMLElement | undefined>) => {
     const index = ref(0)
     const count = ref(0)
 
+    const gap = ref(0)
     const perPage = ref(0)
     const slideWidth = ref(0)
 
@@ -9,10 +10,10 @@ export const useSlider = (slider: MaybeRef<HTMLElement | undefined>) => {
     const skipUpdateTimeout = ref<NodeJS.Timeout | null>(null)
 
     const isFirst = computed(() => index.value === 0)
-    const isLast = computed(() => index.value === count.value - (perPage.value - 1) - 1)
+    const isLast = computed(() => index.value === count.value - perPage.value)
 
     const slideToIndex = (index: number) => unref(slider)?.scrollTo({
-        left: slideWidth.value * index,
+        left: (slideWidth.value + gap.value) * index,
         behavior: 'smooth',
     })
 
@@ -20,14 +21,13 @@ export const useSlider = (slider: MaybeRef<HTMLElement | undefined>) => {
         if (skipUpdateTimeout.value) clearTimeout(skipUpdateTimeout.value)
 
         skipUpdate.value = true
-
         skipUpdateTimeout.value = setTimeout(() => skipUpdate.value = false, 200)
     }
 
     const next = () => {
         setSkipUpdate()
 
-        index.value++
+        if (index.value < count.value - perPage.value) index.value++
 
         slideToIndex(index.value)
     }
@@ -35,7 +35,7 @@ export const useSlider = (slider: MaybeRef<HTMLElement | undefined>) => {
     const previous = () => {
         setSkipUpdate()
 
-        index.value--
+        if (index.value > 0) index.value--
 
         slideToIndex(index.value)
     }
@@ -44,14 +44,26 @@ export const useSlider = (slider: MaybeRef<HTMLElement | undefined>) => {
         if (skipUpdate.value) return
 
         index.value = Math.round(
-            (unref(slider)?.scrollLeft ?? 0) / slideWidth.value,
+            (unref(slider)?.scrollLeft ?? 0) / (slideWidth.value + gap.value),
         )
+    }
+
+    const calculateGap = (element: HTMLElement) => {
+        const styles = (window as Window | undefined)?.getComputedStyle(element, null)
+        const extract = (v?: string) => Number.parseFloat(v?.replace('px', '') ?? '0')
+
+        const marginLeft = extract(styles?.getPropertyValue('margin-left'))
+        const marginRight = extract(styles?.getPropertyValue('margin-right'))
+        const columnGap = extract(styles?.getPropertyValue('column-gap'))
+
+        return marginLeft + marginRight + columnGap
     }
 
     const updateMetrics = () => {
         count.value = unref(slider)?.children.length ?? 0
-        slideWidth.value = unref(slider)?.children[0]?.clientWidth ?? 1
-        perPage.value = Math.ceil((unref(slider)?.clientWidth ?? 0) / slideWidth.value)
+        gap.value = unref(slider) ? calculateGap(unref(slider)!) : 0
+        slideWidth.value = unref(slider)?.children[0]?.clientWidth ?? 0
+        perPage.value = Math.ceil((unref(slider)?.clientWidth ?? 0) / (slideWidth.value + gap.value))
     }
 
     onMounted(() => {
@@ -67,9 +79,15 @@ export const useSlider = (slider: MaybeRef<HTMLElement | undefined>) => {
         unref(slider)?.removeEventListener('scroll', updateIndex)
     })
 
+    updateMetrics()
+    updateIndex()
+
     return {
+        index,
+        perPage,
         isFirst,
         isLast,
+
         previous,
         next,
     }

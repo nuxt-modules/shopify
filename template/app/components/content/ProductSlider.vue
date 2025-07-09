@@ -61,49 +61,55 @@ const {
 
 <template>
     <div>
-        <UContainer class="prose mb-10 md:mb-14">
+        <div class="prose mb-10 md:mb-14">
             <slot />
-        </UContainer>
+        </div>
 
-        <UContainer class="relative flex flex-wrap gap-y-10 gap-x-6 justify-center !px-0">
+        <div class="relative flex flex-wrap gap-y-10 gap-x-8 justify-center">
             <div
                 ref="slider"
-                class="flex overflow-x-auto overflow-y-hidden snap-x"
+                class="flex overflow-x-auto overflow-y-visible gap-x-8 snap-x no-scrollbar"
             >
                 <ProductCard
                     v-for="product in products"
                     :key="product.id"
                     :product="product"
-                    class="shrink-0 snap-start px-4 md:px-6 lg:px-8"
+                    class="shrink-0 snap-start"
                     :class="[
                         'w-full',
-                        'sm:w-1/2',
-                        'md:w-1/3',
+                        'sm:w-[calc(50%-16px)]',
+                        'md:w-[calc(33.333333%-22px)]',
                     ]"
                 />
             </div>
 
             <UButton
-                v-if="!isFirst"
                 icon="hugeicons:arrow-left-01"
                 variant="soft"
                 size="sm"
+                class="transition-opacity opacity-0"
                 :ui="{
                     base: 'rounded-full border border-primary',
+                }"
+                :class="{
+                    'opacity-100': !isFirst,
                 }"
                 @click="previous"
             />
 
             <UButton
-                v-if="!isLast"
                 icon="hugeicons:arrow-right-01"
                 variant="soft"
                 size="sm"
+                class="transition-opacity opacity-0"
                 :ui="{
                     base: 'rounded-full border border-primary',
                 }"
+                :class="{
+                    'opacity-100': !isLast,
+                }"
                 @click="next"
             />
-        </UContainer>
+        </div>
     </div>
 </template>

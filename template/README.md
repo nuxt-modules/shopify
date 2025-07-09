@@ -16,12 +16,11 @@
 
 ## ⚡️ Features
 
-- **Nuxt 3**: The latest version of Nuxt with improved performance and features.
 - **Nuxt Shopify**: A Nuxt module for Shopify that provides a simple and powerful API integration.
 - **Nuxt UI**: A collection of UI components for Nuxt that are easy to use and customize.
-- **Nuxt Auth Utils**: Built-in authentication and customer management.
-- **Tailwind CSS**: A utility-first CSS framework for rapid UI development.
+- **Tailwind 4**: A utility-first CSS framework for rapid UI development.
 - **Nuxt i18n**: Built-in page localizations.
+- **Nuxt Auth Utils**: Built-in authentication and customer management.
 - **ESLint**: Minimally configured ESLint for code quality.
 - **Vue-Tsc**: Fully type-safe, guaranteed.
 
