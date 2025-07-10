@@ -9,20 +9,33 @@
 [![Nuxt][nuxt-src]][nuxt-href]
 
 > [!WARNING]
-> This template is a work in progress and is not yet ready for production use. Please check back later for updates.
+> 🚧 This template is a work in progress and is not yet ready for production use. Please check back later for updates. 🚧
 
 - 🏀 [Online demo](https://nuxt-shopify.vercel.app/)
 - 📚 [Nuxt Shopify documentation](https://konkonam.github.io/nuxt-shopify)
 
 ## ⚡️ Features
 
-- **Nuxt Shopify**: A Nuxt module for Shopify that provides a simple and powerful API integration.
-- **Nuxt UI**: A collection of UI components for Nuxt that are easy to use and customize.
-- **Tailwind 4**: A utility-first CSS framework for rapid UI development.
-- **Nuxt i18n**: Built-in page localizations.
-- **Nuxt Auth Utils**: Built-in authentication and customer management.
-- **ESLint**: Minimally configured ESLint for code quality.
-- **Vue-Tsc**: Fully type-safe, guaranteed.
+- 🛍️ **Shopify Integration**: Sell your products directly from your Nuxt app with [Nuxt Shopify](https://github.com/konkonam/nuxt-shopify)
+- 📝 **Content Management**: Change the template content to your needs with Nuxt Content
+- 🌐 **Internationalization**: Built-in page localizations with Nuxt i18n
+- 🔒 **Authentication**: Built-in authentication and customer management with Nuxt Auth Utils
+- 👤 **Order and Account Management**: View and manage order status and customer accounts
+- 🧩 **UI Components**: Built with Nuxt UI components and Tailwind 4 for a consistent look and feel
+- 🖼️ **Image Optimization**: Automatically optimized images with Nuxt Image
+- 🔗 **Type Safety**: Fully type-safe and checked with Vue-Tsc
+- 🧹 **Code Quality**: Minimally configured ESLint for code quality
+
+### 🛒 E-Commerce Features (WIP 🚧)
+
+- **Product Listing & Filters**: Display products with images, titles, and prices
+- **Product Details**: Show detailed information about each product, including variants and options
+- **Cart Management**: Add, remove, and update items in the cart
+- **Checkout Process**: Seamlessly integrate with Shopify's Storefront API for a smooth checkout experience
+- **Order Management**: View and manage customer orders
+- **Customer Accounts**: Allow customers to create accounts, view order history, and manage their profiles
+
+## 🚀 Quick Start
 
 Deploy to vercel:
 
@@ -32,7 +45,7 @@ Deploy to Cloudflare:
 
 [![Deploy to Cloudflare][cloudflare-src]][cloudflare-href]
 
-## 📦 Setup
+### Setup
 
 Run the following command to clone the shop template:
 
@@ -51,6 +64,8 @@ Install the dependencies:
 ```sh
 npm install
 ```
+
+(you can also use `yarn`, `pnpm` or `bun` if you prefer)
 
 Create a `.env` file in the root of the project and add your Shopify credentials:
 
@@ -73,6 +88,8 @@ npm run dev
 ```
 
 The server will be available at: http://localhost:3000/.
+
+To use the GraphQL playground for the Storefront API navigate to: http://localhost:3000/_sandbox/storefront.
 
 ### Build
 
