@@ -71,7 +71,6 @@
         "zod": "^3.25.76",
       },
       "devDependencies": {
-        "@graphql-codegen/cli": "^5.0.7",
         "@nuxt/eslint-config": "^1.5.2",
         "eslint": "^9.30.1",
         "vue-tsc": "^3.0.1",
