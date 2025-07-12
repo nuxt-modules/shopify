@@ -7,7 +7,7 @@ const { t } = useI18n()
 <template>
     <UButton
         variant="navigation"
-        class="flex items-center cursor-pointer py-[5px] sm:border sm:border-muted sm:radius-sm hover:text-[var(--ui-text)]"
+        class="flex items-center cursor-pointer sm:border sm:border-muted sm:radius-sm hover:text-[var(--ui-text)]"
         @click="open = true"
     >
         <UIcon

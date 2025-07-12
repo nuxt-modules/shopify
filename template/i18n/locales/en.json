@@ -21,6 +21,9 @@
         "products": "Products",
         "collections": "Collections"
     },
+    "cart": {
+        "label": "Your Cart"
+    },
     "collections": {
         "label": "Collections"
     },

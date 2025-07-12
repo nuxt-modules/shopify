@@ -92,7 +92,7 @@ const {
                     base: 'rounded-full border border-primary',
                 }"
                 :class="{
-                    'opacity-100': !isFirst,
+                    'cursor-pointer opacity-100': !isFirst,
                 }"
                 @click="previous"
             />
@@ -106,7 +106,7 @@ const {
                     base: 'rounded-full border border-primary',
                 }"
                 :class="{
-                    'opacity-100': !isLast,
+                    'cursor-pointer opacity-100': !isLast,
                 }"
                 @click="next"
             />

@@ -23,6 +23,7 @@ const collections = computed(() => props.collections.map(collection => ({
     <USlideover
         v-model:open="open"
         :title="t('collections.label')"
+        :side="'left'"
         :ui="{
             close: 'hover:bg-muted text-muted',
             title: 'font-normal',

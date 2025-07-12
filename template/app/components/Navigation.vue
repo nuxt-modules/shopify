@@ -38,6 +38,8 @@ const searchOpen = ref(false)
 const menuOpen = ref(false)
 const menuCollapsed = ref(false)
 
+const cartOpen = ref(false)
+
 const collections = computed<NavigationMenuItem[]>(() => data.value
     ?.map(collection => ({
         label: collection.node.title,
@@ -58,14 +60,25 @@ const navigationActions = computed<NavigationMenuItem[]>(() => [
     },
     {
         icon: 'hugeicons:shopping-bag-01',
-        class: 'cursor-pointer px-2 sm:px-3',
-        to: getCartAppUrl(),
-    },
-    {
-        icon: 'hugeicons:menu-collapse',
-        class: 'cursor-pointer px-2 sm:px-3 lg:hidden',
-        active: menuOpen.value,
-        onSelect: () => menuOpen.value = !menuOpen.value,
+        class: [
+            'cursor-pointer',
+            'relative',
+            'px-2',
+            'sm:px-3',
+            'after:bg-primary',
+            'after:absolute',
+            'after:-top-0.5',
+            'after:-right-1.5',
+            'after:w-4',
+            'after:h-4',
+            'after:rounded-full',
+            'after:left-auto',
+            'after:content-["2"]',
+            'after:text-[11px]',
+            'after:text-white',
+            'sm:after:-right-0.5',
+        ],
+        onSelect: () => cartOpen.value = true,
     },
 ])
 
@@ -96,6 +109,13 @@ watch(scrollY, () => menuCollapsed.value = scrollY.value > 20, { immediate: true
             ]"
         >
             <UContainer class="flex flex-row justify-evenly items-center">
+                <UButton
+                    class="cursor-pointer px-2 mr-2 sm:px-3 lg:hidden"
+                    variant="navigation"
+                    icon="hugeicons:menu-02"
+                    @click="menuOpen = true"
+                />
+
                 <Logo />
 
                 <UNavigationMenu
@@ -135,6 +155,10 @@ watch(scrollY, () => menuCollapsed.value = scrollY.value > 20, { immediate: true
             <NavigationMenu
                 v-model="menuOpen"
                 :collections="collections"
+            />
+
+            <CartMenu
+                v-model="cartOpen"
             />
 
             <LazySearchMenu
