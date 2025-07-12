@@ -1,4 +1,4 @@
-export default function useTheme() {
+export const useTheme = () => {
     const colorMode = useColorMode()
 
     const mode = computed(() => colorMode.value)

@@ -1,13 +1,5 @@
 export const useCart = () => {
-    const cart = ref([])
-
-    const addToCart = (item) => {
-        cart.value.push(item)
-    }
-
-    const removeFromCart = (item) => {
-        cart.value = cart.value.filter(cartItem => cartItem.id !== item.id)
-    }
+    const cart = ref<CartLine[]>([])
 
     const clearCart = () => {
         cart.value = []
@@ -15,8 +7,6 @@ export const useCart = () => {
 
     return {
         cart,
-        addToCart,
-        removeFromCart,
         clearCart,
     }
 }
