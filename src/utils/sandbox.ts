@@ -45,7 +45,7 @@ export function getSandboxProxyHandler(nuxt: Nuxt, clientType: ShopifyClientType
 
         const schema = z.object({
             query: z.string(),
-            variables: z.record(z.unknown()).optional(),
+            variables: z.record(z.string(), z.unknown()).optional(),
         })
 
         const body = await readValidatedBody(event, schema.parse)
