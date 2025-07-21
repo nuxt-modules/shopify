@@ -28,8 +28,8 @@
         "zod": "^4.0.5"
     },
     "devDependencies": {
-        "@nuxt/eslint-config": "^1.5.2",
+        "@nuxt/eslint-config": "^1.6.0",
         "eslint": "^9.31.0",
-        "vue-tsc": "^3.0.1"
+        "vue-tsc": "^3.0.3"
     }
 }
