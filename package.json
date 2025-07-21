@@ -72,22 +72,22 @@
     "zod": "^4.0.5"
   },
   "devDependencies": {
-    "@nuxt/eslint-config": "^1.5.2",
+    "@nuxt/eslint-config": "^1.6.0",
     "@nuxt/kit": "^3.17.7",
     "@nuxt/module-builder": "^1.0.1",
     "@nuxt/schema": "^3.17.7",
     "@nuxt/test-utils": "^3.19.2",
     "@shopify/graphql-client": "^1.4.0",
-    "@types/bun": "^1.2.18",
+    "@types/bun": "^1.2.19",
     "eslint": "^9.31.0",
     "nuxt": "^3.17.7",
     "sharp": "^0.34.3",
     "typescript": "^5.8.3",
     "unbuild": "^3.5.0",
-    "vercel": "^44.4.1",
+    "vercel": "^44.5.0",
     "vitepress": "^1.6.3",
     "vitest": "^3.2.4",
-    "vue-tsc": "^3.0.1"
+    "vue-tsc": "^3.0.3"
   },
   "keywords": [
     "nuxt",
