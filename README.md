@@ -10,7 +10,7 @@
 [![NPM last update][npm-last-update-src]][npm-last-update-href]
 [![License][license-src]][license-href]
 
-Easy Shopify GraphQL API-Connector for Nuxt 3 & 4.
+Magic Shopify GraphQL API-Connector for Nuxt 3 & 4.
 
 - 🛍️ [Store Template](https://github.com/konkonam/nuxt-shopify/tree/main/template)
 - 🏀 [Online Demo (Coming soon)](https://nuxt-shopify.vercel.app)
@@ -40,18 +40,28 @@ Automatically generates and hot-reloads TypeScript types from your GraphQL opera
 Run the following command to install the module in your project:
 
 ```bash
-npm install @konkonam/nuxt-shopify
+npx nuxt@latest module add nuxt-shopify
 ```
 
-Add the module to your `nuxt.config.ts`:
+<details>
+<summary>Or use the manual installation</summary>
 
-```ts
-export default defineNuxtConfig({
-    modules: [
-        '@konkonam/nuxt-shopify',
-    ],
-})
-```
+1. Install the module via npm:
+
+   ```bash
+   npm install @konkonam/nuxt-shopify
+   ```
+
+2. Add the module to your `nuxt.config.ts`:
+
+   ```ts
+   export default defineNuxtConfig({
+       modules: [
+           '@konkonam/nuxt-shopify',
+       ],
+   })
+   ```
+</details>
 
 Add your Shopify configuration to the `nuxt.config.ts`:
 
