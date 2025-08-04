@@ -18,7 +18,7 @@
         "@nuxt/content": "3.6.3",
         "@nuxt/image": "^1.11.0",
         "@nuxt/ui": "^3.3.0",
-        "@nuxtjs/i18n": "^9.5.6",
+        "@nuxtjs/i18n": "^10.0.3",
         "@vueuse/nuxt": "^13.6.0",
         "better-sqlite3": "12.2.0",
         "nuxt": "^3.18.0",
