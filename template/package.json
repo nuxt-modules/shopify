@@ -21,7 +21,7 @@
         "@nuxtjs/i18n": "^10.0.4",
         "@vueuse/nuxt": "^13.6.0",
         "better-sqlite3": "12.2.0",
-        "nuxt": "^3.18.1",
+        "nuxt": "^4.0.3",
         "nuxt-auth-utils": "^0.5.23",
         "vue": "^3.5.18",
         "vue-router": "^4.5.1",
