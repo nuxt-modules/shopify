@@ -39,6 +39,7 @@
     "build:template": "bun run --filter=./template build",
     "build:docs": "vitepress build docs",
     "dev": "bun run --filter=playground --env-file=.env --elide-lines=100 dev",
+    "dev:mock": "bun run --filter=playground-mock --env-file=.env --elide-lines=100 dev",
     "dev:v4": "bun run --filter=playground-v4 --env-file=.env --elide-lines=100 dev",
     "dev:template": "bun run --filter=./template --env-file=.env --elide-lines=100 dev",
     "dev:docs": "vitepress dev docs",
@@ -69,22 +70,24 @@
     "h3": "^1.15.4",
     "minimatch": "^10.0.3",
     "scule": "^1.3.0",
-    "zod": "^4.0.17"
+    "ufo": "^1.6.1",
+    "zod": "3.25.76"
   },
   "devDependencies": {
-    "@nuxt/eslint-config": "^1.8.0",
+    "@nuxt/eslint-config": "^1.7.1",
     "@nuxt/kit": "^4.0.3",
     "@nuxt/module-builder": "^1.0.2",
+    "@nuxt/schema": "^4.0.3",
     "@nuxt/schema": "^4.0.3",
     "@nuxt/test-utils": "^3.19.2",
     "@shopify/graphql-client": "^1.4.1",
     "@types/bun": "^1.2.20",
     "eslint": "^9.33.0",
-    "nuxt": "^3.18.1",
+    "nuxt": "^4.0.3",
     "sharp": "^0.34.3",
     "typescript": "^5.9.2",
     "unbuild": "^3.6.0",
-    "vercel": "^44.7.3",
+    "vercel": "^45.0.9",
     "vitepress": "^1.6.4",
     "vitest": "^3.2.4",
     "vue-tsc": "^3.0.5"
@@ -105,7 +108,7 @@
     "codegen"
   ],
   "engines": {
-    "node": "^18.x || ^20.x || ^22.x"
+    "node": "^18.x || ^20.x || ^22.x || ^24.x"
   },
   "trustedDependencies": [
     "@parcel/watcher",

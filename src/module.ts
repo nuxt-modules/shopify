@@ -26,7 +26,7 @@ export default defineNuxtModule<ModuleOptions>({
         name: 'nuxt-shopify',
         configKey: 'shopify',
         compatibility: {
-            nuxt: '>=3.0.0',
+            nuxt: '^3 || ^4',
         },
     },
 
@@ -71,7 +71,9 @@ export default defineNuxtModule<ModuleOptions>({
                     name: functionName,
                 }])
 
-                if (clientType === 'storefront' && (clientConfig as ShopifyStorefrontConfig).publicAccessToken?.length) {
+                const storefrontConfig = clientConfig as ShopifyStorefrontConfig
+
+                if (clientType === 'storefront' && (storefrontConfig.publicAccessToken?.length ?? storefrontConfig.mock)) {
                     addImports([{
                         from: resolver.resolve(`./runtime/composables/${functionName}`),
                         name: functionName,

@@ -32,6 +32,7 @@ export const useShopifyConfigValidation = (options: ModuleOptions) => {
                 publicAccessToken: z.string().min(1).optional(),
                 privateAccessToken: z.string().min(1).optional(),
                 clientName: z.string().min(11).optional(),
+                mock: z.boolean().optional(),
             }).optional(),
             admin: clientSchema.extend({
                 accessToken: z.string().min(1),

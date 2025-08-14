@@ -37,7 +37,7 @@ export function registerUtilImports(resolver: Resolver, client = false) {
 }
 
 export function registerAutoImports(nuxt: Nuxt, config: ShopifyConfig, resolver: Resolver) {
-    const usesClientSide = (config.clients.storefront?.publicAccessToken?.length ?? 0) > 0
+    const usesClientSide = config.clients.storefront?.mock || (config.clients.storefront?.publicAccessToken?.length ?? 0) > 0
 
     if (config.autoImports?.graphql) {
         autoImportDir(join(nuxt.options.rootDir, 'graphql'), usesClientSide)

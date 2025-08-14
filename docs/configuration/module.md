@@ -45,6 +45,7 @@ export default defineNuxtConfig({
                 apiVersion: '2025-04',                      // API version to use.
                 publicAccessToken: 'YOUR_ACCESS_TOKEN',     // Public access token to use.
                 privateAccessToken: 'YOUR_ACCESS_TOKEN',    // Private access token to use.
+                mock: false,                                // Use mock.shop instead of <your-shop>.myshopify.com.
                 sandbox: true,                              // Enable sandbox for the client.
                 skipCodegen: false,                         // Skip code generation for the client.
                 documents: [],                              // Glob patterns to include in code generation.
@@ -95,8 +96,25 @@ export default defineNuxtConfig({
 
         clients: {
             storefront: {
-                apiVersion: '2025-04',
+                apiVersion: '2025-07',
                 publicAccessToken: 'YOUR_ACCESS_TOKEN',
+            },
+        },
+    },
+})
+```
+
+```ts [storefront-mock]
+// ~/nuxt.config.ts
+
+export default defineNuxtConfig({
+    shopify: {
+        name: 'my-mocked-shopify-store',
+
+        clients: {
+            storefront: {
+                apiVersion: '2025-07',
+                mock: true,
             },
         },
     },
@@ -112,7 +130,7 @@ export default defineNuxtConfig({
 
         clients: {
             admin: {
-                apiVersion: '2025-04',
+                apiVersion: '2025-07',
                 accessToken: 'YOUR_ACCESS_TOKEN',
             },
         },

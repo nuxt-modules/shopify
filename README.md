@@ -12,21 +12,20 @@
 
 Magic Shopify GraphQL API-Connector for Nuxt 3 & 4.
 
-- 🛍️ [Store Template](https://github.com/konkonam/nuxt-shopify/tree/main/template)
+- 🛍️ [Store Template (Coming soon)](https://github.com/konkonam/nuxt-shopify/tree/main/template)
 - 🏀 [Online Demo (Coming soon)](https://nuxt-shopify.vercel.app)
 - 📚 [Documentation](https://konkonam.github.io/nuxt-shopify)
 - ✨ [Release Notes](https://github.com/konkonam/nuxt-shopify/tree/main/CHANGELOG.md)
 
 ## ⚡️ Features
 
-Automatically generates and hot-reloads TypeScript types from your GraphQL operations
-
 - 🔌 Plug & play Shopify integration
-- 🔗 Fully typed fetch client from GraphQL queries
+- 🔗 Fully typed fetch client from GraphQL schemas
+- 🔥 Hot-reloads types automatically when your GraphQL changes
 - 🔐 Secure access token handling
-- 🔥 Hot-reloads types automatically when queries change
 - 🛒 Storefront and Admin API support
 - 🌐 Server & client side support
+- 🛠️ Automatic mock.shop integration
 - 🚩 Error handling optimized for Nuxt
 - 🧩 GraphQL fragments support
 - ⚙️ Customizable GraphQL code generation
@@ -34,6 +33,14 @@ Automatically generates and hot-reloads TypeScript types from your GraphQL opera
 - 🧪 Tested with Nuxt 3 & 4
 - 🔄 Hooks for customizing the module behavior
 - 🏖️ Sandbox integrated with GraphiQL Explorer
+
+### Roadmap
+
+Upcoming features and developments for the 1.0.0 release:
+
+- 👤 Customer Account API support
+- 🔍 Shopify Analytics support
+- 🛍️ Store template with Nuxt UI & Nuxt Content
 
 ## 📦 Setup
 
@@ -71,12 +78,12 @@ export default defineNuxtConfig({
         name: 'quickstart-abcd1234',
         clients: {
             storefront: {
-                apiVersion: '2025-04',
+                apiVersion: '2025-07',
                 publicAccessToken: 'YOUR_ACCESS_TOKEN',
             },
 
             admin: {
-                apiVersion: '2025-04',
+                apiVersion: '2025-07',
                 accessToken: 'YOUR_ACCESS_TOKEN',
             },
         },
@@ -198,6 +205,28 @@ export default defineEventHandler(async () => {
 ```
 
 For a full example, see [Admin API examples](https://konkonam.github.io/nuxt-shopify/examples/admin).
+
+### Mock the Storefront API
+
+To mock the Storefront API, you can use the `mock` option in the module config:
+
+```ts
+export default defineNuxtConfig({
+    shopify: {
+        name: 'my-mocked-shopify-store',
+
+        clients: {
+            storefront: {
+                mock: true,
+
+                apiVersion: '2025-07',
+            },
+        },
+    },
+})
+```
+
+All requests to the Storefront API will now return data from [mock.shop](https://mock.shop) instead of hitting the actual Shopify API.
 
 ### Type generation
 

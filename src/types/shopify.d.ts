@@ -19,7 +19,11 @@ export type ShopifyClientCustomConfig = {
     documents?: string[]
 }
 
-export type ShopifyStorefrontConfig = StorefrontOptions & ShopifyClientCustomConfig
+export type StorefrontCustomConfig = {
+    mock?: boolean
+}
+
+export type ShopifyStorefrontConfig = StorefrontOptions & ShopifyClientCustomConfig & StorefrontCustomConfig
 export type ShopifyAdminConfig = AdminOptions & ShopifyClientCustomConfig
 export type ShopifyClientConfig = ShopifyStorefrontConfig | ShopifyAdminConfig
 
@@ -48,7 +52,7 @@ export type PublicShopifyConfig<S = ShopifyStorefrontConfig> = {
         throw?: boolean
     }
     clients: {
-        [ShopifyClientType.Storefront]?: Omit<S, 'privateAccessToken' | 'skipCodegen' | 'sandbox' | 'documents'>
+        [ShopifyClientType.Storefront]?: Omit<S, 'privateAccessToken' | 'skipCodegen' | 'sandbox' | 'documents' | 'mock'>
     }
 }
 

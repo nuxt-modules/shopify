@@ -1,4 +1,4 @@
-import type { ModuleOptions, ShopifyConfig, PublicShopifyConfig } from '../types'
+import type { ModuleOptions, ShopifyConfig, PublicShopifyConfig, ShopifyStorefrontConfig } from '../types'
 
 export enum ShopifyClientType {
     Storefront = 'storefront',
@@ -17,7 +17,13 @@ export const useShopifyConfig = (options: ModuleOptions) => {
 
         if (!clientOptions) return
 
-        clientOptions.storeDomain = `https://${options.name}.myshopify.com`
+        if (clientType === 'storefront' && (clientOptions as ShopifyStorefrontConfig).mock) {
+            (clientOptions as ShopifyStorefrontConfig).publicAccessToken = 'mock-public-access-token'
+            clientOptions.storeDomain = 'https://mock.shop'
+        }
+        else {
+            clientOptions.storeDomain = `https://${options.name}.myshopify.com`
+        }
 
         clientOptions.sandbox = !!(clientOptions.sandbox === undefined || clientOptions.sandbox)
 
@@ -55,13 +61,14 @@ export const useShopifyConfig = (options: ModuleOptions) => {
     }
 
     const buildPublicConfig = (config: ShopifyConfig) => {
-        if (!config.clients?.storefront || !config.clients.storefront.publicAccessToken) return undefined
+        if (!config.clients?.storefront || (!config.clients.storefront.publicAccessToken && !config.clients.storefront.mock)) return undefined
 
         const {
             privateAccessToken: _privateAccessToken,
             skipCodegen: _skipCodegen,
             sandbox: _sandbox,
             documents: _documents,
+            mock: _mock,
             ...storefront
         } = config.clients.storefront
 
