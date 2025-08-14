@@ -1,3 +1,6 @@
+# 0.0.33
+- Fixed client side GraphQL queries not being included when using mock mode
+
 # 0.0.32
 - Added Mock.shop support for mocking the Storefront API
 - Fixed GraphQL codegen endpoint url generation
