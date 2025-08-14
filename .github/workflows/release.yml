@@ -37,11 +37,8 @@ jobs:
       - name: Typecheck Module
         run: bun run typecheck
 
-      - name: Typecheck Playground
-        run: bun run typecheck:playground
-
-      - name: Typecheck V4 Playground
-        run: bun run typecheck:playground-v4
+      - name: Typecheck All Playgrounds
+        run: bun run typecheck:playgrounds
 
   release:
     runs-on: ubuntu-latest
