@@ -26,7 +26,7 @@ export default defineNuxtModule<ModuleOptions>({
         name: 'nuxt-shopify',
         configKey: 'shopify',
         compatibility: {
-            nuxt: '^4',
+            nuxt: '^3 || ^4',
         },
     },
 
