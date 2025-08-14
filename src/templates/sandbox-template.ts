@@ -1,64 +1,98 @@
 import type { ShopifyClientType } from '../types'
 
+/**
+ * Get the HTML template for the sandbox environment. The template for
+ * creating the sandbox interface is based on one of GraphiQL's examples:
+ * https://github.com/graphql/graphiql/blob/main/examples/graphiql-cdn/index.html.
+ */
 export default function getSandboxTemplate(clientType: ShopifyClientType) {
     return `
+        <!--
+         *  Copyright (c) 2025 GraphQL Contributors
+         *  All rights reserved.
+        -->
         <!doctype html>
         <html lang="en">
             <head>
+                <meta charset="UTF-8" />
+                <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
                 <title>GraphiQL - ${clientType}</title>
+
                 <style>
                     body {
-                        height: 100%;
                         margin: 0;
-                        width: 100%;
-                        overflow: hidden;
                     }
-                    
+
                     #graphiql {
-                        height: 100vh;
+                        height: 100dvh;
+                    }
+
+                    .loading {
+                        height: 100%;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 4rem;
                     }
                 </style>
-                
-                <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-                <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-                <script src="https://unpkg.com/graphiql/graphiql.min.js" type="application/javascript"></script>
-                <script src="https://unpkg.com/@graphiql/plugin-explorer/dist/index.umd.js" crossorigin></script>
-                <link href="https://unpkg.com/graphiql/graphiql.min.css" rel="stylesheet"/>
-                <link href="https://unpkg.com/@graphiql/plugin-explorer/dist/style.css" rel="stylesheet"/>
-            </head>
-            
-            <body>
-                <div id="graphiql">Loading...</div>
 
-                <script>
-                    const root = ReactDOM.createRoot(document.getElementById('graphiql'));
-                    const explorerPlugin = GraphiQLPluginExplorer.explorerPlugin();
-                    const fetcher = async (graphQLParams, opts) => {
-                        const headers = opts?.headers || {};
-                        const response = await fetch('/_sandbox/proxy/${clientType}', {
-                            method: 'POST',
-                            headers: {
-                                ...headers,
-                                'Content-Type': 'application/json' 
-                            },
-                            body: JSON.stringify(graphQLParams),
-                        });
-    
-                        if (!response.ok) {
-                            throw new Error('Failed to fetch data');
-                        }
-    
-                        return response.json();
-                    };
+                <link rel="stylesheet" href="https://esm.sh/graphiql/dist/style.css" />
+                <link rel="stylesheet" href="https://esm.sh/@graphiql/plugin-explorer/dist/style.css" />
 
-                    root.render(
-                        React.createElement(GraphiQL, {
-                            fetcher,
-                            defaultEditorToolsVisibility: true,
-                            plugins: [explorerPlugin],
-                        }),
-                    );
+                <script type="importmap">
+                {
+                    "imports": {
+                        "react": "https://esm.sh/react@19.1.0",
+                        "react/": "https://esm.sh/react@19.1.0/",
+
+                        "react-dom": "https://esm.sh/react-dom@19.1.0",
+                        "react-dom/": "https://esm.sh/react-dom@19.1.0/",
+
+                        "graphiql": "https://esm.sh/graphiql?standalone&external=react,react-dom,@graphiql/react,graphql",
+                        "graphiql/": "https://esm.sh/graphiql/",
+                        "@graphiql/plugin-explorer": "https://esm.sh/@graphiql/plugin-explorer?standalone&external=react,@graphiql/react,graphql",
+                        "@graphiql/react": "https://esm.sh/@graphiql/react?standalone&external=react,react-dom,graphql,@graphiql/toolkit,@emotion/is-prop-valid",
+
+                        "@graphiql/toolkit": "https://esm.sh/@graphiql/toolkit?standalone&external=graphql",
+                        "graphql": "https://esm.sh/graphql@16.11.0",
+                        "@emotion/is-prop-valid": "data:text/javascript,"
+                    }
+                }
                 </script>
+
+                <script type="module">
+                    import React from 'react';
+                    import ReactDOM from 'react-dom/client';
+                    import { GraphiQL, HISTORY_PLUGIN } from 'graphiql';
+                    import { createGraphiQLFetcher } from '@graphiql/toolkit';
+                    import { explorerPlugin } from '@graphiql/plugin-explorer';
+                    import 'graphiql/setup-workers/esm.sh';
+
+                    const fetcher = createGraphiQLFetcher({
+                        url: '/_sandbox/proxy/${clientType}',
+                    });
+
+                    const plugins = [HISTORY_PLUGIN, explorerPlugin()];
+
+                    function App() {
+                        return React.createElement(GraphiQL, {
+                            fetcher,
+                            plugins,
+                            defaultEditorToolsVisibility: true,
+                        });
+                    }
+
+                    const container = document.getElementById('graphiql');
+                    const root = ReactDOM.createRoot(container);
+                    root.render(React.createElement(App));
+                </script>
+            </head>
+
+            <body>
+                <div id="graphiql">
+                <div class="loading">Loading…</div>
+                </div>
             </body>
         </html>
     `
