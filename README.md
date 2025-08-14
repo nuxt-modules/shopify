@@ -19,7 +19,6 @@ Magic Shopify GraphQL API-Connector for Nuxt 3 & 4.
 
 ## ⚡️ Features
 
-- 🔌 Plug & play Shopify integration
 - 🔗 Fully typed fetch client from GraphQL schemas
 - 🔥 Hot-reloads types automatically when your GraphQL changes
 - 🔐 Secure access token handling
