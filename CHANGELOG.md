@@ -1,3 +1,9 @@
+# 0.0.32
+- Added Mock.shop support for mocking the Storefront API
+- Fixed GraphQL codegen endpoint url generation
+- Fixed GraphiQL explorer endpoint
+- Bumped dependencies
+
 # 0.0.31
 - Added flattenConnection util
 - Bumped dependencies
