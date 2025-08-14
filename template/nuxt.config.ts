@@ -111,10 +111,6 @@ export default defineNuxtConfig({
                 defaultCountry: 'DE',
             },
         ],
-
-        bundle: {
-            optimizeTranslationDirective: false,
-        },
     },
 
     image: {
