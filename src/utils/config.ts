@@ -12,6 +12,8 @@ const ignores = [
 ]
 
 export const useShopifyConfig = (options: ModuleOptions) => {
+    const usesClientSide = !!(options.clients?.storefront?.publicAccessToken ?? options.clients?.storefront?.mock)
+
     const getClientConfig = <T extends ShopifyClientType>(clientType: T, documents: string[] = []) => {
         const clientOptions = options.clients?.[clientType] as ShopifyConfig['clients'][T]
 
@@ -39,7 +41,7 @@ export const useShopifyConfig = (options: ModuleOptions) => {
         const storefront = getClientConfig(ShopifyClientType.Storefront, [
             '**/*.{gql,graphql,ts,js}',
             '!**/*.admin.{gql,graphql,ts,js}',
-            ...(options.clients?.storefront?.publicAccessToken ? ['**/*.vue'] : []),
+            ...(usesClientSide ? ['**/*.vue'] : []),
             ...ignores,
         ])
 
@@ -61,7 +63,7 @@ export const useShopifyConfig = (options: ModuleOptions) => {
     }
 
     const buildPublicConfig = (config: ShopifyConfig) => {
-        if (!config.clients?.storefront || (!config.clients.storefront.publicAccessToken && !config.clients.storefront.mock)) return undefined
+        if (!config.clients?.storefront || !usesClientSide) return undefined
 
         const {
             privateAccessToken: _privateAccessToken,
