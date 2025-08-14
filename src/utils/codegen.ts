@@ -1,13 +1,15 @@
-import { existsSync } from 'node:fs'
-import { join } from 'node:path'
 import type { Types } from '@graphql-codegen/plugin-helpers'
 import type { NuxtTemplate } from '@nuxt/schema'
 
+import type { InterfaceExtensionsParams, ShopifyTemplateOptions } from '../types'
+
+import { existsSync } from 'node:fs'
+import { join } from 'node:path'
 import { generate } from '@graphql-codegen/cli'
 import { preset, pluckConfig } from '@shopify/graphql-codegen'
 import { LogLevels } from 'consola'
 import { upperFirst } from 'scule'
-import type { InterfaceExtensionsParams, ShopifyTemplateOptions } from '../types'
+import { joinURL } from 'ufo'
 
 import { ShopifyClientType } from './config'
 import { useLog } from './log'
@@ -37,7 +39,7 @@ const getIntrospection = (options: ShopifyTemplateOptions) => {
         return introspection
     }
 
-    return `https://shopify.dev/${clientType}-graphql-direct-proxy/${clientConfig.apiVersion}/`
+    return joinURL('https://shopify.dev', `${clientType}-graphql-direct-proxy`, clientConfig.apiVersion)
 }
 
 const getTypescriptPluginConfig = (options: ShopifyTemplateOptions) => {
