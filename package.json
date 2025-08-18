@@ -76,7 +76,7 @@
     "zod": "3.25.76"
   },
   "devDependencies": {
-    "@nuxt/eslint-config": "^1.7.1",
+    "@nuxt/eslint-config": "^1.8.0",
     "@nuxt/kit": "^4.0.3",
     "@nuxt/module-builder": "^1.0.2",
     "@nuxt/schema": "^4.0.3",
@@ -87,8 +87,8 @@
     "nuxt": "^4.0.3",
     "sharp": "^0.34.3",
     "typescript": "^5.9.2",
-    "unbuild": "^3.6.0",
-    "vercel": "^45.0.9",
+    "unbuild": "^3.6.1",
+    "vercel": "^45.0.10",
     "vitepress": "^1.6.4",
     "vitest": "^3.2.4",
     "vue-tsc": "^3.0.5"
