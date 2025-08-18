@@ -13,12 +13,12 @@
         "lint": "eslint ."
     },
     "dependencies": {
-        "@iconify-json/hugeicons": "^1.2.6",
+        "@iconify-json/hugeicons": "^1.2.11",
         "@konkonam/nuxt-shopify": "^0.0.33",
         "@nuxt/content": "3.6.3",
         "@nuxt/image": "^1.11.0",
-        "@nuxt/ui": "^3.3.0",
-        "@nuxtjs/i18n": "^10.0.4",
+        "@nuxt/ui": "^3.3.2",
+        "@nuxtjs/i18n": "^10.0.5",
         "@vueuse/nuxt": "^13.6.0",
         "better-sqlite3": "12.2.0",
         "nuxt": "^3.18.1",
