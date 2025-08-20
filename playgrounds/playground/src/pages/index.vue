@@ -17,5 +17,6 @@ const { data: products } = await useFetch('/api/products', {
             <p>{{ product.description }}</p>
             <br>
         </div>
+        <p>Product count: {{ products?.length }}</p>
     </div>
 </template>
