@@ -4,10 +4,10 @@ import { access, readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import { join } from 'node:path'
 
-const playgroundDir = fileURLToPath(new URL('../playgrounds/playground', import.meta.url))
-const playgroundStorefrontTypesDir = fileURLToPath(new URL('../playgrounds/playground/.nuxt/types/storefront', import.meta.url))
+const playgroundDir = fileURLToPath(new URL('../playgrounds/playground-mock', import.meta.url))
+const playgroundStorefrontTypesDir = fileURLToPath(new URL('../playgrounds/playground-mock/.nuxt/types/storefront', import.meta.url))
 
-describe('storefront api integration', async () => {
+describe('mock.shop integration', async () => {
     await setup({
         server: true,
         rootDir: playgroundDir,
@@ -42,7 +42,6 @@ describe('storefront api integration', async () => {
         const operationsContent = await readFile(path, 'utf-8')
 
         // Check that it contains expected GraphQL operations
-        expect(operationsContent).toContain('FetchAsyncProductsQuery')
         expect(operationsContent).toContain('FetchProductsQuery')
         expect(operationsContent).toContain('FetchFirstThreeProductsQuery')
 

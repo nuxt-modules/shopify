@@ -9,7 +9,7 @@ export default defineNuxtConfig({
         name: 'mock',
 
         logger: {
-            level: 999,
+            level: 3,
         },
 
         clients: {

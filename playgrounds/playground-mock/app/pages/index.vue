@@ -1,11 +1,21 @@
 <script setup lang="ts">
-const products = await useFetch('/api/products', {
+const { data: products } = await useFetch('/api/products', {
     query: {
-        first: 10,
+        first: 5,
     },
 })
 </script>
 
 <template>
-    <pre>{{ products }}</pre>
+    <div>
+        <div
+            v-for="product in products?.data?.products.nodes"
+            :key="product.id"
+        >
+            <h2>{{ product.title }}</h2>
+            <p>{{ product.description }}</p>
+            <br>
+        </div>
+        <p>Product count: {{ products?.data?.products.nodes.length }}</p>
+    </div>
 </template>

@@ -1,14 +1,6 @@
 <script type="setup" setup lang="ts">
 const storefront = useStorefront()
 
-const PRODUCT_FRAGMENT = `#graphql
-    fragment ProductFields on Product {
-        id
-        title
-        description
-    }
-`
-
 const { data } = await storefront.request(`#graphql
     query FetchFirstThreeProducts($first: Int) {
         products(first: $first) {
@@ -27,6 +19,13 @@ const { data } = await storefront.request(`#graphql
 
 <template>
     <div>
-        <pre>{{ data?.products }}</pre>
+        <div
+            v-for="product in flattenConnection(data?.products)"
+            :key="product.id"
+        >
+            <h2>{{ product.title }}</h2>
+            <p>{{ product.description }}</p>
+            <br>
+        </div>
     </div>
 </template>

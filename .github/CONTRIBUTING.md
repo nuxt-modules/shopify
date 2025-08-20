@@ -11,13 +11,14 @@ Here are some guidelines to get you started.
     ```bash
     bun install
     ```
-3. Run `bun run dev:prepare` to generate type stubs.
-4. Start the default [playground](https://github.com/konkonam/nuxt-shopify/tree/main/playgrounds/playground) with:
-    ```bash
-   bun run dev
-    ```
+3. Run `bun run prepare:dev` to generate type stubs.
 
 ## Development
+
+Start the default [playground](https://github.com/konkonam/nuxt-shopify/tree/main/playgrounds/playground):
+```bash
+bun run dev
+```
 
 ### Linting
 
@@ -25,16 +26,16 @@ Here are some guidelines to get you started.
 bun run lint
 ```
 
-### Testing
-
-```bash
-bun run test
-```
-
 ### Type checking
 
 ```bash
 bun run typecheck
+```
+
+### Testing
+
+```bash
+bun run test
 ```
     
 ### Building
@@ -54,10 +55,9 @@ bun run build
 
 ## Releasing
 
-1. Update the version in `package.json` and `bun.lock`.
+1. Update the version in `package.json`.
 2. Update the changelog in `CHANGELOG.md`.
-3. Commit the changes and push to the `main` branch.
+3. Commit the changes and merge to the `main` branch.
 4. Create a new release on GitHub.
-5. Run `bun run release` to publish the package to npm.
 
 [Learn more about semantic versioning](https://semver.org/).
