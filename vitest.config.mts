@@ -18,13 +18,12 @@ export default defineConfig({
             }),
         ],
         coverage: {
+            include: [
+                'src/**',
+            ],
             exclude: [
-                '**virtual**',
-                '**/.nuxt',
-                'node_modules',
-                'playgrounds',
-                'template',
-                'test',
+                'src/commands',
+                'src/types',
             ],
         },
     },
