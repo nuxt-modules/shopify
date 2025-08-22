@@ -4,6 +4,7 @@
         "playgrounds",
         "template",
         "node_modules",
+        "docs",
         "dist",
     ]
 }
