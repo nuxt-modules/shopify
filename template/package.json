@@ -7,7 +7,9 @@
         "dev": "nuxt dev",
         "generate": "nuxt generate",
         "preview": "nuxt preview",
-        "postinstall": "nuxt prepare"
+        "postinstall": "nuxt prepare",
+        "typecheck": "nuxt typecheck",
+        "lint": "eslint ."
     },
     "dependencies": {
         "@konkonam/nuxt-shopify": "^0.0.33",

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { ProductFilter } from '#shopify/storefront'
+
 import { z } from 'zod'
 
 const props = defineProps<{
