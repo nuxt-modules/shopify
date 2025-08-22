@@ -71,7 +71,7 @@ Create a `.env` file in the root of the project and add your Shopify credentials
 
 ```sh
 NUXT_SHOPIFY_NAME="quickstart-abcd1234"
-NUXT_SHOPIFY_API_VERSION="2025-04"
+NUXT_SHOPIFY_API_VERSION="2025-07"
 NUXT_SHOPIFY_STOREFRONT_PRIVATE_ACCESS_TOKEN="YOUR_PRIVATE_ACCESS_TOKEN"
 ```
 

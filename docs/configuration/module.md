@@ -12,12 +12,12 @@ export default defineNuxtConfig({
         name: 'quickstart-abcd1234',
         clients: {
             storefront: {
-                apiVersion: '2025-04',
+                apiVersion: '2025-07',
                 publicAccessToken: 'YOUR_ACCESS_TOKEN',
             },
 
             admin: {
-                apiVersion: '2025-04',
+                apiVersion: '2025-07',
                 accessToken: 'YOUR_ACCESS_TOKEN',
             },
         },
@@ -42,7 +42,7 @@ export default defineNuxtConfig({
 
             storefront: {                                   // Storefront client options.
 
-                apiVersion: '2025-04',                      // API version to use.
+                apiVersion: '2025-07',                      // API version to use.
                 publicAccessToken: 'YOUR_ACCESS_TOKEN',     // Public access token to use.
                 privateAccessToken: 'YOUR_ACCESS_TOKEN',    // Private access token to use.
                 mock: false,                                // Use mock.shop instead of <your-shop>.myshopify.com.
@@ -55,7 +55,7 @@ export default defineNuxtConfig({
 
             admin: {                                        // Admin client options.
 
-                apiVersion: '2025-04',                      // API version to use.
+                apiVersion: '2025-07',                      // API version to use.
                 accessToken: 'YOUR_ACCESS_TOKEN',           // Access token to use.
                 sandbox: true,                              // Enable sandbox for the client.
                 skipCodegen: false,                         // Skip code generation for the client.
