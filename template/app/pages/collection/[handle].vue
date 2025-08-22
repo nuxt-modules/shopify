@@ -1,29 +1,23 @@
 <script setup lang="ts">
+import { joinURL } from 'ufo'
 import { z } from 'zod'
 
 definePageMeta({
     validate: route => typeof route.params.handle === 'string',
-    layout: 'listing',
 })
 
-const { country, language, key: translationKey } = useTranslation()
+const { language, country } = useMarket()
 const storefront = useStorefront()
+const { locale } = useI18n()
 const route = useRoute()
 
-const handle = route.params.handle as string
+const handle = computed(() => route.params.handle as string)
+const path = computed(() => (route.path.includes(locale.value) ? route.path : `/${joinURL(locale.value, route.path)}`).replace(handle.value, ''))
 
-const key = computed(() => [
-    'collection',
-    handle,
-    translationKey.value,
-].join('-'))
+const { data: page } = await useAsyncData(`page-${route.path}`, () => queryCollection('content').path(path.value).first())
 
-const { data: collection } = await useAsyncData(key, async () => await storefront.request(`#graphql
-    query FetchCollection(
-        $handle: String,
-        $language: LanguageCode,
-        $country: CountryCode
-    )
+const { data: collection } = await useAsyncData(`collection-${locale.value}-${handle.value}`, () => storefront.request(`#graphql
+    query FetchCollection($handle: String, $language: LanguageCode, $country: CountryCode)
     @inContext(language: $language, country: $country) {
         collection(handle: $handle) {
             ...CollectionFields
@@ -34,24 +28,28 @@ const { data: collection } = await useAsyncData(key, async () => await storefron
 `, {
     variables: z.object({
         handle: z.string(),
-    }).merge(localizationParamsSchema).parse({
-        handle,
+    }).extend(localizationParamsSchema.shape).parse({
+        handle: handle.value,
         language: language.value,
         country: country.value,
     }),
 }), {
     transform: response => response.data?.collection,
 })
+
+useSeoMeta({
+    title: `${collection.value?.title} | Nuxt Shopify Demo Store`,
+    description: collection.value?.description,
+})
 </script>
 
 <template>
-    <div>
-        <h1 class="text-2xl">
-            {{ collection?.title }}
-        </h1>
-
-        <ProductListing
-            :handle="handle"
+    <UContainer class="py-12">
+        <ContentRenderer
+            v-if="page"
+            :value="page"
+            :data="{ collection }"
+            class="prose w-full max-w-none lg:prose-lg"
         />
-    </div>
+    </UContainer>
 </template>

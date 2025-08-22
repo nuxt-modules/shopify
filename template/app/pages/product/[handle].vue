@@ -1,87 +1,56 @@
 <script setup lang="ts">
+import { joinURL } from 'ufo'
+import { z } from 'zod'
+
 definePageMeta({
     validate: route => typeof route.params.handle === 'string',
-    layout: 'detail',
 })
 
-const { country, language } = useTranslation()
+const { language, country } = useMarket()
+const storefront = useStorefront()
+const { locale } = useI18n()
 const route = useRoute()
 
 const handle = computed(() => route.params.handle as string)
+const path = computed(() => (route.path.includes(locale.value) ? route.path : `/${joinURL(locale.value, route.path)}`).replace(handle.value, ''))
 
-const state = reactive({
-    quantity: 1,
+const { data: page } = await useAsyncData(`page-${route.path}`, () => queryCollection('content').path(path.value).first())
+
+const { data: product } = await useAsyncData(`collection-${locale.value}-${handle.value}`, () => storefront.request(`#graphql
+    query FetchProduct($handle: String, $language: LanguageCode, $country: CountryCode) 
+    @inContext(language: $language, country: $country) {
+        product(handle: $handle) {
+            ...ProductFields
+        }
+    }
+    ${IMAGE_FRAGMENT}
+    ${PRICE_FRAGMENT}
+    ${PRODUCT_FRAGMENT}
+`, {
+    variables: z.object({
+        handle: z.string(),
+    }).extend(localizationParamsSchema.shape).parse({
+        handle: handle.value,
+        language: language.value,
+        country: country.value,
+    }),
+}), {
+    transform: response => response.data?.product,
 })
 
-const { data } = await useFetch('/api/product', {
-    method: 'POST',
-    body: {
-        handle,
-        country,
-        language,
-    },
-    watch: [language, country],
+useSeoMeta({
+    title: `${product.value?.title} | Nuxt Shopify Demo Store`,
+    description: product.value?.description,
 })
-
-const product = computed(() => data.value?.product)
 </script>
 
 <template>
-    <div>
-        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-10 sm:justify-between lg:hidden">
-            <h1 class="text-xl lg:text-2xl">
-                {{ product?.title }}
-            </h1>
-
-            <ProductPrice
-                :product="product"
-                class="shrink mt-2 text-lg text-primary sm:mt-0"
-            />
-        </div>
-
-        <div class="lg:grid lg:grid-cols-12 lg:pt-8">
-            <ProductImage
-                :product="product ?? undefined"
-                class="my-6 lg:mt-0 lg:col-span-6"
-            />
-
-            <div class="flex flex-col gap-4 lg:col-span-4 lg:col-start-8">
-                <div class="flex-col gap-2 hidden lg:flex lg:pb-4">
-                    <h2 class="text-2xl">
-                        {{ product?.title }}
-                    </h2>
-
-                    <ProductPrice
-                        :product="product"
-                        class="shrink"
-                    />
-                </div>
-
-                <p v-html="product?.descriptionHtml" />
-
-                <USeparator class="my-4 lg:my-8" />
-
-                <div class="flex flex-col items-end gap-6">
-                    <UFormField name="quantity">
-                        <UInputNumber
-                            v-model="state.quantity"
-                            :min="1"
-                            :max="10"
-                            class="w-24 lg:w-28"
-                            :ui="{
-                                base: 'py-3 rounded-full',
-                            }"
-                        />
-                    </UFormField>
-
-                    <ProductAddToCart
-                        v-if="product"
-                        :product="product"
-                        :quantity="state.quantity"
-                        class="flex-1 p-3"
-                    />
-                </div>
-            </div>
-        </div>
-    </div>
+    <UContainer class="py-12">
+        <ContentRenderer
+            v-if="page"
+            :value="page"
+            :data="{ product }"
+            class="prose w-full max-w-none lg:prose-lg"
+        />
+    </UContainer>
 </template>

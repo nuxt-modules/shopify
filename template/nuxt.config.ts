@@ -1,121 +1,75 @@
+// https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
     modules: [
         '@konkonam/nuxt-shopify',
-        '@nuxt/content',
-        '@nuxt/image',
         '@nuxt/ui',
+        '@nuxt/content',
         '@nuxtjs/i18n',
+        '@nuxt/image',
         '@vueuse/nuxt',
-        'nuxt-auth-utils',
     ],
 
-    app: {
-        head: {
-            link: [
-                { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
-                { rel: 'apple-touch-icon', sizes: '180x180', href: '/apple-touch-icon.png' },
-                { rel: 'icon', type: 'image/png', sizes: '32x32', href: '/favicon-32x32.png' },
-                { rel: 'icon', type: 'image/png', sizes: '16x16', href: '/favicon-16x16.png' },
-                { rel: 'manifest', href: '/site.webmanifest' },
-            ],
-        },
-    },
+    devtools: { enabled: true },
 
-    css: ['~/assets/css/main.css'],
+    css: ['~/assets/main.css'],
 
     content: {
-        database: {
-            type: 'sqlite',
-            filename: 'db.sqlite',
+        renderer: {
+            anchorLinks: false,
         },
     },
 
-    runtimeConfig: {
-        sessionPassword: process.env.NUXT_SESSION_PASSWORD as string,
+    ui: {
+        colorMode: false,
     },
 
-    build: {
-        transpile: [
-            'reka-ui',
-            'vaul-vue',
-        ],
-    },
-
-    future: {
-        compatibilityVersion: 4,
-    },
-
-    compatibilityDate: '2025-01-31',
-
-    nitro: {
-        imports: {
-            dirs: [
-                './server/utils',
-                './server/graphql',
-            ],
-        },
-    },
+    compatibilityDate: '2025-07-15',
 
     vite: {
         server: {
             allowedHosts: [
                 '.ngrok-free.app',
-                '.vercel.app',
-            ],
-        },
-
-        optimizeDeps: {
-            include: [
-                'zod',
             ],
         },
     },
 
-    telemetry: false,
-
     fonts: {
         families: [
             {
-                name: 'Plus Jakarta Sans',
+                name: 'Source Sans 3',
                 provider: 'google',
             },
-            {
-                name: 'Satoshi',
-                provider: 'fontshare',
-            },
         ],
-
-        defaults: {
-            weights: [100, 300, 400, 500, 700, 900],
-            styles: ['normal', 'italic'],
-            subsets: ['latin'],
-        },
     },
 
     i18n: {
         strategy: 'prefix_except_default',
 
-        defaultLocale: 'en',
+        defaultLocale: 'en-us',
 
         locales: [
             {
-                code: 'en',
-                name: 'English',
+                code: 'en-us',
+                language: 'en',
+                name: 'English (USD)',
                 file: 'en.json',
-                defaultCountry: 'US',
             },
             {
-                code: 'de',
-                name: 'Deutsch',
+                code: 'de-de',
+                language: 'de',
+                name: 'German (EUR)',
                 file: 'de.json',
-                defaultCountry: 'DE',
+            },
+            {
+                code: 'de-at',
+                language: 'de',
+                name: 'Austria (EUR)',
+                file: 'de.json',
             },
         ],
     },
 
     image: {
-        densities: [1, 2],
-
         providers: {
             shopify: {
                 provider: '~/providers/shopify.ts',
@@ -124,7 +78,7 @@ export default defineNuxtConfig({
     },
 
     shopify: {
-        name: process.env.NUXT_SHOPIFY_NAME as string,
+        name: process.env.NUXT_SHOPIFY_NAME,
 
         logger: {
             level: 3,
@@ -132,8 +86,9 @@ export default defineNuxtConfig({
 
         clients: {
             storefront: {
-                apiVersion: process.env.NUXT_SHOPIFY_API_VERSION as string,
-                publicAccessToken: process.env.NUXT_SHOPIFY_STOREFRONT_PUBLIC_ACCESS_TOKEN as string,
+                publicAccessToken: process.env.NUXT_SHOPIFY_STOREFRONT_PUBLIC_ACCESS_TOKEN,
+
+                apiVersion: '2025-07',
             },
         },
     },

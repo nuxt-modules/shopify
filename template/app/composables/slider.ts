@@ -1,4 +1,6 @@
 export const useSlider = (slider: MaybeRef<HTMLElement | undefined>) => {
+    const initialized = ref(false)
+
     const index = ref(0)
     const count = ref(0)
 
@@ -72,6 +74,8 @@ export const useSlider = (slider: MaybeRef<HTMLElement | undefined>) => {
 
         updateMetrics()
         updateIndex()
+
+        initialized.value = true
     })
 
     onBeforeUnmount(() => {
@@ -83,11 +87,12 @@ export const useSlider = (slider: MaybeRef<HTMLElement | undefined>) => {
     updateIndex()
 
     return {
+        initialized,
         index,
+        count,
         perPage,
         isFirst,
         isLast,
-
         previous,
         next,
     }

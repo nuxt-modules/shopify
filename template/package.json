@@ -1,35 +1,40 @@
 {
     "name": "nuxt-shopify-template",
-    "private": true,
     "type": "module",
+    "private": true,
     "scripts": {
         "build": "nuxt build",
         "dev": "nuxt dev",
         "generate": "nuxt generate",
-        "prepare": "nuxt prepare",
         "preview": "nuxt preview",
-        "cleanup": "nuxt cleanup",
-        "typecheck": "nuxt typecheck",
-        "lint": "eslint ."
+        "postinstall": "nuxt prepare"
     },
     "dependencies": {
-        "@iconify-json/hugeicons": "^1.2.11",
         "@konkonam/nuxt-shopify": "^0.0.33",
-        "@nuxt/content": "3.6.3",
+        "@nuxt/content": "^3.6.3",
         "@nuxt/image": "^1.11.0",
         "@nuxt/ui": "^3.3.2",
-        "@nuxtjs/i18n": "^10.0.5",
-        "@vueuse/nuxt": "^13.6.0",
-        "better-sqlite3": "12.2.0",
-        "nuxt": "^3.18.1",
-        "nuxt-auth-utils": "^0.5.23",
+        "@nuxtjs/i18n": "^10.0.6",
+        "@tailwindcss/typography": "^0.5.16",
+        "@vueuse/nuxt": "^13.7.0",
+        "better-sqlite3": "^12.2.0",
+        "nuxt": "^4.0.3",
         "vue": "^3.5.18",
-        "vue-router": "^4.5.1",
-        "zod": "3.25.76"
+        "vue-router": "^4.5.1"
     },
     "devDependencies": {
-        "@nuxt/eslint-config": "^1.8.0",
+        "@nuxt/eslint-config": "^1.9.0",
         "eslint": "^9.33.0",
+        "typescript": "^5.9.2",
         "vue-tsc": "^3.0.5"
-    }
+    },
+    "trustedDependencies": [
+        "@parcel/watcher",
+        "@tailwindcss/oxide",
+        "better-sqlite3",
+        "esbuild",
+        "sharp",
+        "unrs-resolver",
+        "vue-demi"
+    ]
 }

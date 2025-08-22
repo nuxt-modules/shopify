@@ -1,61 +1,24 @@
 {
-    "navigation": {
-        "label": "Navigation"
-    },
     "footer": {
-        "message": "Released under the MIT License.",
+        "message": "Published under the MIT License.",
         "github": "View on GitHub"
-    },
-    "country": {
-        "label": "Choose Country",
-        "select": "Select your country."
-    },
-    "language": {
-        "label": "Choose Language",
-        "select": "Select your language."
     },
     "search": {
         "label": "Search",
-        "description": "Search for different products and collections.",
         "placeholder": "Search...",
+        "description": "Find products and collections",
         "products": "Products",
         "collections": "Collections"
     },
-    "cart": {
-        "label": "Your Cart"
+    "pagination": {
+        "previous": "Load previous",
+        "next": "Load next"
     },
-    "collections": {
-        "label": "Collections"
-    },
-    "listing": {
-        "loadPrevious": "Load Previous",
-        "loadNext": "Load Next"
+    "price": {
+        "from": "from",
+        "to": "to"
     },
     "filters": {
-        "label": "Filter",
-        "clear": "Clear",
-        "price": {
-            "label": "Price",
-            "min": "from",
-            "max": "to"
-        },
-        "availability": {
-            "label": "Availability",
-            "true": "In Stock",
-            "false": "Out of Stock"
-        }
-    },
-    "sort": {
-        "label": "Sort",
-        "by": "Sort by",
-        "ascending": "ascending",
-        "descending": "descending",
-        "price": "Price",
-        "releaseDate": "Release Date",
-        "relevance": "Relevance"
-    },
-    "product": {
-        "label": "Product",
-        "addToCart": "Add to Cart"
+        "title": "Filters"
     }
 }

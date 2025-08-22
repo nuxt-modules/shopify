@@ -30,7 +30,7 @@ const logoUrl = computed(() => data.value?.image?.url)
         <NuxtImg
             :src="logoUrl"
             provider="shopify"
-            class="h-5 w-auto light:invert"
+            class="h-5 w-auto invert"
             width="50"
             height="22"
         />

@@ -11,7 +11,7 @@ export const productFilterSchema = z.object({
     taxonomyMetafield: taxonomyMetafieldFilterSchema.optional(),
     variantMetafield: metafieldFilterSchema.optional(),
     variantOption: variantOptionFilterSchema.optional(),
-})
+}).array()
 
 export const productSortKeysSchema = z.enum([
     'BEST_SELLING',

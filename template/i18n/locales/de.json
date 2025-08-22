@@ -1,51 +1,24 @@
 {
-    "navigation": {
-        "label": "Navigation"
-    },
     "footer": {
         "message": "Veröffentlicht unter der MIT License.",
         "github": "Auf GitHub ansehen"
     },
-    "country": {
-        "label": "Land auswählen",
-        "select": "Wählen Sie ihr Land aus."
-    },
-    "language": {
-        "label": "Sprache auswählen",
-        "select": "Wählen Sie ihre Sprache aus."
-    },
     "search": {
         "label": "Suche",
-        "description": "Suche nach Produkten und Kollektionen.",
         "placeholder": "Suche...",
+        "description": "Produkte und Kollektionen finden",
         "products": "Produkte",
         "collections": "Kollektionen"
     },
-    "cart": {
-        "label": "Ihr Warenkorb"
+    "pagination": {
+        "previous": "Vorherige Laden",
+        "next": "Nächste Laden"
     },
-    "collections": {
-        "label": "Kollektionen"
+    "price": {
+        "from": "von",
+        "to": "bis"
     },
-    "listing": {
-        "loadPrevious": "Vorherige laden",
-        "loadNext": "Nächste laden"
-    },
-    "filter": {
-        "label": "Filter",
-        "clear": "Zurücksetzen"
-    },
-    "sort": {
-        "label": "Sortieren",
-        "by": "Sortieren nach",
-        "ascending": "aufsteigend",
-        "descending": "absteigend",
-        "price": "Preis",
-        "releaseDate": "Veröffentlicht am",
-        "relevance": "Relevanz"
-    },
-    "product": {
-        "label": "Produkt",
-        "addToCart": "In den Warenkorb"
+    "filters": {
+        "title": "Filter"
     }
 }

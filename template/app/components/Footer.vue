@@ -1,12 +1,6 @@
 <script setup lang="ts">
 import type { NavigationMenuItem } from '#ui/types'
 
-const { t } = useI18n()
-
-const { isDark, swap } = useTheme()
-
-const { data: version } = await useFetch('/api/version')
-
 const items = computed<NavigationMenuItem[]>(() => [
     {
         to: 'https://github.com/konkonam/nuxt-shopify',
@@ -26,7 +20,6 @@ const items = computed<NavigationMenuItem[]>(() => [
     },
 ].map(item => ({
     ...item,
-    class: 'text-muted px-3 hover:text-primary',
     target: '_blank',
     icon: 'hugeicons:solid-line-01',
 })))
@@ -44,7 +37,7 @@ const items = computed<NavigationMenuItem[]>(() => [
                     <br>
 
                     <span class="font-medium">
-                        Nuxt Shopify v{{ version }}
+                        Nuxt Shopify v0.0.31
                     </span>
                 </p>
 
@@ -71,33 +64,22 @@ const items = computed<NavigationMenuItem[]>(() => [
 
             <div class="flex flex-col items-center md:flex-row">
                 <p class="text-muted grow pb-5 md:pb-0">
-                    {{ t('footer.message') }}
+                    {{ $t('footer.message') }}
                 </p>
-
-                <NavigationCountry class="mb-1 md:mb-0" />
-
-                <NavigationLanguage class="mb-3 md:mb-0" />
-
-                <USeparator
-                    orientation="vertical"
-                    class="h-5 mx-6 hidden md:block"
-                />
 
                 <UNavigationMenu
                     orientation="horizontal"
                     :items="[
                         {
-                            icon: isDark ? 'hugeicons:sun-02' : 'hugeicons:moon-02',
-                            class: 'cursor-pointer px-3',
-                            onSelect: () => swap(),
-                        },
-                        {
-                            icon: 'hugeicons:github-01',
+                            icon: 'i-lucide-github',
                             to: 'https://github.com/konkonam/nuxt-shopify/tree/main/template',
+                            label: $t('footer.github'),
                             target: '_blank',
-                            class: 'px-3',
                         },
                     ]"
+                    :ui="{
+                        linkLabelExternalIcon: 'hidden',
+                    }"
                 />
             </div>
         </UContainer>

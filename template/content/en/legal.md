@@ -1,3 +1,0 @@
-# Legal
-
-Test content

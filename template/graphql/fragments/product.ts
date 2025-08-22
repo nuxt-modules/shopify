@@ -82,3 +82,38 @@ export const PRODUCT_CONNECTION_FRAGMENT = `#graphql
     }
     ${PRODUCT_FRAGMENT}
 `
+
+export const PRODUCT_FILTERS_FRAGMENT = `#graphql
+    fragment ProductFilterFields on ProductConnection {
+        filters {
+            id
+            label
+            presentation
+            type
+            values {
+                count
+                id
+                label
+                input
+                swatch {
+                    image {
+                        id
+                        alt
+                        mediaContentType
+                        image {
+                            ...ImageFields
+                        }
+                    }
+                }
+                image {
+                    id
+                    alt
+                    mediaContentType
+                    image {
+                        ...ImageFields
+                    }
+                }
+            }
+        }
+    }
+`
