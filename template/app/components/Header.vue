@@ -4,7 +4,7 @@ const storefront = useStorefront()
 const localePath = useLocalePath()
 const { locale } = useI18n()
 
-const { data } = await useAsyncData(`collections-${locale.value}`, async () => await storefront.request(`#graphql
+const { data } = await useAsyncData(`collections-${locale.value}`, () => storefront.request(`#graphql
     query FetchCollections($after: String, $before: String, $first: Int, $last: Int, $language: LanguageCode)
     @inContext(language: $language) {
         collections(

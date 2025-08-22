@@ -95,7 +95,7 @@ const { data } = await storefront.request(`#graphql
 })
 
 // Also works with asyncData
-const { data } = await useAsyncData('products', async () => await storefront.request(`#graphql
+const { data } = await useAsyncData('products', () => storefront.request(`#graphql
     query FetchFirstThreeProducts($first: Int) {
         products(first: $first) {
             nodes {

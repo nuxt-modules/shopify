@@ -2,7 +2,7 @@
 const localePath = useLocalePath()
 const storefront = useStorefront()
 
-const { data } = await useAsyncData('logo', async () => await storefront.request(`#graphql
+const { data } = await useAsyncData('logo', () => storefront.request(`#graphql
     query FetchLogo {
         shop {
             brand {

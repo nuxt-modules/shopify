@@ -11,7 +11,7 @@ const { t, locale } = useI18n()
 const router = useRouter()
 const route = useRoute()
 
-const { data, status } = await useAsyncData(`collection-${locale.value}-${props.handle}-products`, async () => await storefront.request(`#graphql
+const { data, status } = await useAsyncData(`collection-${locale.value}-${props.handle}-products`, () => storefront.request(`#graphql
     query FetchListing(
         $handle: String,
         $after: String,

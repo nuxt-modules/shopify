@@ -29,7 +29,7 @@ const sortKey = computed(() => props.sortKey ? String(props.sortKey) : undefined
 const reverse = computed(() => props.reverse ? Boolean(props.reverse) : undefined)
 const filters = computed(() => props.filters ? props.filters : undefined)
 
-const { data: products } = await useAsyncData(key, async () => await storefront.request(`#graphql
+const { data: products } = await useAsyncData(key, () => storefront.request(`#graphql
     query FetchSliderProducts(
         $handle: String,
         $after: String,

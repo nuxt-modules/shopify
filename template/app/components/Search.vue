@@ -8,7 +8,7 @@ const { t } = useI18n()
 
 const query = ref('')
 
-const { data, status } = await useAsyncData(`search-${query.value}`, async () => await storefront.request(`#graphql
+const { data, status } = await useAsyncData(`search-${query.value}`, () => storefront.request(`#graphql
     query predictiveSearch($query: String!, $first: Int, $language: LanguageCode, $country: CountryCode)
     @inContext(language: $language, country: $country) {
         predictiveSearch(query: $query) {
