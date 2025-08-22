@@ -1,17 +1,19 @@
-import {
-    addImports,
-    addServerImports,
-    createResolver,
-    defineNuxtModule,
-    updateRuntimeConfig,
-} from '@nuxt/kit'
-import { upperFirst } from 'scule'
 import type {
     ModuleOptions,
     ShopifyClientType,
     ShopifyStorefrontConfig,
 } from './types'
 
+import {
+    addImports,
+    addServerImports,
+    createResolver,
+    defineNuxtModule,
+    useRuntimeConfig,
+    updateRuntimeConfig,
+} from '@nuxt/kit'
+import { upperFirst } from 'scule'
+import { defu } from 'defu'
 import {
     installSandbox,
     registerAutoImports,
@@ -31,8 +33,14 @@ export default defineNuxtModule<ModuleOptions>({
     },
 
     async setup(options, nuxt) {
+        const runtimeConfig = useRuntimeConfig()
         const log = useLog(options.logger)
-        const moduleOptions = useShopifyConfigValidation(options)
+
+        const moduleOptions = useShopifyConfigValidation(defu(
+            runtimeConfig.public.shopify,
+            runtimeConfig.shopify,
+            options,
+        ))
 
         if (!moduleOptions.success) {
             log.info('Skipping setup: config not provided or invalid')
