@@ -1,75 +1,135 @@
-# Nuxt Minimal Starter
+<p align="center">
+  <img height="107" src="https://raw.githubusercontent.com/konkonam/nuxt-shopify/refs/heads/main/docs/public/logo-readme.png">
+</p>
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+# Nuxt Shopify Template (WIP)
 
-## Setup
+[![Github Actions][github-actions-src]][github-actions-href]
+[![License][license-src]][license-href]
+[![Nuxt][nuxt-src]][nuxt-href]
 
-Make sure to install dependencies:
+> [!WARNING]
+> 🚧 This template is a work in progress and is not yet ready for production use. Please check back later for updates. 🚧
 
-```bash
-# npm
+- 🏀 [Online demo](https://nuxt-shopify.vercel.app/)
+- 📚 [Nuxt Shopify documentation](https://konkonam.github.io/nuxt-shopify)
+
+## ⚡️ Features
+
+- 🛍️ **Shopify Integration**: Sell your products directly from your Nuxt app with [Nuxt Shopify](https://github.com/konkonam/nuxt-shopify)
+- 📝 **Content Management**: Change the template content to your needs with Nuxt Content
+- 🌐 **Internationalization**: Built-in page localizations with Nuxt i18n
+- 🔒 **Authentication**: Built-in authentication and customer management with Nuxt Auth Utils
+- 👤 **Order and Account Management**: View and manage order status and customer accounts
+- 🧩 **UI Components**: Built with Nuxt UI components and Tailwind 4 for a consistent look and feel
+- 🖼️ **Image Optimization**: Automatically optimized images with Nuxt Image
+- 🔗 **Type Safety**: Fully type-safe and checked with Vue-Tsc
+- 🧹 **Code Quality**: Minimally configured ESLint for code quality
+
+### 🛒 E-Commerce Features (WIP 🚧)
+
+- **Product Listing & Filters**: Display products with images, titles, and prices
+- **Product Details**: Show detailed information about each product, including variants and options
+- **Cart Management**: Add, remove, and update items in the cart
+- **Checkout Process**: Seamlessly integrate with Shopify's Storefront API for a smooth checkout experience
+- **Order Management**: View and manage customer orders
+- **Customer Accounts**: Allow customers to create accounts, view order history, and manage their profiles
+
+## 🚀 Quick Start
+
+Deploy to vercel:
+
+[![Deploy to Vercel][vercel-src]][vercel-href]
+
+Deploy to Cloudflare:
+
+[![Deploy to Cloudflare][cloudflare-src]][cloudflare-href]
+
+### Setup
+
+Run the following command to clone the shop template:
+
+```sh
+npx @konkonam/nuxt-shopify my-shop
+```
+
+Now you can navigate to the `my-shop` directory:
+
+```sh
+cd my-shop
+```
+
+Install the dependencies:
+
+```sh
 npm install
-
-# pnpm
-pnpm install
-
-# yarn
-yarn install
-
-# bun
-bun install
 ```
 
-## Development Server
+(you can also use `yarn`, `pnpm` or `bun` if you prefer)
 
-Start the development server on `http://localhost:3000`:
+Create a `.env` file in the root of the project and add your Shopify credentials:
 
-```bash
-# npm
+```sh
+NUXT_SHOPIFY_NAME="quickstart-abcd1234"
+NUXT_SHOPIFY_API_VERSION="2025-04"
+NUXT_SHOPIFY_STOREFRONT_PRIVATE_ACCESS_TOKEN="YOUR_PRIVATE_ACCESS_TOKEN"
+```
+
+And that's it! Now your template is ready to use.
+
+## 🛠️ Usage
+
+### Development
+
+To start the development server run the `dev` command:
+
+```sh
 npm run dev
-
-# pnpm
-pnpm dev
-
-# yarn
-yarn dev
-
-# bun
-bun run dev
 ```
 
-## Production
+The server will be available at: http://localhost:3000/.
 
-Build the application for production:
+To use the GraphQL playground for the Storefront API navigate to: http://localhost:3000/_sandbox/storefront.
 
-```bash
-# npm
+### Build
+
+To build the application use the `build` command:
+
+```sh
 npm run build
-
-# pnpm
-pnpm build
-
-# yarn
-yarn build
-
-# bun
-bun run build
 ```
 
-Locally preview production build:
+### Lint
 
-```bash
-# npm
-npm run preview
+The template has an `eslint` configuration file, you can run it with the `lint` command:
 
-# pnpm
-pnpm preview
-
-# yarn
-yarn preview
-
-# bun
-bun run preview
+```sh
+npm run lint
 ```
 
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+### Typecheck
+
+The template uses `vue-tsc` to make sure all types are correct, you can run it with the `typecheck` command:
+
+```sh
+npm run typecheck
+```
+
+## 📜 License
+
+Published under the [MIT License](https://github.com/konkonam/nuxt-shopify/tree/main/LICENSE).
+
+[github-actions-src]: https://github.com/konkonam/nuxt-shopify/actions/workflows/test.yml/badge.svg
+[github-actions-href]: https://github.com/konkonam/nuxt-shopify/actions
+
+[license-src]: https://img.shields.io/github/license/konkonam/nuxt-shopify.svg?style=flat&colorA=18181B&colorB=31C553
+[license-href]: https://github.com/konkonam/nuxt-shopify/tree/main/LICENSE
+
+[nuxt-src]: https://img.shields.io/badge/Nuxt-18181B?logo=nuxt
+[nuxt-href]: https://nuxt.com
+
+[vercel-src]: https://vercel.com/button
+[vercel-href]: https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fkonkonam%2Fnuxt-shopify%2Ftree%2Fmain%2Ftemplate
+
+[cloudflare-src]: https://deploy.workers.cloudflare.com/button
+[cloudflare-href]: https://deploy.workers.cloudflare.com/?url=https%3A%2F%2Fgithub.com%2Fkonkonam%2Fnuxt-shopify%2Ftemplate
