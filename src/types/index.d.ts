@@ -12,8 +12,8 @@ import type {
 } from './shopify'
 
 export type ModuleOptions = ShopifyConfig<
-    Omit<ShopifyStorefrontConfig, 'storeDomain' | 'logger' | 'customFetchApi'>,
-    Omit<ShopifyAdminConfig, 'storeDomain' | 'logger' | 'customFetchApi'>
+    Partial<Omit<ShopifyStorefrontConfig, 'storeDomain' | 'logger' | 'customFetchApi'>>,
+    Partial<Omit<ShopifyAdminConfig, 'storeDomain' | 'logger' | 'customFetchApi'>>
 >
 
 export type ShopifyConfigHookParams = {
@@ -45,11 +45,18 @@ export type SandboxConfig = {
 
 declare module '@nuxt/schema' {
     interface RuntimeConfig {
+        shopify?: ModuleOptions
         _shopify?: ShopifyConfig
         _sandbox?: Record<string, SandboxConfig>
     }
 
     interface PublicRuntimeConfig {
+        shopify?: Omit<ModuleOptions, 'clients'> & {
+            clients?: {
+                storefront: Partial<Omit<ShopifyStorefrontConfig, 'storeDomain' | 'logger' | 'customFetchApi'>>
+            }
+        }
+
         _shopify?: PublicShopifyConfig
     }
 

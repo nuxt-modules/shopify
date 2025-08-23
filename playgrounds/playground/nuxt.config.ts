@@ -28,17 +28,12 @@ export default defineNuxtConfig({
     shopify: {
         clients: {
             storefront: {
-                apiVersion: '',
-
                 documents: [
                     '!**/admin/**.{js,ts,graphql,gql}',
                 ],
             },
 
             admin: {
-                apiVersion: '',
-                accessToken: '',
-
                 documents: [
                     '**/admin/**.{js,ts,graphql,gql}',
                 ],
