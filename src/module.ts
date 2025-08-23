@@ -89,7 +89,6 @@ export default defineNuxtModule<ModuleOptions>({
                 }
             }
 
-            // @ts-expect-error types get overridden by module dependency in template
             await nuxt.callHook('shopify:config', { nuxt, config })
 
             updateRuntimeConfig({
