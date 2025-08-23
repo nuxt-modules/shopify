@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const open = defineModel<boolean>({ default: false })
 
-const { language, country } = useMarket()
+const { language, country } = useLocalization()
 const localePath = useLocalePath()
 const storefront = useStorefront()
 const { t } = useI18n()

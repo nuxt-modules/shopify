@@ -5,7 +5,7 @@ const props = defineProps<{
     handle: string
 }>()
 
-const { country, language } = useMarket()
+const { country, language } = useLocalization()
 const storefront = useStorefront()
 
 const { data: product } = await useAsyncData(() => storefront.request(`#graphql

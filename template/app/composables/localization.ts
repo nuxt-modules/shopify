@@ -1,3 +1,5 @@
+import type { Locale } from '#i18n'
+
 type Split<S extends string, D extends string>
     = string extends S ? string[]
         : S extends '' ? []
@@ -5,18 +7,20 @@ type Split<S extends string, D extends string>
 
 const split = <S extends string, D extends string>(s: S, d: D): Split<S, D> => s.split(d) as Split<S, D>
 
-export const useMarket = () => {
+export const useLocalization = () => {
     const { locale } = useI18n()
 
-    const language = computed(() => split(locale.value, '-')[0])
-    const country = computed(() => split(locale.value, '-')[1])
+    const getLanguage = (locale: Locale) => split(locale, '-')[0]
+    const getCountry = (locale: Locale) => split(locale, '-')[1]
 
-    // TODO: Implement different currencies
-    const currency = 'EUR'
+    const language = computed(() => getLanguage(locale.value))
+    const country = computed(() => getCountry(locale.value))
 
     return {
         language,
         country,
-        currency,
+
+        getLanguage,
+        getCountry,
     }
 }

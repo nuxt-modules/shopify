@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import * as locales from '@nuxt/ui/locale'
 
-const { language } = useMarket()
+const { language } = useLocalization()
 
 const lang = computed(() => locales[language.value].code)
 const dir = computed(() => locales[language.value].dir)

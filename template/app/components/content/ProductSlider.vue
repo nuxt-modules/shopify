@@ -14,7 +14,7 @@ const props = defineProps<{
     filters?: ProductFilter[]
 }>()
 
-const { language, country } = useMarket()
+const { language, country } = useLocalization()
 const storefront = useStorefront()
 const { locale } = useI18n()
 

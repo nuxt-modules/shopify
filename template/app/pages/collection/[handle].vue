@@ -6,7 +6,7 @@ definePageMeta({
     validate: route => typeof route.params.handle === 'string',
 })
 
-const { language, country } = useMarket()
+const { language, country } = useLocalization()
 const storefront = useStorefront()
 const { locale } = useI18n()
 const route = useRoute()

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { language, country } = useMarket()
+const { language, country } = useLocalization()
 const storefront = useStorefront()
 const localePath = useLocalePath()
 const { locale } = useI18n()

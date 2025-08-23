@@ -1,5 +1,5 @@
 export const useCollection = () => {
-    const { country, language } = useMarket()
+    const { country, language } = useLocalization()
     const { filters } = useFilters()
     const route = useRoute()
 
