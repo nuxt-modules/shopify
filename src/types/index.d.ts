@@ -53,7 +53,7 @@ declare module '@nuxt/schema' {
     interface PublicRuntimeConfig {
         shopify?: Omit<ModuleOptions, 'clients'> & {
             clients?: {
-                storefront: Partial<Omit<ShopifyStorefrontConfig, 'storeDomain' | 'logger' | 'customFetchApi'>>
+                storefront: Partial<Omit<ShopifyStorefrontConfig, 'storeDomain' | 'logger' | 'customFetchApi' | 'privateAccessToken'>>
             }
         }
 
