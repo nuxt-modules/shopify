@@ -52,7 +52,8 @@
     "typecheck:playground-mock": "bun run --filter=playground-mock typecheck",
     "typecheck:template": "bun run --filter=./template typecheck",
     "typecheck:all": "bun run --filter=* typecheck",
-    "test": "vitest run",
+    "test": "bun run --env-file=.env vitest run",
+    "test:watch": "bun run --env-file=.env vitest watch",
     "test:coverage": "vitest run --coverage",
     "analyze": "bun run --filter=./playgrounds/playground analyze",
     "prepare": "nuxt-module-build prepare",
@@ -78,6 +79,7 @@
     "zod": "3.25.76"
   },
   "devDependencies": {
+    "@graphql-tools/graphql-tag-pluck": "^8.3.21",
     "@nuxt/eslint-config": "^1.8.0",
     "@nuxt/kit": "^4.0.3",
     "@nuxt/module-builder": "^1.0.2",

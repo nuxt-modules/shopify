@@ -3,18 +3,50 @@ export default defineNuxtConfig({
         '../../src/module',
     ],
 
+    runtimeConfig: {
+        shopify: {
+            name: '',
+
+            clients: {
+                storefront: {
+                    apiVersion: '',
+                    publicAccessToken: '',
+                },
+
+                admin: {
+                    apiVersion: '',
+                    accessToken: '',
+                },
+            },
+        },
+    },
+
     srcDir: 'src/',
 
-    compatibilityDate: '2025-06-17',
+    compatibilityDate: '2025-08-22',
 
     shopify: {
-        name: process.env.NUXT_SHOPIFY_NAME as string,
-
         clients: {
             storefront: {
-                apiVersion: process.env.NUXT_SHOPIFY_API_VERSION as string,
-                publicAccessToken: process.env.NUXT_SHOPIFY_STOREFRONT_PUBLIC_ACCESS_TOKEN as string,
+                apiVersion: '',
+
+                documents: [
+                    '!**/admin/**.{js,ts,graphql,gql}',
+                ],
             },
+
+            admin: {
+                apiVersion: '',
+                accessToken: '',
+
+                documents: [
+                    '**/admin/**.{js,ts,graphql,gql}',
+                ],
+            },
+        },
+
+        autoImports: {
+            admin: false,
         },
     },
 })

@@ -33,7 +33,7 @@ const { data: products } = await useAsyncData('async-data-test', () => storefron
         first: 3,
     },
 }), {
-    transform: data => flattenConnection(data.data?.collection?.products),
+    transform: response => flattenConnection(response.data?.collection?.products),
 })
 </script>
 

@@ -1,5 +1,0 @@
-projects:
-  default:
-    schema: './playgrounds/playground/.nuxt/schema/storefront.schema.json'
-    documents:
-      - './playgrounds/playground/src/**/*.{gql,graphql,ts,js,vue}'

@@ -3,20 +3,26 @@ export default defineNuxtConfig({
         '../../src/module',
     ],
 
-    compatibilityDate: '2025-06-17',
+    runtimeConfig: {
+        shopify: {
+            name: '',
+
+            clients: {
+                storefront: {
+                    apiVersion: '',
+                },
+            },
+        },
+    },
+
+    compatibilityDate: '2025-08-22',
 
     shopify: {
-        name: 'mock',
-
-        logger: {
-            level: 3,
-        },
-
         clients: {
             storefront: {
                 mock: true,
 
-                apiVersion: process.env.NUXT_SHOPIFY_API_VERSION as string,
+                apiVersion: '',
             },
         },
     },

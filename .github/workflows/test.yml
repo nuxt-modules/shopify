@@ -2,8 +2,12 @@ name: 'Tests'
 
 env:
   NUXT_SHOPIFY_NAME: ${{ secrets.NUXT_SHOPIFY_NAME }}
-  NUXT_SHOPIFY_API_VERSION: ${{ secrets.NUXT_SHOPIFY_API_VERSION }}
-  NUXT_SHOPIFY_STOREFRONT_PUBLIC_ACCESS_TOKEN: ${{ secrets.NUXT_SHOPIFY_STOREFRONT_PUBLIC_ACCESS_TOKEN }}
+
+  NUXT_SHOPIFY_CLIENTS_STOREFRONT_API_VERSION: ${{ secrets.NUXT_SHOPIFY_CLIENTS_STOREFRONT_API_VERSION }}
+  NUXT_SHOPIFY_CLIENTS_STOREFRONT_PUBLIC_ACCESS_TOKEN: ${{ secrets.NUXT_SHOPIFY_CLIENTS_STOREFRONT_PUBLIC_ACCESS_TOKEN }}
+
+  NUXT_SHOPIFY_CLIENTS_ADMIN_API_VERSION: ${{ secrets.NUXT_SHOPIFY_CLIENTS_ADMIN_API_VERSION }}
+  NUXT_SHOPIFY_CLIENTS_ADMIN_PUBLIC_ACCESS_TOKEN: ${{ secrets.NUXT_SHOPIFY_CLIENTS_ADMIN_PUBLIC_ACCESS_TOKEN }}
 
 on:
   pull_request:
@@ -36,7 +40,7 @@ jobs:
       - name: Typecheck Module
         run: bun run typecheck
 
-      - name: Typecheck All Playground
+      - name: Typecheck All Playgrounds
         run: bun run typecheck:playgrounds
 
   test:
@@ -49,7 +53,7 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Run tests
-        run: bun run test
+        run: bun run test:coverage
 
   build:
     runs-on: ubuntu-latest

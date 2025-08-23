@@ -78,17 +78,12 @@ export default defineNuxtConfig({
     },
 
     shopify: {
-        name: process.env.NUXT_SHOPIFY_NAME,
-
-        logger: {
-            level: 3,
-        },
+        name: process.env.NUXT_SHOPIFY_NAME ?? '',
 
         clients: {
             storefront: {
-                publicAccessToken: process.env.NUXT_SHOPIFY_STOREFRONT_PUBLIC_ACCESS_TOKEN,
-
-                apiVersion: '2025-07',
+                apiVersion: process.env.NUXT_SHOPIFY_CLIENTS_STOREFRONT_API_VERSION ?? '',
+                publicAccessToken: process.env.NUXT_SHOPIFY_CLIENTS_STOREFRONT_PUBLIC_ACCESS_TOKEN ?? '',
             },
         },
     },
