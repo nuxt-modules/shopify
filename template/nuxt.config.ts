@@ -23,6 +23,19 @@ export default defineNuxtConfig({
         colorMode: false,
     },
 
+    runtimeConfig: {
+        shopify: {
+            name: '',
+
+            clients: {
+                storefront: {
+                    apiVersion: '',
+                    publicAccessToken: '',
+                },
+            },
+        },
+    },
+
     compatibilityDate: '2025-07-15',
 
     vite: {
@@ -51,19 +64,16 @@ export default defineNuxtConfig({
             {
                 code: 'en-us',
                 language: 'en',
-                name: 'English (USD)',
                 file: 'en.json',
             },
             {
                 code: 'de-de',
                 language: 'de',
-                name: 'German (EUR)',
                 file: 'de.json',
             },
             {
                 code: 'de-at',
                 language: 'de',
-                name: 'Austria (EUR)',
                 file: 'de.json',
             },
         ],
@@ -73,17 +83,6 @@ export default defineNuxtConfig({
         providers: {
             shopify: {
                 provider: '~/providers/shopify.ts',
-            },
-        },
-    },
-
-    shopify: {
-        name: process.env.NUXT_SHOPIFY_NAME ?? '',
-
-        clients: {
-            storefront: {
-                apiVersion: process.env.NUXT_SHOPIFY_CLIENTS_STOREFRONT_API_VERSION ?? '',
-                publicAccessToken: process.env.NUXT_SHOPIFY_CLIENTS_STOREFRONT_PUBLIC_ACCESS_TOKEN ?? '',
             },
         },
     },
