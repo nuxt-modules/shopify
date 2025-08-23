@@ -1,3 +1,6 @@
+# 0.0.34
+- Improved env variable handling
+
 # 0.0.33
 - Fixed client side GraphQL queries not being included when using mock mode
 
