@@ -1,5 +1,3 @@
-import { MARKET_FRAGMENT } from '~~/graphql/market.admin'
-
 export default defineEventHandler(async () => {
     const admin = useAdmin()
 
