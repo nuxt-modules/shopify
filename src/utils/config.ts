@@ -41,12 +41,14 @@ export const useShopifyConfig = (options: ModuleOptions) => {
         const storefront = getClientConfig(ShopifyClientType.Storefront, [
             '**/*.{gql,graphql,ts,js}',
             '!**/*.admin.{gql,graphql,ts,js}',
+            '!**/admin/**/*.{gql,graphql,ts,js}',
             ...(usesClientSide ? ['**/*.vue'] : []),
             ...ignores,
         ])
 
         const admin = getClientConfig(ShopifyClientType.Admin, [
             '**/*.admin.{gql,graphql,ts,js}',
+            '**/admin/**/*.{gql,graphql,ts,js}',
             ...ignores,
         ])
 
