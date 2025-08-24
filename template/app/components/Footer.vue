@@ -115,6 +115,7 @@ const items = computed<NavigationMenuItem[]>(() => [
                     :default-value="locale"
                     icon="i-lucide-globe"
                     class="mr-4"
+                    variant="ghost"
                     @update:model-value="async value => switchLocale(value)"
                 />
 
