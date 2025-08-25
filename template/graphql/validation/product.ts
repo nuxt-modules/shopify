@@ -30,3 +30,7 @@ export const productConnectionParamsSchema = connectionParamsSchema.extend({
     reverse: z.boolean().optional(),
     filters: z.array(productFilterSchema).optional(),
 })
+
+export const productInputSchema = z.object({
+    handle: z.string(),
+}).extend(localizationParamsSchema.shape)

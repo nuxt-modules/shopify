@@ -1,4 +1,5 @@
 export const useCollection = () => {
+    const { shopify: { collection: { perPage } } } = useAppConfig()
     const { country, language } = useLocalization()
     const { filters } = useFilters()
     const route = useRoute()
@@ -6,8 +7,8 @@ export const useCollection = () => {
     const before = computed(() => route.query.before ? String(route.query.before) : undefined)
     const after = computed(() => route.query.after ? String(route.query.after) : undefined)
 
-    const first = computed(() => route.query.last ? undefined : Number(route.query.first ?? 12))
-    const last = computed(() => route.query.last ? Number(route.query.last ?? 12) : undefined)
+    const first = computed(() => route.query.last ? undefined : Number(route.query.first ?? perPage))
+    const last = computed(() => route.query.last ? Number(route.query.last ?? perPage) : undefined)
 
     const sortKey = computed(() => route.query.sortKey ? String(route.query.sortKey) : undefined)
     const reverse = computed(() => route.query.reverse ? Boolean(route.query.reverse) : undefined)

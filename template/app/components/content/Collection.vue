@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { z } from 'zod'
-
 const props = defineProps<{
     handle: string
 }>()
@@ -14,7 +12,7 @@ const route = useRoute()
 const key = computed(() => `collection-${locale.value}-${props.handle}-products`)
 
 const { data, status } = await useAsyncData(key, () => storefront.request(`#graphql
-    query FetchListing(
+    query FetchCollectionProducts(
         $handle: String,
         $after: String,
         $before: String,
@@ -47,10 +45,7 @@ const { data, status } = await useAsyncData(key, () => storefront.request(`#grap
     ${IMAGE_FRAGMENT}
     ${PRICE_FRAGMENT}
 `, {
-    variables: z.object({
-        handle: z.string(),
-        filters: productFilterSchema.optional(),
-    }).extend(connectionParamsSchema.shape).extend(localizationParamsSchema.shape).parse({
+    variables: collectionProductsInputSchema.parse({
         handle: props.handle,
         ...params.value,
     }),
@@ -59,9 +54,9 @@ const { data, status } = await useAsyncData(key, () => storefront.request(`#grap
     watch: [params],
 })
 
-const products = computed(() => flattenConnection(data.value?.collection?.products))
 const filters = computed(() => data.value?.collection?.products.filters)
 const pageInfo = computed(() => data.value?.collection?.products.pageInfo)
+const products = computed(() => flattenConnection(data.value?.collection?.products))
 
 const toTop = () => {
     window.scrollTo({

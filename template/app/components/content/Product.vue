@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { z } from 'zod'
-
 const props = defineProps<{
     handle: string
 }>()
@@ -19,9 +17,7 @@ const { data: product } = await useAsyncData(() => storefront.request(`#graphql
         ${PRICE_FRAGMENT}
         ${PRODUCT_FRAGMENT}
     `, {
-    variables: z.object({
-        handle: z.string(),
-    }).merge(localizationParamsSchema).parse({
+    variables: productInputSchema.parse({
         handle: props.handle,
         language: language.value,
         country: country.value,

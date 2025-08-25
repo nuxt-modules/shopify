@@ -6,5 +6,6 @@ export * from './fragments/cart'
 
 export * from './validation/utils'
 export * from './validation/product'
+export * from './validation/collection'
 export * from './validation/customer'
 export * from './validation/cart'
