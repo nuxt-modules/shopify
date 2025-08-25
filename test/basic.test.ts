@@ -14,7 +14,56 @@ describe('basic module test', async () => {
         rootDir: playgroundDir,
     })
 
-    it('should create a working storefront fetch client', async () => {
+    it('should correctly validate the module configuration', async () => {
+        const json = await $fetch('/api/config')
+
+        expect(json).toStrictEqual({
+            name: process.env.NUXT_SHOPIFY_NAME,
+            logger: '',
+            autoImports: {
+                graphql: true,
+                storefront: true,
+                admin: false,
+            },
+            errors: {
+                throw: true,
+            },
+            clients: {
+                storefront: {
+                    apiVersion: process.env.NUXT_SHOPIFY_CLIENTS_STOREFRONT_API_VERSION,
+                    publicAccessToken: process.env.NUXT_SHOPIFY_CLIENTS_STOREFRONT_PUBLIC_ACCESS_TOKEN,
+                    storeDomain: `https://${process.env.NUXT_SHOPIFY_NAME}.myshopify.com`,
+                    sandbox: true,
+                    documents: [
+                        '**/*.{gql,graphql,ts,js}',
+                        '!**/*.admin.{gql,graphql,ts,js}',
+                        '!**/admin/**/*.{gql,graphql,ts,js}',
+                        '**/*.vue',
+                        '!node_modules',
+                        '!dist',
+                        '!.nuxt',
+                        '!.output',
+                    ],
+                },
+                admin: {
+                    apiVersion: process.env.NUXT_SHOPIFY_CLIENTS_ADMIN_API_VERSION,
+                    accessToken: '<admin_access_token>',
+                    storeDomain: `https://${process.env.NUXT_SHOPIFY_NAME}.myshopify.com`,
+                    sandbox: true,
+                    documents: [
+                        '**/*.admin.{gql,graphql,ts,js}',
+                        '**/admin/**/*.{gql,graphql,ts,js}',
+                        '!node_modules',
+                        '!dist',
+                        '!.nuxt',
+                        '!.output',
+                    ],
+                },
+            },
+        })
+    })
+
+    it('should create a working server side storefront fetch client', async () => {
         const html = await $fetch('/')
 
         // Check that we get 5 products

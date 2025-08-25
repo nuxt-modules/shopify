@@ -7,8 +7,9 @@ export enum ShopifyClientType {
 
 const ignores = [
     '!node_modules',
-    '!.output',
+    '!dist',
     '!.nuxt',
+    '!.output',
 ]
 
 export const useShopifyConfig = (options: ModuleOptions) => {

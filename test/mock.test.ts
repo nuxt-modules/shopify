@@ -13,7 +13,43 @@ describe('mock.shop integration', async () => {
         rootDir: playgroundDir,
     })
 
-    it('should create a working fetch client', async () => {
+    it('should correctly validate the module configuration', async () => {
+        const json = await $fetch('/api/config')
+
+        expect(json).toStrictEqual({
+            name: process.env.NUXT_SHOPIFY_NAME,
+            logger: '',
+            autoImports: {
+                graphql: true,
+                storefront: true,
+                admin: true,
+            },
+            errors: {
+                throw: true,
+            },
+            clients: {
+                storefront: {
+                    apiVersion: process.env.NUXT_SHOPIFY_CLIENTS_STOREFRONT_API_VERSION,
+                    mock: true,
+                    publicAccessToken: 'mock-public-access-token',
+                    storeDomain: 'https://mock.shop',
+                    sandbox: true,
+                    documents: [
+                        '**/*.{gql,graphql,ts,js}',
+                        '!**/*.admin.{gql,graphql,ts,js}',
+                        '!**/admin/**/*.{gql,graphql,ts,js}',
+                        '**/*.vue',
+                        '!node_modules',
+                        '!dist',
+                        '!.nuxt',
+                        '!.output',
+                    ],
+                },
+            },
+        })
+    })
+
+    it('should create a working storefront fetch client', async () => {
         const html = await $fetch('/')
 
         // Check that we get 5 products
