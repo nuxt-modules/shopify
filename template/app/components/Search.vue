@@ -4,11 +4,11 @@ const open = defineModel<boolean>({ default: false })
 const { language, country } = useLocalization()
 const localePath = useLocalePath()
 const storefront = useStorefront()
-const { t } = useI18n()
+const { locale, t } = useI18n()
 
 const query = ref('')
 
-const { data, status } = await useAsyncData(`search-${query.value}`, () => storefront.request(`#graphql
+const { data, status } = await useAsyncData(`search-${query.value}-${locale.value}`, () => storefront.request(`#graphql
     query predictiveSearch($query: String!, $first: Int, $language: LanguageCode, $country: CountryCode)
     @inContext(language: $language, country: $country) {
         predictiveSearch(query: $query) {

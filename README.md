@@ -29,9 +29,9 @@ Magic Shopify GraphQL API-Connector for Nuxt 3 & 4.
 - 🧩 GraphQL fragments support
 - ⚙️ Customizable GraphQL code generation
 - 📦 Auto-imports for GraphQL queries and generated types
-- 🧪 Tested with Nuxt 3 & 4
-- 🔄 Hooks for customizing the module behavior
 - 🏖️ Sandbox integrated with GraphiQL Explorer
+- 🔄 Hooks for customizing the module behavior
+- 🧪 Tested with Nuxt 3 & 4
 
 ### Roadmap
 
