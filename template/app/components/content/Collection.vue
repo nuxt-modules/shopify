@@ -59,8 +59,9 @@ const { data, status } = await useAsyncData(key, () => storefront.request(`#grap
     watch: [params],
 })
 
-const products = computed(() => data.value?.collection?.products)
-const filters = computed(() => products.value?.filters)
+const products = computed(() => flattenConnection(data.value?.collection?.products))
+const filters = computed(() => data.value?.collection?.products.filters)
+const pageInfo = computed(() => data.value?.collection?.products.pageInfo)
 
 const toTop = () => {
     window.scrollTo({
@@ -71,11 +72,11 @@ const toTop = () => {
 
 const loadPrevious = async () => {
     route.query.after = null
-    route.query.before = products.value?.pageInfo.startCursor ?? null
+    route.query.before = pageInfo.value?.startCursor ?? null
 
     await router.push({ query: {
         ...route.query,
-        before: products.value?.pageInfo.startCursor,
+        before: pageInfo.value?.startCursor,
         after: undefined,
         first: undefined,
         last: 12,
@@ -88,7 +89,7 @@ const loadNext = async () => {
     await router.push({ query: {
         ...route.query,
         before: undefined,
-        after: products.value?.pageInfo.endCursor,
+        after: pageInfo.value?.endCursor,
         first: 12,
         last: undefined,
     } })
@@ -114,7 +115,7 @@ watch(locale, () => {
 
         <div class="not-prose my-12 lg:my-14 lg:col-span-8 xl:col-span-9">
             <div
-                v-if="products?.pageInfo.hasPreviousPage"
+                v-if="pageInfo?.hasPreviousPage"
                 class="flex w-full justify-center pb-8 md:mb-8"
             >
                 <UButton
@@ -130,7 +131,7 @@ watch(locale, () => {
 
             <div class="grid w-full grid-cols-1 gap-16 md:grid-cols-2 xl:grid-cols-3">
                 <ProductCard
-                    v-for="product in flattenConnection(products)"
+                    v-for="product in products"
                     :key="product.id"
                     :product="product"
                     class="pb-14 border-b border-b-[var(--ui-border)]"
@@ -138,7 +139,7 @@ watch(locale, () => {
             </div>
 
             <div
-                v-if="products?.pageInfo.hasNextPage"
+                v-if="pageInfo?.hasNextPage"
                 class="flex w-full justify-center mt-14"
             >
                 <UButton
@@ -160,7 +161,7 @@ watch(locale, () => {
             </div>
 
             <div
-                v-else-if="!products || products.edges.length === 0"
+                v-else-if="!products || products.length === 0"
                 class="flex flex-col justify-center items-center col-span-full text-center"
             >
                 <div class="flex items-center pb-2 gap-2">

@@ -4,7 +4,7 @@ import type { Locale } from '#i18n'
 
 const { language, country, getCountry } = useLocalization()
 const switchLocalePath = useSwitchLocalePath()
-const { locale, locales } = useI18n()
+const { t, locale, locales } = useI18n()
 const storefront = useStorefront()
 
 const { data: localization } = await useAsyncData(`localizations-${locale.value}`, () => storefront.request(`#graphql
@@ -107,7 +107,7 @@ const items = computed<NavigationMenuItem[]>(() => [
 
             <div class="flex flex-col items-center md:flex-row">
                 <p class="text-muted grow pb-5 md:pb-0">
-                    {{ $t('footer.message') }}
+                    {{ t('footer.message') }}
                 </p>
 
                 <USelect
@@ -125,7 +125,7 @@ const items = computed<NavigationMenuItem[]>(() => [
                         {
                             icon: 'i-lucide-github',
                             to: 'https://github.com/konkonam/nuxt-shopify/tree/main/template',
-                            label: $t('footer.github'),
+                            label: t('footer.github'),
                             target: '_blank',
                         },
                     ]"

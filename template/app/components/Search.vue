@@ -4,7 +4,7 @@ const open = defineModel<boolean>({ default: false })
 const { language, country } = useLocalization()
 const localePath = useLocalePath()
 const storefront = useStorefront()
-const { locale, t } = useI18n()
+const { t, locale } = useI18n()
 
 const query = ref('')
 
@@ -92,14 +92,14 @@ const updateQuery = useDebounceFn((value: string) => query.value = value, 300)
 <template>
     <UModal
         v-model:open="open"
-        :title="$t('search.label')"
-        :description="$t('search.description')"
+        :title="t('search.label')"
+        :description="t('search.description')"
     >
         <template #content>
             <UCommandPalette
                 v-model:open="open"
                 :loading="status === 'pending'"
-                :placeholder="$t('search.placeholder')"
+                :placeholder="t('search.placeholder')"
                 :groups="groups"
                 :close="true"
                 @update:search-term="updateQuery"
