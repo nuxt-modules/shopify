@@ -80,7 +80,7 @@
   },
   "devDependencies": {
     "@graphql-tools/graphql-tag-pluck": "^8.3.21",
-    "@nuxt/eslint-config": "^1.8.0",
+    "@nuxt/eslint-config": "^1.9.0",
     "@nuxt/kit": "^4.0.3",
     "@nuxt/module-builder": "^1.0.2",
     "@nuxt/schema": "^4.0.3",
@@ -88,7 +88,7 @@
     "@shopify/graphql-client": "^1.4.1",
     "@types/bun": "^1.2.20",
     "@vitest/coverage-v8": "^3.2.4",
-    "eslint": "^9.33.0",
+    "eslint": "^9.34.0",
     "happy-dom": "^18.0.1",
     "nuxt": "^4.0.3",
     "sharp": "^0.34.3",
@@ -97,7 +97,7 @@
     "vercel": "^45.0.10",
     "vitepress": "^1.6.4",
     "vitest": "^3.2.4",
-    "vue-tsc": "^3.0.5"
+    "vue-tsc": "^3.0.6"
   },
   "keywords": [
     "nuxt",
