@@ -15,6 +15,8 @@ export function useStorefront(): StorefrontApiClient {
         throw new Error('Could not create storefront client')
     }
 
+    const nitroApp = useNitroApp()
+
     const {
         skipCodegen: _skipCodegen,
         sandbox: _sandbox,
@@ -26,21 +28,21 @@ export function useStorefront(): StorefrontApiClient {
         options.logger = createConsola(_shopify.logger).withTag('shopify').trace
     }
 
-    const nitroApp = useNitroApp()
-
     nitroApp.hooks.callHook('storefront:client:configure', { options })
 
-    const { request, ...rest } = createStorefrontApiClient(options)
+    const originalClient = createStorefrontApiClient(options)
 
-    const wrappedRequest: StorefrontApiClient['request'] = async (...params) => {
-        const response = await request(...params)
+    const request: StorefrontApiClient['request'] = async (...params) => {
+        nitroApp.hooks.callHook('storefront:client:request', { operation: params[0], options: params[1] })
+
+        const response = await originalClient.request(...params)
 
         if (response.errors) useErrors(nitroApp, response.errors, _shopify.errors?.throw ?? false)
 
         return response
     }
 
-    const client = { request: wrappedRequest, ...rest }
+    const client = { ...originalClient, request } satisfies StorefrontApiClient
 
     nitroApp.hooks.callHook('storefront:client:create', { client })
 

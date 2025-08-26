@@ -1,3 +1,8 @@
+# 0.0.35
+- Added useAsyncStorefront composable
+- Added request and response hooks for admin and storefront client
+- Updated hooks documentation
+
 # 0.0.34
 - Improved env variable handling
 

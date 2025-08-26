@@ -1,7 +1,7 @@
 import type { HookResult, Nuxt } from '@nuxt/schema'
-import type { AdminApiClient } from '@shopify/admin-api-client'
-import type { ResponseErrors } from '@shopify/graphql-client'
-import type { StorefrontApiClient } from '@shopify/storefront-api-client'
+import type { AdminApiClient, AdminOperations } from '@shopify/admin-api-client'
+import type { AllOperations, ApiClientRequestOptions, ResponseErrors, ReturnData } from '@shopify/graphql-client'
+import type { StorefrontApiClient, StorefrontOperations } from '@shopify/storefront-api-client'
 import type {
     PublicShopifyConfig,
     ShopifyConfig,
@@ -27,6 +27,17 @@ export type ShopifyClientOptionHookParams<T = StorefrontOptions | AdminOptions> 
 
 export type ShopifyClientHookParams<T = StorefrontApiClient | AdminApiClient> = {
     client: T
+}
+
+export type ShopifyClientRequestHookParams<Operation extends keyof Operations, Operations extends AllOperations = AllOperations> = {
+    operation: Operation
+    options?: ApiClientRequestOptions<Operation, Operations>
+}
+
+export type ShopifyClientResponseHookParams<Operation extends keyof Operations, Operations extends AllOperations = AllOperations> = {
+    response: ClientResponse<ReturnData<Operation, Operations>>
+    operation: Operation
+    options?: ApiClientRequestOptions<Operation, Operations>
 }
 
 export type ShopifyErrorHookParams = {
@@ -111,6 +122,16 @@ declare module '#app' {
         'storefront:client:create': ({ client }: ShopifyClientHookParams<StorefrontApiClient>) => HookResult
 
         /**
+         * Called before the storefront client sends a request within nuxt
+         */
+        'storefront:client:request': <Operation extends keyof AllOperations>({ operation, options }: ShopifyClientRequestHookParams<Operation, StorefrontOperations>) => HookResult
+
+        /**
+         * Called after the storefront client receives a response within nuxt
+         */
+        'storefront:client:response': <Operation extends keyof AllOperations>({ response, operation, options }: ShopifyClientResponseHookParams<Operation, StorefrontOperations>) => HookResult
+
+        /**
          * Called when the storefront client throws an error within nuxt
          */
         'storefront:client:errors': ({ errors }: ShopifyErrorHookParams) => HookResult
@@ -130,6 +151,16 @@ declare module 'nitropack' {
         'storefront:client:create': ({ client }: ShopifyClientHookParams<StorefrontApiClient>) => HookResult
 
         /**
+         * Called before the storefront client sends a request within nitro
+         */
+        'storefront:client:request': <Operation extends keyof AllOperations>({ operation, options }: ShopifyClientRequestHookParams<Operation, StorefrontOperations>) => HookResult
+
+        /**
+         * Called after the storefront client receives a response within nitro
+         */
+        'storefront:client:response': <Operation extends keyof AllOperations>({ response, operation, options }: ShopifyClientResponseHookParams<Operation, StorefrontOperations>) => HookResult
+
+        /**
          * Called when the storefront client throws an error within nitro
          */
         'storefront:client:errors': ({ errors }: ShopifyErrorHookParams) => HookResult
@@ -143,6 +174,16 @@ declare module 'nitropack' {
          * Called when the admin client is created within nitro
          */
         'admin:client:create': ({ client }: ShopifyClientHookParams<AdminApiClient>) => HookResult
+
+        /**
+         * Called before the admin client sends a request within nitro
+         */
+        'admin:client:request': <Operation extends keyof AllOperations>({ operation, options }: ShopifyClientRequestHookParams<Operation, AdminOperations>) => HookResult
+
+        /**
+         * Called after the admin client receives a response within nitro
+         */
+        'admin:client:response': <Operation extends keyof AllOperations>({ response, operation, options }: ShopifyClientResponseHookParams<Operation, AdminOperations>) => HookResult
 
         /**
          * Called when the admin client throws an error within nitro

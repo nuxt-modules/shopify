@@ -1,4 +1,4 @@
-<script type="setup" setup lang="ts">
+<script setup lang="ts">
 const storefront = useStorefront()
 
 const { data } = await storefront.request(`#graphql

@@ -134,6 +134,40 @@ The `data` variable will be typed as `FetchProductsQuery`, which is auto-generat
 
 You can use this generated `FetchProductsQuery` type anywhere in your code to ensure type safety when working with the query response within components.
 
+### Use the Storefront API with useAsyncData
+
+You can also use the `useAsyncStorefront` composable to fetch data from the Storefront API while leveraging Nuxt's built-in async data fetching under the hood.
+
+```html
+<!-- ~/pages/your-page.vue -->
+
+<script setup lang="ts">
+const { data: products } = await useAsyncStorefront('products', `#graphql
+    query FetchProducts($first: Int) {
+        products(first: $first) {
+            nodes {
+                id
+                title
+                description
+            }
+        }
+    }
+`, {
+    variables: {
+        first: 3,
+    },
+})
+</script>
+
+<template>
+    <pre>{{ products }}</pre>
+</template>
+```
+
+Note that `useAsyncStorefront` automatically extracts the `data` property from the response in order to be able to reliably
+stringify.
+When using it together with the setting `errors: { throw: false }` you will need to check for errors manually within the response instead of using the `error` object returned by the `useAsyncStorefront` composable.
+
 ### Access APIs via Nitro endpoints
 
 The module exposes utilities to access each API via Nitro endpoints.

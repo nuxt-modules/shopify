@@ -15,6 +15,8 @@ export function useAdmin(): AdminApiClient {
         throw new Error('Could not create admin client')
     }
 
+    const nitroApp = useNitroApp()
+
     const {
         skipCodegen: _skipCodegen,
         sandbox: _sandbox,
@@ -26,21 +28,21 @@ export function useAdmin(): AdminApiClient {
         options.logger = createConsola(_shopify.logger).withTag('shopify').trace
     }
 
-    const nitroApp = useNitroApp()
-
     nitroApp.hooks.callHook('admin:client:configure', { options })
 
-    const { request, ...rest } = createAdminApiClient(options)
+    const originalClient = createAdminApiClient(options)
 
-    const wrappedRequest: AdminApiClient['request'] = async (...params) => {
-        const response = await request(...params)
+    const request: AdminApiClient['request'] = async (...params) => {
+        nitroApp.hooks.callHook('admin:client:request', { operation: params[0], options: params[1] })
+
+        const response = await originalClient.request(...params)
 
         if (response.errors) useErrors(nitroApp, response.errors, _shopify.errors?.throw ?? false)
 
         return response
     }
 
-    const client = { request: wrappedRequest, ...rest }
+    const client = { ...originalClient, request } satisfies AdminApiClient
 
     nitroApp.hooks.callHook('admin:client:create', { client })
 

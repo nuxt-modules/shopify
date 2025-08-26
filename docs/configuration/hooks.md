@@ -16,6 +16,16 @@ export default defineNitroPlugin((nitroApp) => {
         console.log('Storefront client created:', client)
     })
 
+    nitroApp.hooks.hook('storefont:client:request', ({ operation, options }) => {
+        // Do something with the operation and options before the request is sent
+        console.log('Storefront client request sent:', operation, options)
+    })
+
+    nitroApp.hooks.hook('storefont:client:response', ({ response, operation, options }) => {
+        // Do something with the response, operations and options after a response is received
+        console.log('Storefront client response received:', response, operation, options)
+    })
+
     nitroApp.hooks.hook('storefont:client:errors', ({ errors }) => {
         // Do something with the errors
         console.log('Storefront client errors:', errors)
@@ -41,19 +51,25 @@ Hooks allows you to hook into the different stages of the module lifecycle.
 
 ### App Hooks (Runtime)
 
-| Hook                              | Arguments | Environments    | Description                                             |
-| --------------------------------- | :-------: | :-------------: | ------------------------------------------------------- |
-| `storefront:client:configure`     | `options` | Server & Client | Called before the storefront client is created          |
-| `storefront:client:create`        | `client`  | Server & Client | Called after the storefront client is created           |
-| `storefront:client:errors`        | `errors`  | Server & Client | Called when a storefront client request contains errors |
+| Hook                              | Arguments                          | Environments    | Description                                             |
+| --------------------------------- | :--------------------------------: | :-------------: | ------------------------------------------------------- |
+| `storefront:client:configure`     | `options`                          | Server & Client | Called before the storefront client is created          |
+| `storefront:client:create`        | `client`                           | Server & Client | Called after the storefront client is created           |
+| `storefront:client:request`       | `operation`, `options`             | Server & Client | Called before the storefront client sends a request     |
+| `storefront:client:response`      | `response`, `operation`, `options` | Server & Client | Called after the storefront client receives a response  |
+| `storefront:client:errors`        | `errors`                           | Server & Client | Called when a storefront client request contains errors |
 
 ### Server Hooks (Runtime)
 
-| Hook                              | Arguments | Environments | Description                                             |
-| --------------------------------- | :-------: | :----------: | ------------------------------------------------------- |
-| `storefront:client:configure`     | `options` | Server       | Called before the storefront client is created          |
-| `storefront:client:create`        | `client`  | Server       | Called after the storefront client is created           |
-| `storefront:client:errors`        | `errors`  | Server       | Called when a storefront client request contains errors |
-| `admin:client:configure`          | `options` | Server       | Called before the admin client is created               |
-| `admin:client:create`             | `client`  | Server       | Called after the admin client is created                |
-| `admin:client:errors`             | `errors`  | Server       | Called when an admin client request contains errors     |
+| Hook                              | Arguments                          | Environments | Description                                             |
+| --------------------------------- | :--------------------------------: | :----------: | ------------------------------------------------------- |
+| `storefront:client:configure`     | `options`                          | Server       | Called before the storefront client is created          |
+| `storefront:client:create`        | `client`                           | Server       | Called after the storefront client is created           |
+| `storefront:client:request`       | `operation`, `options`             | Server       | Called before the storefront client sends a request     |
+| `storefront:client:response`      | `response`, `operation`, `options` | Server       | Called after the storefront client receives a response  |
+| `storefront:client:errors`        | `errors`                           | Server       | Called when a storefront client request contains errors |
+| `admin:client:configure`          | `options`                          | Server       | Called before the admin client is created               |
+| `admin:client:create`             | `client`                           | Server       | Called after the admin client is created                |
+| `admin:client:request`            | `operation`, `options`             | Server       | Called before the admin client sends a request          |
+| `admin:client:response`           | `response`, `operation`, `options` | Server       | Called after the admin client receives a response       |
+| `admin:client:errors`             | `errors`                           | Server       | Called when an admin client request contains errors     |

@@ -14,6 +14,8 @@ export function useStorefront(): StorefrontApiClient {
         throw new Error('Could not create storefront client')
     }
 
+    const nuxtApp = useNuxtApp()
+
     const {
         ...options
     } = _shopify.clients.storefront
@@ -22,21 +24,23 @@ export function useStorefront(): StorefrontApiClient {
         options.logger = createConsola(_shopify.logger).withTag('shopify').trace
     }
 
-    const nuxtApp = useNuxtApp()
-
     nuxtApp.hooks.callHook('storefront:client:configure', { options })
 
-    const { request, ...rest } = createStorefrontApiClient(options)
+    const originalClient = createStorefrontApiClient(options)
 
-    const wrappedRequest: StorefrontApiClient['request'] = async (...params) => {
-        const response = await request(...params)
+    const request: StorefrontApiClient['request'] = async (...params) => {
+        nuxtApp.hooks.callHook('storefront:client:request', { operation: params[0], options: params[1] })
+
+        const response = await originalClient.request(...params)
 
         if (response.errors) useErrors(nuxtApp, response.errors, _shopify.errors?.throw ?? false)
+
+        nuxtApp.hooks.callHook('storefront:client:response', { response, operation: params[0], options: params[1] })
 
         return response
     }
 
-    const client = { request: wrappedRequest, ...rest } satisfies StorefrontApiClient
+    const client = { ...originalClient, request } satisfies StorefrontApiClient
 
     nuxtApp.hooks.callHook('storefront:client:create', { client })
 
