@@ -1,4 +1,4 @@
-<script type="setup" setup lang="ts">
+<script setup lang="ts">
 const { data: products } = await useAsyncStorefront('async-data-test', `#graphql
     query FetchAsyncProducts(
         $handle: String,
