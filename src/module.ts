@@ -73,6 +73,7 @@ export default defineNuxtModule<ModuleOptions>({
                 }
 
                 const functionName = `use${upperFirst(clientType)}`
+                const asyncFunctionName = `useAsync${upperFirst(clientType)}`
 
                 addServerImports([{
                     from: resolver.resolve(`./runtime/server/utils/${functionName}`),
@@ -82,10 +83,16 @@ export default defineNuxtModule<ModuleOptions>({
                 const storefrontConfig = clientConfig as ShopifyStorefrontConfig
 
                 if (clientType === 'storefront' && (storefrontConfig.publicAccessToken?.length ?? storefrontConfig.mock)) {
-                    addImports([{
-                        from: resolver.resolve(`./runtime/composables/${functionName}`),
-                        name: functionName,
-                    }])
+                    addImports([
+                        {
+                            from: resolver.resolve(`./runtime/composables/${functionName}`),
+                            name: functionName,
+                        },
+                        {
+                            from: resolver.resolve(`./runtime/composables/${asyncFunctionName}`),
+                            name: asyncFunctionName,
+                        },
+                    ])
                 }
             }
 

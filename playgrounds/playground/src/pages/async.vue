@@ -1,7 +1,5 @@
 <script type="setup" setup lang="ts">
-const storefront = useStorefront()
-
-const { data: products } = await useAsyncData('async-data-test', () => storefront.request(`#graphql
+const { data: products } = await useAsyncStorefront('async-data-test', `#graphql
     query FetchAsyncProducts(
         $handle: String,
         $after: String,
@@ -32,8 +30,8 @@ const { data: products } = await useAsyncData('async-data-test', () => storefron
         handle: 'shirts',
         first: 3,
     },
-}), {
-    transform: response => flattenConnection(response.data?.collection?.products),
+}, {
+    transform: response => flattenConnection(response.collection?.products),
 })
 </script>
 
