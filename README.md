@@ -37,6 +37,8 @@ Magic Shopify GraphQL API-Connector for Nuxt 3 & 4.
 
 Upcoming features and developments for the 1.0.0 release:
 
+- 📡 Proxy support for client-side requests
+- 🏎️ Automatic sub-request caching
 - 👤 Customer Account API support
 - 🔍 Shopify Analytics support
 - 🛍️ Store template with Nuxt UI & Nuxt Content
