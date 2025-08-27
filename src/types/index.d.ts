@@ -166,12 +166,12 @@ declare module 'nitropack' {
         'storefront:client:errors': ({ errors }: ShopifyErrorHookParams) => HookResult
 
         /**
-         * Called after the admin client is created within nitro
+         * Called before the admin client is created within nitro
          */
         'admin:client:configure': ({ options }: ShopifyClientOptionHookParams<AdminOptions>) => HookResult
 
         /**
-         * Called when the admin client is created within nitro
+         * Called after the admin client is created within nitro
          */
         'admin:client:create': ({ client }: ShopifyClientHookParams<AdminApiClient>) => HookResult
 
