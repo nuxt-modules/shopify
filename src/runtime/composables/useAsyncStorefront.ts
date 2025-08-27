@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { AllOperations, ApiClientRequestOptions, StorefrontOperations, ReturnData } from '@shopify/storefront-api-client'
 import type { MaybeRefOrGetter } from 'vue'
 
@@ -7,7 +8,6 @@ import { useAsyncData } from '#app'
 
 import { useStorefront } from './useStorefront'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type PickFrom<T, K extends Array<string>> = T extends Array<any> ? T : T extends Record<string, any> ? keyof T extends K[number] ? T : K[number] extends never ? T : Pick<T, K[number]> : T
 type KeysOf<T> = Array<T extends T ? keyof T extends string ? keyof T : never : never>
 
@@ -47,10 +47,10 @@ export function useAsyncStorefront<
     NuxtErrorDataT = unknown,
     DataT = ResT<Operation>,
     PickKeys extends KeysOf<DataT> = KeysOf<DataT>,
-    DefaultT = DataT,
+    DefaultT = undefined,
 >(
-    ...args: unknown[]
-): AsyncData<PickFrom<DataT, PickKeys> | DefaultT, (NuxtErrorDataT extends Error | NuxtError ? NuxtErrorDataT : NuxtError<NuxtErrorDataT>) | undefined> {
+    ...args: any[]
+): AsyncData<PickFrom<DataT, PickKeys>, (NuxtErrorDataT extends Error | NuxtError ? NuxtErrorDataT : NuxtError<NuxtErrorDataT>) | undefined> {
     if (args.length < 3 || args.length > 4) {
         throw new Error('[shopify] [useAsyncStorefront] Invalid number of arguments')
     }
@@ -66,8 +66,8 @@ export function useAsyncStorefront<
     const handler = () => useStorefront().request(operation, options).then(r => r.data!)
 
     if (hasKey) {
-        return useAsyncData(key, handler, asyncOptions)
+        return useAsyncData(key, handler, asyncOptions) as AsyncData<PickFrom<DataT, PickKeys>, (NuxtErrorDataT extends Error | NuxtError ? NuxtErrorDataT : NuxtError<NuxtErrorDataT>)>
     }
 
-    return useAsyncData(handler, asyncOptions)
+    return useAsyncData(handler, asyncOptions) as AsyncData<PickFrom<DataT, PickKeys>, (NuxtErrorDataT extends Error | NuxtError ? NuxtErrorDataT : NuxtError<NuxtErrorDataT>)>
 }
