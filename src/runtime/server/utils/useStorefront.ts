@@ -39,6 +39,7 @@ export function useStorefront(): StorefrontApiClient {
     }
 
     const clientOptions = {
+        storeDomain: createStoreDomain(name),
         apiUrl: mock ? createApiUrl('https://mock.shop', apiVersion) : createApiUrl(createStoreDomain(name), apiVersion),
         apiVersion,
         logger,

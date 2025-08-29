@@ -6,7 +6,7 @@ import type { GenericApiClientConfig } from '../../../types'
 
 import { useNitroApp } from 'nitropack/runtime'
 import { useRuntimeConfig } from '#imports'
-import { createApiUrl, createClient, createStoreDomain } from '../../utils/client'
+import { createApiUrl, createStoreDomain, createClient } from '../../utils/client'
 import useErrors from './useErrors'
 
 export function useAdmin(): AdminApiClient {
@@ -33,7 +33,8 @@ export function useAdmin(): AdminApiClient {
     } = _shopify
 
     const clientOptions = {
-        apiUrl: createApiUrl(createStoreDomain(name), apiVersion),
+        storeDomain: createStoreDomain(name),
+        apiUrl: createApiUrl(createStoreDomain(name), apiVersion, 'admin'),
         apiVersion,
         logger,
         headers: {

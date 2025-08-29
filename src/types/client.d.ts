@@ -10,6 +10,6 @@ export type GenericApiClient<Operations extends AllOperations> = ApiClient<ApiCl
     requestStream: ApiClientRequestStream<Operations>
 }
 
-export type GenericApiClientConfig = Omit<ApiClientConfig, 'storeDomain'> & {
+export type GenericApiClientConfig = ApiClientConfig & {
     logger?: Partial<ConsolaOptions>
 }

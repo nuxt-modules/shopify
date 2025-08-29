@@ -13,9 +13,9 @@ import { createConsola } from 'consola'
 
 export const createStoreDomain = (name: string) => `https://${name}.myshopify.com`
 
-export const createApiUrl = (storeDomain: string, apiVersion: string) => joinURL(
+export const createApiUrl = (storeDomain: string, apiVersion: string, apiPrefix?: string) => joinURL(
     storeDomain,
-    'api',
+    apiPrefix ? `${apiPrefix}/api` : 'api',
     apiVersion,
     'graphql.json',
 )
@@ -24,6 +24,7 @@ export const createClient = <Operations extends AllOperations>(
     config: GenericApiClientConfig,
 ): GenericApiClient<Operations> => {
     const {
+        storeDomain,
         apiUrl,
         apiVersion,
         headers,
@@ -36,17 +37,15 @@ export const createClient = <Operations extends AllOperations>(
     }
 
     const getStoreUrl = (apiVersion: string) => joinURL(
-        apiUrl,
+        storeDomain,
         'api',
         apiVersion,
         'graphql.json',
     )
 
-    const storeUrl = getStoreUrl(apiVersion)
-
     const clientConfig = {
-        storeDomain: '',
-        apiUrl: storeUrl,
+        storeDomain,
+        apiUrl,
         apiVersion: apiVersion,
         headers: {
             'Content-Type': 'application/json',
