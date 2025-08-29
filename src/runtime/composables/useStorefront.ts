@@ -1,41 +1,59 @@
-import type { StorefrontApiClient } from '@shopify/storefront-api-client'
-
-import { createStorefrontApiClient } from '@shopify/storefront-api-client'
-import { createConsola } from 'consola'
-
-import useErrors from './useErrors'
+import type {
+    StorefrontApiClient,
+    StorefrontOperations,
+} from '#shopify/clients/storefront'
+import type { GenericApiClientConfig } from '../../types'
 
 import { useRuntimeConfig, useNuxtApp } from '#imports'
+import { createApiUrl, createStoreDomain, createClient } from '../utils/client'
+import useErrors from './useErrors'
 
 export function useStorefront(): StorefrontApiClient {
     const { _shopify } = useRuntimeConfig().public
 
-    if (!_shopify?.clients.storefront) {
+    if (!_shopify?.clients.storefront || !_shopify?.clients.storefront?.publicAccessToken) {
         throw new Error('Could not create storefront client')
     }
 
     const nuxtApp = useNuxtApp()
 
     const {
-        ...options
-    } = _shopify.clients.storefront
+        name,
+        logger,
 
-    if (_shopify.logger) {
-        options.logger = createConsola(_shopify.logger).withTag('shopify').trace
-    }
+        clients: {
+            storefront: {
+                apiVersion,
+                headers,
 
-    nuxtApp.hooks.callHook('storefront:client:configure', { options })
+                mock,
+                publicAccessToken,
+            },
+        },
+    } = _shopify
 
-    const originalClient = createStorefrontApiClient(options)
+    const clientOptions = {
+        apiUrl: mock ? createApiUrl('https://mock.shop', apiVersion) : createApiUrl(createStoreDomain(name), apiVersion),
+        apiVersion,
+        logger,
+        headers: {
+            'X-Shopify-Storefront-Access-Token': publicAccessToken,
+            ...headers,
+        },
+    } satisfies GenericApiClientConfig
 
-    const request: StorefrontApiClient['request'] = async (...params) => {
-        nuxtApp.hooks.callHook('storefront:client:request', { operation: params[0], options: params[1] })
+    nuxtApp.hooks.callHook('storefront:client:configure', { options: clientOptions })
 
-        const response = await originalClient.request(...params)
+    const originalClient = createClient<StorefrontOperations>(clientOptions)
+
+    const request: StorefrontApiClient['request'] = async (operation, options) => {
+        nuxtApp.hooks.callHook('storefront:client:request', { operation, options })
+
+        const response = await originalClient.request(operation, options)
 
         if (response.errors) useErrors(nuxtApp, response.errors, _shopify.errors?.throw ?? false)
 
-        nuxtApp.hooks.callHook('storefront:client:response', { response, operation: params[0], options: params[1] })
+        nuxtApp.hooks.callHook('storefront:client:response', { response, operation, options })
 
         return response
     }

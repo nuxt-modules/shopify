@@ -9,11 +9,8 @@ import {
 } from '@nuxt/kit'
 import defu from 'defu'
 import { minimatch } from 'minimatch'
-import type {
-    ShopifyClientType,
-    ShopifyClientConfig,
-    ShopifyTemplateOptions,
-} from '../types'
+import type { ShopifyClientConfig, ShopifyTemplateOptions } from '../types'
+import type { ShopifyClientType } from './config'
 
 import {
     generateIntrospection,

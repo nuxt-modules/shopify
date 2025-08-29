@@ -1,19 +1,26 @@
+import type { Types } from '@graphql-codegen/plugin-helpers'
 import type { HookResult, Nuxt } from '@nuxt/schema'
-import type { AdminApiClient, AdminOperations } from '@shopify/admin-api-client'
-import type { AllOperations, ApiClientRequestOptions, ResponseErrors, ReturnData } from '@shopify/graphql-client'
-import type { StorefrontApiClient, StorefrontOperations } from '@shopify/storefront-api-client'
+import type {
+    AllOperations,
+    ApiClientRequestOptions,
+    ResponseErrors,
+    ReturnData,
+} from '@shopify/graphql-client'
+
 import type {
     PublicShopifyConfig,
     ShopifyConfig,
     ShopifyAdminConfig,
     ShopifyStorefrontConfig,
-    StorefrontOptions,
-    AdminOptions,
 } from './shopify'
+import type {
+    StorefrontApiClient,
+    AdminApiClient,
+} from './client'
 
 export type ModuleOptions = ShopifyConfig<
-    Partial<Omit<ShopifyStorefrontConfig, 'storeDomain' | 'logger' | 'customFetchApi'>>,
-    Partial<Omit<ShopifyAdminConfig, 'storeDomain' | 'logger' | 'customFetchApi'>>
+    Partial<ShopifyStorefrontConfig>,
+    Partial<ShopifyAdminConfig>
 >
 
 export type ShopifyConfigHookParams = {
@@ -21,23 +28,23 @@ export type ShopifyConfigHookParams = {
     config: ShopifyConfig
 }
 
-export type ShopifyClientOptionHookParams<T = StorefrontOptions | AdminOptions> = {
-    options: T
+export type ShopifyClientOptionHookParams = {
+    options: GenericApiClientConfig
 }
 
 export type ShopifyClientHookParams<T = StorefrontApiClient | AdminApiClient> = {
     client: T
 }
 
-export type ShopifyClientRequestHookParams<Operation extends keyof Operations, Operations extends AllOperations = AllOperations> = {
-    operation: Operation
-    options?: ApiClientRequestOptions<Operation, Operations>
+export type ShopifyClientRequestHookParams = {
+    operation: keyof AllOperations
+    options?: ApiClientRequestOptions<keyof AllOperations, AllOperations>
 }
 
-export type ShopifyClientResponseHookParams<Operation extends keyof Operations, Operations extends AllOperations = AllOperations> = {
-    response: ClientResponse<ReturnData<Operation, Operations>>
-    operation: Operation
-    options?: ApiClientRequestOptions<Operation, Operations>
+export type ShopifyClientResponseHookParams = {
+    response: ClientResponse<ReturnData<keyof AllOperations, AllOperations>>
+    operation: keyof AllOperations
+    options?: ApiClientRequestOptions<keyof AllOperations, AllOperations>
 }
 
 export type ShopifyErrorHookParams = {
@@ -46,7 +53,7 @@ export type ShopifyErrorHookParams = {
 
 export type ShopifyTemplateHookParams = {
     nuxt: Nuxt
-    config: Record<string, unknown>
+    config: Types.ConfiguredOutput
 }
 
 export type SandboxConfig = {
@@ -62,9 +69,9 @@ declare module '@nuxt/schema' {
     }
 
     interface PublicRuntimeConfig {
-        shopify?: Omit<ModuleOptions, 'clients'> & {
+        shopify?: Omit<ShopifyConfig, 'clients' | 'autoImports'> & {
             clients?: {
-                storefront: Partial<Omit<ShopifyStorefrontConfig, 'storeDomain' | 'logger' | 'customFetchApi' | 'privateAccessToken'>>
+                storefront: Partial<Omit<ShopifyStorefrontConfig, 'privateAccessToken' | 'skipCodegen' | 'sandbox' | 'documents'>>
             }
         }
 
@@ -114,7 +121,7 @@ declare module '#app' {
         /**
          * Called before the storefront client is created within nuxt
          */
-        'storefront:client:configure': ({ options }: ShopifyClientOptionHookParams<Omit<StorefrontOptions, 'privateAccessToken'>>) => HookResult
+        'storefront:client:configure': ({ options }: ShopifyClientOptionHookParams) => HookResult
 
         /**
          * Called after the storefront client is created within nuxt
@@ -124,12 +131,12 @@ declare module '#app' {
         /**
          * Called before the storefront client sends a request within nuxt
          */
-        'storefront:client:request': <Operation extends keyof AllOperations>({ operation, options }: ShopifyClientRequestHookParams<Operation, StorefrontOperations>) => HookResult
+        'storefront:client:request': ({ operation, options }: ShopifyClientRequestHookParams) => HookResult
 
         /**
          * Called after the storefront client receives a response within nuxt
          */
-        'storefront:client:response': <Operation extends keyof AllOperations>({ response, operation, options }: ShopifyClientResponseHookParams<Operation, StorefrontOperations>) => HookResult
+        'storefront:client:response': ({ response }: ShopifyClientResponseHookParams) => HookResult
 
         /**
          * Called when the storefront client throws an error within nuxt
@@ -143,7 +150,7 @@ declare module 'nitropack' {
         /**
          * Called before the storefront client is created within nitro
          */
-        'storefront:client:configure': ({ options }: ShopifyClientOptionHookParams<StorefrontOptions>) => HookResult
+        'storefront:client:configure': ({ options }: ShopifyClientOptionHookParams) => HookResult
 
         /**
          * Called after the storefront client is created within nitro
@@ -153,12 +160,12 @@ declare module 'nitropack' {
         /**
          * Called before the storefront client sends a request within nitro
          */
-        'storefront:client:request': <Operation extends keyof AllOperations>({ operation, options }: ShopifyClientRequestHookParams<Operation, StorefrontOperations>) => HookResult
+        'storefront:client:request': ({ operation, options }: ShopifyClientRequestHookParams) => HookResult
 
         /**
          * Called after the storefront client receives a response within nitro
          */
-        'storefront:client:response': <Operation extends keyof AllOperations>({ response, operation, options }: ShopifyClientResponseHookParams<Operation, StorefrontOperations>) => HookResult
+        'storefront:client:response': ({ response }: ShopifyClientResponseHookParams) => HookResult
 
         /**
          * Called when the storefront client throws an error within nitro
@@ -168,7 +175,7 @@ declare module 'nitropack' {
         /**
          * Called before the admin client is created within nitro
          */
-        'admin:client:configure': ({ options }: ShopifyClientOptionHookParams<AdminOptions>) => HookResult
+        'admin:client:configure': ({ options }: ShopifyClientOptionHookParams) => HookResult
 
         /**
          * Called after the admin client is created within nitro
@@ -178,12 +185,12 @@ declare module 'nitropack' {
         /**
          * Called before the admin client sends a request within nitro
          */
-        'admin:client:request': <Operation extends keyof AllOperations>({ operation, options }: ShopifyClientRequestHookParams<Operation, AdminOperations>) => HookResult
+        'admin:client:request': ({ operation, options }: ShopifyClientRequestHookParams) => HookResult
 
         /**
          * Called after the admin client receives a response within nitro
          */
-        'admin:client:response': <Operation extends keyof AllOperations>({ response, operation, options }: ShopifyClientResponseHookParams<Operation, AdminOperations>) => HookResult
+        'admin:client:response': ({ response }: ShopifyClientResponseHookParams) => HookResult
 
         /**
          * Called when the admin client throws an error within nitro
@@ -192,4 +199,5 @@ declare module 'nitropack' {
     }
 }
 
+export * from './client'
 export * from './shopify'

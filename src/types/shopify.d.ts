@@ -1,34 +1,36 @@
-import type { createAdminApiClient } from '@shopify/admin-api-client'
-import type { createStorefrontApiClient } from '@shopify/storefront-api-client'
+import type { ApiClientConfig } from '@shopify/graphql-client'
 import type { ConsolaOptions } from 'consola'
 
-export type StorefrontOptions = Parameters<typeof createStorefrontApiClient>[0]
-export type AdminOptions = Parameters<typeof createAdminApiClient>[0]
+import type { ShopifyClientType } from '../utils'
 
-// The supported client types
-declare enum ShopifyClientType {
-    Storefront = 'storefront',
-    Admin = 'admin',
-}
-
-// custom options for each client
-// exposed via module options
-export type ShopifyClientCustomConfig = {
+export type ApiClientCustomConfig = {
     skipCodegen?: boolean
-    sandbox?: boolean // defaults to true
+    sandbox?: boolean
     documents?: string[]
 }
 
-export type StorefrontCustomConfig = {
+export type StorefrontApiClientCustomConfig = {
     mock?: boolean
+    publicAccessToken?: string
+    privateAccessToken?: string
 }
 
-export type ShopifyStorefrontConfig = StorefrontOptions & ShopifyClientCustomConfig & StorefrontCustomConfig
-export type ShopifyAdminConfig = AdminOptions & ShopifyClientCustomConfig
+export type AdminApiClientCustomConfig = {
+    accessToken: string
+}
+
+export type ShopifyApiClientConfig = Omit<ApiClientConfig, 'storeDomain' | 'apiUrl'>
+
+export type ShopifyStorefrontConfig = ShopifyApiClientConfig & ApiClientCustomConfig & StorefrontApiClientCustomConfig
+export type ShopifyAdminConfig = ShopifyApiClientConfig & ApiClientCustomConfig & AdminApiClientCustomConfig
+
 export type ShopifyClientConfig = ShopifyStorefrontConfig | ShopifyAdminConfig
 
 // Fully resolved shopify config
-export type ShopifyConfig<S = ShopifyStorefrontConfig, A = ShopifyAdminConfig> = {
+export type ShopifyConfig<
+    S = ShopifyStorefrontConfig,
+    A = ShopifyAdminConfig,
+> = {
     name: string
     logger?: Partial<ConsolaOptions>
     autoImports?: {
@@ -47,12 +49,13 @@ export type ShopifyConfig<S = ShopifyStorefrontConfig, A = ShopifyAdminConfig> =
 
 // Optional public config for client side usage
 export type PublicShopifyConfig<S = ShopifyStorefrontConfig> = {
+    name: string
     logger?: Partial<ConsolaOptions>
     errors?: {
         throw?: boolean
     }
     clients: {
-        [ShopifyClientType.Storefront]?: Omit<S, 'privateAccessToken' | 'skipCodegen' | 'sandbox' | 'documents' | 'mock'>
+        [ShopifyClientType.Storefront]?: Omit<S, 'privateAccessToken' | 'skipCodegen' | 'sandbox' | 'documents'>
     }
 }
 

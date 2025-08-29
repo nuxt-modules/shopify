@@ -1,43 +1,59 @@
-import type { AdminApiClient } from '@shopify/admin-api-client'
+import type {
+    AdminApiClient,
+    AdminOperations,
+} from '#shopify/clients/admin'
+import type { GenericApiClientConfig } from '../../../types'
 
-import { createAdminApiClient } from '@shopify/admin-api-client'
-import { createConsola } from 'consola'
 import { useNitroApp } from 'nitropack/runtime'
-
-import useErrors from './useErrors'
-
 import { useRuntimeConfig } from '#imports'
+import { createApiUrl, createClient, createStoreDomain } from '../../utils/client'
+import useErrors from './useErrors'
 
 export function useAdmin(): AdminApiClient {
     const { _shopify } = useRuntimeConfig()
 
-    if (!_shopify?.clients.admin) {
+    if (!_shopify?.clients.admin || !_shopify?.clients.admin?.accessToken) {
         throw new Error('Could not create admin client')
     }
 
     const nitroApp = useNitroApp()
 
     const {
-        skipCodegen: _skipCodegen,
-        sandbox: _sandbox,
-        documents: _documents,
-        ...options
-    } = _shopify.clients.admin
+        name,
+        logger,
 
-    if (_shopify.logger) {
-        options.logger = createConsola(_shopify.logger).withTag('shopify').trace
-    }
+        clients: {
+            admin: {
+                apiVersion,
+                headers,
 
-    nitroApp.hooks.callHook('admin:client:configure', { options })
+                accessToken,
+            },
+        },
+    } = _shopify
 
-    const originalClient = createAdminApiClient(options)
+    const clientOptions = {
+        apiUrl: createApiUrl(createStoreDomain(name), apiVersion),
+        apiVersion,
+        logger,
+        headers: {
+            'X-Shopify-Access-Token': accessToken,
+            ...headers,
+        },
+    } satisfies GenericApiClientConfig
 
-    const request: AdminApiClient['request'] = async (...params) => {
-        nitroApp.hooks.callHook('admin:client:request', { operation: params[0], options: params[1] })
+    nitroApp.hooks.callHook('admin:client:configure', { options: clientOptions })
 
-        const response = await originalClient.request(...params)
+    const originalClient = createClient<AdminOperations>(clientOptions)
+
+    const request: AdminApiClient['request'] = async (operation, options) => {
+        nitroApp.hooks.callHook('admin:client:request', { operation, options })
+
+        const response = await originalClient.request(operation, options)
 
         if (response.errors) useErrors(nitroApp, response.errors, _shopify.errors?.throw ?? false)
+
+        nitroApp.hooks.callHook('admin:client:response', { response, operation, options })
 
         return response
     }

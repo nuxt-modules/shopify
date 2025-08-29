@@ -1,12 +1,13 @@
-import type { StorefrontApiClient } from '@shopify/storefront-api-client'
+import type {
+    StorefrontApiClient,
+    StorefrontOperations,
+} from '#shopify/clients/storefront'
+import type { GenericApiClientConfig } from '../../../types'
 
-import { createStorefrontApiClient } from '@shopify/storefront-api-client'
-import { createConsola } from 'consola'
 import { useNitroApp } from 'nitropack/runtime'
-
-import useErrors from './useErrors'
-
 import { useRuntimeConfig } from '#imports'
+import { createApiUrl, createStoreDomain, createClient } from '../../utils/client'
+import useErrors from './useErrors'
 
 export function useStorefront(): StorefrontApiClient {
     const { _shopify } = useRuntimeConfig()
@@ -18,26 +19,48 @@ export function useStorefront(): StorefrontApiClient {
     const nitroApp = useNitroApp()
 
     const {
-        skipCodegen: _skipCodegen,
-        sandbox: _sandbox,
-        documents: _documents,
-        ...options
-    } = _shopify.clients.storefront
+        name,
+        logger,
 
-    if (_shopify.logger) {
-        options.logger = createConsola(_shopify.logger).withTag('shopify').trace
+        clients: {
+            storefront: {
+                apiVersion,
+                headers,
+
+                mock,
+                publicAccessToken,
+                privateAccessToken,
+            },
+        },
+    } = _shopify
+
+    if ((!publicAccessToken && !privateAccessToken) || (publicAccessToken && privateAccessToken)) {
+        throw new Error('Could not create storefront client')
     }
 
-    nitroApp.hooks.callHook('storefront:client:configure', { options })
+    const clientOptions = {
+        apiUrl: mock ? createApiUrl('https://mock.shop', apiVersion) : createApiUrl(createStoreDomain(name), apiVersion),
+        apiVersion,
+        logger,
+        headers: {
+            ...(publicAccessToken ? { 'X-Shopify-Storefront-Access-Token': publicAccessToken } : {}),
+            ...(privateAccessToken ? { 'Shopify-Private-Access-Token': privateAccessToken } : {}),
+            ...headers,
+        },
+    } satisfies GenericApiClientConfig
 
-    const originalClient = createStorefrontApiClient(options)
+    nitroApp.hooks.callHook('storefront:client:configure', { options: clientOptions })
 
-    const request: StorefrontApiClient['request'] = async (...params) => {
-        nitroApp.hooks.callHook('storefront:client:request', { operation: params[0], options: params[1] })
+    const originalClient = createClient<StorefrontOperations>(clientOptions)
 
-        const response = await originalClient.request(...params)
+    const request: StorefrontApiClient['request'] = async (operation, options) => {
+        nitroApp.hooks.callHook('storefront:client:request', { operation, options })
+
+        const response = await originalClient.request(operation, options)
 
         if (response.errors) useErrors(nitroApp, response.errors, _shopify.errors?.throw ?? false)
+
+        nitroApp.hooks.callHook('storefront:client:response', { response, operation, options })
 
         return response
     }

@@ -6,7 +6,6 @@
   "description": "Easily integrate shopify with nuxt 3 and 4 🚀",
   "workspaces": [
     ".",
-    "template",
     "playgrounds/*"
   ],
   "repository": {
@@ -64,10 +63,8 @@
   "dependencies": {
     "@graphql-codegen/cli": "^5.0.7",
     "@graphql-codegen/import-types-preset": "^3.0.1",
-    "@shopify/admin-api-client": "^1.1.1",
     "@shopify/api-codegen-preset": "^1.1.9",
     "@shopify/graphql-codegen": "^0.1.0",
-    "@shopify/storefront-api-client": "^1.0.9",
     "citty": "^0.1.6",
     "consola": "^3.4.2",
     "defu": "^6.1.4",

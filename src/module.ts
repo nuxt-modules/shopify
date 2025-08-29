@@ -1,8 +1,5 @@
-import type {
-    ModuleOptions,
-    ShopifyClientType,
-    ShopifyStorefrontConfig,
-} from './types'
+import type { ModuleOptions, ShopifyStorefrontConfig } from './types'
+import type { ShopifyClientType } from './utils'
 
 import {
     addImports,
@@ -42,15 +39,11 @@ export default defineNuxtModule<ModuleOptions>({
             options,
         ))
 
-        if (!moduleOptions.success) {
-            log.info('Skipping setup: config not provided or invalid')
-            log.debug(`See module configuration reference: https://konkonam.github.io/nuxt-shopify/configuration/module`)
-            log.debug(`Error while parsing module options:\n${moduleOptions.error}`)
-        }
-        else {
+        const resolver = createResolver(import.meta.url)
+
+        if (moduleOptions.success) {
             log.start('Starting setup')
 
-            const resolver = createResolver(import.meta.url)
             const { config, publicConfig } = useShopifyConfig(moduleOptions.data)
 
             for (const _clientType in config.clients) {
@@ -107,6 +100,32 @@ export default defineNuxtModule<ModuleOptions>({
             registerAutoImports(nuxt, config, resolver)
 
             log.success('Finished setup')
+        }
+        else {
+            log.info('Skipping setup: config not provided or invalid')
+            log.info('See module configuration reference: https://konkonam.github.io/nuxt-shopify/configuration/module')
+            log.debug(`Error while parsing module options:\n${moduleOptions.error}`)
+        }
+
+        if (nuxt.options.dev || nuxt.options._prepare) {
+            const paths = {
+                '#shopify/clients/storefront': [resolver.resolve(`./types/clients/storefront`)],
+                '#shopify/clients/admin': [resolver.resolve(`./types/clients/admin`)],
+            }
+
+            nuxt.options.typescript.tsConfig = defu(nuxt.options.typescript.tsConfig, {
+                compilerOptions: {
+                    paths,
+                },
+            })
+
+            nuxt.options.nitro.typescript = defu(nuxt.options.nitro.typescript, {
+                tsConfig: {
+                    compilerOptions: {
+                        paths,
+                    },
+                },
+            })
         }
     },
 })
