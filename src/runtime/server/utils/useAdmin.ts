@@ -2,7 +2,7 @@ import type {
     GenericApiClientConfig,
 } from '../../../types'
 
-import type { AdminApiClient, AdminOperations } from '#shopify/clients/admin'
+import type { AdminApiClient, AdminOperations } from '@konkonam/nuxt-shopify/admin'
 
 import { useNitroApp } from 'nitropack/runtime'
 import { useRuntimeConfig } from '#imports'

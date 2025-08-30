@@ -1,5 +1,12 @@
 import type { HookResult, Nuxt } from '@nuxt/schema'
-import type { AllOperations, ApiClientRequestOptions, ResponseErrors, ReturnData } from '@shopify/graphql-client'
+import type {
+    AllOperations,
+    ApiClientRequestOptions,
+    ClientResponse,
+    ResponseErrors,
+    ReturnData,
+} from '@shopify/graphql-client'
+
 import type {
     PublicShopifyConfig,
     ShopifyConfig,
@@ -24,7 +31,7 @@ export type ShopifyClientOptionHookParams = {
 }
 
 export type ShopifyClientHookParams = {
-    client: GenericApiClient
+    client: GenericApiClient<AllOperations>
 }
 
 export type ShopifyClientRequestHookParams<Operation extends keyof Operations, Operations extends AllOperations = AllOperations> = {

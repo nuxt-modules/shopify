@@ -17,6 +17,12 @@
     ".": {
       "types": "./dist/types.d.mts",
       "import": "./dist/module.mjs"
+    },
+    "./storefront": {
+      "types": "./dist/storefront.d.ts"
+    },
+    "./admin": {
+      "types": "./dist/admin.d.ts"
     }
   },
   "main": "./dist/module.mjs",
@@ -24,6 +30,12 @@
     "*": {
       ".": [
         "./dist/types.d.mts"
+      ],
+      "storefront": [
+        "./dist/storefront.d.ts"
+      ],
+      "admin": [
+        "./dist/admin.d.ts"
       ]
     }
   },
@@ -56,7 +68,8 @@
     "test:coverage": "vitest run --coverage",
     "analyze": "bun run --filter=./playgrounds/playground analyze",
     "prepare": "nuxt-module-build prepare",
-    "prepare:dev": "bun run --filter={./playgrounds/*,./template} prepare",
+    "prepare:dev": "NUXT_SHOPIFY_MODULE_DEV=true nuxt-module-build prepare",
+    "prepare:playgrounds": "bun run --filter=./playgrounds/* prepare",
     "prepare:template": "bun run --filter=./template prepare",
     "cleanup": "bun run --filter={./playgrounds/*,./template} cleanup && nuxt cleanup"
   },

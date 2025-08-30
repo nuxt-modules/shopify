@@ -25,7 +25,7 @@ async function extractResult(input: Promise<Types.FileOutput[]>) {
 }
 
 const getInterfaceExtensionFunction = (clientType: ShopifyClientType, queryType: string, mutationType: string) => `
-declare module '#shopify/clients/${kebabCase(clientType)}' {
+declare module '@konkonam/nuxt-shopify/${kebabCase(clientType)}' {
     interface ${upperFirst(clientType)}Queries extends ${queryType} {}
     interface ${upperFirst(clientType)}Mutations extends ${mutationType} {}
 }
@@ -61,15 +61,6 @@ const getTypescriptPluginConfig = (options: ShopifyTemplateOptions) => {
                 JSON: 'string',
             },
         },
-    }
-}
-
-export const generateVirtualModule: NuxtTemplate<Pick<ShopifyTemplateOptions, 'clientType'>>['getContents'] = async (data) => {
-    switch (data.options.clientType) {
-        case ShopifyClientType.Storefront:
-            return `ROLLUP_REPLACE_VIRTUAL_STOREFRONT`
-        case ShopifyClientType.Admin:
-            return `ROLLUP_REPLACE_VIRTUAL_ADMIN`
     }
 }
 

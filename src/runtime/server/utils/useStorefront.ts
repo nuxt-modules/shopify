@@ -2,7 +2,7 @@ import type {
     GenericApiClientConfig,
 } from '../../../types'
 
-import type { StorefrontApiClient, StorefrontOperations } from '#shopify/clients/storefront'
+import type { StorefrontApiClient, StorefrontOperations } from '@konkonam/nuxt-shopify/storefront'
 
 import { useNitroApp } from 'nitropack/runtime'
 import { useRuntimeConfig } from '#imports'

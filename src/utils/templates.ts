@@ -16,11 +16,9 @@ import {
     generateIntrospection,
     generateOperations,
     generateTypes,
-    generateVirtualModule,
 } from './codegen'
 
-const indexTemplate = (client: string, types: string, operations: string) => () => `
-export * from './${basename(client)}'
+const indexTemplate = (types: string, operations: string) => () => `
 export * from './${basename(types)}'
 export * from './${basename(operations)}'
 `
@@ -48,15 +46,6 @@ export function setupWatcher(nuxt: Nuxt, template: NuxtTemplate<ShopifyTemplateO
 }
 
 export function registerTemplates<T extends ShopifyClientType>(nuxt: Nuxt, clientType: T, clientConfig: ShopifyClientConfig) {
-    const virtualModuleFilename = `types/${clientType}/${clientType}.client`
-    const virtualModule = addTypeTemplate<Pick<ShopifyTemplateOptions, 'clientType'>>({
-        filename: `${virtualModuleFilename}.d.ts`,
-        getContents: generateVirtualModule,
-        options: {
-            clientType,
-        },
-    })
-
     const introspectionFilename = `schema/${clientType}.schema.json`
     const introspectionPath = join(nuxt.options.buildDir, introspectionFilename)
     const introspection = addTemplate<ShopifyTemplateOptions>({
@@ -99,17 +88,10 @@ export function registerTemplates<T extends ShopifyClientType>(nuxt: Nuxt, clien
 
     const index = addTypeTemplate<ShopifyTemplateOptions>({
         filename: `types/${clientType}/index.d.ts`,
-        getContents: indexTemplate(virtualModule.filename, types.filename, operations.filename),
+        getContents: indexTemplate(types.filename, operations.filename),
     })
 
-    nuxt.options = defu(nuxt.options, {
-        alias: { [`#shopify/${clientType}`]: dirname(index.filename) },
-        nitro: {
-            typescript: {
-                tsConfig: {
-                    include: [index.filename],
-                },
-            },
-        },
+    nuxt.options.alias = defu(nuxt.options.alias, {
+        [`#shopify/${clientType}`]: `./${dirname(index.filename)}`,
     })
 }

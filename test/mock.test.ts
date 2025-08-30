@@ -84,7 +84,7 @@ describe('mock.shop integration', async () => {
         expect(operationsContent).toContain('ProductFieldsFragment')
 
         // Check that it performs the necessary module type augmentation
-        expect(operationsContent).toContain('declare module \'#shopify/clients/storefront\'')
+        expect(operationsContent).toContain('declare module \'@konkonam/nuxt-shopify/storefront\'')
         expect(operationsContent).toContain('interface StorefrontQueries')
         expect(operationsContent).toContain('interface StorefrontMutations')
     })

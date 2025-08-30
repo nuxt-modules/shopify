@@ -125,7 +125,7 @@ describe('basic module test', async () => {
         expect(operationsContent).toContain('ProductFieldsFragment')
 
         // Check that it performs the necessary module type augmentation
-        expect(operationsContent).toContain('declare module \'#shopify/clients/storefront\'')
+        expect(operationsContent).toContain('declare module \'@konkonam/nuxt-shopify/storefront\'')
         expect(operationsContent).toContain('interface StorefrontQueries')
         expect(operationsContent).toContain('interface StorefrontMutations')
     })
@@ -145,7 +145,7 @@ describe('basic module test', async () => {
         expect(operationsContent).toContain('MarketFieldsFragment')
 
         // Check that it performs the necessary module type augmentation
-        expect(operationsContent).toContain('declare module \'#shopify/clients/admin\'')
+        expect(operationsContent).toContain('declare module \'@konkonam/nuxt-shopify/admin\'')
         expect(operationsContent).toContain('interface AdminQueries')
         expect(operationsContent).toContain('interface AdminMutations')
     })

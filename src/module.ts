@@ -11,6 +11,7 @@ import {
 } from '@nuxt/kit'
 import { upperFirst } from 'scule'
 import { defu } from 'defu'
+
 import {
     installSandbox,
     registerAutoImports,
@@ -105,27 +106,6 @@ export default defineNuxtModule<ModuleOptions>({
             log.info('Skipping setup: config not provided or invalid')
             log.info('See module configuration reference: https://konkonam.github.io/nuxt-shopify/configuration/module')
             log.debug(`Error while parsing module options:\n${moduleOptions.error}`)
-        }
-
-        if (nuxt.options.dev || nuxt.options._prepare) {
-            const paths = {
-                '#shopify/clients/storefront': [resolver.resolve(`./types/clients/storefront`)],
-                '#shopify/clients/admin': [resolver.resolve(`./types/clients/admin`)],
-            }
-
-            nuxt.options.typescript.tsConfig = defu(nuxt.options.typescript.tsConfig, {
-                compilerOptions: {
-                    paths,
-                },
-            })
-
-            nuxt.options.nitro.typescript = defu(nuxt.options.nitro.typescript, {
-                tsConfig: {
-                    compilerOptions: {
-                        paths,
-                    },
-                },
-            })
         }
     },
 })
