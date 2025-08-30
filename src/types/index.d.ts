@@ -1,4 +1,6 @@
 import type { HookResult, Nuxt } from '@nuxt/schema'
+import type { StorefrontOperations } from '@konkonam/nuxt-shopify/storefront'
+import type { AdminOperations } from '@konkonam/nuxt-shopify/admin'
 import type {
     AllOperations,
     ApiClientRequestOptions,
@@ -30,8 +32,8 @@ export type ShopifyClientOptionHookParams = {
     config: GenericApiClientConfig
 }
 
-export type ShopifyClientHookParams = {
-    client: GenericApiClient<AllOperations>
+export type ShopifyClientHookParams<Operations extends AllOperations> = {
+    client: GenericApiClient<Operations>
 }
 
 export type ShopifyClientRequestHookParams<Operation extends keyof Operations, Operations extends AllOperations = AllOperations> = {
@@ -124,7 +126,7 @@ declare module '#app' {
         /**
          * Called after the storefront client is created within nuxt
          */
-        'storefront:client:create': ({ client }: ShopifyClientHookParams) => HookResult
+        'storefront:client:create': ({ client }: ShopifyClientHookParams<StorefrontOperations>) => HookResult
 
         /**
          * Called before the storefront client sends a request within nuxt
@@ -153,7 +155,7 @@ declare module 'nitropack' {
         /**
          * Called after the storefront client is created within nitro
          */
-        'storefront:client:create': ({ client }: ShopifyClientHookParams) => HookResult
+        'storefront:client:create': ({ client }: ShopifyClientHookParams<StorefrontOperations>) => HookResult
 
         /**
          * Called before the storefront client sends a request within nitro
@@ -178,7 +180,7 @@ declare module 'nitropack' {
         /**
          * Called after the admin client is created within nitro
          */
-        'admin:client:create': ({ client }: ShopifyClientHookParams) => HookResult
+        'admin:client:create': ({ client }: ShopifyClientHookParams<AdminOperations>) => HookResult
 
         /**
          * Called before the admin client sends a request within nitro

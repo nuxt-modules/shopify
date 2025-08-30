@@ -9,6 +9,7 @@ export function useStorefront(): StorefrontApiClient {
     const { _shopify } = useRuntimeConfig().public
 
     const config = createStorefrontConfig(_shopify)
+    console.log(config)
 
     const nuxtApp = useNuxtApp()
 
