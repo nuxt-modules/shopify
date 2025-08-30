@@ -16,6 +16,7 @@ import {
     installSandbox,
     registerAutoImports,
     registerTemplates,
+    registerVirtualModuleTemplates,
     useLog,
     useShopifyConfig,
     useShopifyConfigValidation,
@@ -106,6 +107,12 @@ export default defineNuxtModule<ModuleOptions>({
             log.info('Skipping setup: config not provided or invalid')
             log.info('See module configuration reference: https://konkonam.github.io/nuxt-shopify/configuration/module')
             log.debug(`Error while parsing module options:\n${moduleOptions.error}`)
+        }
+
+        const ROLLUP_REPLACE_VIRTUAL_MODULES = true
+
+        if (ROLLUP_REPLACE_VIRTUAL_MODULES) {
+            registerVirtualModuleTemplates(nuxt)
         }
     },
 })

@@ -10,12 +10,13 @@ import {
 import defu from 'defu'
 import { minimatch } from 'minimatch'
 import type { ShopifyClientConfig, ShopifyTemplateOptions } from '../types'
-import type { ShopifyClientType } from './config'
+import { ShopifyClientType } from './config'
 
 import {
     generateIntrospection,
     generateOperations,
     generateTypes,
+    generateVirtualModule,
 } from './codegen'
 
 const indexTemplate = (types: string, operations: string) => () => `
@@ -43,6 +44,24 @@ export function setupWatcher(nuxt: Nuxt, template: NuxtTemplate<ShopifyTemplateO
             }
         }
     })
+}
+
+export function registerVirtualModuleTemplates(nuxt: Nuxt) {
+    for (const [_, clientType] of Object.entries(ShopifyClientType)) {
+        const virtualModuleFilename = `types/clients/${clientType}/index`
+
+        const virtualModule = addTypeTemplate<Pick<ShopifyTemplateOptions, 'clientType'>>({
+            filename: `${virtualModuleFilename}.d.ts`,
+            getContents: generateVirtualModule,
+            options: {
+                clientType: clientType as ShopifyClientType,
+            },
+        })
+
+        nuxt.options.alias = defu(nuxt.options.alias, {
+            [`@konkonam/nuxt-shopify/${clientType}`]: `./${dirname(virtualModule.filename)}`,
+        })
+    }
 }
 
 export function registerTemplates<T extends ShopifyClientType>(nuxt: Nuxt, clientType: T, clientConfig: ShopifyClientConfig) {

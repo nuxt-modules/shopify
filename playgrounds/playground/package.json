@@ -1,5 +1,5 @@
 {
-    "name": "playground",
+    "name": "nuxt-shopify-playground",
     "private": true,
     "type": "module",
     "scripts": {

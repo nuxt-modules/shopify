@@ -13,4 +13,7 @@ export default defineBuildConfig({
     externals: [
         '@shopify/graphql-client',
     ],
+    replace: {
+        ROLLUP_REPLACE_VIRTUAL_MODULES: 'false',
+    },
 })

@@ -3,7 +3,7 @@ import type { NuxtTemplate } from '@nuxt/schema'
 
 import type { InterfaceExtensionsParams, ShopifyTemplateOptions } from '../types'
 
-import { existsSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { generate } from '@graphql-codegen/cli'
 import { preset, pluckConfig } from '@shopify/graphql-codegen'
@@ -13,6 +13,7 @@ import { joinURL } from 'ufo'
 
 import { ShopifyClientType } from './config'
 import { useLog } from './log'
+import { createResolver } from '@nuxt/kit'
 
 async function extractResult(input: Promise<Types.FileOutput[]>) {
     try {
@@ -62,6 +63,18 @@ const getTypescriptPluginConfig = (options: ShopifyTemplateOptions) => {
             },
         },
     }
+}
+
+export const generateVirtualModule: NuxtTemplate<Pick<ShopifyTemplateOptions, 'clientType'>>['getContents'] = async (data) => {
+    const resolver = createResolver(import.meta.url)
+
+    const path = resolver.resolve(`../types/clients/${data.options.clientType}.d.ts`)
+
+    if (existsSync(path)) {
+        return readFileSync(path, 'utf-8')
+    }
+
+    return ''
 }
 
 export const generateIntrospection: NuxtTemplate<ShopifyTemplateOptions>['getContents'] = async (data) => {
