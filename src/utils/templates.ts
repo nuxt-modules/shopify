@@ -16,7 +16,14 @@ import {
     generateIntrospection,
     generateOperations,
     generateTypes,
+    generateVirtualModule,
 } from './codegen'
+
+const indexTemplate = (client: string, types: string, operations: string) => () => `
+export * from './${basename(client)}'
+export * from './${basename(types)}'
+export * from './${basename(operations)}'
+`
 
 export function setupWatcher(nuxt: Nuxt, template: NuxtTemplate<ShopifyTemplateOptions>) {
     nuxt.hook('builder:watch', async (_event, file) => {
@@ -41,9 +48,17 @@ export function setupWatcher(nuxt: Nuxt, template: NuxtTemplate<ShopifyTemplateO
 }
 
 export function registerTemplates<T extends ShopifyClientType>(nuxt: Nuxt, clientType: T, clientConfig: ShopifyClientConfig) {
+    const virtualModuleFilename = `types/${clientType}/${clientType}.client`
+    const virtualModule = addTypeTemplate<Pick<ShopifyTemplateOptions, 'clientType'>>({
+        filename: `${virtualModuleFilename}.d.ts`,
+        getContents: generateVirtualModule,
+        options: {
+            clientType,
+        },
+    })
+
     const introspectionFilename = `schema/${clientType}.schema.json`
     const introspectionPath = join(nuxt.options.buildDir, introspectionFilename)
-
     const introspection = addTemplate<ShopifyTemplateOptions>({
         filename: introspectionFilename,
         getContents: generateIntrospection,
@@ -84,7 +99,7 @@ export function registerTemplates<T extends ShopifyClientType>(nuxt: Nuxt, clien
 
     const index = addTypeTemplate<ShopifyTemplateOptions>({
         filename: `types/${clientType}/index.d.ts`,
-        getContents: () => `export * from './${basename(types.filename)}'\nexport * from './${basename(operations.filename)}'\n`,
+        getContents: indexTemplate(virtualModule.filename, types.filename, operations.filename),
     })
 
     nuxt.options = defu(nuxt.options, {

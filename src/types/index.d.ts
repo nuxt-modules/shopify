@@ -122,12 +122,12 @@ declare module '#app' {
         /**
          * Called before the storefront client sends a request within nuxt
          */
-        'storefront:client:request': <Operation extends keyof AllOperations>({ operation, options }: ShopifyClientRequestHookParams<Operation, StorefrontOperations>) => HookResult
+        'storefront:client:request': <Operation extends keyof AllOperations>({ operation, options }: ShopifyClientRequestHookParams<Operation, AllOperations>) => HookResult
 
         /**
          * Called after the storefront client receives a response within nuxt
          */
-        'storefront:client:response': <Operation extends keyof AllOperations>({ response, operation, options }: ShopifyClientResponseHookParams<Operation, StorefrontOperations>) => HookResult
+        'storefront:client:response': <Operation extends keyof AllOperations>({ response, operation, options }: ShopifyClientResponseHookParams<Operation, AllOperations>) => HookResult
 
         /**
          * Called when the storefront client throws an error within nuxt
@@ -151,12 +151,12 @@ declare module 'nitropack' {
         /**
          * Called before the storefront client sends a request within nitro
          */
-        'storefront:client:request': <Operation extends keyof AllOperations>({ operation, options }: ShopifyClientRequestHookParams<Operation, StorefrontOperations>) => HookResult
+        'storefront:client:request': <Operation extends keyof AllOperations>({ operation, options }: ShopifyClientRequestHookParams<Operation, AllOperations>) => HookResult
 
         /**
          * Called after the storefront client receives a response within nitro
          */
-        'storefront:client:response': <Operation extends keyof AllOperations>({ response, operation, options }: ShopifyClientResponseHookParams<Operation, StorefrontOperations>) => HookResult
+        'storefront:client:response': <Operation extends keyof AllOperations>({ response, operation, options }: ShopifyClientResponseHookParams<Operation, AllOperations>) => HookResult
 
         /**
          * Called when the storefront client throws an error within nitro
@@ -176,12 +176,12 @@ declare module 'nitropack' {
         /**
          * Called before the admin client sends a request within nitro
          */
-        'admin:client:request': <Operation extends keyof AllOperations>({ operation, options }: ShopifyClientRequestHookParams<Operation, AdminOperations>) => HookResult
+        'admin:client:request': <Operation extends keyof AllOperations>({ operation, options }: ShopifyClientRequestHookParams<Operation, AllOperations>) => HookResult
 
         /**
          * Called after the admin client receives a response within nitro
          */
-        'admin:client:response': <Operation extends keyof AllOperations>({ response, operation, options }: ShopifyClientResponseHookParams<Operation, AdminOperations>) => HookResult
+        'admin:client:response': <Operation extends keyof AllOperations>({ response, operation, options }: ShopifyClientResponseHookParams<Operation, AllOperations>) => HookResult
 
         /**
          * Called when the admin client throws an error within nitro

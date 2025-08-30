@@ -64,6 +64,15 @@ const getTypescriptPluginConfig = (options: ShopifyTemplateOptions) => {
     }
 }
 
+export const generateVirtualModule: NuxtTemplate<Pick<ShopifyTemplateOptions, 'clientType'>>['getContents'] = async (data) => {
+    switch (data.options.clientType) {
+        case ShopifyClientType.Storefront:
+            return `ROLLUP_REPLACE_VIRTUAL_STOREFRONT`
+        case ShopifyClientType.Admin:
+            return `ROLLUP_REPLACE_VIRTUAL_ADMIN`
+    }
+}
+
 export const generateIntrospection: NuxtTemplate<ShopifyTemplateOptions>['getContents'] = async (data) => {
     const config = {
         schema: getIntrospection(data.options),
