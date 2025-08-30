@@ -6,7 +6,6 @@ export default defineBuildConfig({
         'src/commands/init',
     ],
     externals: [
-        '#shopify/clients/storefront',
-        '#shopify/clients/admin',
+        '@shopify/graphql-client',
     ],
 })

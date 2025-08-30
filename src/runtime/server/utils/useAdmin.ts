@@ -1,8 +1,8 @@
 import type {
-    AdminApiClient,
-    AdminOperations,
-} from '#shopify/clients/admin'
-import type { GenericApiClientConfig } from '../../../types'
+    GenericApiClientConfig,
+} from '../../../types'
+
+import type { AdminApiClient, AdminOperations } from '#shopify/clients/admin'
 
 import { useNitroApp } from 'nitropack/runtime'
 import { useRuntimeConfig } from '#imports'

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { GenericApiClient } from '../client'
+import type { GenericApiClient } from '../shopify'
 
 declare module '#shopify/clients/storefront' {
     interface StorefrontQueries {
@@ -18,14 +18,7 @@ declare module '#shopify/clients/storefront' {
         [key: number | symbol]: never
     }
 
-    type StorefrontOperations = StorefrontQueries & StorefrontMutations
+    interface StorefrontOperations extends StorefrontQueries, StorefrontMutations {}
 
-    type StorefrontApiClient = GenericApiClient<StorefrontOperations>
-
-    export {
-        StorefrontQueries,
-        StorefrontMutations,
-        StorefrontOperations,
-        StorefrontApiClient,
-    }
+    export type StorefrontApiClient = GenericApiClient<StorefrontOperations>
 }

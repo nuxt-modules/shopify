@@ -1,8 +1,8 @@
 import type {
-    StorefrontApiClient,
-    StorefrontOperations,
-} from '#shopify/clients/storefront'
-import type { GenericApiClientConfig } from '../../types'
+    GenericApiClientConfig,
+} from '../../types'
+
+import type { StorefrontApiClient, StorefrontOperations } from '#shopify/clients/storefront'
 
 import { useRuntimeConfig, useNuxtApp } from '#imports'
 import { createApiUrl, createStoreDomain, createClient } from '../utils/client'

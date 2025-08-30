@@ -1,7 +1,20 @@
-import type { ApiClientConfig } from '@shopify/graphql-client'
+import type {
+    ApiClient,
+    ApiClientRequestStream,
+    ApiClientConfig,
+    AllOperations,
+} from '@shopify/graphql-client'
 import type { ConsolaOptions } from 'consola'
 
 import type { ShopifyClientType } from '../utils'
+
+export type GenericApiClient<Operations extends AllOperations> = ApiClient<ApiClientConfig, Operations> & {
+    requestStream: ApiClientRequestStream<Operations>
+}
+
+export type GenericApiClientConfig = ApiClientConfig & {
+    logger?: Partial<ConsolaOptions>
+}
 
 export type ApiClientCustomConfig = {
     skipCodegen?: boolean

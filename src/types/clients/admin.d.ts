@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { GenericApiClient } from '../client'
+import type { GenericApiClient } from '../shopify'
 
 declare module '#shopify/clients/admin' {
     interface AdminQueries {
@@ -20,12 +20,5 @@ declare module '#shopify/clients/admin' {
 
     interface AdminOperations extends AdminQueries, AdminMutations {}
 
-    type AdminApiClient = GenericApiClient<AdminOperations>
-
-    export {
-        AdminQueries,
-        AdminMutations,
-        AdminOperations,
-        AdminApiClient,
-    }
+    export type AdminApiClient = GenericApiClient<AdminOperations>
 }
