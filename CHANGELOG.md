@@ -1,3 +1,7 @@
+# 0.1.0
+- Added custom api client
+- Removed shopify storefront and admin api client module dependencies
+
 # 0.0.35
 - Added useAsyncStorefront composable
 - Added request and response hooks for admin and storefront client
