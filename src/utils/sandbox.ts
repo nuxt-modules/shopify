@@ -2,13 +2,15 @@ import type { Nuxt } from '@nuxt/schema'
 import type { H3Event } from 'h3'
 
 import { addDevServerHandler } from '@nuxt/kit'
-import { createAdminApiClient } from '@shopify/admin-api-client'
-import { createStorefrontApiClient } from '@shopify/storefront-api-client'
+import { createClient } from '../runtime/utils/clients'
 import { defineEventHandler, readValidatedBody } from 'h3'
 import { z } from 'zod'
-import type { ShopifyClientType, ShopifyConfig } from '../types'
+import type { ShopifyConfig } from '../types'
+import type { ShopifyClientType } from './config'
 
 import getSandboxTemplate from '../templates/sandbox-template'
+import { createStorefrontConfig } from '../runtime/utils/clients/storefront'
+import { createAdminConfig } from '../runtime/utils/clients/admin'
 
 export function getSandboxUrl(nuxt: Nuxt, clientType: ShopifyClientType) {
     const url = new URL(nuxt.options.devServer.url)
@@ -50,15 +52,15 @@ export function getSandboxProxyHandler(nuxt: Nuxt, clientType: ShopifyClientType
 
         const body = await readValidatedBody(event, schema.parse)
 
-        let client: ReturnType<typeof createStorefrontApiClient> | ReturnType<typeof createAdminApiClient>
+        let client: ReturnType<typeof createClient>
 
         switch (clientType) {
             case 'storefront':
-                client = createStorefrontApiClient(getClientConfig(clientType, config))
+                client = createClient(createStorefrontConfig(config))
 
                 break
             case 'admin':
-                client = createAdminApiClient(getClientConfig(clientType, config))
+                client = createClient(createAdminConfig(config))
 
                 break
             default:

@@ -22,10 +22,6 @@ export const useShopifyConfig = (options: ModuleOptions) => {
 
         if (clientType === 'storefront' && (clientOptions as ShopifyStorefrontConfig).mock) {
             (clientOptions as ShopifyStorefrontConfig).publicAccessToken = 'mock-public-access-token'
-            clientOptions.storeDomain = 'https://mock.shop'
-        }
-        else {
-            clientOptions.storeDomain = `https://${options.name}.myshopify.com`
         }
 
         clientOptions.sandbox = !!(clientOptions.sandbox === undefined || clientOptions.sandbox)
@@ -73,11 +69,11 @@ export const useShopifyConfig = (options: ModuleOptions) => {
             skipCodegen: _skipCodegen,
             sandbox: _sandbox,
             documents: _documents,
-            mock: _mock,
             ...storefront
         } = config.clients.storefront
 
         return {
+            name: config.name,
             logger: config.logger,
             errors: config.errors,
             clients: {

@@ -1,41 +1,30 @@
-import type { StorefrontApiClient } from '@shopify/storefront-api-client'
-
-import { createStorefrontApiClient } from '@shopify/storefront-api-client'
-import { createConsola } from 'consola'
-
-import useErrors from './useErrors'
+import type { StorefrontApiClient, StorefrontOperations } from '@konkonam/nuxt-shopify/storefront'
 
 import { useRuntimeConfig, useNuxtApp } from '#imports'
+import { createClient } from '../utils/clients'
+import { createStorefrontConfig } from '../utils/clients/storefront'
+import useErrors from './useErrors'
 
 export function useStorefront(): StorefrontApiClient {
     const { _shopify } = useRuntimeConfig().public
 
-    if (!_shopify?.clients.storefront) {
-        throw new Error('Could not create storefront client')
-    }
+    const config = createStorefrontConfig(_shopify)
+    console.log(config)
 
     const nuxtApp = useNuxtApp()
 
-    const {
-        ...options
-    } = _shopify.clients.storefront
+    nuxtApp.hooks.callHook('storefront:client:configure', { config })
 
-    if (_shopify.logger) {
-        options.logger = createConsola(_shopify.logger).withTag('shopify').trace
-    }
+    const originalClient = createClient<StorefrontOperations>(config)
 
-    nuxtApp.hooks.callHook('storefront:client:configure', { options })
+    const request: StorefrontApiClient['request'] = async (operation, options) => {
+        nuxtApp.hooks.callHook('storefront:client:request', { operation, options })
 
-    const originalClient = createStorefrontApiClient(options)
+        const response = await originalClient.request(operation, options)
 
-    const request: StorefrontApiClient['request'] = async (...params) => {
-        nuxtApp.hooks.callHook('storefront:client:request', { operation: params[0], options: params[1] })
+        if (response.errors) useErrors(nuxtApp, response.errors, _shopify?.errors?.throw ?? false)
 
-        const response = await originalClient.request(...params)
-
-        if (response.errors) useErrors(nuxtApp, response.errors, _shopify.errors?.throw ?? false)
-
-        nuxtApp.hooks.callHook('storefront:client:response', { response, operation: params[0], options: params[1] })
+        nuxtApp.hooks.callHook('storefront:client:response', { response, operation, options })
 
         return response
     }

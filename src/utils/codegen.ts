@@ -3,16 +3,17 @@ import type { NuxtTemplate } from '@nuxt/schema'
 
 import type { InterfaceExtensionsParams, ShopifyTemplateOptions } from '../types'
 
-import { existsSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { generate } from '@graphql-codegen/cli'
 import { preset, pluckConfig } from '@shopify/graphql-codegen'
 import { LogLevels } from 'consola'
-import { upperFirst } from 'scule'
+import { kebabCase, upperFirst } from 'scule'
 import { joinURL } from 'ufo'
 
 import { ShopifyClientType } from './config'
 import { useLog } from './log'
+import { createResolver } from '@nuxt/kit'
 
 async function extractResult(input: Promise<Types.FileOutput[]>) {
     try {
@@ -25,8 +26,7 @@ async function extractResult(input: Promise<Types.FileOutput[]>) {
 }
 
 const getInterfaceExtensionFunction = (clientType: ShopifyClientType, queryType: string, mutationType: string) => `
-declare module '@shopify/${clientType}-api-client' {
-    type InputMaybe<T> = ${upperFirst(clientType)}Types.InputMaybe<T>
+declare module '@konkonam/nuxt-shopify/${kebabCase(clientType)}' {
     interface ${upperFirst(clientType)}Queries extends ${queryType} {}
     interface ${upperFirst(clientType)}Mutations extends ${mutationType} {}
 }
@@ -65,6 +65,13 @@ const getTypescriptPluginConfig = (options: ShopifyTemplateOptions) => {
     }
 }
 
+export const generateVirtualModule: NuxtTemplate<Pick<ShopifyTemplateOptions, 'clientType'>>['getContents'] = async (data) => {
+    const resolver = createResolver(import.meta.url)
+    const path = resolver.resolve(`../types/clients/${data.options.clientType}.d.ts`)
+
+    return existsSync(path) ? readFileSync(path, 'utf-8') : ''
+}
+
 export const generateIntrospection: NuxtTemplate<ShopifyTemplateOptions>['getContents'] = async (data) => {
     const config = {
         schema: getIntrospection(data.options),
@@ -75,7 +82,7 @@ export const generateIntrospection: NuxtTemplate<ShopifyTemplateOptions>['getCon
         }],
     } satisfies Types.ConfiguredOutput
 
-    await data.nuxt.callHook(`${data.options.clientType}:generate:introspection`, {
+    await data.nuxt.callHook(`${kebabCase(data.options.clientType)}:generate:introspection`, {
         nuxt: data.nuxt,
         config,
     })
@@ -96,7 +103,7 @@ export const generateTypes: NuxtTemplate<ShopifyTemplateOptions>['getContents'] 
         plugins: [getTypescriptPluginConfig(data.options)],
     } satisfies Types.ConfiguredOutput
 
-    await data.nuxt.callHook(`${data.options.clientType}:generate:types`, {
+    await data.nuxt.callHook(`${kebabCase(data.options.clientType)}:generate:types`, {
         nuxt: data.nuxt,
         config,
     })
@@ -125,7 +132,7 @@ export const generateOperations: NuxtTemplate<ShopifyTemplateOptions>['getConten
         presetConfig: {
             importTypes: {
                 namespace: `${upperFirst(data.options.clientType)}Types`,
-                from: `./${data.options.clientType}.types.d.ts`,
+                from: `./${kebabCase(data.options.clientType)}.types.d.ts`,
             },
             skipTypenameInOperations: true,
             interfaceExtension: (params: InterfaceExtensionsParams) => {
@@ -138,7 +145,7 @@ export const generateOperations: NuxtTemplate<ShopifyTemplateOptions>['getConten
         },
     } satisfies Types.ConfiguredOutput
 
-    await data.nuxt.callHook(`${data.options.clientType}:generate:operations`, {
+    await data.nuxt.callHook(`${kebabCase(data.options.clientType)}:generate:operations`, {
         nuxt: data.nuxt,
         config,
     })

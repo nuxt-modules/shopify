@@ -1,43 +1,30 @@
-import type { StorefrontApiClient } from '@shopify/storefront-api-client'
+import type { StorefrontApiClient, StorefrontOperations } from '@konkonam/nuxt-shopify/storefront'
 
-import { createStorefrontApiClient } from '@shopify/storefront-api-client'
-import { createConsola } from 'consola'
 import { useNitroApp } from 'nitropack/runtime'
-
-import useErrors from './useErrors'
-
 import { useRuntimeConfig } from '#imports'
+import { createClient } from '../../utils/clients'
+import { createStorefrontConfig } from '../../utils/clients/storefront'
+import useErrors from './useErrors'
 
 export function useStorefront(): StorefrontApiClient {
     const { _shopify } = useRuntimeConfig()
 
-    if (!_shopify?.clients.storefront) {
-        throw new Error('Could not create storefront client')
-    }
+    const config = createStorefrontConfig(_shopify)
 
     const nitroApp = useNitroApp()
 
-    const {
-        skipCodegen: _skipCodegen,
-        sandbox: _sandbox,
-        documents: _documents,
-        ...options
-    } = _shopify.clients.storefront
+    nitroApp.hooks.callHook('storefront:client:configure', { config })
 
-    if (_shopify.logger) {
-        options.logger = createConsola(_shopify.logger).withTag('shopify').trace
-    }
+    const originalClient = createClient<StorefrontOperations>(config)
 
-    nitroApp.hooks.callHook('storefront:client:configure', { options })
+    const request: StorefrontApiClient['request'] = async (operation, options) => {
+        nitroApp.hooks.callHook('storefront:client:request', { operation, options })
 
-    const originalClient = createStorefrontApiClient(options)
+        const response = await originalClient.request(operation, options)
 
-    const request: StorefrontApiClient['request'] = async (...params) => {
-        nitroApp.hooks.callHook('storefront:client:request', { operation: params[0], options: params[1] })
+        if (response.errors) useErrors(nitroApp, response.errors, _shopify?.errors?.throw ?? false)
 
-        const response = await originalClient.request(...params)
-
-        if (response.errors) useErrors(nitroApp, response.errors, _shopify.errors?.throw ?? false)
+        nitroApp.hooks.callHook('storefront:client:response', { response, operation, options })
 
         return response
     }

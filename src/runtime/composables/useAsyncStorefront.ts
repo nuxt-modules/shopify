@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { AllOperations, ApiClientRequestOptions, StorefrontOperations, ReturnData } from '@shopify/storefront-api-client'
+import type { AllOperations, ApiClientRequestOptions, ReturnData } from '@shopify/graphql-client'
 import type { MaybeRefOrGetter } from 'vue'
 
 import type { AsyncDataOptions, AsyncData, NuxtError } from '#app'
+import type { StorefrontOperations } from '@konkonam/nuxt-shopify/storefront'
 
 import { useAsyncData } from '#app'
 

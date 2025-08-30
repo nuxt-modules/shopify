@@ -1,4 +1,4 @@
-import type { ShopifyClientType } from '../types'
+import type { ShopifyClientType } from '../utils/config'
 
 /**
  * Get the HTML template for the sandbox environment. The template for

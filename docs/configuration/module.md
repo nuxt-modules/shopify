@@ -60,7 +60,6 @@ export default defineNuxtConfig({
                 sandbox: true,                              // Enable sandbox for the client.
                 skipCodegen: false,                         // Skip code generation for the client.
                 documents: [],                              // Glob patterns to include in code generation.
-                userAgentPrefix: '',                        // Prefix to include in the User-Agent for requests.
                 isTesting: false,                           // Sets the isTesting flag for the client.
                 retries: 3,                                 // Number of retries for failed requests.
             },

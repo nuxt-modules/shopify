@@ -32,7 +32,6 @@ describe('basic module test', async () => {
                 storefront: {
                     apiVersion: process.env.NUXT_SHOPIFY_CLIENTS_STOREFRONT_API_VERSION,
                     publicAccessToken: process.env.NUXT_SHOPIFY_CLIENTS_STOREFRONT_PUBLIC_ACCESS_TOKEN,
-                    storeDomain: `https://${process.env.NUXT_SHOPIFY_NAME}.myshopify.com`,
                     sandbox: true,
                     documents: [
                         '**/*.{gql,graphql,ts,js}',
@@ -48,7 +47,6 @@ describe('basic module test', async () => {
                 admin: {
                     apiVersion: process.env.NUXT_SHOPIFY_CLIENTS_ADMIN_API_VERSION,
                     accessToken: '<admin_access_token>',
-                    storeDomain: `https://${process.env.NUXT_SHOPIFY_NAME}.myshopify.com`,
                     sandbox: true,
                     documents: [
                         '**/*.admin.{gql,graphql,ts,js}',
@@ -127,7 +125,7 @@ describe('basic module test', async () => {
         expect(operationsContent).toContain('ProductFieldsFragment')
 
         // Check that it performs the necessary module type augmentation
-        expect(operationsContent).toContain('declare module \'@shopify/storefront-api-client\'')
+        expect(operationsContent).toContain('declare module \'@konkonam/nuxt-shopify/storefront\'')
         expect(operationsContent).toContain('interface StorefrontQueries')
         expect(operationsContent).toContain('interface StorefrontMutations')
     })
@@ -147,7 +145,7 @@ describe('basic module test', async () => {
         expect(operationsContent).toContain('MarketFieldsFragment')
 
         // Check that it performs the necessary module type augmentation
-        expect(operationsContent).toContain('declare module \'@shopify/admin-api-client\'')
+        expect(operationsContent).toContain('declare module \'@konkonam/nuxt-shopify/admin\'')
         expect(operationsContent).toContain('interface AdminQueries')
         expect(operationsContent).toContain('interface AdminMutations')
     })

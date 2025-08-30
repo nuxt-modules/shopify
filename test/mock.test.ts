@@ -32,7 +32,6 @@ describe('mock.shop integration', async () => {
                     apiVersion: process.env.NUXT_SHOPIFY_CLIENTS_STOREFRONT_API_VERSION,
                     mock: true,
                     publicAccessToken: 'mock-public-access-token',
-                    storeDomain: 'https://mock.shop',
                     sandbox: true,
                     documents: [
                         '**/*.{gql,graphql,ts,js}',
@@ -85,7 +84,7 @@ describe('mock.shop integration', async () => {
         expect(operationsContent).toContain('ProductFieldsFragment')
 
         // Check that it performs the necessary module type augmentation
-        expect(operationsContent).toContain('declare module \'@shopify/storefront-api-client\'')
+        expect(operationsContent).toContain('declare module \'@konkonam/nuxt-shopify/storefront\'')
         expect(operationsContent).toContain('interface StorefrontQueries')
         expect(operationsContent).toContain('interface StorefrontMutations')
     })

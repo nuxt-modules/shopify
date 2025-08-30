@@ -9,17 +9,20 @@ import {
 } from '@nuxt/kit'
 import defu from 'defu'
 import { minimatch } from 'minimatch'
-import type {
-    ShopifyClientType,
-    ShopifyClientConfig,
-    ShopifyTemplateOptions,
-} from '../types'
+import type { ShopifyClientConfig, ShopifyTemplateOptions } from '../types'
+import { ShopifyClientType } from './config'
 
 import {
     generateIntrospection,
     generateOperations,
     generateTypes,
+    generateVirtualModule,
 } from './codegen'
+
+const indexTemplate = (types: string, operations: string) => () => `
+export * from './${basename(types)}'
+export * from './${basename(operations)}'
+`
 
 export function setupWatcher(nuxt: Nuxt, template: NuxtTemplate<ShopifyTemplateOptions>) {
     nuxt.hook('builder:watch', async (_event, file) => {
@@ -43,10 +46,27 @@ export function setupWatcher(nuxt: Nuxt, template: NuxtTemplate<ShopifyTemplateO
     })
 }
 
+export function registerVirtualModuleTemplates(nuxt: Nuxt) {
+    for (const [_, clientType] of Object.entries(ShopifyClientType)) {
+        const virtualModuleFilename = `types/clients/${clientType}/index`
+
+        const virtualModule = addTypeTemplate<Pick<ShopifyTemplateOptions, 'clientType'>>({
+            filename: `${virtualModuleFilename}.d.ts`,
+            getContents: generateVirtualModule,
+            options: {
+                clientType: clientType as ShopifyClientType,
+            },
+        })
+
+        nuxt.options.alias = defu(nuxt.options.alias, {
+            [`@konkonam/nuxt-shopify/${clientType}`]: `./${dirname(virtualModule.filename)}`,
+        })
+    }
+}
+
 export function registerTemplates<T extends ShopifyClientType>(nuxt: Nuxt, clientType: T, clientConfig: ShopifyClientConfig) {
     const introspectionFilename = `schema/${clientType}.schema.json`
     const introspectionPath = join(nuxt.options.buildDir, introspectionFilename)
-
     const introspection = addTemplate<ShopifyTemplateOptions>({
         filename: introspectionFilename,
         getContents: generateIntrospection,
@@ -87,17 +107,10 @@ export function registerTemplates<T extends ShopifyClientType>(nuxt: Nuxt, clien
 
     const index = addTypeTemplate<ShopifyTemplateOptions>({
         filename: `types/${clientType}/index.d.ts`,
-        getContents: () => `export * from './${basename(types.filename)}'\nexport * from './${basename(operations.filename)}'\n`,
+        getContents: indexTemplate(types.filename, operations.filename),
     })
 
-    nuxt.options = defu(nuxt.options, {
-        alias: { [`#shopify/${clientType}`]: dirname(index.filename) },
-        nitro: {
-            typescript: {
-                tsConfig: {
-                    include: [index.filename],
-                },
-            },
-        },
+    nuxt.options.alias = defu(nuxt.options.alias, {
+        [`#shopify/${clientType}`]: `./${dirname(index.filename)}`,
     })
 }

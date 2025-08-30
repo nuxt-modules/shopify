@@ -7,6 +7,7 @@ export const useShopifyConfigValidation = (options: ModuleOptions) => {
         apiVersion: z.string().min(1),
         sandbox: z.boolean().optional(),
         documents: z.array(z.string().min(1)).optional(),
+        headers: z.record(z.string().or(z.array(z.string().min(1)))).optional(),
         retries: z.number().optional(),
         skipCodegen: z.boolean().optional(),
     })
@@ -36,16 +37,14 @@ export const useShopifyConfigValidation = (options: ModuleOptions) => {
             storefront: clientSchema.extend({
                 publicAccessToken: z.string().min(1).optional(),
                 privateAccessToken: z.string().min(1).optional(),
-                clientName: z.string().min(11).optional(),
                 mock: z.boolean().optional(),
             }).optional(),
+
             admin: clientSchema.extend({
                 accessToken: z.string().min(1),
-                userAgentPrefix: z.string().min(1).optional(),
-                isTesting: z.boolean().optional(),
             }).optional(),
         }),
     })
 
-    return schema.safeParse(options)
+    return schema.safeParse(options) satisfies z.SafeParseReturnType<ModuleOptions, ModuleOptions>
 }

@@ -1,8 +1,5 @@
-import type {
-    ModuleOptions,
-    ShopifyClientType,
-    ShopifyStorefrontConfig,
-} from './types'
+import type { ModuleOptions, ShopifyStorefrontConfig } from './types'
+import type { ShopifyClientType } from './utils'
 
 import {
     addImports,
@@ -14,14 +11,18 @@ import {
 } from '@nuxt/kit'
 import { upperFirst } from 'scule'
 import { defu } from 'defu'
+
 import {
     installSandbox,
     registerAutoImports,
     registerTemplates,
+    registerVirtualModuleTemplates,
     useLog,
     useShopifyConfig,
     useShopifyConfigValidation,
 } from './utils'
+
+const ROLLUP_REPLACE_VIRTUAL_MODULES = true
 
 export default defineNuxtModule<ModuleOptions>({
     meta: {
@@ -42,15 +43,11 @@ export default defineNuxtModule<ModuleOptions>({
             options,
         ))
 
-        if (!moduleOptions.success) {
-            log.info('Skipping setup: config not provided or invalid')
-            log.debug(`See module configuration reference: https://konkonam.github.io/nuxt-shopify/configuration/module`)
-            log.debug(`Error while parsing module options:\n${moduleOptions.error}`)
-        }
-        else {
+        const resolver = createResolver(import.meta.url)
+
+        if (moduleOptions.success) {
             log.start('Starting setup')
 
-            const resolver = createResolver(import.meta.url)
             const { config, publicConfig } = useShopifyConfig(moduleOptions.data)
 
             for (const _clientType in config.clients) {
@@ -107,6 +104,15 @@ export default defineNuxtModule<ModuleOptions>({
             registerAutoImports(nuxt, config, resolver)
 
             log.success('Finished setup')
+        }
+        else {
+            log.info('Skipping setup: config not provided or invalid')
+            log.info('See module configuration reference: https://konkonam.github.io/nuxt-shopify/configuration/module')
+            log.debug(`Error while parsing module options:\n${moduleOptions.error}`)
+        }
+
+        if (ROLLUP_REPLACE_VIRTUAL_MODULES) {
+            registerVirtualModuleTemplates(nuxt)
         }
     },
 })
