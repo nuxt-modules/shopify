@@ -1,0 +1,24 @@
+{
+    "footer": {
+        "message": "Published under the MIT License.",
+        "github": "View on GitHub"
+    },
+    "search": {
+        "label": "Search",
+        "placeholder": "Search...",
+        "description": "Find products and collections",
+        "products": "Products",
+        "collections": "Collections"
+    },
+    "pagination": {
+        "previous": "Load previous",
+        "next": "Load next"
+    },
+    "price": {
+        "from": "from",
+        "to": "to"
+    },
+    "filters": {
+        "title": "Filters"
+    }
+}

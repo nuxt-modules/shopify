@@ -6,7 +6,8 @@
   "description": "Easily integrate shopify with nuxt 3 and 4 🚀",
   "workspaces": [
     ".",
-    "playgrounds/*"
+    "playgrounds/*",
+    "template"
   ],
   "repository": {
     "type": "git",
