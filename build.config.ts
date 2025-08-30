@@ -2,6 +2,7 @@ import { defineBuildConfig } from 'unbuild'
 
 export default defineBuildConfig({
     declaration: true,
+
     entries: [
         'src/commands/init',
 
@@ -10,9 +11,7 @@ export default defineBuildConfig({
             input: 'src/types/clients',
         },
     ],
-    externals: [
-        '@shopify/graphql-client',
-    ],
+
     replace: {
         ROLLUP_REPLACE_VIRTUAL_MODULES: 'false',
     },
