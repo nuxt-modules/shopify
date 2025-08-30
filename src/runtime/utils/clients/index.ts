@@ -5,7 +5,7 @@ import type {
     RequestParams,
 } from '@shopify/graphql-client'
 
-import type { GenericApiClient, GenericApiClientConfig } from '../../types'
+import type { GenericApiClient, GenericApiClientConfig } from '../../../types'
 
 import { createGraphQLClient } from '@shopify/graphql-client'
 import { joinURL } from 'ufo'

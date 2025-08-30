@@ -2,13 +2,15 @@ import type { Nuxt } from '@nuxt/schema'
 import type { H3Event } from 'h3'
 
 import { addDevServerHandler } from '@nuxt/kit'
-import type { createClient } from '../runtime/utils/client'
+import { createClient } from '../runtime/utils/clients'
 import { defineEventHandler, readValidatedBody } from 'h3'
 import { z } from 'zod'
 import type { ShopifyConfig } from '../types'
 import type { ShopifyClientType } from './config'
 
 import getSandboxTemplate from '../templates/sandbox-template'
+import { createStorefrontConfig } from '../runtime/utils/clients/storefront'
+import { createAdminConfig } from '../runtime/utils/clients/admin'
 
 export function getSandboxUrl(nuxt: Nuxt, clientType: ShopifyClientType) {
     const url = new URL(nuxt.options.devServer.url)
@@ -40,35 +42,34 @@ export function getSandboxHandler(clientType: ShopifyClientType) {
 }
 
 export function getSandboxProxyHandler(nuxt: Nuxt, clientType: ShopifyClientType) {
-    // TODO: Fix
     return defineEventHandler(async (event: H3Event) => {
-        const _config = nuxt.options.runtimeConfig._shopify
+        const config = nuxt.options.runtimeConfig._shopify
 
         const schema = z.object({
             query: z.string(),
             variables: z.record(z.string(), z.unknown()).optional(),
         })
 
-        const _body = await readValidatedBody(event, schema.parse)
+        const body = await readValidatedBody(event, schema.parse)
 
-        let _client: ReturnType<typeof createClient>
+        let client: ReturnType<typeof createClient>
 
         switch (clientType) {
             case 'storefront':
-                // client = createClient(getClientConfig(clientType, config))
+                client = createClient(createStorefrontConfig(config))
 
                 break
             case 'admin':
-                // client = createClient(getClientConfig(clientType, config))
+                client = createClient(createAdminConfig(config))
 
                 break
             default:
                 throw new Error('The requested client is not supported')
         }
 
-        // return client.request(body.query, {
-        //     variables: body.variables,
-        // })
+        return client.request(body.query, {
+            variables: body.variables,
+        })
     })
 }
 

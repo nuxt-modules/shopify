@@ -1,5 +1,5 @@
 {
-    "name": "nuxt-shopify-playground-mock",
+    "name": "playground-mock",
     "private": true,
     "type": "module",
     "scripts": {

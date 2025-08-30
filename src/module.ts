@@ -22,6 +22,8 @@ import {
     useShopifyConfigValidation,
 } from './utils'
 
+const ROLLUP_REPLACE_VIRTUAL_MODULES = true
+
 export default defineNuxtModule<ModuleOptions>({
     meta: {
         name: 'nuxt-shopify',
@@ -108,8 +110,6 @@ export default defineNuxtModule<ModuleOptions>({
             log.info('See module configuration reference: https://konkonam.github.io/nuxt-shopify/configuration/module')
             log.debug(`Error while parsing module options:\n${moduleOptions.error}`)
         }
-
-        const ROLLUP_REPLACE_VIRTUAL_MODULES = true
 
         if (ROLLUP_REPLACE_VIRTUAL_MODULES) {
             registerVirtualModuleTemplates(nuxt)

@@ -27,7 +27,7 @@ export type ShopifyConfigHookParams = {
 }
 
 export type ShopifyClientOptionHookParams = {
-    options: GenericApiClientConfig
+    config: GenericApiClientConfig
 }
 
 export type ShopifyClientHookParams = {
@@ -119,7 +119,7 @@ declare module '#app' {
         /**
          * Called before the storefront client is created within nuxt
          */
-        'storefront:client:configure': ({ options }: ShopifyClientOptionHookParams) => HookResult
+        'storefront:client:configure': ({ config }: ShopifyClientOptionHookParams) => HookResult
 
         /**
          * Called after the storefront client is created within nuxt
@@ -148,7 +148,7 @@ declare module 'nitropack' {
         /**
          * Called before the storefront client is created within nitro
          */
-        'storefront:client:configure': ({ options }: ShopifyClientOptionHookParams) => HookResult
+        'storefront:client:configure': ({ config }: ShopifyClientOptionHookParams) => HookResult
 
         /**
          * Called after the storefront client is created within nitro
@@ -173,7 +173,7 @@ declare module 'nitropack' {
         /**
          * Called before the admin client is created within nitro
          */
-        'admin:client:configure': ({ options }: ShopifyClientOptionHookParams) => HookResult
+        'admin:client:configure': ({ config }: ShopifyClientOptionHookParams) => HookResult
 
         /**
          * Called after the admin client is created within nitro

@@ -1,58 +1,28 @@
-import type {
-    GenericApiClientConfig,
-} from '../../../types'
-
 import type { AdminApiClient, AdminOperations } from '@konkonam/nuxt-shopify/admin'
 
 import { useNitroApp } from 'nitropack/runtime'
 import { useRuntimeConfig } from '#imports'
-import { createApiUrl, createStoreDomain, createClient } from '../../utils/client'
+import { createClient } from '../../utils/clients'
+import { createAdminConfig } from '../../utils/clients/admin'
 import useErrors from './useErrors'
 
 export function useAdmin(): AdminApiClient {
     const { _shopify } = useRuntimeConfig()
 
-    if (!_shopify?.clients.admin || !_shopify?.clients.admin?.accessToken) {
-        throw new Error('Could not create admin client')
-    }
+    const config = createAdminConfig(_shopify)
 
     const nitroApp = useNitroApp()
 
-    const {
-        name,
-        logger,
+    nitroApp.hooks.callHook('admin:client:configure', { config })
 
-        clients: {
-            admin: {
-                apiVersion,
-                headers,
-
-                accessToken,
-            },
-        },
-    } = _shopify
-
-    const clientOptions = {
-        storeDomain: createStoreDomain(name),
-        apiUrl: createApiUrl(createStoreDomain(name), apiVersion, 'admin'),
-        apiVersion,
-        logger,
-        headers: {
-            'X-Shopify-Access-Token': accessToken,
-            ...headers,
-        },
-    } satisfies GenericApiClientConfig
-
-    nitroApp.hooks.callHook('admin:client:configure', { options: clientOptions })
-
-    const originalClient = createClient<AdminOperations>(clientOptions)
+    const originalClient = createClient<AdminOperations>(config)
 
     const request: AdminApiClient['request'] = async (operation, options) => {
         nitroApp.hooks.callHook('admin:client:request', { operation, options })
 
         const response = await originalClient.request(operation, options)
 
-        if (response.errors) useErrors(nitroApp, response.errors, _shopify.errors?.throw ?? false)
+        if (response.errors) useErrors(nitroApp, response.errors, _shopify?.errors?.throw ?? false)
 
         nitroApp.hooks.callHook('admin:client:response', { response, operation, options })
 
