@@ -6,9 +6,9 @@ The module provides several hooks that can be used to customize its behavior. Th
 // ~/server/plugins/your-plugin.ts
 
 export default defineNitroPlugin((nitroApp) => {
-    nitroApp.hooks.hook('storefont:client:configure', ({ options }) => {
-        // Modify the options of the client before it is created
-        options.logger = logContent => console.log(logContent)
+    nitroApp.hooks.hook('storefont:client:configure', ({ config }) => {
+        // Modify the config of the client before it is created
+        config.logger = logContent => console.log(logContent)
     })
 
     nitroApp.hooks.hook('storefont:client:create', ({ client }) => {
@@ -53,7 +53,7 @@ Hooks allows you to hook into the different stages of the module lifecycle.
 
 | Hook                              | Arguments                          | Environments    | Description                                             |
 | --------------------------------- | :--------------------------------: | :-------------: | ------------------------------------------------------- |
-| `storefront:client:configure`     | `options`                          | Server & Client | Called before the storefront client is created          |
+| `storefront:client:configure`     | `config`                           | Server & Client | Called before the storefront client is created          |
 | `storefront:client:create`        | `client`                           | Server & Client | Called after the storefront client is created           |
 | `storefront:client:request`       | `operation`, `options`             | Server & Client | Called before the storefront client sends a request     |
 | `storefront:client:response`      | `response`, `operation`, `options` | Server & Client | Called after the storefront client receives a response  |
@@ -63,12 +63,12 @@ Hooks allows you to hook into the different stages of the module lifecycle.
 
 | Hook                              | Arguments                          | Environments | Description                                             |
 | --------------------------------- | :--------------------------------: | :----------: | ------------------------------------------------------- |
-| `storefront:client:configure`     | `options`                          | Server       | Called before the storefront client is created          |
+| `storefront:client:configure`     | `config`                           | Server       | Called before the storefront client is created          |
 | `storefront:client:create`        | `client`                           | Server       | Called after the storefront client is created           |
 | `storefront:client:request`       | `operation`, `options`             | Server       | Called before the storefront client sends a request     |
 | `storefront:client:response`      | `response`, `operation`, `options` | Server       | Called after the storefront client receives a response  |
 | `storefront:client:errors`        | `errors`                           | Server       | Called when a storefront client request contains errors |
-| `admin:client:configure`          | `options`                          | Server       | Called before the admin client is created               |
+| `admin:client:configure`          | `config`                           | Server       | Called before the admin client is created               |
 | `admin:client:create`             | `client`                           | Server       | Called after the admin client is created                |
 | `admin:client:request`            | `operation`, `options`             | Server       | Called before the admin client sends a request          |
 | `admin:client:response`           | `response`, `operation`, `options` | Server       | Called after the admin client receives a response       |
