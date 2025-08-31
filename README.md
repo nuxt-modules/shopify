@@ -26,10 +26,10 @@ Magic Shopify GraphQL API-Connector for Nuxt 3 & 4.
 - 🌐 Server & client side support
 - 🛠️ Automatic mock.shop integration
 - 🚩 Error handling optimized for Nuxt
+- 📡 Server-side proxy for all client requests
 - 🧩 GraphQL fragments support
 - ⚙️ Customizable GraphQL code generation
 - 📦 Auto-imports for GraphQL queries and generated types
-- 📡 Proxy support for client-side requests
 - 🏖️ Sandbox integrated with GraphiQL Explorer
 - 🔄 Hooks for customizing the module behavior
 - 🧪 Tested with Nuxt 3 & 4
@@ -263,10 +263,11 @@ export default defineNuxtConfig({
 
 All requests to the Storefront API will now return data from [mock.shop](https://mock.shop) instead of hitting the actual Shopify API.
 
-### Proxying client-side requests
+### Proxying client requests
 
-All requests going out from the client side are proxied through Nitro by default.
+All requests going out from the client side are proxied through the Nitro server by default.
 To disable proxying, you can set the `proxy` option in the module config.
+Proxying is only available in SSR mode.
 
 ```ts
 export default defineNuxtConfig({

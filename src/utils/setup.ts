@@ -75,6 +75,10 @@ export const setupStorefrontFeatures = (nuxt: Nuxt, config: ShopifyConfig, clien
     }
 
     if (clientConfig.proxy) {
+        if (!nuxt.options.ssr) {
+            log.info('Server-side request proxying is only available in SSR mode, skipping setup.')
+        }
+
         const url = typeof clientConfig.proxy === 'string'
             ? clientConfig.proxy
             : '_proxy/storefront'
