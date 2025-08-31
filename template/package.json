@@ -12,6 +12,7 @@
         "lint": "eslint ."
     },
     "dependencies": {
+        "@konkonam/nuxt-shopify": "^0.1.2",
         "@nuxt/content": "^3.6.3",
         "@nuxt/image": "^1.11.0",
         "@nuxt/ui": "^3.3.2",
