@@ -31,6 +31,7 @@ describe('basic module test', async () => {
             clients: {
                 storefront: {
                     apiVersion: process.env.NUXT_SHOPIFY_CLIENTS_STOREFRONT_API_VERSION,
+                    proxy: true,
                     publicAccessToken: process.env.NUXT_SHOPIFY_CLIENTS_STOREFRONT_PUBLIC_ACCESS_TOKEN,
                     sandbox: true,
                     documents: [

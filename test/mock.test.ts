@@ -31,6 +31,7 @@ describe('mock.shop integration', async () => {
                 storefront: {
                     apiVersion: process.env.NUXT_SHOPIFY_CLIENTS_STOREFRONT_API_VERSION,
                     mock: true,
+                    proxy: true,
                     publicAccessToken: 'mock-public-access-token',
                     sandbox: true,
                     documents: [

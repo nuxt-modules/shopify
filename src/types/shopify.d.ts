@@ -23,9 +23,10 @@ export type ApiClientCustomConfig = {
 }
 
 export type StorefrontApiClientCustomConfig = {
-    mock?: boolean
     publicAccessToken?: string
     privateAccessToken?: string
+    proxy?: boolean | string
+    mock?: boolean
 }
 
 export type AdminApiClientCustomConfig = {
