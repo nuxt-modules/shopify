@@ -1,4 +1,3 @@
-import type { Resolver } from '@nuxt/kit'
 import type { Nuxt } from '@nuxt/schema'
 
 import type { ModuleOptions, ShopifyConfig, ShopifyClientConfig, ShopifyStorefrontConfig } from './types'
@@ -63,7 +62,7 @@ export default defineNuxtModule<ModuleOptions>({
 
                 if (!clientConfig) continue
 
-                setupClient(nuxt, resolver, config, clientType, clientConfig)
+                setupClient(nuxt, config, clientType, clientConfig)
             }
 
             await nuxt.callHook('shopify:config', { nuxt, config })
@@ -92,12 +91,13 @@ export default defineNuxtModule<ModuleOptions>({
 
 export const setupClient = (
     nuxt: Nuxt,
-    resolver: Resolver,
     config: ShopifyConfig,
     clientType: ShopifyClientType,
     clientConfig: ShopifyClientConfig,
 ) => {
     const log = useLog(config.logger)
+
+    const resolver = createResolver(import.meta.url)
 
     if (!clientConfig.skipCodegen) {
         registerTemplates(nuxt, clientType, clientConfig)
