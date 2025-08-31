@@ -33,7 +33,9 @@ export type AdminApiClientCustomConfig = {
     accessToken: string
 }
 
-export type ShopifyApiClientConfig = Omit<ApiClientConfig, 'storeDomain' | 'apiUrl'>
+export type ShopifyApiClientConfig = Omit<ApiClientConfig, 'storeDomain' | 'apiUrl' | 'headers'> & {
+    headers?: Record<string, string | string[]>
+}
 
 export type ShopifyStorefrontConfig = ShopifyApiClientConfig & ApiClientCustomConfig & StorefrontApiClientCustomConfig
 export type ShopifyAdminConfig = ShopifyApiClientConfig & ApiClientCustomConfig & AdminApiClientCustomConfig

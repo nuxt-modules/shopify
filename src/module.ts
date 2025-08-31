@@ -1,4 +1,7 @@
-import type { ModuleOptions } from './types'
+import type { Resolver } from '@nuxt/kit'
+import type { Nuxt } from '@nuxt/schema'
+
+import type { ModuleOptions, ShopifyConfig, ShopifyClientConfig, ShopifyStorefrontConfig } from './types'
 import type { ShopifyClientType } from './utils'
 
 import {
@@ -6,8 +9,12 @@ import {
     defineNuxtModule,
     useRuntimeConfig,
     updateRuntimeConfig,
+    addImports,
+    addServerImports,
 } from '@nuxt/kit'
 import { defu } from 'defu'
+import { upperFirst } from 'scule'
+import { joinURL } from 'ufo'
 
 import {
     registerAutoImports,
@@ -15,8 +22,12 @@ import {
     useLog,
     useShopifyConfig,
     useShopifyConfigValidation,
-    setupClient,
+    installSandbox,
+    registerTemplates,
 } from './utils'
+import {
+    createStorefrontConfig,
+} from './runtime/utils/clients/storefront'
 
 const ROLLUP_REPLACE_VIRTUAL_MODULES = true
 
@@ -52,7 +63,7 @@ export default defineNuxtModule<ModuleOptions>({
 
                 if (!clientConfig) continue
 
-                setupClient(nuxt, config, clientType, clientConfig)
+                setupClient(nuxt, resolver, config, clientType, clientConfig)
             }
 
             await nuxt.callHook('shopify:config', { nuxt, config })
@@ -78,3 +89,76 @@ export default defineNuxtModule<ModuleOptions>({
         }
     },
 })
+
+export const setupClient = (
+    nuxt: Nuxt,
+    resolver: Resolver,
+    config: ShopifyConfig,
+    clientType: ShopifyClientType,
+    clientConfig: ShopifyClientConfig,
+) => {
+    const log = useLog(config.logger)
+
+    if (!clientConfig.skipCodegen) {
+        registerTemplates(nuxt, clientType, clientConfig)
+    }
+    else {
+        log.info(`Skipping type generation for ${clientType}`)
+    }
+
+    if (nuxt.options.dev && clientConfig.sandbox) {
+        const url = installSandbox(nuxt, clientType)
+
+        log.info(`${upperFirst(clientType)} sandbox available at: ${url}`)
+    }
+
+    const functionName = `use${upperFirst(clientType)}`
+
+    addServerImports([{
+        from: resolver.resolve(`./runtime/server/utils/${functionName}`),
+        name: functionName,
+    }])
+
+    if (clientType === 'storefront') {
+        setupStorefrontFeatures(nuxt, config, clientConfig)
+    }
+}
+
+export const setupStorefrontFeatures = (nuxt: Nuxt, config: ShopifyConfig, clientConfig: ShopifyStorefrontConfig) => {
+    const log = useLog(config.logger)
+
+    const resolver = createResolver(import.meta.url)
+
+    if (clientConfig.publicAccessToken?.length || clientConfig.mock) {
+        addImports([
+            {
+                from: resolver.resolve(`./runtime/composables/useStorefront`),
+                name: 'useStorefront',
+            },
+            {
+                from: resolver.resolve(`./runtime/composables/useAsyncStorefront`),
+                name: 'useAsyncStorefront',
+            },
+        ])
+
+        if (clientConfig.proxy) {
+            if (!nuxt.options.ssr) {
+                log.info('Server-side request proxying is only available in SSR mode, skipping proxy setup.')
+            }
+
+            const url = typeof clientConfig.proxy === 'string'
+                ? clientConfig.proxy
+                : '_proxy/storefront'
+
+            nuxt.options.routeRules = defu(nuxt.options.routeRules, {
+                [url]: {
+                    proxy: createStorefrontConfig(config).apiUrl,
+                },
+            })
+
+            if (nuxt.options.dev) {
+                log.info(`Storefront proxy available at: ${joinURL(nuxt.options.devServer.url, url)}`)
+            }
+        }
+    }
+}
