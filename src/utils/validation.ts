@@ -37,6 +37,7 @@ export const useShopifyConfigValidation = (options: ModuleOptions) => {
             storefront: clientSchema.extend({
                 publicAccessToken: z.string().min(1).optional(),
                 privateAccessToken: z.string().min(1).optional(),
+                proxy: z.boolean().optional().default(true).or(z.string().optional()),
                 mock: z.boolean().optional(),
             }).optional(),
 

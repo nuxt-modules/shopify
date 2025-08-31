@@ -1,25 +1,21 @@
-import type { ModuleOptions, ShopifyStorefrontConfig } from './types'
+import type { ModuleOptions } from './types'
 import type { ShopifyClientType } from './utils'
 
 import {
-    addImports,
-    addServerImports,
     createResolver,
     defineNuxtModule,
     useRuntimeConfig,
     updateRuntimeConfig,
 } from '@nuxt/kit'
-import { upperFirst } from 'scule'
 import { defu } from 'defu'
 
 import {
-    installSandbox,
     registerAutoImports,
-    registerTemplates,
     registerVirtualModuleTemplates,
     useLog,
     useShopifyConfig,
     useShopifyConfigValidation,
+    setupClient,
 } from './utils'
 
 const ROLLUP_REPLACE_VIRTUAL_MODULES = true
@@ -56,41 +52,7 @@ export default defineNuxtModule<ModuleOptions>({
 
                 if (!clientConfig) continue
 
-                if (!clientConfig.skipCodegen) {
-                    registerTemplates(nuxt, clientType, clientConfig)
-                }
-                else {
-                    log.info(`Skipping type generation for ${clientType}`)
-                }
-
-                if (nuxt.options.dev && clientConfig.sandbox) {
-                    const url = installSandbox(nuxt, clientType)
-
-                    log.info(`${upperFirst(clientType)} sandbox available at: ${url}`)
-                }
-
-                const functionName = `use${upperFirst(clientType)}`
-                const asyncFunctionName = `useAsync${upperFirst(clientType)}`
-
-                addServerImports([{
-                    from: resolver.resolve(`./runtime/server/utils/${functionName}`),
-                    name: functionName,
-                }])
-
-                const storefrontConfig = clientConfig as ShopifyStorefrontConfig
-
-                if (clientType === 'storefront' && (storefrontConfig.publicAccessToken?.length ?? storefrontConfig.mock)) {
-                    addImports([
-                        {
-                            from: resolver.resolve(`./runtime/composables/${functionName}`),
-                            name: functionName,
-                        },
-                        {
-                            from: resolver.resolve(`./runtime/composables/${asyncFunctionName}`),
-                            name: asyncFunctionName,
-                        },
-                    ])
-                }
+                setupClient(nuxt, config, clientType, clientConfig)
             }
 
             await nuxt.callHook('shopify:config', { nuxt, config })

@@ -1,3 +1,4 @@
+export * from './setup'
 export * from './codegen'
 export * from './config'
 export * from './imports'

@@ -46,6 +46,7 @@ export default defineNuxtConfig({
                 publicAccessToken: 'YOUR_ACCESS_TOKEN',     // Public access token to use.
                 privateAccessToken: 'YOUR_ACCESS_TOKEN',    // Private access token to use.
                 mock: false,                                // Use mock.shop instead of <your-shop>.myshopify.com.
+                proxy: true,                                // Proxy all client side requests through nitro.
                 sandbox: true,                              // Enable sandbox for the client.
                 skipCodegen: false,                         // Skip code generation for the client.
                 documents: [],                              // Glob patterns to include in code generation.
