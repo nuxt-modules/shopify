@@ -1,3 +1,6 @@
+# 0.1.1
+- Added automatic server-side proxy for client requests
+
 # 0.1.0
 - Added custom api client
 - Removed shopify storefront and admin api client module dependencies
