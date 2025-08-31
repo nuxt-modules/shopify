@@ -1,3 +1,6 @@
+# 0.1.2
+- Fixed runtime path resolution problems
+
 # 0.1.1
 - Added automatic server-side proxy for client requests
 
