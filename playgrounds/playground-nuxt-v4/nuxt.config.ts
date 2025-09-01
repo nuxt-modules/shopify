@@ -12,9 +12,20 @@ export default defineNuxtConfig({
                     apiVersion: '',
                     publicAccessToken: '',
                 },
+
+                admin: {
+                    apiVersion: '',
+                    accessToken: '',
+                },
             },
         },
     },
 
     compatibilityDate: '2025-08-22',
+
+    shopify: {
+        autoImports: {
+            admin: false,
+        },
+    },
 })
