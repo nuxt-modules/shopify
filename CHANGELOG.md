@@ -1,3 +1,6 @@
+# 0.1.3
+- Fixed nitro type includes
+
 # 0.1.2
 - Fixed runtime path resolution problems
 
