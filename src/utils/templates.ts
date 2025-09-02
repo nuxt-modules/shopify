@@ -19,7 +19,7 @@ import {
     generateVirtualModule,
 } from './codegen'
 
-const indexTemplate = (types: string, operations: string) => () => `
+const indexTemplate = (types: string, operations: string) => `
 export * from './${basename(types)}'
 export * from './${basename(operations)}'
 `
@@ -60,6 +60,21 @@ export function registerVirtualModuleTemplates(nuxt: Nuxt) {
 
         nuxt.options.alias = defu(nuxt.options.alias, {
             [`@konkonam/nuxt-shopify/${clientType}`]: `./${dirname(virtualModule.filename)}`,
+        })
+
+        nuxt.options = defu(nuxt.options, {
+            alias: {
+                [`@konkonam/nuxt-shopify/${clientType}`]: `./${dirname(virtualModule.filename)}`,
+            },
+            nitro: {
+                typescript: {
+                    tsConfig: {
+                        include: [
+                            `./${dirname(virtualModule.filename)}`,
+                        ],
+                    },
+                },
+            },
         })
     }
 }
@@ -107,10 +122,21 @@ export function registerTemplates<T extends ShopifyClientType>(nuxt: Nuxt, clien
 
     const index = addTypeTemplate<ShopifyTemplateOptions>({
         filename: `types/${clientType}/index.d.ts`,
-        getContents: indexTemplate(types.filename, operations.filename),
+        getContents: () => indexTemplate(types.filename, operations.filename).trimStart(),
     })
 
-    nuxt.options.alias = defu(nuxt.options.alias, {
-        [`#shopify/${clientType}`]: `./${dirname(index.filename)}`,
+    nuxt.options = defu(nuxt.options, {
+        alias: {
+            [`#shopify/${clientType}`]: `./${dirname(index.filename)}`,
+        },
+        nitro: {
+            typescript: {
+                tsConfig: {
+                    include: [
+                        `./${dirname(index.filename)}`,
+                    ],
+                },
+            },
+        },
     })
 }

@@ -1,6 +1,11 @@
 import type { Nuxt } from '@nuxt/schema'
 
-import type { ModuleOptions, ShopifyConfig, ShopifyClientConfig, ShopifyStorefrontConfig } from './types'
+import type {
+    ModuleOptions,
+    ShopifyConfig,
+    ShopifyClientConfig,
+    ShopifyStorefrontConfig,
+} from './types'
 import type { ShopifyClientType } from './utils'
 
 import {
@@ -9,6 +14,7 @@ import {
     useRuntimeConfig,
     updateRuntimeConfig,
     addImports,
+    addServerHandler,
     addServerImports,
 } from '@nuxt/kit'
 import { defu } from 'defu'
@@ -24,9 +30,6 @@ import {
     installSandbox,
     registerTemplates,
 } from './utils'
-import {
-    createStorefrontConfig,
-} from './runtime/utils/clients/storefront'
 
 const ROLLUP_REPLACE_VIRTUAL_MODULES = true
 
@@ -148,12 +151,11 @@ export const setupStorefrontFeatures = (nuxt: Nuxt, config: ShopifyConfig, clien
 
             const url = typeof clientConfig.proxy === 'string'
                 ? clientConfig.proxy
-                : '_proxy/storefront'
+                : '/_proxy/storefront'
 
-            nuxt.options.routeRules = defu(nuxt.options.routeRules, {
-                [url]: {
-                    proxy: createStorefrontConfig(config).apiUrl,
-                },
+            addServerHandler({
+                handler: resolver.resolve(`./runtime/server/api/proxy/storefront`),
+                route: url,
             })
 
             if (nuxt.options.dev) {
