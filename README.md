@@ -26,7 +26,7 @@ Magic Shopify GraphQL API-Connector for Nuxt 3 & 4.
 - 🌐 Server & client side support
 - 🛠️ Automatic mock.shop integration
 - 🚩 Error handling optimized for Nuxt
-- 📡 Server-side proxy for all client requests
+- 📡 Server-side proxy for API requests
 - 🧩 GraphQL fragments support
 - ⚙️ Customizable GraphQL code generation
 - 📦 Auto-imports for GraphQL queries and generated types
@@ -38,7 +38,7 @@ Magic Shopify GraphQL API-Connector for Nuxt 3 & 4.
 
 Upcoming features and developments for the 1.0.0 release:
 
-- 🏎️ Automatic sub-request caching
+- 🏎️ Sub-request caching support
 - 👤 Customer Account API support
 - 🔍 Shopify Analytics support
 - 🛍️ Store template with Nuxt UI & Nuxt Content
