@@ -9,6 +9,8 @@ env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
+  NUXT_SHOPIFY_DEV_MODULE_ALIAS: true
+
 on:
   push:
     branches:
@@ -23,7 +25,7 @@ jobs:
       - uses: oven-sh/setup-bun@v2
 
       - name: Install dependencies
-        run: bun install --frozen-lockfile --ignore-scripts
+        run: bun install --frozen-lockfile
 
       - name: Typecheck
         run: bun run typecheck:template
@@ -33,12 +35,10 @@ jobs:
     needs: [ typecheck ]
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22.18.0
+      - uses: oven-sh/setup-bun@v2
 
       - name: Install Vercel CLI
-        run: npm install -g vercel@latest
+        run: bun install -g vercel@latest
 
       - name: Pull Vercel Environment Information
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}

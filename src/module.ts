@@ -84,7 +84,7 @@ export default defineNuxtModule<ModuleOptions>({
         }
 
         if (process.env.NUXT_SHOPIFY_DEV_MODULE_ALIAS) {
-            log.info('Development mode enabled: aliasing client types to source files')
+            log.info('Development mode enabled: including source files')
 
             nuxt.options = defu(nuxt.options, {
                 alias: {
