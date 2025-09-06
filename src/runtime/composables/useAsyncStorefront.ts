@@ -52,11 +52,11 @@ export function useAsyncStorefront<
 >(
     ...args: any[]
 ): AsyncData<PickFrom<DataT, PickKeys>, (NuxtErrorDataT extends Error | NuxtError ? NuxtErrorDataT : NuxtError<NuxtErrorDataT>) | undefined> {
-    if (args.length < 3 || args.length > 4) {
+    if (args.length < 2 || args.length > 4) {
         throw new Error('[shopify] [useAsyncStorefront] Invalid number of arguments')
     }
 
-    const hasKey = args.length === 4
+    const hasKey = args.length === 4 || (args.length === 3 && typeof args[1] === 'string')
 
     if (!hasKey) {
         args.unshift('')
