@@ -1,7 +1,7 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
     modules: [
-        '@konkonam/nuxt-shopify',
+        '../src/module',
         '@nuxt/ui',
         '@nuxt/content',
         '@nuxtjs/i18n',
@@ -43,6 +43,7 @@ export default defineNuxtConfig({
         server: {
             allowedHosts: [
                 '.ngrok-free.app',
+                '.vercel.app',
             ],
         },
     },

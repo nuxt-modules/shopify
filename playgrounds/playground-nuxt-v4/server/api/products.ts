@@ -10,16 +10,16 @@ export default defineEventHandler(async (event) => {
     const storefront = useStorefront()
 
     return storefront.request(`#graphql
-    query FetchProducts($first: Int) {
-        products(first: $first) {
-            nodes {
-                id
-                title
-                description
-                descriptionHtml
+        query FetchProducts($first: Int) {
+            products(first: $first) {
+                nodes {
+                    id
+                    title
+                    description
+                    descriptionHtml
+                }
             }
         }
-    }
     `, {
         variables: query,
     })

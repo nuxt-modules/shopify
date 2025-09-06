@@ -1,4 +1,4 @@
-declare module 'nuxt/schema' {
+declare module '@nuxt/schema' {
     interface AppConfigInput {
         shopify?: {
             collection?: {
@@ -7,3 +7,5 @@ declare module 'nuxt/schema' {
         }
     }
 }
+
+export {}

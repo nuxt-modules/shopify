@@ -23,15 +23,12 @@ import { joinURL } from 'ufo'
 
 import {
     registerAutoImports,
-    registerVirtualModuleTemplates,
     useLog,
     useShopifyConfig,
     useShopifyConfigValidation,
     installSandbox,
     registerTemplates,
 } from './utils'
-
-const ROLLUP_REPLACE_VIRTUAL_MODULES = true
 
 export default defineNuxtModule<ModuleOptions>({
     meta: {
@@ -86,8 +83,26 @@ export default defineNuxtModule<ModuleOptions>({
             log.debug(`Error while parsing module options:\n${moduleOptions.error}`)
         }
 
-        if (ROLLUP_REPLACE_VIRTUAL_MODULES) {
-            registerVirtualModuleTemplates(nuxt)
+        if (process.env.NUXT_SHOPIFY_DEV_MODULE_ALIAS) {
+            log.info('Development mode enabled: aliasing client types to source files')
+
+            nuxt.options = defu(nuxt.options, {
+                alias: {
+                    '@konkonam/nuxt-shopify/storefront': resolver.resolve('./types/clients/storefront.d.ts'),
+                    '@konkonam/nuxt-shopify/admin': resolver.resolve('./types/clients/admin.d.ts'),
+                },
+
+                nitro: {
+                    typescript: {
+                        tsConfig: {
+                            include: [
+                                resolver.resolve('./types/clients/storefront.d.ts'),
+                                resolver.resolve('./types/clients/admin.d.ts'),
+                            ],
+                        },
+                    },
+                },
+            })
         }
     },
 })

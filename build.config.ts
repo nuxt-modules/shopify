@@ -4,6 +4,7 @@ export default defineBuildConfig({
     declaration: true,
 
     entries: [
+        'src/module',
         'src/commands/init',
 
         {
@@ -11,8 +12,4 @@ export default defineBuildConfig({
             input: 'src/types/clients',
         },
     ],
-
-    replace: {
-        ROLLUP_REPLACE_VIRTUAL_MODULES: 'false',
-    },
 })

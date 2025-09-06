@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+import { access, readFile, writeFile } from 'node:fs/promises'
+import { join } from 'node:path'
 import { defineCommand, runMain } from 'citty'
 import log from 'consola'
 import { downloadTemplate } from 'giget'
@@ -25,9 +27,28 @@ const command = defineCommand({
             log.error('Failed to download template:', error)
         })
 
-        if (!template) return
+        if (!template) {
+            log.error('Failed to download template.')
+            return
+        }
 
-        log.success(`Template initialized in ${template.dir}`)
+        const configPath = join(template.dir, 'nuxt.config.ts')
+
+        if (!await access(configPath).then(() => true).catch(() => false)) {
+            log.error('Failed to prepare template contents.')
+            return
+        }
+
+        const configContent = await readFile(configPath, 'utf-8')
+            .then(data => data.replace('../src/module', '@konkonam/nuxt-shopify'))
+
+        await writeFile(
+            configPath,
+            configContent,
+            'utf-8',
+        )
+
+        log.success(`Nuxt Shopify Template initialized in ${template.dir}`)
     },
 })
 
