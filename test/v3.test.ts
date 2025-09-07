@@ -4,6 +4,11 @@ import { access, readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import { join } from 'node:path'
 
+import {
+    ShopifyClientType,
+    getInterfaceExtensionFunction,
+} from '../src/utils'
+
 const playgroundDir = fileURLToPath(new URL('../playgrounds/playground-v3', import.meta.url))
 const playgroundStorefrontTypesDir = fileURLToPath(new URL('../playgrounds/playground-v3/.nuxt/types/storefront', import.meta.url))
 const playgroundAdminTypesDir = fileURLToPath(new URL('../playgrounds/playground-v3/.nuxt/types/admin', import.meta.url))
@@ -133,9 +138,12 @@ describe('test module with nuxt 3', async () => {
         expect(operationsContent).toContain('ProductFieldsFragment')
 
         // Check that it performs the necessary module type augmentation
-        expect(operationsContent).toContain('declare module \'@konkonam/nuxt-shopify/storefront\'')
-        expect(operationsContent).toContain('interface StorefrontQueries')
-        expect(operationsContent).toContain('interface StorefrontMutations')
+        const interfaceExtension = getInterfaceExtensionFunction(
+            ShopifyClientType.Storefront,
+            'GeneratedQueryTypes',
+            'GeneratedMutationTypes',
+        )
+        expect(operationsContent).toContain(interfaceExtension)
     })
 
     it('should generate admin api operations', async () => {
@@ -153,8 +161,11 @@ describe('test module with nuxt 3', async () => {
         expect(operationsContent).toContain('MarketFieldsFragment')
 
         // Check that it performs the necessary module type augmentation
-        expect(operationsContent).toContain('declare module \'@konkonam/nuxt-shopify/admin\'')
-        expect(operationsContent).toContain('interface AdminQueries')
-        expect(operationsContent).toContain('interface AdminMutations')
+        const interfaceExtension = getInterfaceExtensionFunction(
+            ShopifyClientType.Admin,
+            'GeneratedQueryTypes',
+            'GeneratedMutationTypes',
+        )
+        expect(operationsContent).toContain(interfaceExtension)
     })
 })

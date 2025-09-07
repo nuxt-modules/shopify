@@ -24,8 +24,9 @@ async function extractResult(input: Promise<Types.FileOutput[]>) {
     }
 }
 
-const getInterfaceExtensionFunction = (clientType: ShopifyClientType, queryType: string, mutationType: string) => `
+export const getInterfaceExtensionFunction = (clientType: ShopifyClientType, queryType: string, mutationType: string) => `
 declare module '@konkonam/nuxt-shopify/${kebabCase(clientType)}' {
+    type InputMaybe<T> = ${upperFirst(clientType)}Types.InputMaybe<T>
     interface ${upperFirst(clientType)}Queries extends ${queryType} {}
     interface ${upperFirst(clientType)}Mutations extends ${mutationType} {}
 }

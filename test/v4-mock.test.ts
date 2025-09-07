@@ -4,6 +4,11 @@ import { access, readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import { join } from 'node:path'
 
+import {
+    ShopifyClientType,
+    getInterfaceExtensionFunction,
+} from '../src/utils'
+
 const playgroundDir = fileURLToPath(new URL('../playgrounds/playground-v4-mock', import.meta.url))
 const playgroundStorefrontTypesDir = fileURLToPath(new URL('../playgrounds/playground-v4-mock/.nuxt/types/storefront', import.meta.url))
 
@@ -85,8 +90,11 @@ describe('test mock.shop integration with nuxt 4', async () => {
         expect(operationsContent).toContain('ProductFieldsFragment')
 
         // Check that it performs the necessary module type augmentation
-        expect(operationsContent).toContain('declare module \'@konkonam/nuxt-shopify/storefront\'')
-        expect(operationsContent).toContain('interface StorefrontQueries')
-        expect(operationsContent).toContain('interface StorefrontMutations')
+        const interfaceExtension = getInterfaceExtensionFunction(
+            ShopifyClientType.Storefront,
+            'GeneratedQueryTypes',
+            'GeneratedMutationTypes',
+        )
+        expect(operationsContent).toContain(interfaceExtension)
     })
 })
