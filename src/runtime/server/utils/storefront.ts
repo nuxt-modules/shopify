@@ -2,9 +2,9 @@ import type { StorefrontApiClient, StorefrontOperations } from '@konkonam/nuxt-s
 
 import { useNitroApp } from 'nitropack/runtime'
 import { useRuntimeConfig } from '#imports'
-import { createClient } from '../../utils/clients'
-import { createStorefrontConfig } from '../../utils/clients/storefront'
-import useErrors from './useErrors'
+import { createClient } from '../../utils/client'
+import { createStorefrontConfig } from '../../utils/storefront'
+import useErrors from '../../utils/errors'
 
 export function useStorefront(): StorefrontApiClient {
     const { _shopify } = useRuntimeConfig()
@@ -22,7 +22,7 @@ export function useStorefront(): StorefrontApiClient {
 
         const response = await originalClient.request(operation, options)
 
-        if (response.errors) useErrors(nitroApp, response.errors, _shopify?.errors?.throw ?? false)
+        if (response.errors) useErrors(nitroApp.hooks, 'storefront:client:errors', response.errors, _shopify?.errors?.throw ?? false)
 
         nitroApp.hooks.callHook('storefront:client:response', { response, operation, options })
 

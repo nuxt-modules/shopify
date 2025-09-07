@@ -2,9 +2,9 @@ import type { AdminApiClient, AdminOperations } from '@konkonam/nuxt-shopify/adm
 
 import { useNitroApp } from 'nitropack/runtime'
 import { useRuntimeConfig } from '#imports'
-import { createClient } from '../../utils/clients'
-import { createAdminConfig } from '../../utils/clients/admin'
-import useErrors from './useErrors'
+import { createClient } from '../../utils/client'
+import { createAdminConfig } from '../../utils/admin'
+import useErrors from '../../utils/errors'
 
 export function useAdmin(): AdminApiClient {
     const { _shopify } = useRuntimeConfig()
@@ -22,7 +22,7 @@ export function useAdmin(): AdminApiClient {
 
         const response = await originalClient.request(operation, options)
 
-        if (response.errors) useErrors(nitroApp, response.errors, _shopify?.errors?.throw ?? false)
+        if (response.errors) useErrors(nitroApp.hooks, 'admin:client:errors', response.errors, _shopify?.errors?.throw ?? false)
 
         nitroApp.hooks.callHook('admin:client:response', { response, operation, options })
 

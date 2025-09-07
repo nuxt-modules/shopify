@@ -7,7 +7,7 @@ import type { StorefrontOperations } from '@konkonam/nuxt-shopify/storefront'
 
 import { useAsyncData } from '#app'
 
-import { useStorefront } from './useStorefront'
+import { useStorefront } from './storefront'
 
 type PickFrom<T, K extends Array<string>> = T extends Array<any> ? T : T extends Record<string, any> ? keyof T extends K[number] ? T : K[number] extends never ? T : Pick<T, K[number]> : T
 type KeysOf<T> = Array<T extends T ? keyof T extends string ? keyof T : never : never>

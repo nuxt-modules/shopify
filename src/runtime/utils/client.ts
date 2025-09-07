@@ -5,13 +5,13 @@ import type {
     RequestParams,
 } from '@shopify/graphql-client'
 
-import type { GenericApiClient, GenericApiClientConfig } from '../../../types'
+import type { GenericApiClient, GenericApiClientConfig } from '../../types'
 
 import { createGraphQLClient } from '@shopify/graphql-client'
 import { joinURL } from 'ufo'
 import { createConsola } from 'consola'
 
-import { version } from '../../../../package.json'
+import { version } from '../../../package.json'
 
 export const createStoreDomain = (name: string) => `https://${name}.myshopify.com`
 

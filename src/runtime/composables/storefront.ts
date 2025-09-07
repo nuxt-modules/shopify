@@ -3,9 +3,9 @@ import type { StorefrontApiClient, StorefrontOperations } from '@konkonam/nuxt-s
 import { joinURL } from 'ufo'
 
 import { useRuntimeConfig, useNuxtApp, useRequestURL } from '#imports'
-import { createClient } from '../utils/clients'
-import { createStorefrontConfig } from '../utils/clients/storefront'
-import useErrors from './useErrors'
+import { createClient } from '../utils/client'
+import { createStorefrontConfig } from '../utils/storefront'
+import useErrors from '../utils/errors'
 
 export function useStorefront(): StorefrontApiClient {
     const { _shopify } = useRuntimeConfig().public
@@ -31,7 +31,7 @@ export function useStorefront(): StorefrontApiClient {
 
         const response = await originalClient.request(operation, options)
 
-        if (response.errors) useErrors(nuxtApp, response.errors, _shopify?.errors?.throw ?? false)
+        if (response.errors) useErrors(nuxtApp.hooks, 'storefront:client:errors', response.errors, _shopify?.errors?.throw ?? false)
 
         nuxtApp.hooks.callHook('storefront:client:response', { response, operation, options })
 

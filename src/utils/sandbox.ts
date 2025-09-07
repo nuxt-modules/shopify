@@ -2,15 +2,15 @@ import type { Nuxt } from '@nuxt/schema'
 import type { H3Event } from 'h3'
 
 import { addDevServerHandler } from '@nuxt/kit'
-import { createClient } from '../runtime/utils/clients'
+import { createClient } from '../runtime/utils/client'
 import { defineEventHandler, readValidatedBody } from 'h3'
 import { z } from 'zod'
 import type { ShopifyConfig } from '../types'
 import type { ShopifyClientType } from './config'
 
 import getSandboxTemplate from '../templates/sandbox-template'
-import { createStorefrontConfig } from '../runtime/utils/clients/storefront'
-import { createAdminConfig } from '../runtime/utils/clients/admin'
+import { createStorefrontConfig } from '../runtime/utils/storefront'
+import { createAdminConfig } from '../runtime/utils/admin'
 
 export function getSandboxUrl(nuxt: Nuxt, clientType: ShopifyClientType) {
     const url = new URL(nuxt.options.devServer.url)

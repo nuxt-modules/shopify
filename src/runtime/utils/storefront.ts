@@ -1,6 +1,6 @@
-import type { GenericApiClientConfig, ShopifyConfig } from '../../../types'
+import type { GenericApiClientConfig, ShopifyConfig } from '../../types'
 
-import { createApiUrl, createStoreDomain } from './index'
+import { createApiUrl, createStoreDomain } from './client'
 
 const MOCK_STORE_DOMAIN = 'https://mock.shop'
 

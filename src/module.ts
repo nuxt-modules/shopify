@@ -130,11 +130,9 @@ export const setupClient = (
         log.info(`${upperFirst(clientType)} sandbox available at: ${url}`)
     }
 
-    const functionName = `use${upperFirst(clientType)}`
-
     addServerImports([{
-        from: resolver.resolve(`./runtime/server/utils/${functionName}`),
-        name: functionName,
+        from: resolver.resolve(`./runtime/server/utils/${clientType}`),
+        name: `use${upperFirst(clientType)}`,
     }])
 
     if (clientType === 'storefront') {
@@ -150,11 +148,11 @@ export const setupStorefrontFeatures = (nuxt: Nuxt, config: ShopifyConfig, clien
     if (clientConfig.publicAccessToken?.length || clientConfig.mock) {
         addImports([
             {
-                from: resolver.resolve(`./runtime/composables/useStorefront`),
+                from: resolver.resolve(`./runtime/composables/storefront`),
                 name: 'useStorefront',
             },
             {
-                from: resolver.resolve(`./runtime/composables/useAsyncStorefront`),
+                from: resolver.resolve(`./runtime/composables/async`),
                 name: 'useAsyncStorefront',
             },
         ])
