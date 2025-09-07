@@ -1,5 +1,5 @@
 {
-    "name": "playground-mock",
+    "name": "playground-v4-mock",
     "private": true,
     "type": "module",
     "scripts": {
@@ -11,6 +11,6 @@
         "typecheck": "nuxt typecheck"
     },
     "dependencies": {
-        "nuxt": "^4.0.3"
+        "nuxt": "^4.1.1"
     }
 }

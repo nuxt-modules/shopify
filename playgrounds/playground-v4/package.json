@@ -1,5 +1,5 @@
 {
-    "name": "playground",
+    "name": "playground-v4",
     "private": true,
     "type": "module",
     "scripts": {
@@ -11,6 +11,6 @@
         "typecheck": "nuxt typecheck"
     },
     "dependencies": {
-        "nuxt": "^3.18.1"
+        "nuxt": "^4.1.1"
     }
 }

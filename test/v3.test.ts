@@ -4,11 +4,11 @@ import { access, readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import { join } from 'node:path'
 
-const playgroundDir = fileURLToPath(new URL('../playgrounds/playground', import.meta.url))
-const playgroundStorefrontTypesDir = fileURLToPath(new URL('../playgrounds/playground/.nuxt/types/storefront', import.meta.url))
-const playgroundAdminTypesDir = fileURLToPath(new URL('../playgrounds/playground/.nuxt/types/admin', import.meta.url))
+const playgroundDir = fileURLToPath(new URL('../playgrounds/playground-v3', import.meta.url))
+const playgroundStorefrontTypesDir = fileURLToPath(new URL('../playgrounds/playground-v3/.nuxt/types/storefront', import.meta.url))
+const playgroundAdminTypesDir = fileURLToPath(new URL('../playgrounds/playground-v3/.nuxt/types/admin', import.meta.url))
 
-describe('basic module test', async () => {
+describe('test module with nuxt 3', async () => {
     await setup({
         server: true,
         rootDir: playgroundDir,
