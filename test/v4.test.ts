@@ -95,6 +95,12 @@ describe('test module with nuxt 4', async () => {
         expect(html).toContain('<p>Market count: 3</p>')
     })
 
+    it('should error when given invalid input', async () => {
+        await expect($fetch('/errors')).resolves.toMatchObject({
+            statusMessage: '[shopify] GraphQL Error: Malformed cursor: products',
+        })
+    })
+
     it('should generate storefront api types', async () => {
         const path = join(playgroundStorefrontTypesDir, 'storefront.types.d.ts')
 
@@ -133,6 +139,7 @@ describe('test module with nuxt 4', async () => {
         expect(operationsContent).toContain('FetchAsyncProductsQuery')
         expect(operationsContent).toContain('FetchProductsQuery')
         expect(operationsContent).toContain('FetchFirstThreeProductsQuery')
+        expect(operationsContent).toContain('FetchProductsWithError')
 
         // Check that it contains expected GraphQL fragments
         expect(operationsContent).toContain('ProductFieldsFragment')
