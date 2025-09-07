@@ -28,7 +28,7 @@ const { data: products } = await useAsyncStorefront('async-data-test', `#graphql
 `, {
     variables: {
         handle: 'shirts',
-        first: 3,
+        first: 5,
     },
 }, {
     transform: response => flattenConnection(response.collection?.products),
@@ -45,5 +45,7 @@ const { data: products } = await useAsyncStorefront('async-data-test', `#graphql
             <p>{{ product.description }}</p>
             <br>
         </div>
+
+        <p>Product count: {{ products.length }}</p>
     </div>
 </template>

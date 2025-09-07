@@ -76,6 +76,13 @@ describe('test module with nuxt 4', async () => {
         expect(html).toContain('<p>Product count: 5</p>')
     })
 
+    it('should create a working async storefront client call', async () => {
+        const html = await $fetch('/async')
+
+        // Check that we get 5 products
+        expect(html).toContain('<p>Product count: 5</p>')
+    })
+
     it('should create a working admin fetch client', async () => {
         const html = await $fetch('/admin')
 
