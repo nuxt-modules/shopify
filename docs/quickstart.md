@@ -7,7 +7,7 @@ This page will guide you through the basic setup of the module.
 Run the following command to install the module in your project:
 
 ```bash
-npm install -D @konkonam/nuxt-shopify
+npx nuxt@latest module add nuxt-shopify
 ```
 
 ## Configuration
@@ -78,7 +78,7 @@ The easiest way is with the `useStorefront` composable, directly inside of your 
 <script setup lang="ts">
 const storefront = useStorefront()
 
-const { data } = await storefront.request(`#graphql
+const { data, errors } = await storefront.request(`#graphql
     query FetchProducts($first: Int) {
         products(first: $first) {
             nodes {
@@ -89,7 +89,7 @@ const { data } = await storefront.request(`#graphql
         }
     }
 `, {
-    variables: {
+    variablesx: {
         first: 3,
     },
 })
@@ -110,6 +110,23 @@ const { data } = await useAsyncData('products', () => storefront.request(`#graph
         first: 3,
     },
 }), { transform: response => response?.data?.products.nodes })
+
+// Or with the custom useAsyncStorefront composable
+const { data, error } = await useAsyncStorefront(`#graphql
+    query FetchFirstThreeProducts($first: Int) {
+        products(first: $first) {
+            nodes {
+                id
+                title
+                description
+            }
+        }
+    }
+`, {
+    variables: {
+        first: 3,
+    },
+}, { transform: data => flattenConnection(data?.products) })
 </script>
 
 <template>
