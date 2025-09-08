@@ -14,6 +14,16 @@ export default defineConfig({
 
     cleanUrls: true,
 
+    head: [
+        [
+            'meta',
+            {
+                property: 'og:image',
+                content: '/nuxt-shopify/logo-readme.jpg',
+            },
+        ],
+    ],
+
     themeConfig: {
         editLink: {
             pattern: 'https://github.com/konkonam/nuxt-shopify/edit/main/docs/:path',
