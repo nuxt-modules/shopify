@@ -1,8 +1,6 @@
-<p align="center">
-  <img height="107" src="https://raw.githubusercontent.com/konkonam/nuxt-shopify/refs/heads/main/docs/public/logo-readme.png">
-</p>
+![Nuxt Shopify Logo](https://raw.githubusercontent.com/konkonam/nuxt-shopify/refs/heads/main/docs/public/logo-readme.jpg)
 
-# Nuxt Shopify
+# Nuxt Shopify Module
 
 [![Github Actions][github-actions-src]][github-actions-href]
 [![NPM version][npm-version-src]][npm-version-href]
@@ -10,10 +8,9 @@
 [![NPM last update][npm-last-update-src]][npm-last-update-href]
 [![License][license-src]][license-href]
 
-Magic Shopify GraphQL API-Connector for Nuxt 3 & 4.
+Fully typed fetch client for the [Shopify Storefront API](https://shopify.dev/docs/api/storefront) and the [Shopify Admin API](https://shopify.dev/docs/api/admin-graphql). You can use it on the server and client side, with built-in support for [mock.shop](https://mock.shop) and automatic, hot-reloaded type generation from your GraphQL queries.
 
 - 🛍️ [Store Template (Coming soon)](https://github.com/konkonam/nuxt-shopify/tree/main/template)
-- 🏀 [Online Demo (Coming soon)](https://nuxt-shopify.vercel.app)
 - 📚 [Documentation](https://konkonam.github.io/nuxt-shopify)
 - ✨ [Release Notes](https://github.com/konkonam/nuxt-shopify/tree/main/CHANGELOG.md)
 
@@ -41,6 +38,7 @@ Upcoming features and developments for the 1.0.0 release:
 - 🏎️ Sub-request caching support
 - 👤 Customer Account API support
 - 🔍 Shopify Analytics support
+- 🪝 Webhook subscription support
 - 🛍️ Store template with Nuxt UI & Nuxt Content
 
 ## 📦 Setup
