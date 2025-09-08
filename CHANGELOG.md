@@ -1,3 +1,8 @@
+# 0.1.4
+- Fixed useAsyncStorefront arguments
+- Fixed storefront hooks being called instead of admin hooks at runtime
+- Bumped dependencies
+
 # 0.1.3
 - Fixed nitro type includes
 
