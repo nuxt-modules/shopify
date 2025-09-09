@@ -355,6 +355,11 @@ export default defineNitroPlugin((nitroApp) => {
 
 Read more about all available hooks in our [hooks documentation](https://konkonam.github.io/nuxt-shopify/configuration/hooks).
 
+## 👥 Maintainers
+
+* Frederik Bußmann ([@freb97](https://github.com/freb97))
+* Zoltan Lukacs ([@konkonam](https://github.com/konkonam))
+
 ## 🤝 Contributing
 
 1. Clone this repository

@@ -49,9 +49,10 @@ export default defineNuxtConfig({
                 proxy: true,                                // Proxy all client side requests through nitro.
                 sandbox: true,                              // Enable sandbox for the client.
                 skipCodegen: false,                         // Skip code generation for the client.
+                headers: {},                                // Additional headers to include in requests.
                 documents: [],                              // Glob patterns to include in code generation.
                 clientName: 'storefront',                   // Name of the client.
-                retries: 3,                                 // Number of retries for failed requests.
+                retries: 0,                                 // Number of retries for failed requests.
             },
 
             admin: {                                        // Admin client options.
@@ -60,9 +61,10 @@ export default defineNuxtConfig({
                 accessToken: 'YOUR_ACCESS_TOKEN',           // Access token to use.
                 sandbox: true,                              // Enable sandbox for the client.
                 skipCodegen: false,                         // Skip code generation for the client.
+                headers: {},                                // Additional headers to include in requests.
                 documents: [],                              // Glob patterns to include in code generation.
                 isTesting: false,                           // Sets the isTesting flag for the client.
-                retries: 3,                                 // Number of retries for failed requests.
+                retries: 0,                                 // Number of retries for failed requests.
             },
         },
     },
@@ -87,7 +89,7 @@ The fastest way to get started is to use the minimal configuration for each clie
 
 ::: code-group
 
-```ts [storefront]
+```ts [storefront-public]
 // ~/nuxt.config.ts
 
 export default defineNuxtConfig({
@@ -98,6 +100,24 @@ export default defineNuxtConfig({
             storefront: {
                 apiVersion: '2025-07',
                 publicAccessToken: 'YOUR_ACCESS_TOKEN',
+            },
+        },
+    },
+})
+```
+
+
+```ts [storefront-private]
+// ~/nuxt.config.ts
+
+export default defineNuxtConfig({
+    shopify: {
+        name: 'quickstart-abcd1234',
+
+        clients: {
+            storefront: {
+                apiVersion: '2025-07',
+                privateAccessToken: 'YOUR_ACCESS_TOKEN',
             },
         },
     },

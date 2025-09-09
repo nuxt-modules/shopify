@@ -5,10 +5,10 @@ import { z } from 'zod'
 export const useShopifyConfigValidation = (options: ModuleOptions) => {
     const clientSchema = z.object({
         apiVersion: z.string().min(1),
+        headers: z.record(z.string()).optional(),
+        retries: z.number().optional(),
         sandbox: z.boolean().optional(),
         documents: z.array(z.string().min(1)).optional(),
-        headers: z.record(z.string().or(z.array(z.string().min(1)))).optional(),
-        retries: z.number().optional(),
         skipCodegen: z.boolean().optional(),
     })
 
