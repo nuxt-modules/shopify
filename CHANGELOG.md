@@ -1,3 +1,7 @@
+# 0.1.5
+- Renamed module to `@nuxtjs/shopify`
+- Replaced graphql-direct-proxy endpoints with custom endpoints for introspection
+
 # 0.1.4
 - Fixed useAsyncStorefront arguments
 - Fixed storefront hooks being called instead of admin hooks at runtime
