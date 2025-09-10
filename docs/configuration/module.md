@@ -6,7 +6,7 @@ The module can be configured via the `shopify` property in the `nuxt.config.ts` 
 // ~/nuxt.config.ts
 
 export default defineNuxtConfig({
-    modules: ['@konkonam/nuxt-shopify'],
+    modules: ['@nuxtjs/shopify'],
 
     shopify: {
         name: 'quickstart-abcd1234',
@@ -33,7 +33,7 @@ The module options allow you to configure the module as follows:
 // ~/nuxt.config.ts
 
 export default defineNuxtConfig({
-    modules: [ '@konkonam/nuxt-shopify' ],
+    modules: [ '@nuxtjs/shopify' ],
     
     shopify: {
         name: 'quickstart-abcd1234',                        // Shopify app name.

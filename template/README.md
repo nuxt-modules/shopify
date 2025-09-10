@@ -1,7 +1,3 @@
-<p align="center">
-  <img height="107" src="https://raw.githubusercontent.com/konkonam/nuxt-shopify/refs/heads/main/docs/public/logo-readme.png">
-</p>
-
 # Nuxt Shopify Template (WIP)
 
 [![Github Actions][github-actions-src]][github-actions-href]
@@ -16,7 +12,7 @@
 
 ## ⚡️ Features
 
-- 🛍️ **Shopify Integration**: Sell your products directly from your Nuxt app with [Nuxt Shopify](https://github.com/konkonam/nuxt-shopify)
+- 🛍️ **Shopify Integration**: Sell your products directly from your Nuxt app with [Nuxt Shopify](https://github.com/nuxt-modules/shopify)
 - 📝 **Content Management**: Change the template content to your needs with Nuxt Content
 - 🌐 **Internationalization**: Built-in page localizations with Nuxt i18n
 - 🔒 **Authentication**: Built-in authentication and customer management with Nuxt Auth Utils
@@ -50,7 +46,7 @@ Deploy to Cloudflare:
 Run the following command to clone the shop template:
 
 ```sh
-npx @konkonam/nuxt-shopify my-shop
+npx @nuxtjs/shopify my-shop
 ```
 
 Now you can navigate to the `my-shop` directory:
@@ -117,19 +113,19 @@ npm run typecheck
 
 ## 📜 License
 
-Published under the [MIT License](https://github.com/konkonam/nuxt-shopify/tree/main/LICENSE).
+Published under the [MIT License](https://github.com/nuxt-modules/shopify/tree/main/LICENSE).
 
-[github-actions-src]: https://github.com/konkonam/nuxt-shopify/actions/workflows/test.yml/badge.svg
-[github-actions-href]: https://github.com/konkonam/nuxt-shopify/actions
+[github-actions-src]: https://github.com/nuxt-modules/shopify/actions/workflows/test.yml/badge.svg
+[github-actions-href]: https://github.com/nuxt-modules/shopify/actions
 
-[license-src]: https://img.shields.io/github/license/konkonam/nuxt-shopify.svg?style=flat&colorA=18181B&colorB=31C553
-[license-href]: https://github.com/konkonam/nuxt-shopify/tree/main/LICENSE
+[license-src]: https://img.shields.io/github/license/nuxt-modules/shopify.svg?style=flat&colorA=18181B&colorB=31C553
+[license-href]: https://github.com/nuxt-modules/shopify/tree/main/LICENSE
 
 [nuxt-src]: https://img.shields.io/badge/Nuxt-18181B?logo=nuxt
 [nuxt-href]: https://nuxt.com
 
 [vercel-src]: https://vercel.com/button
-[vercel-href]: https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fkonkonam%2Fnuxt-shopify%2Ftree%2Fmain%2Ftemplate
+[vercel-href]: https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fnuxt-modules%2Fshopify%2Ftree%2Fmain%2Ftemplate
 
 [cloudflare-src]: https://deploy.workers.cloudflare.com/button
-[cloudflare-href]: https://deploy.workers.cloudflare.com/?url=https%3A%2F%2Fgithub.com%2Fkonkonam%2Fnuxt-shopify%2Ftemplate
+[cloudflare-href]: https://deploy.workers.cloudflare.com/?url=https%3A%2F%2Fgithub.com%2Fnuxt-modules%2Fshopify%2Ftemplate

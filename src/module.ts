@@ -88,8 +88,8 @@ export default defineNuxtModule<ModuleOptions>({
 
             nuxt.options = defu(nuxt.options, {
                 alias: {
-                    '@konkonam/nuxt-shopify/storefront': resolver.resolve('./types/clients/storefront.d.ts'),
-                    '@konkonam/nuxt-shopify/admin': resolver.resolve('./types/clients/admin.d.ts'),
+                    '@nuxtjs/shopify/storefront': resolver.resolve('./types/clients/storefront.d.ts'),
+                    '@nuxtjs/shopify/admin': resolver.resolve('./types/clients/admin.d.ts'),
                 },
 
                 nitro: {

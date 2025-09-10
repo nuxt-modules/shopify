@@ -1,4 +1,4 @@
-![Nuxt Shopify Logo](https://raw.githubusercontent.com/konkonam/nuxt-shopify/refs/heads/main/docs/public/logo-readme.jpg)
+![Nuxt Shopify Logo](https://raw.githubusercontent.com/nuxt-modules/shopify/refs/heads/main/docs/public/logo-readme.jpg)
 
 # Nuxt Shopify Module
 
@@ -10,9 +10,9 @@
 
 Fully typed fetch client for the [Shopify Storefront API](https://shopify.dev/docs/api/storefront) and the [Shopify Admin API](https://shopify.dev/docs/api/admin-graphql). You can use it on the server and client side, with built-in support for [mock.shop](https://mock.shop) and automatic, hot-reloaded type generation from your GraphQL queries.
 
-- 🛍️ [Store Template (Coming soon)](https://github.com/konkonam/nuxt-shopify/tree/main/template)
+- 🛍️ [Store Template (Coming soon)](https://github.com/nuxt-modules/shopify/tree/main/template)
 - 📚 [Documentation](https://konkonam.github.io/nuxt-shopify)
-- ✨ [Release Notes](https://github.com/konkonam/nuxt-shopify/tree/main/CHANGELOG.md)
+- ✨ [Release Notes](https://github.com/nuxt-modules/shopify/tree/main/CHANGELOG.md)
 
 ## ⚡️ Features
 
@@ -55,7 +55,7 @@ npx nuxt@latest module add nuxt-shopify
 1. Install the module via npm:
 
    ```bash
-   npm install @konkonam/nuxt-shopify
+   npm install @nuxtjs/shopify
    ```
 
 2. Add the module to your `nuxt.config.ts`:
@@ -63,7 +63,7 @@ npx nuxt@latest module add nuxt-shopify
    ```ts
    export default defineNuxtConfig({
        modules: [
-           '@konkonam/nuxt-shopify',
+           '@nuxtjs/shopify',
        ],
    })
    ```
@@ -363,32 +363,32 @@ Read more about all available hooks in our [hooks documentation](https://konkona
 ## 🤝 Contributing
 
 1. Clone this repository
-2. Create a `.env` file (see [`.env.example`](https://github.com/konkonam/nuxt-shopify/tree/main/.env.example))
+2. Create a `.env` file (see [`.env.example`](https://github.com/nuxt-modules/shopify/tree/main/.env.example))
 3. Install dependencies using:
     ```bash
     bun install
     ```
 4. Run `bun run prepare:dev` to generate type stubs.
-5. Start the default [playground](https://github.com/konkonam/nuxt-shopify/tree/main/playgrounds/playground) with:
+5. Start the default [playground](https://github.com/nuxt-modules/shopify/tree/main/playgrounds/playground) with:
     ```bash
     bun run dev
     ```
 
 ## 📜 License
 
-Published under the [MIT License](https://github.com/konkonam/nuxt-shopify/tree/main/LICENSE).
+Published under the [MIT License](https://github.com/nuxt-modules/shopify/tree/main/LICENSE).
 
-[github-actions-src]: https://github.com/konkonam/nuxt-shopify/actions/workflows/test.yml/badge.svg
-[github-actions-href]: https://github.com/konkonam/nuxt-shopify/actions
+[github-actions-src]: https://github.com/nuxt-modules/shopify/actions/workflows/test.yml/badge.svg
+[github-actions-href]: https://github.com/nuxt-modules/shopify/actions
 
-[npm-version-src]: https://img.shields.io/npm/v/@konkonam/nuxt-shopify/latest.svg?style=flat&colorA=18181B&colorB=31C553
-[npm-version-href]: https://npmjs.com/package/@konkonam/nuxt-shopify
+[npm-version-src]: https://img.shields.io/npm/v/@nuxtjs/shopify/latest.svg?style=flat&colorA=18181B&colorB=31C553
+[npm-version-href]: https://npmjs.com/package/@nuxtjs/shopify
 
-[npm-downloads-src]: https://img.shields.io/npm/dm/@konkonam/nuxt-shopify.svg?style=flat&colorA=18181B&colorB=31C553
-[npm-downloads-href]: https://npmjs.com/package/@konkonam/nuxt-shopify
+[npm-downloads-src]: https://img.shields.io/npm/dm/@nuxtjs/shopify.svg?style=flat&colorA=18181B&colorB=31C553
+[npm-downloads-href]: https://npmjs.com/package/@nuxtjs/shopify
 
-[npm-last-update-src]: https://img.shields.io/npm/last-update/%40konkonam%2Fnuxt-shopify.svg?style=flat&colorA=18181B&colorB=31C553
-[npm-last-update-href]: https://npmjs.com/package/@konkonam/nuxt-shopify
+[npm-last-update-src]: https://img.shields.io/npm/last-update/%40nuxtjs%2Fshopify.svg?style=flat&colorA=18181B&colorB=31C553
+[npm-last-update-href]: https://npmjs.com/package/@nuxtjs/shopify
 
-[license-src]: https://img.shields.io/github/license/konkonam/nuxt-shopify.svg?style=flat&colorA=18181B&colorB=31C553
-[license-href]: https://github.com/konkonam/nuxt-shopify/tree/main/LICENSE
+[license-src]: https://img.shields.io/github/license/nuxt-modules/shopify.svg?style=flat&colorA=18181B&colorB=31C553
+[license-href]: https://github.com/nuxt-modules/shopify/tree/main/LICENSE

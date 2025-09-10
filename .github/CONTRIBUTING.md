@@ -15,7 +15,7 @@ Here are some guidelines to get you started.
 
 ## Development
 
-Start the default [playground](https://github.com/konkonam/nuxt-shopify/tree/main/playgrounds/playground):
+Start the default [playground](https://github.com/nuxt-modules/shopify/tree/main/playgrounds/playground):
 ```bash
 bun run dev
 ```

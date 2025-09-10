@@ -1,6 +1,6 @@
 import type { HookResult, Nuxt } from '@nuxt/schema'
-import type { StorefrontOperations } from '@konkonam/nuxt-shopify/storefront'
-import type { AdminOperations } from '@konkonam/nuxt-shopify/admin'
+import type { StorefrontOperations } from '@nuxtjs/shopify/storefront'
+import type { AdminOperations } from '@nuxtjs/shopify/admin'
 import type {
     AllOperations,
     ApiClientRequestOptions,

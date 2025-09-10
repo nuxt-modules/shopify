@@ -21,7 +21,7 @@ const command = defineCommand({
     },
 
     run: async ({ args }) => {
-        const template = await downloadTemplate('gh:konkonam/nuxt-shopify/template', {
+        const template = await downloadTemplate('gh:nuxt-modules/shopify/template', {
             dir: args.directory,
         }).catch((error) => {
             log.error('Failed to download template:', error)
@@ -40,7 +40,7 @@ const command = defineCommand({
         }
 
         const configContent = await readFile(configPath, 'utf-8')
-            .then(data => data.replace('../src/module', '@konkonam/nuxt-shopify'))
+            .then(data => data.replace('../src/module', '@nuxtjs/shopify'))
 
         await writeFile(
             configPath,
