@@ -1,7 +1,13 @@
 import type { Types } from '@graphql-codegen/plugin-helpers'
 import type { NuxtTemplate } from '@nuxt/schema'
 
-import type { InterfaceExtensionsParams, ShopifyTemplateOptions } from '../types'
+import type {
+    GenericApiClientConfig,
+    InterfaceExtensionsParams,
+    ShopifyAdminConfig,
+    ShopifyStorefrontConfig,
+    ShopifyTemplateOptions,
+} from '../types'
 
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
@@ -9,10 +15,11 @@ import { generate } from '@graphql-codegen/cli'
 import { preset, pluckConfig } from '@shopify/graphql-codegen'
 import { LogLevels } from 'consola'
 import { kebabCase, upperFirst } from 'scule'
-import { joinURL } from 'ufo'
 
 import { ShopifyClientType } from './config'
 import { useLog } from './log'
+import { createAdminConfig } from '../runtime/utils/admin'
+import { createStorefrontConfig } from '../runtime/utils/storefront'
 
 async function extractResult(input: Promise<Types.FileOutput[]>) {
     try {
@@ -33,13 +40,30 @@ declare module '@nuxtjs/shopify/${kebabCase(clientType)}' {
 `
 
 const getIntrospection = (options: ShopifyTemplateOptions) => {
-    const { clientType, clientConfig, introspection } = options
+    const { shopName, clientType, clientConfig, introspection } = options
 
     if (introspection && existsSync(introspection)) {
         return introspection
     }
 
-    return joinURL('https://shopify.dev', `${clientType}-graphql-direct-proxy`, clientConfig.apiVersion)
+    let config: GenericApiClientConfig
+
+    switch (clientType) {
+        case ShopifyClientType.Admin:
+            config = createAdminConfig({ name: shopName, clients: { admin: clientConfig as ShopifyAdminConfig } })
+            break
+        case ShopifyClientType.Storefront:
+            config = createStorefrontConfig({ name: shopName, clients: { storefront: clientConfig as ShopifyStorefrontConfig } })
+            break
+    }
+
+    return [
+        {
+            [config.apiUrl]: {
+                headers: config.headers as Record<string, string>,
+            },
+        },
+    ]
 }
 
 const getTypescriptPluginConfig = (options: ShopifyTemplateOptions) => {
