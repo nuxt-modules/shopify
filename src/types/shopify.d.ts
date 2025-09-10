@@ -78,6 +78,7 @@ export type PublicShopifyConfig<S = ShopifyStorefrontConfig> = {
 // Options for custom templates
 export type ShopifyTemplateOptions = {
     filename: string
+    shopName: string
     clientType: ShopifyClientType
     clientConfig: ShopifyClientConfig
     introspection?: string

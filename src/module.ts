@@ -118,7 +118,7 @@ export const setupClient = (
     const resolver = createResolver(import.meta.url)
 
     if (!clientConfig.skipCodegen) {
-        registerTemplates(nuxt, clientType, clientConfig)
+        registerTemplates(nuxt, config.name, clientType, clientConfig)
     }
     else {
         log.info(`Skipping type generation for ${clientType}`)
