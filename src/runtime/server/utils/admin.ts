@@ -1,4 +1,4 @@
-import type { AdminApiClient, AdminOperations } from '@konkonam/nuxt-shopify/admin'
+import type { AdminApiClient, AdminOperations } from '@nuxtjs/shopify/admin'
 
 import { useNitroApp } from 'nitropack/runtime'
 import { useRuntimeConfig } from '#imports'

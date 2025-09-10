@@ -26,7 +26,7 @@ export default defineConfig({
 
     themeConfig: {
         editLink: {
-            pattern: 'https://github.com/konkonam/nuxt-shopify/edit/main/docs/:path',
+            pattern: 'https://github.com/nuxt-modules/shopify/edit/main/docs/:path',
         },
 
         nav: [
@@ -39,11 +39,11 @@ export default defineConfig({
                 items: [
                     {
                         text: 'Changelog',
-                        link: 'https://github.com/konkonam/nuxt-shopify/tree/main/CHANGELOG.md',
+                        link: 'https://github.com/nuxt-modules/shopify/tree/main/CHANGELOG.md',
                     },
                     {
                         text: 'Contributing',
-                        link: 'https://github.com/konkonam/nuxt-shopify/tree/main/.github/CONTRIBUTING.md',
+                        link: 'https://github.com/nuxt-modules/shopify/tree/main/.github/CONTRIBUTING.md',
                     },
                 ],
             },
@@ -74,8 +74,8 @@ export default defineConfig({
         ],
 
         socialLinks: [
-            { icon: 'npm', link: 'https://npmjs.com/package/@konkonam/nuxt-shopify' },
-            { icon: 'github', link: 'https://github.com/konkonam/nuxt-shopify' },
+            { icon: 'npm', link: 'https://npmjs.com/package/@nuxtjs/shopify' },
+            { icon: 'github', link: 'https://github.com/nuxt-modules/shopify' },
         ],
 
         footer: {

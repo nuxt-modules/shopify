@@ -75,4 +75,4 @@ The module options allow you to configure code generation as follows:
 ### Advanced Customization: Hooks
 
 If you need to customize the code generation process, refer to the hooks provided in the following file:
-[types/index.d.ts](https://github.com/konkonam/nuxt-shopify/blob/main/src/types/index.d.ts)
+[types/index.d.ts](https://github.com/nuxt-modules/shopify/blob/main/src/types/index.d.ts)

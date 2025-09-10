@@ -19,7 +19,7 @@ Add the module to your `nuxt.config.ts`:
 
 export default defineNuxtConfig({
     modules: [
-        '@konkonam/nuxt-shopify',
+        '@nuxtjs/shopify',
     ],
 })
 ```

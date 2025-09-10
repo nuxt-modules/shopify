@@ -3,7 +3,7 @@ import type { AllOperations, ApiClientRequestOptions, ReturnData } from '@shopif
 import type { MaybeRefOrGetter } from 'vue'
 
 import type { AsyncDataOptions, AsyncData, NuxtError } from '#app'
-import type { StorefrontOperations } from '@konkonam/nuxt-shopify/storefront'
+import type { StorefrontOperations } from '@nuxtjs/shopify/storefront'
 
 import { useAsyncData } from '#app'
 

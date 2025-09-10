@@ -1,4 +1,4 @@
-import type { StorefrontApiClient, StorefrontOperations } from '@konkonam/nuxt-shopify/storefront'
+import type { StorefrontApiClient, StorefrontOperations } from '@nuxtjs/shopify/storefront'
 
 import { joinURL } from 'ufo'
 

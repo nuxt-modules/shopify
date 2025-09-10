@@ -46,7 +46,7 @@ const countries = computed(() => locales.value.map(l => ({
 
 const items = computed<NavigationMenuItem[]>(() => [
     {
-        to: 'https://github.com/konkonam/nuxt-shopify',
+        to: 'https://github.com/nuxt-modules/shopify',
         label: 'Github',
     },
     {
@@ -58,7 +58,7 @@ const items = computed<NavigationMenuItem[]>(() => [
         label: 'Documentation',
     },
     {
-        to: 'https://npmjs.com/package/@konkonam/nuxt-shopify',
+        to: 'https://npmjs.com/package/@nuxtjs/shopify',
         label: 'NPM Package',
     },
 ].map(item => ({
@@ -124,7 +124,7 @@ const items = computed<NavigationMenuItem[]>(() => [
                     :items="[
                         {
                             icon: 'i-lucide-github',
-                            to: 'https://github.com/konkonam/nuxt-shopify/tree/main/template',
+                            to: 'https://github.com/nuxt-modules/shopify/tree/main/template',
                             label: t('footer.github'),
                             target: '_blank',
                         },
