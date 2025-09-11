@@ -1,23 +1,24 @@
-import { existsSync } from 'node:fs'
-import { join } from 'node:path'
 import type { Nuxt } from '@nuxt/schema'
 import type { Resolver } from '@nuxt/kit'
 
+import type { ShopifyConfig } from '../types'
+
+import { existsSync } from 'node:fs'
+import { join } from 'node:path'
 import {
     addImports,
     addImportsDir,
     addServerImports,
     addServerImportsDir,
 } from '@nuxt/kit'
-import type { ShopifyConfig } from '../types'
 
 import { useLog } from './log'
 
 export function autoImportDir(path: string, client: boolean) {
     if (existsSync(path)) {
-        addServerImportsDir(path)
+        addServerImportsDir(join(path, '**'))
 
-        if (client) addImportsDir(path)
+        if (client) addImportsDir(join(path, '**'))
     }
 }
 
@@ -40,7 +41,12 @@ export function registerAutoImports(nuxt: Nuxt, config: ShopifyConfig, resolver:
     const usesClientSide = config.clients.storefront?.mock || (config.clients.storefront?.publicAccessToken?.length ?? 0) > 0
 
     if (config.autoImports?.graphql) {
-        autoImportDir(join(nuxt.options.rootDir, 'graphql'), usesClientSide)
+        const graphqlDir = join(nuxt.options.rootDir, 'graphql')
+        autoImportDir(graphqlDir, usesClientSide)
+
+        nuxt.options.watch = nuxt.options.watch || []
+        nuxt.options.watch.push(graphqlDir)
+
         useLog().debug('Auto-importing GraphQL from `~/graphql` directory')
     }
 
