@@ -1,5 +1,6 @@
 {
     "name": "nuxt-shopify-docs",
+    "private": true,
     "scripts": {
         "dev": "nuxt dev --extends docus",
         "build": "nuxt build --extends docus"

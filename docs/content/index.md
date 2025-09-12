@@ -1,46 +1,42 @@
 ---
 seo:
-  title: Write beautiful docs with Markdown
-  description: Ship fast, flexible, and SEO-optimized documentation with beautiful
-    design out of the box. Docus brings together the best of the Nuxt ecosystem.
-    Powered by Nuxt UI Pro.
+  title: '@nuxtjs/shopify'
+  description: Easily integrate and use shopify in your nuxt 3 or 4 app.
 ---
 
 ::u-page-hero
 #title
-Write beautiful docs with Markdown
+Shopify integration for Nuxt
 
 #description
-Ship fast, flexible, and SEO-optimized documentation with beautiful design out of the box.
-
-Docus brings the best of the Nuxt ecosystem into one CLI.
+Ship your shopify store via nuxt 3 or 4, with nuxt style developer experience!
 
 #links
   :::u-button
   ---
   color: neutral
+  icon: simple-icons-github
   size: xl
-  to: /getting-started/installation
-  trailing-icon: i-lucide-arrow-right
+  to: https://github.com/nuxt-modules/shopify
+  variant: outline
   ---
-  Get started
+  Star on GitHub
   :::
 
   :::u-button
   ---
-  color: neutral
-  icon: simple-icons-github
+  color: primary
   size: xl
-  to: https://github.com/nuxt-ui-pro/docus
-  variant: outline
+  to: /getting-started/introduction
+  trailing-icon: i-lucide-arrow-right
   ---
-  Star on GitHub
+  Get started
   :::
 ::
 
 ::u-page-section
 #title
-Shipped with many features
+Ships with many features
 
 #features
   :::u-page-feature
