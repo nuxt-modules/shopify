@@ -1,0 +1,12 @@
+{
+    "name": "nuxt-shopify-docs",
+    "scripts": {
+        "dev": "nuxt dev --extends docus",
+        "build": "nuxt build --extends docus"
+    },
+    "dependencies": {
+        "better-sqlite3": "^12.2.0",
+        "docus": "^4.1.4",
+        "nuxt": "^4.1.1"
+    }
+}

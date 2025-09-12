@@ -7,6 +7,7 @@
   "workspaces": [
     "playgrounds/*",
     "template",
+    "docs",
     "."
   ],
   "repository": {
@@ -49,12 +50,12 @@
   "scripts": {
     "build": "nuxt-module-build build",
     "build:template": "bun run --filter=./template build",
-    "build:docs": "vitepress build docs",
-    "dev": "bun run --filter=playground-v4 --env-file=.env --elide-lines=100 dev",
-    "dev:mock": "bun run --filter=playground-v4-mock --env-file=.env --elide-lines=100 dev",
-    "dev:v3": "bun run --filter=playground-v3 --env-file=.env --elide-lines=100 dev",
-    "dev:template": "bun run --filter=./template --env-file=.env --elide-lines=100 dev",
-    "dev:docs": "vitepress dev docs",
+    "build:docs": "bun run --filter=./docs build",
+    "dev": "bun run --filter=playground-v4 --env-file=.env dev",
+    "dev:mock": "bun run --filter=playground-v4-mock --env-file=.env dev",
+    "dev:v3": "bun run --filter=playground-v3 --env-file=.env dev",
+    "dev:template": "bun run --filter=./template --env-file=.env dev",
+    "dev:docs": "bun run --filter=./docs dev",
     "preview:docs": "vitepress preview docs",
     "lint": "eslint .",
     "typecheck": "vue-tsc --noEmit",

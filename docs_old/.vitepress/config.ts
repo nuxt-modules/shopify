@@ -10,7 +10,7 @@ export default defineConfig({
 
     description: 'Easily integrate shopify into your nuxt 3 & 4 project!',
 
-    base: '/nuxt-shopify/',
+    base: '/shopify/',
 
     cleanUrls: true,
 
@@ -19,7 +19,7 @@ export default defineConfig({
             'meta',
             {
                 property: 'og:image',
-                content: '/nuxt-shopify/logo-readme.jpg',
+                content: '/shopify/logo-readme.jpg',
             },
         ],
     ],
