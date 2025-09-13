@@ -9,7 +9,7 @@ export default defineNuxtConfig({
     css: ['~/assets/css/main.css'],
 
     site: {
-        name: '@nuxtjs/shopify',
+        name: 'Nuxt Shopify',
     },
 
     runtimeConfig: {

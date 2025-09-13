@@ -8,7 +8,10 @@
 [![NPM last update][npm-last-update-src]][npm-last-update-href]
 [![License][license-src]][license-href]
 
-Fully typed fetch client for the [Shopify Storefront API](https://shopify.dev/docs/api/storefront) and the [Shopify Admin API](https://shopify.dev/docs/api/admin-graphql). You can use it on the server and client side, with built-in support for [mock.shop](https://mock.shop) and automatic, hot-reloaded type generation from your GraphQL queries.
+Fully typed fetch client for the [Shopify Storefront API](https://shopify.dev/docs/api/storefront) and
+the [Shopify Admin API](https://shopify.dev/docs/api/admin-graphql). 
+You can use it on the server and client side, with built-in support for [mock.shop](https://mock.shop) and automatic,
+hot-reloaded type generation from your GraphQL queries.
 
 - 🛍️ [Store Template (Coming soon)](https://github.com/nuxt-modules/shopify/tree/main/template)
 - 📚 [Documentation](https://konkonam.github.io/nuxt-shopify)

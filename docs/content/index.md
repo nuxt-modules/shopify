@@ -1,6 +1,6 @@
 ---
 seo:
-  title: 'Nuxt Shopify'
+  title: 'Home'
   description: Easily integrate and use shopify in your nuxt 3 or 4 app.
 ---
 
