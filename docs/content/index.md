@@ -1,36 +1,56 @@
 ---
 seo:
-  title: '@nuxtjs/shopify'
+  title: 'Nuxt Shopify'
   description: Easily integrate and use shopify in your nuxt 3 or 4 app.
 ---
 
 ::u-page-hero
+---
+orientation: horizontal
+---
+```ts
+const storefront = useStorefront()
+
+const product = await storefront.request(`#graphql
+    query getProduct($id: ID!) {
+        product(id: $id) {
+            ...ProductFields
+        }
+    }
+    ${PRODUCT_FRAGMENT}
+`, {
+    variables: {
+        id: 'gid://shopify/Product/1234567890',
+    },
+})
+```
+
 #title
-Shopify integration for Nuxt
+[Nuxt]{.text-primary} Shopify
 
 #description
-Ship your shopify store via nuxt 3 or 4, with nuxt style developer experience!
+Plug & play Shopify integration for Nuxt 3 & 4
 
 #links
   :::u-button
   ---
-  color: neutral
-  icon: simple-icons-github
-  size: xl
-  to: https://github.com/nuxt-modules/shopify
-  variant: outline
-  ---
-  Star on GitHub
-  :::
-
-  :::u-button
-  ---
-  color: primary
   size: xl
   to: /getting-started/introduction
   trailing-icon: i-lucide-arrow-right
   ---
   Get started
+  :::
+
+  :::u-button
+  ---
+  color: neutral
+  icon: i-lucide-star
+  size: xl
+  target: _blank
+  to: https://github.com/nuxt-modules/shopify
+  variant: subtle
+  ---
+  Star on GitHub
   :::
 ::
 
