@@ -26,8 +26,7 @@ const { data: products } = await useAsyncStorefront('products', `#graphql
     },
 }, {
     transform: data => flattenConnection(data.products)
-        .map(product => product.images)
-        .flatMap(image => image.nodes)
+        .flatMap(product => product.images.nodes)
         .map(image => ({
             title: image.altText ?? '',
             image: image.url,

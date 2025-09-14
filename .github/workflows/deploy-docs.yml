@@ -1,10 +1,7 @@
 name: 'Deploy Docs'
 
 env:
-  NUXT_SHOPIFY_NAME: ${{ secrets.NUXT_SHOPIFY_NAME }}
-
   NUXT_SHOPIFY_CLIENTS_STOREFRONT_API_VERSION: ${{ secrets.NUXT_SHOPIFY_CLIENTS_STOREFRONT_API_VERSION }}
-  NUXT_SHOPIFY_CLIENTS_STOREFRONT_PUBLIC_ACCESS_TOKEN: ${{ secrets.NUXT_SHOPIFY_CLIENTS_STOREFRONT_PUBLIC_ACCESS_TOKEN }}
 
   NUXT_SHOPIFY_DEV_MODULE_ALIAS: true
 
@@ -40,7 +37,7 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Build VitePress
+      - name: Build Docs
         run: bun run build:docs
 
       - name: Upload artifact

@@ -8,7 +8,7 @@ export default defineNuxtConfig({
     ],
 
     app: {
-        baseURL: '/shopify',
+        baseURL: '/shopify/',
     },
 
     css: ['~/assets/css/main.css'],
@@ -24,6 +24,7 @@ export default defineNuxtConfig({
             clients: {
                 storefront: {
                     apiVersion: '',
+                    proxy: false,
                     mock: true,
                 },
             },
