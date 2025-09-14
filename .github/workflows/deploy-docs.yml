@@ -38,15 +38,14 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Build Docs
-        run: bun run build:docs
+        run: bun run build:docs --preset=github_pages
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v4
         with:
-          path: docs/.output
+          path: docs/dist
 
   deploy:
-    name: Deploy
     needs: [ build ]
     runs-on: ubuntu-latest
 
