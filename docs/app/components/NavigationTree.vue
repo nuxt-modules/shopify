@@ -21,21 +21,12 @@ const { data: items } = await useAsyncStorefront('collections', `#graphql
     transform: data => data.menu?.items?.map(item => ({
         label: item.title,
         to: item.url!,
-        icon: item.type === 'COLLECTION'
-            ? 'i-lucide-folder'
-            : item.type === 'BLOG'
-                ? 'i-lucide-rss'
-                : 'i-lucide-file',
     })) ?? [],
 })
 </script>
 
 <template>
     <div class="flex justify-center">
-        <UNavigationMenu
-            :items="items"
-            class="w-full max-w-2xs"
-            orientation="vertical"
-        />
+        <UNavigationMenu :items="items" />
     </div>
 </template>

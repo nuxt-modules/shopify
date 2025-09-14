@@ -3,7 +3,7 @@
   "version": "0.1.5",
   "license": "MIT",
   "type": "module",
-  "description": "Easily integrate shopify with nuxt 3 and 4 🚀",
+  "description": "Easily integrate Shopify with Nuxt 3 and 4 🚀",
   "workspaces": [
     "playgrounds/*",
     "template",
