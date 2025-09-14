@@ -79,7 +79,7 @@ export default defineNuxtModule<ModuleOptions>({
         }
         else {
             log.info('Skipping setup: config not provided or invalid')
-            log.info('See module configuration reference: https://konkonam.github.io/nuxt-shopify/configuration/module')
+            log.info('See module configuration reference: https://nuxt-modules.github.io/shopify/essentials/configuration')
             log.debug(`Error while parsing module options:\n${moduleOptions.error}`)
         }
 

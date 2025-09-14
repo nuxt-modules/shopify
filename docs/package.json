@@ -1,0 +1,16 @@
+{
+    "name": "nuxt-shopify-docs",
+    "private": true,
+    "scripts": {
+        "dev": "nuxt dev --extends docus",
+        "prepare": "nuxt prepare --extends docus",
+        "build": "nuxt build --extends docus"
+    },
+    "dependencies": {
+        "@nuxtjs/shopify": "latest",
+        "better-sqlite3": "^12.2.0",
+        "docus": "^4.1.4",
+        "motion-v": "^1.7.1",
+        "nuxt": "^4.1.2"
+    }
+}

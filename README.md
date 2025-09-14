@@ -8,10 +8,13 @@
 [![NPM last update][npm-last-update-src]][npm-last-update-href]
 [![License][license-src]][license-href]
 
-Fully typed fetch client for the [Shopify Storefront API](https://shopify.dev/docs/api/storefront) and the [Shopify Admin API](https://shopify.dev/docs/api/admin-graphql). You can use it on the server and client side, with built-in support for [mock.shop](https://mock.shop) and automatic, hot-reloaded type generation from your GraphQL queries.
+Fully typed fetch client for the [Shopify Storefront API](https://shopify.dev/docs/api/storefront) and
+the [Shopify Admin API](https://shopify.dev/docs/api/admin-graphql). 
+You can use it on the server and client side, with built-in support for [mock.shop](https://mock.shop) and automatic,
+hot-reloaded type generation from your GraphQL queries.
 
 - 🛍️ [Store Template (Coming soon)](https://github.com/nuxt-modules/shopify/tree/main/template)
-- 📚 [Documentation](https://konkonam.github.io/nuxt-shopify)
+- 📚 [Documentation](https://nuxt-modules.github.io/shopify)
 - ✨ [Release Notes](https://github.com/nuxt-modules/shopify/tree/main/CHANGELOG.md)
 
 ## ⚡️ Features
@@ -203,7 +206,7 @@ export default defineEventHandler(async () => {
 Notice how we can use the `graphql` directive inside the event handler, this is possible because in
 the standard module configuration all `.ts` and `.gql` files are automatically processed for the
 storefront API, as long as the don't end with `.admin.ts` or `.admin.gql`.
-Read more about the [codegen configuration](https://konkonam.github.io/nuxt-shopify/configuration/codegen).
+Read more about the [codegen configuration](https://nuxt-modules.github.io/shopify/essentials/codegen).
 
 Now we can call the API at `/api/products` to obtain the first three products:
 
@@ -237,7 +240,7 @@ export default defineEventHandler(async () => {
 })
 ```
 
-For a full example, see [Admin API examples](https://konkonam.github.io/nuxt-shopify/examples/admin).
+For a full example, see [Admin API examples](https://nuxt-modules.github.io/shopify/essentials/admin).
 
 ### Mock the Storefront API
 
@@ -353,7 +356,7 @@ export default defineNitroPlugin((nitroApp) => {
 })
 ```
 
-Read more about all available hooks in our [hooks documentation](https://konkonam.github.io/nuxt-shopify/configuration/hooks).
+Read more about all available hooks in our [hooks documentation](https://nuxt-modules.github.io/shopify/going-further/hooks).
 
 ## 👥 Maintainers
 

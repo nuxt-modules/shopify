@@ -1,10 +1,9 @@
 <script setup lang="ts">
 const { language, country } = useLocalization()
-const storefront = useStorefront()
 const localePath = useLocalePath()
 const { locale } = useI18n()
 
-const { data } = await useAsyncData(`collections-${locale.value}`, () => storefront.request(`#graphql
+const { data } = await useAsyncStorefront(`collections-${locale.value}`, `#graphql
     query FetchCollections($after: String, $before: String, $first: Int, $last: Int, $language: LanguageCode)
     @inContext(language: $language) {
         collections(
@@ -25,14 +24,14 @@ const { data } = await useAsyncData(`collections-${locale.value}`, () => storefr
         language: language.value,
         country: country.value,
     }),
-}), {
-    transform: data => data.data?.collections?.edges,
+}, {
+    transform: data => flattenConnection(data?.collections),
 })
 
 const collections = computed(() => data.value
     ?.map(collection => ({
-        label: collection.node.title,
-        to: localePath(`/collection/${collection.node.handle}`),
+        label: collection.title,
+        to: localePath(`/collection/${collection.handle}`),
     })) ?? [])
 
 const searchOpen = ref(false)
