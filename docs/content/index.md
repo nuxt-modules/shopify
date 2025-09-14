@@ -4,27 +4,10 @@ seo:
   description: Easily integrate and use shopify in your nuxt 3 or 4 app.
 ---
 
+::products-marquee
+::
+
 ::u-page-hero
----
-orientation: horizontal
----
-```ts
-const storefront = useStorefront()
-
-const product = await storefront.request(`#graphql
-    query getProduct($id: ID!) {
-        product(id: $id) {
-            ...ProductFields
-        }
-    }
-    ${PRODUCT_FRAGMENT}
-`, {
-    variables: {
-        id: 'gid://shopify/Product/1234567890',
-    },
-})
-```
-
 #title
 [Nuxt]{.text-primary} Shopify
 

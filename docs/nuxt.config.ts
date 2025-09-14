@@ -4,7 +4,12 @@ export default defineNuxtConfig({
     modules: [
         '../src/module',
         '@nuxt/ui-pro',
+        'motion-v/nuxt',
     ],
+
+    app: {
+        baseURL: '/shopify',
+    },
 
     css: ['~/assets/css/main.css'],
 
@@ -24,5 +29,4 @@ export default defineNuxtConfig({
             },
         },
     },
-
 })
