@@ -54,7 +54,7 @@ const items = computed<NavigationMenuItem[]>(() => [
         label: 'Module Page',
     },
     {
-        to: 'https://konkonam.github.io/nuxt-shopify',
+        to: 'https://nuxt-modules.github.io/shopify',
         label: 'Documentation',
     },
     {

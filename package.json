@@ -14,7 +14,7 @@
     "type": "git",
     "url": "git+https://github.com/nuxt-modules/shopify.git"
   },
-  "homepage": "https://konkonam.github.io/nuxt-shopify",
+  "homepage": "https://nuxt-modules.github.io/shopify",
   "exports": {
     ".": {
       "types": "./dist/types.d.mts",
