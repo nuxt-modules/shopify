@@ -15,6 +15,7 @@ export default defineNuxtConfig({
 
     site: {
         name: 'Nuxt Shopify',
+        url: 'https://nuxt-modules.github.io',
     },
 
     runtimeConfig: {
@@ -28,6 +29,12 @@ export default defineNuxtConfig({
                     mock: true,
                 },
             },
+        },
+    },
+
+    ogImage: {
+        defaults: {
+            url: '/logo-readme.jpg',
         },
     },
 })

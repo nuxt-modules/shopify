@@ -108,7 +108,6 @@
     "typescript": "^5.9.2",
     "unbuild": "^3.6.1",
     "vercel": "^45.0.10",
-    "vitepress": "^1.6.4",
     "vitest": "^3.2.4",
     "vue-tsc": "^3.0.6"
   },

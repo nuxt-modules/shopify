@@ -6,7 +6,6 @@ coverage
 .nuxt
 .nitro
 .cache
-docs/.vitepress/cache
 
 # dependencies
 node_modules
