@@ -77,7 +77,7 @@
     "qa:all": "bun --env-file=.env run lint && bun --env-file=.env run typecheck:all && bun --env-file=.env run test"
   },
   "dependencies": {
-    "@graphql-codegen/cli": "^5.0.7",
+    "@graphql-codegen/cli": "^6.0.0",
     "@graphql-codegen/import-types-preset": "^3.0.1",
     "@shopify/api-codegen-preset": "^1.1.9",
     "@shopify/graphql-codegen": "^0.1.0",
