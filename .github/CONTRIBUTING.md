@@ -1,6 +1,6 @@
 # Contributing
 
-First off, thank you for taking the time to contribute to the nuxt-shopify module ❤️
+Thank you for taking the time to contribute to the Nuxt Shopify module ❤️
 
 Here are some guidelines to get you started.
 
