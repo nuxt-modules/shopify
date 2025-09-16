@@ -1,7 +1,7 @@
 export default defineAppConfig({
     socials: {
-        x: 'https://x.com/nuxt_js',
-        discord: 'https://discord.com/invite/ps2h6QT',
+        x: 'https://go.nuxt.com/x',
+        discord: 'https://go.nuxt.com/discord',
         shopify: 'https://shopify.dev/docs',
         nuxt: 'https://nuxt.com',
     },

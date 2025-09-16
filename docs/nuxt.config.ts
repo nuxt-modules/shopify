@@ -52,6 +52,8 @@ export default defineNuxtConfig({
     image: {
         domains: ['cdn.shopify.com'],
 
+        formats: ['avif', 'webp'],
+
         alias: {
             shopify: 'https://cdn.shopify.com',
         },
