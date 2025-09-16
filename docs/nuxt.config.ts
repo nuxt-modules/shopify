@@ -4,6 +4,7 @@ export default defineNuxtConfig({
     modules: [
         '../src/module',
         '@nuxt/ui-pro',
+        '@nuxtjs/critters',
         'motion-v/nuxt',
     ],
 
@@ -50,6 +51,10 @@ export default defineNuxtConfig({
 
     image: {
         domains: ['cdn.shopify.com'],
+
+        alias: {
+            shopify: 'https://cdn.shopify.com',
+        },
     },
 
     ogImage: {

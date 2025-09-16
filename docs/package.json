@@ -4,10 +4,12 @@
     "scripts": {
         "dev": "nuxt dev --extends docus",
         "prepare": "nuxt prepare --extends docus",
-        "build": "nuxt build --extends docus"
+        "build": "nuxt build --extends docus",
+        "preview": "nuxt preview --extends docus"
     },
     "dependencies": {
         "@nuxtjs/shopify": "latest",
+        "@nuxtjs/critters": "^0.9.0",
         "better-sqlite3": "^12.2.0",
         "docus": "^4.1.4",
         "motion-v": "^1.7.1",

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { joinURL } from 'ufo'
+
 type Product = {
     title: string
     image: string
@@ -29,7 +31,7 @@ const { data: products } = await useAsyncStorefront('products', `#graphql
         .flatMap(product => product.images.nodes)
         .map(image => ({
             title: image.altText ?? '',
-            image: image.url,
+            image: joinURL('/shopify', new URL(image.url).pathname),
         })),
 })
 
@@ -102,10 +104,12 @@ watch(products, (newVal) => {
                         class="flex items-center justify-center size-20 rounded-lg bg-muted border border-default dark:shadow-lg"
                     >
                         <NuxtImg
-                            :src="`${product.image}?width=128&height=128`"
+                            :src="product.image"
                             :alt="product.title"
                             class="rounded-lg w-full"
-                            :lazy="true"
+                            loading="lazy"
+                            width="80"
+                            height="80"
                         />
                     </Motion>
                 </UPageMarquee>
