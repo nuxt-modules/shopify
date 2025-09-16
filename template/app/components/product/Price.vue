@@ -1,26 +1,11 @@
 <script setup lang="ts">
+import type { ProductFieldsFragment } from '#shopify/storefront'
+
 const props = defineProps<{
     product?: ProductFieldsFragment | null
     quantity?: number
     inline?: boolean
 }>()
-
-const { locale } = useI18n()
-
-const price = computed(() => {
-    const currencyCode = props.product?.priceRange.minVariantPrice.currencyCode
-
-    if (!currencyCode) return ''
-
-    const rawPrice = Number(props.product.priceRange.minVariantPrice.amount)
-
-    const formatter = new Intl.NumberFormat(locale.value, {
-        style: 'currency',
-        currency: currencyCode,
-    })
-
-    return formatter.format(rawPrice)
-})
 </script>
 
 <template>
@@ -39,7 +24,7 @@ const price = computed(() => {
             {{ props.quantity }} x
         </template>
 
-        {{ price }}
+        <Price :price="props.product.priceRange.minVariantPrice" />
 
         <template v-if="props.inline">
             ]

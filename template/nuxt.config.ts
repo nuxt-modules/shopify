@@ -9,6 +9,19 @@ export default defineNuxtConfig({
         '@vueuse/nuxt',
     ],
 
+    components: {
+        dirs: [
+            {
+                path: '~/components/common',
+                pathPrefix: false,
+            },
+            {
+                path: '~/components',
+                pathPrefix: true,
+            },
+        ],
+    },
+
     devtools: { enabled: true },
 
     css: ['~/assets/main.css'],
