@@ -1,3 +1,8 @@
+# 0.1.6
+- Deep auto import and watch graphql folder
+- Updated module documentation links
+- Bumped dependencies
+
 # 0.1.5
 - Renamed module to `@nuxtjs/shopify`
 - Replaced graphql-direct-proxy endpoints with custom endpoints for introspection
