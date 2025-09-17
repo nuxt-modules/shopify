@@ -8,15 +8,11 @@ export default defineNuxtConfig({
         'motion-v/nuxt',
     ],
 
-    app: {
-        baseURL: '/shopify/',
-    },
-
     css: ['~/assets/css/main.css'],
 
     site: {
         name: 'Nuxt Shopify',
-        url: 'https://nuxt-modules.github.io',
+        url: 'https://shopify.nuxtjs.org',
     },
 
     runtimeConfig: {
@@ -63,9 +59,5 @@ export default defineNuxtConfig({
         defaults: {
             url: '/logo-readme.jpg',
         },
-    },
-
-    robots: {
-        robotsTxt: false,
     },
 })

@@ -54,7 +54,7 @@ const items = computed<NavigationMenuItem[]>(() => [
         label: 'Module Page',
     },
     {
-        to: 'https://nuxt-modules.github.io/shopify',
+        to: 'https://shopify.nuxtjs.org',
         label: 'Documentation',
     },
     {
