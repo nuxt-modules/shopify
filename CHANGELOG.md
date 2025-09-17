@@ -1,3 +1,6 @@
+# 0.1.7
+- Updated module documentation links
+
 # 0.1.6
 - Deep auto import and watch graphql folder
 - Updated module documentation links
