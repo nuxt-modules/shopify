@@ -1,11 +1,3 @@
-export const COLLECTION_FRAGMENT = `#graphql
-    fragment CollectionFields on Collection {
-        id
-        title
-        description
-    }
-`
-
 export const PRODUCT_FRAGMENT = `#graphql
     fragment ProductFields on Product {
         id
