@@ -8,6 +8,15 @@ export default defineNuxtConfig({
         'motion-v/nuxt',
     ],
 
+    components: {
+        dirs: [
+            {
+                path: '~/components',
+                pathPrefix: false,
+            },
+        ],
+    },
+
     app: {
         head: {
             meta: [
