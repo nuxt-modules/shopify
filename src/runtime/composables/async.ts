@@ -15,6 +15,12 @@ type KeysOf<T> = Array<T extends T ? keyof T extends string ? keyof T : never : 
 type ResT<Operation extends keyof AllOperations> = ReturnData<Operation, StorefrontOperations>
 type RequestOptions<Operation extends keyof AllOperations> = ApiClientRequestOptions<Operation, StorefrontOperations>
 
+const isRequestOptions = <T extends object | undefined>(obj?: object): obj is T =>
+    Object.keys(obj ?? {}).some(key => ['apiVersion', 'headers', 'retries', 'signal', 'variables'].includes(key))
+
+const isAsyncDataOptions = <T extends object | undefined>(obj?: object): obj is T =>
+    Object.keys(obj ?? {}).some(key => ['server', 'lazy', 'default', 'getCachedData', 'transform', 'pick', 'watch', 'immediate', 'deep', 'dedupe'].includes(key))
+
 export function useAsyncStorefront<
     Operation extends keyof AllOperations = '',
     Options extends RequestOptions<Operation> | undefined = undefined,
@@ -24,7 +30,30 @@ export function useAsyncStorefront<
     DefaultT = DataT,
 >(
     operation: Operation,
-    options: Options,
+    options?: Options,
+    asyncDataOptions?: AsyncDataOptions<ResT<Operation>, DataT, PickKeys, DefaultT>,
+): AsyncData<PickFrom<DataT, PickKeys> | DefaultT, (NuxtErrorDataT extends Error | NuxtError ? NuxtErrorDataT : NuxtError<NuxtErrorDataT>) | undefined>
+
+export function useAsyncStorefront<
+    Operation extends keyof AllOperations = '',
+    NuxtErrorDataT = unknown,
+    DataT = ResT<Operation>,
+    PickKeys extends KeysOf<DataT> = KeysOf<DataT>,
+    DefaultT = DataT,
+>(
+    operation: Operation,
+    asyncDataOptions?: AsyncDataOptions<ResT<Operation>, DataT, PickKeys, DefaultT>,
+): AsyncData<PickFrom<DataT, PickKeys> | DefaultT, (NuxtErrorDataT extends Error | NuxtError ? NuxtErrorDataT : NuxtError<NuxtErrorDataT>) | undefined>
+
+export function useAsyncStorefront<
+    Operation extends keyof AllOperations = '',
+    NuxtErrorDataT = unknown,
+    DataT = ResT<Operation>,
+    PickKeys extends KeysOf<DataT> = KeysOf<DataT>,
+    DefaultT = DataT,
+>(
+    key: MaybeRefOrGetter<string>,
+    operation: Operation,
     asyncDataOptions?: AsyncDataOptions<ResT<Operation>, DataT, PickKeys, DefaultT>,
 ): AsyncData<PickFrom<DataT, PickKeys> | DefaultT, (NuxtErrorDataT extends Error | NuxtError ? NuxtErrorDataT : NuxtError<NuxtErrorDataT>) | undefined>
 
@@ -38,37 +67,33 @@ export function useAsyncStorefront<
 >(
     key: MaybeRefOrGetter<string>,
     operation: Operation,
-    options: Options,
+    options?: Options,
     asyncDataOptions?: AsyncDataOptions<ResT<Operation>, DataT, PickKeys, DefaultT>,
 ): AsyncData<PickFrom<DataT, PickKeys> | DefaultT, (NuxtErrorDataT extends Error | NuxtError ? NuxtErrorDataT : NuxtError<NuxtErrorDataT>) | undefined>
 
 export function useAsyncStorefront<
     Operation extends keyof AllOperations = '',
     Options extends RequestOptions<Operation> | undefined = undefined,
-    NuxtErrorDataT = unknown,
     DataT = ResT<Operation>,
     PickKeys extends KeysOf<DataT> = KeysOf<DataT>,
     DefaultT = undefined,
 >(
     ...args: any[]
-): AsyncData<PickFrom<DataT, PickKeys>, (NuxtErrorDataT extends Error | NuxtError ? NuxtErrorDataT : NuxtError<NuxtErrorDataT>) | undefined> {
-    if (args.length < 2 || args.length > 4) {
+) {
+    if (args.length < 1 || args.length > 4) {
         throw new Error('[shopify] [useAsyncStorefront] Invalid number of arguments')
     }
 
-    const hasKey = args.length === 4 || (args.length === 3 && typeof args[1] === 'string')
+    type AsyncOptions = AsyncDataOptions<ResT<Operation>, DataT, PickKeys, DefaultT>
 
-    if (!hasKey) {
-        args.unshift('')
-    }
-
-    const [key, operation, options, asyncOptions = {}] = args as [MaybeRefOrGetter<string>, Operation, Options, AsyncDataOptions<ResT<Operation>, DataT, PickKeys, DefaultT>]
+    const key = typeof args[1] === 'string' ? args[0] as MaybeRefOrGetter<string> : undefined
+    const operation = (key ? args[1] : args[0]) as Operation
+    const options = (key && isRequestOptions<Options>(args[2]) ? args[2] : isRequestOptions<Options>(args[1]) ? args[1] : undefined)
+    const asyncOptions = (key && isAsyncDataOptions<AsyncOptions>(args[3]) ? args[3] : isAsyncDataOptions<AsyncOptions>(args[2]) ? args[2] : undefined)
 
     const handler = () => useStorefront().request(operation, options).then(r => r.data!)
 
-    if (hasKey) {
-        return useAsyncData(key, handler, asyncOptions) as AsyncData<PickFrom<DataT, PickKeys>, (NuxtErrorDataT extends Error | NuxtError ? NuxtErrorDataT : NuxtError<NuxtErrorDataT>)>
-    }
-
-    return useAsyncData(handler, asyncOptions) as AsyncData<PickFrom<DataT, PickKeys>, (NuxtErrorDataT extends Error | NuxtError ? NuxtErrorDataT : NuxtError<NuxtErrorDataT>)>
+    return key
+        ? useAsyncData(key, handler, asyncOptions)
+        : useAsyncData(handler, asyncOptions)
 }
