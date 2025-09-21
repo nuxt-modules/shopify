@@ -47,40 +47,46 @@ const state = reactive({
         >
             <ProductImage
                 :product="product"
-                class="my-6 lg:mt-0 lg:col-span-6"
+                class="lg:col-span-6"
             />
 
             <div class="flex flex-col gap-4 lg:col-span-4 lg:col-start-8">
-                <div class="flex-col gap-2 hidden lg:flex lg:pb-4">
+                <div class="flex-col lg:flex lg:pb-4">
                     <h2 class="text-2xl">
                         {{ product.title }}
                     </h2>
 
-                    <ProductPrice
-                        :product="product"
-                        class="shrink"
-                    />
+                    <p>
+                        {{ product.description }}
+                    </p>
                 </div>
 
-                <USeparator class="my-4 lg:my-8" />
+                <USeparator class="mb-5" />
 
-                <div class="flex flex-col items-end gap-6">
+                <Price
+                    v-if="state.selectedVariant"
+                    :price="state.selectedVariant.price"
+                />
+
+                <div class="flex justify-between items-center">
                     <UFormField name="quantity">
                         <UInputNumber
                             v-model="state.quantity"
                             :min="1"
                             :max="10"
                             class="w-24 lg:w-28"
-                            :ui="{
-                                base: 'py-3 rounded-full',
-                            }"
+                            size="xl"
                         />
                     </UFormField>
 
                     <UButton
-                        label="Add to Cart"
-                        :disabled="!state.selectedVariant || !state.selectedVariant.availableForSale"
-                        @click="state.selectedVariant ? add(state.selectedVariant.id, state.quantity) : null"
+                        v-if="state.selectedVariant"
+                        :label="$t('product.addToCart')"
+                        trailing-icon="i-lucide-shopping-cart"
+                        size="xl"
+                        :ui="{ trailingIcon: 'size-5' }"
+                        :disabled="!state.selectedVariant.availableForSale"
+                        @click="add(state.selectedVariant.id, state.quantity)"
                     />
                 </div>
             </div>

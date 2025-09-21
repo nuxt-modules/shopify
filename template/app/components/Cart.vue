@@ -1,52 +1,57 @@
 <script setup lang="ts">
 const open = defineModel<boolean>({ default: false })
 
-const { lines, total, update, remove } = useCart()
+const { lines, total, checkoutUrl } = useCart()
+const route = useRoute()
+
+watch(route, () => open.value = false)
 </script>
 
 <template>
     <USlideover
         v-model:open="open"
-        title="Cart"
+        :title="$t('cart.title')"
     >
         <template #body>
-            <div class="h-full flex flex-col">
-                <div
+            <div class="h-full flex flex-col gap-4 sm:gap-6">
+                <CartLineItem
                     v-for="line in lines"
                     :key="line.id"
-                >
-                    {{ line.id }}
+                    :line="line"
+                />
 
-                    Quantity: {{ line.quantity }}
-
-                    <UButton @click="update(line.id, line.quantity - 1)">
-                        Reduce
-                    </UButton>
-
-                    <UButton @click="remove(line.id)">
-                        Remove
-                    </UButton>
-                </div>
-
-                <span
+                <p
                     v-if="lines.length === 0"
                     class="my-auto text-center"
                 >
-                    Your cart is Empty
-                </span>
+                    {{ $t('cart.empty') }}
+                </p>
             </div>
         </template>
 
         <template #footer>
             <div
                 v-if="total"
-                class="flex justify-between w-full"
+                class="flex justify-between items-center w-full"
             >
-                <span class="font-medium">
-                    Total:
-                </span>
+                <p class="font-medium">
+                    {{ $t('cart.subtotal') }}:
 
-                <Price :price="total" />
+                    <Price :price="total" />
+                </p>
+
+                <UButton
+                    variant="ghost"
+                    color="neutral"
+                    :to="checkoutUrl"
+                    :label="$t('cart.checkout')"
+                    size="xl"
+                    trailing-icon="i-lucide-arrow-right"
+                    :ui="{
+                        trailingIcon: 'size-4',
+                    }"
+                    :disabled="lines.length === 0"
+                />
             </div>
         </template>
     </USlideover>

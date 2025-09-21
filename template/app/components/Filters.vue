@@ -37,7 +37,7 @@ const filters = computed(() => props.filters?.map((filter) => {
 </script>
 
 <template>
-    <div class="not-prose lg:mt-14 lg:me-16">
+    <div class="lg:mt-14 lg:me-16">
         <div class="lg:sticky lg:top-24">
             <p class="text-xl font-bold mb-4">
                 {{ t('filters.title') }}

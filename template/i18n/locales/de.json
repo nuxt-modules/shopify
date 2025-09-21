@@ -7,6 +7,7 @@
         "label": "Suche",
         "placeholder": "Suche...",
         "description": "Produkte und Kollektionen finden",
+        "queries": "Suche nach",
         "products": "Produkte",
         "collections": "Kollektionen"
     },

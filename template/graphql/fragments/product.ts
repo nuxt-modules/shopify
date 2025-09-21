@@ -4,10 +4,14 @@ export const PRODUCT_VARIANT_FRAGMENT = `#graphql
         title
         availableForSale
         sku
+        price {
+            ...PriceFields
+        }
+        image {
+            ...ImageFields
+        }
         product {
-            featuredImage {
-                ...ImageFields
-            }
+            title
         }
     }
 `

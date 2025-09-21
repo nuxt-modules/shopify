@@ -5,7 +5,9 @@ export const CART_LINE_FRAGMENT = `#graphql
         merchandise {
             ... on ProductVariant {
                 ...ProductVariantFields
+
                 product {
+                    handle
                     title
                 }
             }

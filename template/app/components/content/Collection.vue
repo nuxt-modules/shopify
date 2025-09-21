@@ -108,7 +108,7 @@ watch(locale, () => {
             class="lg:col-span-4 xl:col-span-3"
         />
 
-        <div class="not-prose my-12 lg:my-14 lg:col-span-8 xl:col-span-9">
+        <div class="my-12 lg:my-14 lg:col-span-8 xl:col-span-9">
             <div
                 v-if="pageInfo?.hasPreviousPage"
                 class="flex w-full justify-center pb-8 md:mb-8"

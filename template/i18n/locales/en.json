@@ -3,10 +3,17 @@
         "message": "Published under the MIT License.",
         "github": "View on GitHub"
     },
+    "cart": {
+        "title": "Cart",
+        "empty": "Your cart is empty.",
+        "subtotal": "Subtotal",
+        "checkout": "Checkout"
+    },
     "search": {
         "label": "Search",
         "placeholder": "Search...",
         "description": "Find products and collections",
+        "queries": "Search for",
         "products": "Products",
         "collections": "Collections"
     },
@@ -17,6 +24,9 @@
     "price": {
         "from": "from",
         "to": "to"
+    },
+    "product": {
+        "addToCart": "Add to cart"
     },
     "filters": {
         "title": "Filters"

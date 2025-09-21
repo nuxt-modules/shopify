@@ -85,7 +85,7 @@ const {
 </script>
 
 <template>
-    <div class="not-prose relative flex flex-wrap gap-y-10 gap-x-8 justify-center">
+    <div class="relative flex flex-wrap gap-y-10 gap-x-8 justify-center">
         <div
             ref="slider"
             class="flex overflow-x-auto overflow-y-visible gap-x-8 snap-x no-scrollbar"

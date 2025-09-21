@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { ProductFieldsFragment } from '#shopify/storefront'
+
 import { z } from 'zod'
 
 const props = defineProps<{
@@ -6,8 +8,10 @@ const props = defineProps<{
 }>()
 
 const localePath = useLocalePath()
+const { add } = useCart()
 
-const url = localePath(`/product/${props.product.handle}`)
+const url = computed(() => localePath(`/product/${props.product.handle}`))
+const variant = computed(() => props.product.variants.edges[0]?.node)
 
 const schema = z.object({
     quantity: z.number().min(1).max(10),
@@ -27,53 +31,51 @@ const state = reactive<z.infer<typeof schema>>({
             root: 'rounded-none !bg-transparent',
         }"
     >
-        <div class="relative flex flex-col h-full">
-            <NuxtLink
-                :to="url"
-                class="flex flex-col grow"
-            >
-                <ProductImage
-                    :product="props.product"
-                    class="not-prose mb-6"
-                />
+        <NuxtLink
+            :to="url"
+        >
+            <ProductImage
+                :product="props.product"
+                class="mb-6"
+            />
 
-                <p class="text-sm font-headings font-extralight pb-2 lg:text-lg">
+            <div class="flex justify-between items-center mb-6">
+                <p class="font-headings font-medium text-lg">
                     {{ props.product.title }}
                 </p>
-            </NuxtLink>
 
-            <NuxtLink
-                :to="url"
-                class="pt-2 pb-3 md:pb-5"
-            >
-                <ProductPrice
-                    v-if="props.product"
-                    :product="props.product"
+                <Price
+                    v-if="variant"
+                    :price="variant.price"
                 />
-            </NuxtLink>
+            </div>
+        </NuxtLink>
 
-            <UForm
-                :state="state"
-                :schema="schema"
-                :validate-on="['change']"
-                class="flex flex-col gap-4"
-            >
-                <div class="flex flex-row gap-4 justify-between">
-                    <UFormField name="quantity">
-                        <UInputNumber
-                            v-model="state.quantity"
-                            :min="1"
-                            :max="10"
-                            class="w-24"
-                        />
-                    </UFormField>
-
-                    <UButton
-                        trailing-icon="i-lucide-shopping-cart"
-                        label="add to cart"
+        <UForm
+            :state="state"
+            :schema="schema"
+            :validate-on="['change']"
+            class="flex flex-col gap-4"
+        >
+            <div class="flex flex-row gap-4 justify-between">
+                <UFormField name="quantity">
+                    <UInputNumber
+                        v-model="state.quantity"
+                        :min="1"
+                        :max="10"
+                        class="w-24"
                     />
-                </div>
-            </UForm>
-        </div>
+                </UFormField>
+
+                <UButton
+                    v-if="variant"
+                    trailing-icon="i-lucide-shopping-cart"
+                    :label="$t('product.addToCart')"
+                    :disabled="!variant.availableForSale"
+                    :ui="{ trailingIcon: 'size-4' }"
+                    @click="add(variant.id, state.quantity)"
+                />
+            </div>
+        </UForm>
     </UCard>
 </template>

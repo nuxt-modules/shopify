@@ -24,7 +24,7 @@ const price = computed(() => {
 </script>
 
 <template>
-    <span class="font-bold">
+    <span>
         {{ price }}
     </span>
 </template>

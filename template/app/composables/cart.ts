@@ -11,6 +11,7 @@ export const useCart = () => {
 
     const lines = computed(() => flattenConnection(cart.value?.lines))
 
+    const checkoutUrl = computed(() => cart.value?.checkoutUrl)
     const quantity = computed(() => cart.value?.totalQuantity)
     const total = computed(() => cart.value?.cost.totalAmount)
 
@@ -172,6 +173,7 @@ export const useCart = () => {
         lines,
         quantity,
         total,
+        checkoutUrl,
 
         init,
         get,
