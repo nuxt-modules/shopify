@@ -7,7 +7,6 @@ definePageMeta({
 })
 
 const { language, country } = useLocalization()
-const storefront = useStorefront()
 const { locale } = useI18n()
 const route = useRoute()
 
@@ -16,7 +15,7 @@ const path = computed(() => (route.path.includes(locale.value) ? route.path : `/
 
 const { data: page } = await useAsyncData(`page-${route.path}`, () => queryCollection('content').path(path.value).first())
 
-const { data: product } = await useAsyncData(`collection-${locale.value}-${handle.value}`, () => storefront.request(`#graphql
+const { data: product } = await useAsyncStorefront(`collection-${locale.value}-${handle.value}`, `#graphql
     query FetchProduct($handle: String, $language: LanguageCode, $country: CountryCode) 
     @inContext(language: $language, country: $country) {
         product(handle: $handle) {
@@ -34,8 +33,8 @@ const { data: product } = await useAsyncData(`collection-${locale.value}-${handl
         language: language.value,
         country: country.value,
     }),
-}), {
-    transform: response => response.data?.product,
+}, {
+    transform: data => data?.product,
 })
 
 useSeoMeta({

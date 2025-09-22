@@ -5,9 +5,8 @@ import type { Locale } from '#i18n'
 const { language, country, getCountry } = useLocalization()
 const switchLocalePath = useSwitchLocalePath()
 const { t, locale, locales } = useI18n()
-const storefront = useStorefront()
 
-const { data: localization } = await useAsyncData(`localizations-${locale.value}`, () => storefront.request(`#graphql
+const { data: localization } = await useAsyncStorefront(`localizations-${locale.value}`, `#graphql
     query AllLocalizations($language: LanguageCode, $country: CountryCode)
     @inContext(language: $language, country: $country) {
         localization {
@@ -27,8 +26,8 @@ const { data: localization } = await useAsyncData(`localizations-${locale.value}
         language: language.value,
         country: country.value,
     }),
-}), {
-    transform: response => response.data?.localization,
+}, {
+    transform: data => data?.localization,
 })
 
 const getCountryLabel = (code: Locale) => {
@@ -72,17 +71,7 @@ const items = computed<NavigationMenuItem[]>(() => [
     <footer class="pt-8 pb-6 bg-[var(--bg-ui)] border-t border-[var(--ui-border)]">
         <UContainer>
             <div class="md:flex items-center gap-4">
-                <p class="pb-2 pe-3 md:pb-4">
-                    <span class="text-sm text-muted">
-                        Built with
-                    </span>
-
-                    <br>
-
-                    <span class="font-medium">
-                        Nuxt Shopify v0.0.31
-                    </span>
-                </p>
+                <Version />
 
                 <USeparator
                     orientation="vertical"

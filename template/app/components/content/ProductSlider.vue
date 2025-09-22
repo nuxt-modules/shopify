@@ -15,7 +15,6 @@ const props = defineProps<{
 }>()
 
 const { language, country } = useLocalization()
-const storefront = useStorefront()
 const { locale } = useI18n()
 
 const key = computed(() => `product-slider-${props.handle}-${locale.value}`)
@@ -29,7 +28,7 @@ const sortKey = computed(() => props.sortKey ? String(props.sortKey) : undefined
 const reverse = computed(() => props.reverse ? Boolean(props.reverse) : undefined)
 const filters = computed(() => props.filters ? props.filters : undefined)
 
-const { data: products } = await useAsyncData(key, () => storefront.request(`#graphql
+const { data: products } = await useAsyncStorefront(key, `#graphql
     query FetchSliderProducts(
         $handle: String,
         $after: String,
@@ -69,8 +68,8 @@ const { data: products } = await useAsyncData(key, () => storefront.request(`#gr
         language: language.value,
         country: country.value,
     }),
-}), {
-    transform: response => flattenConnection(response.data?.collection?.products),
+}, {
+    transform: data => flattenConnection(data?.collection?.products),
 })
 
 const slider = ref<HTMLElement>()
@@ -85,10 +84,10 @@ const {
 </script>
 
 <template>
-    <div class="relative flex flex-wrap gap-y-10 gap-x-8 justify-center">
+    <div class="py-6 relative flex flex-wrap gap-y-10 gap-x-6 justify-center">
         <div
             ref="slider"
-            class="flex overflow-x-auto overflow-y-visible gap-x-8 snap-x no-scrollbar"
+            class="flex overflow-x-auto overflow-y-visible gap-x-6 snap-x no-scrollbar"
         >
             <ProductCard
                 v-for="product in products"

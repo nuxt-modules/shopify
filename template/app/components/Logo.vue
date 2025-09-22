@@ -1,8 +1,7 @@
 <script setup lang="ts">
 const localePath = useLocalePath()
-const storefront = useStorefront()
 
-const { data } = await useAsyncData('logo', () => storefront.request(`#graphql
+const { data } = await useAsyncStorefront('logo', `#graphql
     query FetchLogo {
         shop {
             brand {
@@ -15,8 +14,8 @@ const { data } = await useAsyncData('logo', () => storefront.request(`#graphql
         }
     }
     ${IMAGE_FRAGMENT}
-`), {
-    transform: data => data?.data?.shop?.brand?.logo,
+`, {
+    transform: data => data?.shop?.brand?.logo,
 })
 
 const logoUrl = computed(() => data.value?.image?.url)

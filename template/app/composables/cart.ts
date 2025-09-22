@@ -4,13 +4,13 @@ export const useCart = () => {
     const { language, country } = useLocalization()
     const storefront = useStorefront()
     const toast = useToast()
-
-    const id = useCookie<string>('shopify-cart-id', undefined)
+    const { t } = useI18n()
 
     const cart = useState<CartFieldsFragment | undefined>('shopify-cart', () => undefined)
+    const open = useState('shopify-cart-open', () => ref(false))
+    const id = useCookie<string>('shopify-cart-id', undefined)
 
     const lines = computed(() => flattenConnection(cart.value?.lines))
-
     const checkoutUrl = computed(() => cart.value?.checkoutUrl)
     const quantity = computed(() => cart.value?.totalQuantity)
     const total = computed(() => cart.value?.cost.totalAmount)
@@ -29,13 +29,14 @@ export const useCart = () => {
             language: language.value,
             country: country.value,
         }),
-    })
-        .then(({ data }) => id.value = data?.cartCreate?.cart?.id ?? '')
-        .catch(() => toast.add({
-            title: 'Failed to initialize cart',
-            description: 'Please try again later',
-            color: 'error',
-        }))
+    }).then(({ data }) =>
+        id.value = data?.cartCreate?.cart?.id ?? '',
+    ).catch(() => toast.add({
+        title: t('cart.toast.error.init'),
+        description: t('cart.toast.error.tryAgain'),
+        color: 'error',
+
+    }))
 
     const get = () => storefront.request(`#graphql
         query GetCart($id: ID!, $language: LanguageCode, $country: CountryCode) 
@@ -54,13 +55,13 @@ export const useCart = () => {
             language: language.value,
             country: country.value,
         }),
-    })
-        .then(({ data }) => cart.value = data?.cart ?? undefined)
-        .catch(() => toast.add({
-            title: 'Failed to get cart',
-            description: 'Please try again later',
-            color: 'error',
-        }))
+    }).then(({ data }) =>
+        cart.value = data?.cart ?? undefined,
+    ).catch(() => toast.add({
+        title: t('cart.toast.error.get'),
+        description: t('cart.toast.error.tryAgain'),
+        color: 'error',
+    }))
 
     const add = (variantId: string, quantity = 1) => storefront.request(`#graphql
         mutation AddToCart($cartId: ID!, $lines: [CartLineInput!]!, $language: LanguageCode, $country: CountryCode)
@@ -91,13 +92,21 @@ export const useCart = () => {
             language: language.value,
             country: country.value,
         }),
-    })
-        .then(({ data }) => cart.value = data?.cartLinesAdd?.cart ?? undefined)
-        .catch(() => toast.add({
-            title: 'Failed to add item to cart',
-            description: 'Please try again later',
-            color: 'error',
-        }))
+    }).then(({ data }) => {
+        cart.value = data?.cartLinesAdd?.cart ?? undefined
+
+        if (!open.value) toast.add({
+            title: t('cart.toast.add'),
+            actions: [
+                { label: t('cart.toast.view'), onClick: () => { open.value = true } },
+            ],
+            color: 'success',
+        })
+    }).catch(() => toast.add({
+        title: t('cart.toast.error.add'),
+        description: t('cart.toast.error.tryAgain'),
+        color: 'error',
+    }))
 
     const update = (variantId: string, quantity: number) => storefront.request(`#graphql
         mutation UpdateCart($cartId: ID!, $lines: [CartLineUpdateInput!]!, $language: LanguageCode, $country: CountryCode) 
@@ -128,13 +137,21 @@ export const useCart = () => {
             language: language.value,
             country: country.value,
         }),
-    })
-        .then(({ data }) => cart.value = data?.cartLinesUpdate?.cart ?? undefined)
-        .catch(() => toast.add({
-            title: 'Failed to update cart item',
-            description: 'Please try again later',
-            color: 'error',
-        }))
+    }).then(({ data }) => {
+        cart.value = data?.cartLinesUpdate?.cart ?? undefined
+
+        if (!open.value) toast.add({
+            title: t('cart.toast.update'),
+            actions: [
+                { label: t('cart.toast.view'), onClick: () => { open.value = true } },
+            ],
+            color: 'success',
+        })
+    }).catch(() => toast.add({
+        title: t('cart.toast.error.update'),
+        description: t('cart.toast.error.tryAgain'),
+        color: 'error',
+    }))
 
     const remove = (variantId: string) => storefront.request(`#graphql
         mutation RemoveFromCart($cartId: ID!, $lineIds: [ID!]!, $language: LanguageCode, $country: CountryCode) 
@@ -160,15 +177,24 @@ export const useCart = () => {
             language: language.value,
             country: country.value,
         }),
-    })
-        .then(({ data }) => cart.value = data?.cartLinesRemove?.cart ?? undefined)
-        .catch(() => toast.add({
-            title: 'Failed to remove cart item',
-            description: 'Please try again later',
-            color: 'error',
-        }))
+    }).then(({ data }) => {
+        cart.value = data?.cartLinesRemove?.cart ?? undefined
+
+        if (!open.value) toast.add({
+            title: t('cart.toast.remove'),
+            actions: [
+                { label: t('cart.toast.view'), onClick: () => { open.value = true } },
+            ],
+            color: 'success',
+        })
+    }).catch(() => toast.add({
+        title: t('cart.toast.error.remove'),
+        description: t('cart.toast.error.tryAgain'),
+        color: 'error',
+    }))
 
     return {
+        open,
         id,
         lines,
         quantity,

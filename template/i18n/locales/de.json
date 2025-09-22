@@ -3,6 +3,27 @@
         "message": "Veröffentlicht unter der MIT License.",
         "github": "Auf GitHub ansehen"
     },
+    "cart": {
+        "title": "Warenkorb",
+        "description": "Überprüfen Sie Ihre ausgewählten Artikel",
+        "empty": "Ihr Warenkorb ist leer.",
+        "subtotal": "Summe",
+        "checkout": "Zur Kasse",
+        "toast": {
+            "add": "Artikel zum Warenkorb hinzugefügt.",
+            "update": "Ihr Warenkorb wurde aktualisiert.",
+            "remove": "Artikel aus dem Warenkorb entfernt.",
+            "view": "Warenkorb ansehen",
+            "error": {
+                "init": "Warenkorb konnte nicht initialisiert werden.",
+                "get": "Warenkorb konnte nicht abgerufen werden.",
+                "add": "Artikel konnte nicht zum Warenkorb hinzugefügt werden.",
+                "update": "Artikel im Warenkorb konnte nicht aktualisiert werden.",
+                "remove": "Artikel konnte nicht aus dem Warenkorb entfernt werden.",
+                "tryAgain": "Bitte versuchen Sie es erneut."
+            }
+        }
+    },
     "search": {
         "label": "Suche",
         "placeholder": "Suche...",
@@ -18,6 +39,9 @@
     "price": {
         "from": "von",
         "to": "bis"
+    },
+    "product": {
+        "addToCart": "In den Warenkorb"
     },
     "filters": {
         "title": "Filter"

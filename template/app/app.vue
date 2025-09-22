@@ -15,11 +15,7 @@ useHead({
     title: 'Nuxt Shopify Demo Store',
 })
 
-onMounted(async () => {
-    if (!id.value) await init()
-
-    await get()
-})
+watch(id, value => !value ? init().then(get) : get(), { immediate: true })
 </script>
 
 <template>

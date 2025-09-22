@@ -1,16 +1,16 @@
 <script setup lang="ts">
-const open = defineModel<boolean>({ default: false })
-
-const { lines, total, checkoutUrl } = useCart()
+const { open, lines, total, checkoutUrl } = useCart()
 const route = useRoute()
 
-watch(route, () => open.value = false)
+watch(() => route.path, () => open.value = false)
 </script>
 
 <template>
     <USlideover
         v-model:open="open"
         :title="$t('cart.title')"
+        :description="$t('cart.description')"
+        :ui="{ description: 'sr-only' }"
     >
         <template #body>
             <div class="h-full flex flex-col gap-4 sm:gap-6">

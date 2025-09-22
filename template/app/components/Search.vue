@@ -2,8 +2,8 @@
 const open = defineModel<boolean>({ default: false })
 
 const { language, country } = useLocalization()
-const localePath = useLocalePath()
 const storefront = useStorefront()
+const localePath = useLocalePath()
 const { t, locale } = useI18n()
 
 const query = ref('')
@@ -46,7 +46,7 @@ const { data, status } = await useAsyncData(`search-${query.value}-${locale.valu
         country: country.value,
     }),
 }), {
-    transform: data => data.data,
+    transform: response => response.data,
     watch: [query],
     lazy: true,
 })
