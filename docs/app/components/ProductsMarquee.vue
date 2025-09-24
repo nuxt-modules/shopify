@@ -75,7 +75,7 @@ watch(products, (newVal) => {
     <div class="pt-24">
         <div class="absolute isolate inset-0 top-16 overflow-hidden">
             <div class="relative flex flex-col justify-between pt-4">
-                <UPageMarquee
+                <UMarquee
                     v-for="(row, rowIndex) in marqueeProductsData"
                     :key="rowIndex"
                     :reverse="rowIndex % 2 === 1"
@@ -112,7 +112,7 @@ watch(products, (newVal) => {
                             height="80"
                         />
                     </Motion>
-                </UPageMarquee>
+                </UMarquee>
 
                 <div class="absolute top-0 left-0 right-0 size-full z-10 bg-linear-to-t from-default to-default/20" />
             </div>

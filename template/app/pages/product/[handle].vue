@@ -13,29 +13,31 @@ const route = useRoute()
 const handle = computed(() => route.params.handle as string)
 const path = computed(() => (route.path.includes(locale.value) ? route.path : `/${joinURL(locale.value, route.path)}`).replace(handle.value, ''))
 
-const { data: page } = await useAsyncData(`page-${route.path}`, () => queryCollection('content').path(path.value).first())
+const [{ data: page }, { data: product }] = await Promise.all([
+    useAsyncData(`page-${route.path}`, () => queryCollection('content').path(path.value).first()),
 
-const { data: product } = await useAsyncStorefront(`collection-${locale.value}-${handle.value}`, `#graphql
-    query FetchProduct($handle: String, $language: LanguageCode, $country: CountryCode) 
-    @inContext(language: $language, country: $country) {
-        product(handle: $handle) {
-            ...ProductFields
+    useAsyncStorefront(`collection-${locale.value}-${handle.value}`, `#graphql
+        query FetchProduct($handle: String, $language: LanguageCode, $country: CountryCode) 
+        @inContext(language: $language, country: $country) {
+            product(handle: $handle) {
+                ...ProductFields
+            }
         }
-    }
-    ${IMAGE_FRAGMENT}
-    ${PRICE_FRAGMENT}
-    ${PRODUCT_FRAGMENT}
-`, {
-    variables: z.object({
-        handle: z.string(),
-    }).extend(localizationParamsSchema.shape).parse({
-        handle: handle.value,
-        language: language.value,
-        country: country.value,
+        ${IMAGE_FRAGMENT}
+        ${PRICE_FRAGMENT}
+        ${PRODUCT_FRAGMENT}
+    `, {
+        variables: z.object({
+            handle: z.string(),
+        }).extend(localizationParamsSchema.shape).parse({
+            handle: handle.value,
+            language: language.value,
+            country: country.value,
+        }),
+    }, {
+        transform: data => data?.product,
     }),
-}, {
-    transform: data => data?.product,
-})
+])
 
 useSeoMeta({
     title: `${product.value?.title} | Nuxt Shopify Demo Store`,

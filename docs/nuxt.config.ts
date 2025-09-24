@@ -3,7 +3,7 @@ export default defineNuxtConfig({
 
     modules: [
         '../src/module',
-        '@nuxt/ui-pro',
+        '@nuxt/ui',
         '@nuxtjs/critters',
         'motion-v/nuxt',
     ],
