@@ -33,7 +33,6 @@ const { data: collection } = await useAsyncStorefront(key, `#graphql
         language: 'EN',
         country: 'US',
     },
-}, {
     transform: data => data.collection,
 })
 

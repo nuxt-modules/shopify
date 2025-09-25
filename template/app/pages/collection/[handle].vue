@@ -33,7 +33,6 @@ const [{ data: page }, { data: collection }] = await Promise.all([
             language: language.value,
             country: country.value,
         }),
-    }, {
         transform: data => data?.collection,
     }),
 ])

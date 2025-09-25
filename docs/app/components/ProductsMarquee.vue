@@ -26,7 +26,6 @@ const { data: products } = await useAsyncStorefront('products', `#graphql
     variables: {
         first: 100,
     },
-}, {
     transform: data => flattenConnection(data.products)
         .flatMap(product => product.images.nodes)
         .map(image => ({
