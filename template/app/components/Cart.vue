@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { open, lines, total, checkoutUrl } = useCart()
+const { open, loading, lines, total, checkoutUrl } = useCart()
 const route = useRoute()
 
 watch(() => route.path, () => open.value = false)
@@ -10,35 +10,44 @@ watch(() => route.path, () => open.value = false)
         v-model:open="open"
         :title="$t('cart.title')"
         :description="$t('cart.description')"
-        :ui="{ description: 'sr-only' }"
+        :ui="{ description: 'sr-only', body: 'flex flex-col gap-y-6' }"
     >
         <template #body>
-            <div class="h-full flex flex-col gap-4 sm:gap-6">
-                <CartLineItem
-                    v-for="line in lines"
-                    :key="line.id"
-                    :line="line"
-                />
+            <CartLineItem
+                v-for="line in lines"
+                :key="line.id"
+                :line="line"
+                class="shrink-0"
+            />
 
-                <p
-                    v-if="lines.length === 0"
-                    class="my-auto text-center"
-                >
-                    {{ $t('cart.empty') }}
-                </p>
-            </div>
+            <p
+                v-if="lines.length === 0"
+                class="my-auto text-center"
+            >
+                {{ $t('cart.empty') }}
+            </p>
         </template>
 
         <template #footer>
             <div
                 v-if="total"
                 class="flex justify-between items-center w-full"
+                :class="{
+                    'animate-pulse': loading,
+                }"
             >
-                <p class="font-medium">
-                    {{ $t('cart.subtotal') }}:
+                <div class="flex items-center gap-2">
+                    <p class="font-medium inline-block">
+                        {{ $t('cart.subtotal') }}:
+                        <Price :price="total" />
+                    </p>
 
-                    <Price :price="total" />
-                </p>
+                    <Icon
+                        v-if="loading"
+                        name="i-lucide-loader-circle"
+                        class="animate-spin"
+                    />
+                </div>
 
                 <UButton
                     variant="ghost"
@@ -50,7 +59,7 @@ watch(() => route.path, () => open.value = false)
                     :ui="{
                         trailingIcon: 'size-4',
                     }"
-                    :disabled="lines.length === 0"
+                    :disabled="loading || lines.length === 0"
                 />
             </div>
         </template>

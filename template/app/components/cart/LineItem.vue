@@ -22,7 +22,7 @@ const state = reactive<z.infer<typeof schema>>({
 
 watchDebounced(state, (state) => {
     update(props.line.id, state.quantity)
-}, { debounce: 500 })
+}, { debounce: 200 })
 </script>
 
 <template>
@@ -64,7 +64,7 @@ watchDebounced(state, (state) => {
 
                 <Price
                     :price="variant.price"
-                    class="font-semibold"
+                    class="font-semibold leading-8"
                 />
             </div>
         </div>
@@ -74,7 +74,7 @@ watchDebounced(state, (state) => {
             color="neutral"
             icon="i-lucide-x"
             size="sm"
-            class="absolute top-0 right-0"
+            class="absolute top-0 right-0 p-2 rounded-none rounded-bl-md"
             @click="remove(props.line.id)"
         />
     </UCard>

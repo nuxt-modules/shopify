@@ -41,6 +41,11 @@ export const useFilter = (name: keyof ProductFilter) => {
     const set = (value: ProductFilter[]) => {
         let query = { ...route.query }
 
+        delete query.before
+        delete query.after
+        delete query.first
+        delete query.last
+
         if (value.length === 0) {
             const { [`filter.${name}`]: _, ...restQuery } = query
             query = restQuery

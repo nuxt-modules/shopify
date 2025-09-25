@@ -50,7 +50,7 @@ const searchOpen = ref(false)
                     variant="ghost"
                     color="neutral"
                     label="Search"
-                    @click="searchOpen = !searchOpen"
+                    @click="searchOpen = true"
                 />
 
                 <div class="relative">

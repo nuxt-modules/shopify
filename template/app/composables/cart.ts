@@ -7,6 +7,7 @@ export const useCart = () => {
     const { t } = useI18n()
 
     const cart = useState<CartFieldsFragment | undefined>('shopify-cart', () => undefined)
+    const loading = useState('shopify-cart-loading', () => ref(false))
     const open = useState('shopify-cart-open', () => ref(false))
     const id = useCookie<string>('shopify-cart-id', undefined)
 
@@ -15,7 +16,9 @@ export const useCart = () => {
     const quantity = computed(() => cart.value?.totalQuantity)
     const total = computed(() => cart.value?.cost.totalAmount)
 
-    const init = () => storefront.request(`#graphql
+    const setLoading = async (value: boolean) => loading.value = value
+
+    const init = () => setLoading(true).then(() => storefront.request(`#graphql
         mutation CreateCart($language: LanguageCode, $country: CountryCode)
         @inContext(language: $language, country: $country) {
             cartCreate {
@@ -29,16 +32,15 @@ export const useCart = () => {
             language: language.value,
             country: country.value,
         }),
-    }).then(({ data }) =>
+    })).then(({ data }) =>
         id.value = data?.cartCreate?.cart?.id ?? '',
     ).catch(() => toast.add({
         title: t('cart.toast.error.init'),
         description: t('cart.toast.error.tryAgain'),
         color: 'error',
+    })).finally(() => setLoading(false))
 
-    }))
-
-    const get = () => storefront.request(`#graphql
+    const get = () => setLoading(true).then(() => storefront.request(`#graphql
         query GetCart($id: ID!, $language: LanguageCode, $country: CountryCode) 
         @inContext(language: $language, country: $country) {
             cart(id: $id) {
@@ -55,15 +57,15 @@ export const useCart = () => {
             language: language.value,
             country: country.value,
         }),
-    }).then(({ data }) =>
+    })).then(({ data }) =>
         cart.value = data?.cart ?? undefined,
     ).catch(() => toast.add({
         title: t('cart.toast.error.get'),
         description: t('cart.toast.error.tryAgain'),
         color: 'error',
-    }))
+    })).finally(() => setLoading(false))
 
-    const add = (variantId: string, quantity = 1) => storefront.request(`#graphql
+    const add = (variantId: string, quantity = 1) => setLoading(true).then(() => storefront.request(`#graphql
         mutation AddToCart($cartId: ID!, $lines: [CartLineInput!]!, $language: LanguageCode, $country: CountryCode)
         @inContext(language: $language, country: $country) {
             cartLinesAdd(cartId: $cartId, lines: $lines) {
@@ -92,7 +94,7 @@ export const useCart = () => {
             language: language.value,
             country: country.value,
         }),
-    }).then(({ data }) => {
+    })).then(({ data }) => {
         cart.value = data?.cartLinesAdd?.cart ?? undefined
 
         if (!open.value) toast.add({
@@ -106,9 +108,9 @@ export const useCart = () => {
         title: t('cart.toast.error.add'),
         description: t('cart.toast.error.tryAgain'),
         color: 'error',
-    }))
+    })).finally(() => setLoading(false))
 
-    const update = (variantId: string, quantity: number) => storefront.request(`#graphql
+    const update = (variantId: string, quantity: number) => setLoading(true).then(() => storefront.request(`#graphql
         mutation UpdateCart($cartId: ID!, $lines: [CartLineUpdateInput!]!, $language: LanguageCode, $country: CountryCode) 
         @inContext(language: $language, country: $country) {
             cartLinesUpdate(cartId: $cartId, lines: $lines) {
@@ -137,7 +139,7 @@ export const useCart = () => {
             language: language.value,
             country: country.value,
         }),
-    }).then(({ data }) => {
+    })).then(({ data }) => {
         cart.value = data?.cartLinesUpdate?.cart ?? undefined
 
         if (!open.value) toast.add({
@@ -151,9 +153,9 @@ export const useCart = () => {
         title: t('cart.toast.error.update'),
         description: t('cart.toast.error.tryAgain'),
         color: 'error',
-    }))
+    })).finally(() => setLoading(false))
 
-    const remove = (variantId: string) => storefront.request(`#graphql
+    const remove = (variantId: string) => setLoading(true).then(() => storefront.request(`#graphql
         mutation RemoveFromCart($cartId: ID!, $lineIds: [ID!]!, $language: LanguageCode, $country: CountryCode) 
         @inContext(language: $language, country: $country) {
             cartLinesRemove(cartId: $cartId, lineIds: $lineIds) {
@@ -177,7 +179,7 @@ export const useCart = () => {
             language: language.value,
             country: country.value,
         }),
-    }).then(({ data }) => {
+    })).then(({ data }) => {
         cart.value = data?.cartLinesRemove?.cart ?? undefined
 
         if (!open.value) toast.add({
@@ -191,10 +193,11 @@ export const useCart = () => {
         title: t('cart.toast.error.remove'),
         description: t('cart.toast.error.tryAgain'),
         color: 'error',
-    }))
+    })).finally(() => setLoading(false))
 
     return {
         open,
+        loading,
         id,
         lines,
         quantity,

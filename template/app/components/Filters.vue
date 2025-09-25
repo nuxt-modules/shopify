@@ -27,11 +27,8 @@ const filters = computed(() => props.filters?.map((filter) => {
                 ...filterItem,
             }
         case 'BOOLEAN':
-            return {
-                // TODO: Implement
-                component: resolveComponent('FilterBoolean'),
-                ...filterItem,
-            }
+            // TODO: Implement
+            return undefined
     }
 })?.filter(f => f !== undefined))
 </script>
