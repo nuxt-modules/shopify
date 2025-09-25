@@ -12,6 +12,12 @@ watch(() => route.path, () => open.value = false)
         :description="$t('cart.description')"
         :ui="{ description: 'sr-only', body: 'flex flex-col gap-y-6' }"
     >
+        <UButton
+            icon="i-lucide-shopping-cart"
+            variant="ghost"
+            color="neutral"
+        />
+
         <template #body>
             <CartLineItem
                 v-for="line in lines"

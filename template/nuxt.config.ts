@@ -38,13 +38,12 @@ export default defineNuxtConfig({
 
     runtimeConfig: {
         shopify: {
-            name: '',
+            name: 'nuxt-shopify-demo-store',
 
             clients: {
                 storefront: {
                     mock: true,
-                    apiVersion: '',
-                    publicAccessToken: '',
+                    apiVersion: '2025-07',
                 },
             },
         },

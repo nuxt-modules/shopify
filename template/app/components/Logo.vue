@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const localePath = useLocalePath()
 
-const { data } = await useAsyncStorefront('logo', `#graphql
+const { data: logo } = await useAsyncStorefront('logo', `#graphql
     query FetchLogo {
         shop {
             brand {
@@ -15,10 +15,8 @@ const { data } = await useAsyncStorefront('logo', `#graphql
     }
     ${IMAGE_FRAGMENT}
 `, {
-    transform: data => data?.shop?.brand?.logo,
+    transform: data => data?.shop?.brand?.logo?.image,
 })
-
-const logoUrl = computed(() => data.value?.image?.url)
 </script>
 
 <template>
@@ -27,7 +25,8 @@ const logoUrl = computed(() => data.value?.image?.url)
         class="flex items-center gap-3 mr-4 shrink-0"
     >
         <NuxtImg
-            :src="logoUrl"
+            :src="logo?.url"
+            :alt="logo?.altText || 'Nuxt Shopify'"
             provider="shopify"
             class="h-5 w-auto invert"
             width="50"

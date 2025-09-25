@@ -1,12 +1,11 @@
 <script setup lang="ts">
-const open = defineModel<boolean>({ default: false })
-
 const { language, country } = useLocalization()
 const storefront = useStorefront()
 const localePath = useLocalePath()
 const { t, locale } = useI18n()
 
 const query = ref('')
+const open = ref(false)
 
 const { data, status } = await useAsyncData(`search-${query.value}-${locale.value}`, () => storefront.request(`#graphql
     query predictiveSearch($query: String!, $first: Int, $language: LanguageCode, $country: CountryCode)
@@ -95,9 +94,15 @@ const updateQuery = useDebounceFn((value: string) => query.value = value, 300)
         :title="t('search.label')"
         :description="t('search.description')"
     >
+        <UButton
+            icon="i-lucide-search"
+            variant="ghost"
+            color="neutral"
+            :label="$t('search.label')"
+        />
+
         <template #content>
             <UCommandPalette
-                v-model:open="open"
                 :loading="status === 'pending'"
                 :placeholder="t('search.placeholder')"
                 :groups="groups"

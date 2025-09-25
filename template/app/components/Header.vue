@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const { language, country } = useLocalization()
-const { quantity, open } = useCart()
 const localePath = useLocalePath()
+const { quantity } = useCart()
 
 const getCollectionUrl = (handle: string) => localePath(`/collection/${handle}`)
 const getBlogUrl = (handle: string) => localePath(`/blog/${handle}`)
@@ -30,8 +30,6 @@ const { data: items } = await useAsyncStorefront('main-menu', `#graphql
                 : item.url ?? undefined,
     })) ?? [],
 })
-
-const searchOpen = ref(false)
 </script>
 
 <template>
@@ -45,21 +43,10 @@ const searchOpen = ref(false)
             />
 
             <div class="flex items-center gap-2">
-                <UButton
-                    icon="i-lucide-search"
-                    variant="ghost"
-                    color="neutral"
-                    label="Search"
-                    @click="searchOpen = true"
-                />
+                <Search />
 
                 <div class="relative">
-                    <UButton
-                        icon="i-lucide-shopping-cart"
-                        variant="ghost"
-                        color="neutral"
-                        @click="open = !open"
-                    />
+                    <Cart />
 
                     <ClientOnly>
                         <UBadge
@@ -87,9 +74,5 @@ const searchOpen = ref(false)
                 </UDropdownMenu>
             </div>
         </UContainer>
-
-        <Search v-model="searchOpen" />
-
-        <Cart />
     </div>
 </template>
