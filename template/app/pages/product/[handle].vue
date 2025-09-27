@@ -34,7 +34,6 @@ const [{ data: page }, { data: product }] = await Promise.all([
             language: language.value,
             country: country.value,
         }),
-    }, {
         transform: data => data?.product,
     }),
 ])

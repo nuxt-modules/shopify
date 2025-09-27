@@ -68,7 +68,6 @@ const { data: products } = await useAsyncStorefront(key, `#graphql
         language: language.value,
         country: country.value,
     }),
-}, {
     transform: data => flattenConnection(data?.collection?.products),
 })
 

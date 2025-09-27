@@ -20,7 +20,6 @@ const { data: items } = await useAsyncStorefront('main-menu', `#graphql
         language: language.value,
         country: country.value,
     }),
-}, {
     transform: data => data.menu?.items?.map(item => ({
         label: item.title,
         to: item.resource?.__typename === 'Blog'

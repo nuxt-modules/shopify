@@ -22,7 +22,6 @@ const { data: product } = await useAsyncStorefront(`product-${props.handle}`, `#
         language: language.value,
         country: country.value,
     }),
-}, {
     transform: data => data?.product,
 })
 

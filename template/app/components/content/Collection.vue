@@ -3,7 +3,6 @@ const props = defineProps<{
     handle: string
 }>()
 
-const storefront = useStorefront()
 const { params } = useCollection()
 const { t, locale } = useI18n()
 const router = useRouter()
@@ -11,7 +10,7 @@ const route = useRoute()
 
 const key = computed(() => `collection-${locale.value}-${props.handle}-products`)
 
-const { data, status } = await useAsyncData(key, () => storefront.request(`#graphql
+const { data, status } = await useAsyncStorefront(key, `#graphql
     query FetchCollectionProducts(
         $handle: String,
         $after: String,
@@ -45,12 +44,10 @@ const { data, status } = await useAsyncData(key, () => storefront.request(`#grap
     ${IMAGE_FRAGMENT}
     ${PRICE_FRAGMENT}
 `, {
-    variables: collectionProductsInputSchema.parse({
+    variables: computed(() => collectionProductsInputSchema.parse({
         handle: props.handle,
         ...params.value,
-    }),
-}), {
-    transform: response => response.data,
+    })),
     watch: [params],
 })
 

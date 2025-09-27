@@ -26,7 +26,6 @@ const { data: localization } = await useAsyncStorefront(`localizations-${locale.
         language: language.value,
         country: country.value,
     }),
-}, {
     transform: data => data?.localization,
 })
 

@@ -20,7 +20,6 @@ const { data: collections } = await useAsyncStorefront(`collections-${locale.val
         language: language.value,
         country: country.value,
     }),
-}, {
     transform: data => flattenConnection(data?.collections).filter(c => c.description),
 })
 </script>
