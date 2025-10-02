@@ -98,7 +98,7 @@ const updateQuery = useDebounceFn((value: string) => query.value = value, 300)
             icon="i-lucide-search"
             variant="ghost"
             color="neutral"
-            :label="$t('search.label')"
+            :label="t('search.label')"
         />
 
         <template #content>

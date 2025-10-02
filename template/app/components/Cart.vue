@@ -1,6 +1,7 @@
 <script setup lang="ts">
 const { open, loading, lines, total, checkoutUrl } = useCart()
 const route = useRoute()
+const { t } = useI18n()
 
 watch(() => route.path, () => open.value = false)
 </script>
@@ -8,8 +9,8 @@ watch(() => route.path, () => open.value = false)
 <template>
     <USlideover
         v-model:open="open"
-        :title="$t('cart.title')"
-        :description="$t('cart.description')"
+        :title="t('cart.title')"
+        :description="t('cart.description')"
         :ui="{ description: 'sr-only', body: 'flex flex-col gap-y-6' }"
     >
         <UButton
@@ -30,7 +31,7 @@ watch(() => route.path, () => open.value = false)
                 v-if="lines.length === 0"
                 class="my-auto text-center"
             >
-                {{ $t('cart.empty') }}
+                {{ t('cart.empty') }}
             </p>
         </template>
 
@@ -44,7 +45,7 @@ watch(() => route.path, () => open.value = false)
             >
                 <div class="flex items-center gap-2">
                     <p class="font-medium inline-block">
-                        {{ $t('cart.subtotal') }}:
+                        {{ t('cart.subtotal') }}:
                         <Price :price="total" />
                     </p>
 
@@ -59,7 +60,7 @@ watch(() => route.path, () => open.value = false)
                     variant="ghost"
                     color="neutral"
                     :to="checkoutUrl"
-                    :label="$t('cart.checkout')"
+                    :label="t('cart.checkout')"
                     size="xl"
                     trailing-icon="i-lucide-arrow-right"
                     :ui="{

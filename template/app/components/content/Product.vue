@@ -5,6 +5,7 @@ const props = defineProps<{
 
 const { country, language } = useLocalization()
 const { add } = useCart()
+const { t } = useI18n()
 
 const { data: product } = await useAsyncStorefront(`product-${props.handle}`, `#graphql
     query FetchProduct($handle: String, $language: LanguageCode, $country: CountryCode) 
@@ -81,7 +82,7 @@ const state = reactive({
 
                     <UButton
                         v-if="state.selectedVariant"
-                        :label="$t('product.addToCart')"
+                        :label="t('product.addToCart')"
                         trailing-icon="i-lucide-shopping-cart"
                         size="xl"
                         :ui="{ trailingIcon: 'size-5' }"
