@@ -45,6 +45,6 @@ const { data: products } = await useStorefrontData('async-data-test', `#graphql
             <br>
         </div>
 
-        <p>Product count: {{ products.length }}</p>
+        <p>Product count: {{ products?.length }}</p>
     </div>
 </template>

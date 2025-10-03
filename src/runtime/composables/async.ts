@@ -49,7 +49,7 @@ export function useStorefrontData<
             ? InferPickType<ResT, Options>
             : ResT
     ) | undefined,
-    (NuxtErrorDataT extends Error | NuxtError ? NuxtErrorDataT : NuxtError<NuxtErrorDataT>) | undefined
+    (NuxtErrorDataT extends Error | NuxtError ? NuxtErrorDataT : NuxtError<NuxtErrorDataT>) | null | undefined
 >
 
 export function useStorefrontData<
@@ -68,14 +68,13 @@ export function useStorefrontData<
             ? InferPickType<ResT, Options>
             : ResT
     ) | undefined,
-    (NuxtErrorDataT extends Error | NuxtError ? NuxtErrorDataT : NuxtError<NuxtErrorDataT>) | undefined
+    (NuxtErrorDataT extends Error | NuxtError ? NuxtErrorDataT : NuxtError<NuxtErrorDataT>) | null | undefined
 >
 
 export function useStorefrontData<
     Operation extends keyof StorefrontOperations,
     ResT = ReturnData<Operation, StorefrontOperations>,
-    NuxtErrorDataT = unknown,
->(...args: any[]): AsyncData<any, (NuxtErrorDataT extends Error | NuxtError ? NuxtErrorDataT : NuxtError<NuxtErrorDataT>) | undefined> {
+>(...args: any[]) {
     if (args.length < 1 || args.length > 3) {
         throw new Error('[shopify] [useStorefrontData] Invalid number of arguments')
     }
