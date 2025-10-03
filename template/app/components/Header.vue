@@ -6,7 +6,7 @@ const { quantity } = useCart()
 const getCollectionUrl = (handle: string) => localePath(`/collection/${handle}`)
 const getBlogUrl = (handle: string) => localePath(`/blog/${handle}`)
 
-const { data: items } = await useAsyncStorefront('main-menu', `#graphql
+const { data: items } = await useStorefrontData('main-menu', `#graphql
     query GetNavigation($handle: String!, $language: LanguageCode, $country: CountryCode)
     @inContext(language: $language, country: $country) {
         menu(handle: $handle) {
@@ -20,7 +20,6 @@ const { data: items } = await useAsyncStorefront('main-menu', `#graphql
         language: language.value,
         country: country.value,
     }),
-}, {
     transform: data => data.menu?.items?.map(item => ({
         label: item.title,
         to: item.resource?.__typename === 'Blog'

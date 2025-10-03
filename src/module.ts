@@ -153,7 +153,7 @@ export const setupStorefrontFeatures = (nuxt: Nuxt, config: ShopifyConfig, clien
             },
             {
                 from: resolver.resolve(`./runtime/composables/async`),
-                name: 'useAsyncStorefront',
+                name: 'useStorefrontData',
             },
         ])
 

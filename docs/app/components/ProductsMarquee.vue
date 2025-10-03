@@ -6,7 +6,7 @@ type Product = {
     image: string
 }
 
-const { data: products } = await useAsyncStorefront('products', `#graphql
+const { data: products } = await useStorefrontData('products', `#graphql
     query GetProducts($first: Int!) {
         products(first: $first) {
             edges {
@@ -26,7 +26,6 @@ const { data: products } = await useAsyncStorefront('products', `#graphql
     variables: {
         first: 100,
     },
-}, {
     transform: data => flattenConnection(data.products)
         .flatMap(product => product.images.nodes)
         .map(image => ({

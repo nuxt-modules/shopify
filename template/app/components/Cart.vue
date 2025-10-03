@@ -20,12 +20,19 @@ watch(() => route.path, () => open.value = false)
         />
 
         <template #body>
-            <CartLineItem
-                v-for="line in lines"
-                :key="line.id"
-                :line="line"
-                class="shrink-0"
-            />
+            <TransitionGroup
+                enter-to-class="opacity-100"
+                leave-to-class="opacity-0"
+                leave-from-class="opacity-100"
+                enter-from-class="opacity-0"
+            >
+                <CartLineItem
+                    v-for="line in lines"
+                    :key="line.id"
+                    :line="line"
+                    class="shrink-0 duration-300"
+                />
+            </TransitionGroup>
 
             <p
                 v-if="lines.length === 0"

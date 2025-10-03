@@ -16,7 +16,7 @@ const path = computed(() => (route.path.includes(locale.value) ? route.path : `/
 const [{ data: page }, { data: product }] = await Promise.all([
     useAsyncData(`page-${route.path}`, () => queryCollection('content').path(path.value).first()),
 
-    useAsyncStorefront(`collection-${locale.value}-${handle.value}`, `#graphql
+    useStorefrontData(`collection-${locale.value}-${handle.value}`, `#graphql
         query FetchProduct($handle: String, $language: LanguageCode, $country: CountryCode) 
         @inContext(language: $language, country: $country) {
             product(handle: $handle) {
@@ -34,7 +34,6 @@ const [{ data: page }, { data: product }] = await Promise.all([
             language: language.value,
             country: country.value,
         }),
-    }, {
         transform: data => data?.product,
     }),
 ])

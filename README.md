@@ -139,13 +139,13 @@ You can use this generated `FetchProductsQuery` type anywhere in your code to en
 
 ### Use the Storefront API with useAsyncData
 
-You can also use the `useAsyncStorefront` composable to fetch data from the Storefront API while leveraging Nuxt's built-in async data fetching under the hood.
+You can also use the `useStorefrontData` composable to fetch data from the Storefront API while leveraging Nuxt's built-in async data fetching under the hood.
 
 ```html
 <!-- ~/pages/your-page.vue -->
 
 <script setup lang="ts">
-const { data: products } = await useAsyncStorefront('products', `#graphql
+const { data: products, error } = await useStorefrontData('products', `#graphql
     query FetchProducts($first: Int) {
         products(first: $first) {
             nodes {
@@ -159,6 +159,9 @@ const { data: products } = await useAsyncStorefront('products', `#graphql
     variables: {
         first: 3,
     },
+
+    // Use features from useAsyncData, e.g. transform, pick, etc.
+    transform: (data) => flattenConnection(data.products),
 })
 </script>
 
@@ -167,9 +170,9 @@ const { data: products } = await useAsyncStorefront('products', `#graphql
 </template>
 ```
 
-Note that `useAsyncStorefront` automatically extracts the `data` property from the response in order to be able to reliably
+Note that `useStorefrontData` automatically extracts the `data` property from the response in order to be able to reliably
 stringify.
-When using it together with the setting `errors: { throw: false }` you will need to check for errors manually within the response instead of using the `error` object returned by the `useAsyncStorefront` composable.
+When using it together with the setting `errors: { throw: false }` you will need to check for errors manually within the response instead of using the `error` object returned by the `useStorefrontData` composable.
 
 ### Access APIs via Nitro endpoints
 

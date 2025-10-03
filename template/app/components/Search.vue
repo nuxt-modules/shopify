@@ -1,13 +1,12 @@
 <script setup lang="ts">
 const { language, country } = useLocalization()
-const storefront = useStorefront()
 const localePath = useLocalePath()
 const { t, locale } = useI18n()
 
 const query = ref('')
 const open = ref(false)
 
-const { data, status } = await useAsyncData(`search-${query.value}-${locale.value}`, () => storefront.request(`#graphql
+const { data, status } = await useStorefrontData(`search-${query.value ?? 'none'}-${locale.value}`, `#graphql
     query predictiveSearch($query: String!, $first: Int, $language: LanguageCode, $country: CountryCode)
     @inContext(language: $language, country: $country) {
         predictiveSearch(query: $query) {
@@ -39,13 +38,11 @@ const { data, status } = await useAsyncData(`search-${query.value}-${locale.valu
     }
     ${IMAGE_FRAGMENT}
 `, {
-    variables: predictiveSearchParamsSchema.extend(localizationParamsSchema.shape).parse({
+    variables: computed(() => predictiveSearchParamsSchema.extend(localizationParamsSchema.shape).parse({
         query: query.value,
         language: language.value,
         country: country.value,
-    }),
-}), {
-    transform: response => response.data,
+    })),
     watch: [query],
     lazy: true,
 })

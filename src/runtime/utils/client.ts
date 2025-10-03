@@ -91,8 +91,8 @@ export const createClient = <Operations extends AllOperations>(
 
             props.push({
                 ...(variables ? { variables } : {}),
-                ...(headers ? { headers: getHeaders(headers) } : {}),
                 ...(apiVersion ? { url: getApiUrl(apiVersion) } : {}),
+                ...(headers ? { headers: getHeaders(headers) } : {}),
                 ...(retries ? { retries } : {}),
                 ...(signal ? { signal } : {}),
             })
