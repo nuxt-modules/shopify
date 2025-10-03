@@ -6,7 +6,7 @@ const { language, country, getCountry } = useLocalization()
 const switchLocalePath = useSwitchLocalePath()
 const { t, locale, locales } = useI18n()
 
-const { data: localization } = await useAsyncStorefront(`localizations-${locale.value}`, `#graphql
+const { data: localization } = await useStorefrontData(`localizations-${locale.value}`, `#graphql
     query AllLocalizations($language: LanguageCode, $country: CountryCode)
     @inContext(language: $language, country: $country) {
         localization {

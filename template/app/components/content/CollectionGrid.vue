@@ -2,7 +2,7 @@
 const { language, country } = useLocalization()
 const { locale } = useI18n()
 
-const { data: collections } = await useAsyncStorefront(`collections-${locale.value}`, `#graphql
+const { data: collections } = await useStorefrontData(`collections-${locale.value}`, `#graphql
     query FetchCollections($first: Int, $language: LanguageCode, $country: CountryCode)
     @inContext(language: $language, country: $country) {
         collections(

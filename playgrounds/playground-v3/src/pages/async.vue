@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { data: products } = await useAsyncStorefront('async-data-test', `#graphql
+const { data: products } = await useStorefrontData('async-data-test', `#graphql
     query FetchAsyncProducts(
         $handle: String,
         $after: String,

@@ -11,7 +11,7 @@ import { useStorefront } from './storefront'
 type PickFrom<T, K extends Array<string>> = T extends Array<any> ? T : T extends Record<string, any> ? keyof T extends K[number] ? T : K[number] extends never ? T : Pick<T, K[number]> : T
 type KeysOf<T> = Array<T extends T ? keyof T extends string ? keyof T : never : never>
 
-type AsyncStorefrontRequestOptions<Operation extends keyof StorefrontOperations> = {
+type StorefrontDataRequestOptions<Operation extends keyof StorefrontOperations> = {
     apiVersion?: ApiClientRequestOptions<Operation, StorefrontOperations>['apiVersion']
     retries?: ApiClientRequestOptions<Operation, StorefrontOperations>['retries']
     signal?: ApiClientRequestOptions<Operation, StorefrontOperations>['signal']
@@ -27,17 +27,17 @@ type InferPickType<ResT, Options> = Options extends { pick: infer P }
     ? P extends KeysOf<ResT> ? PickFrom<ResT, P> : ResT
     : ResT
 
-type AsyncStorefrontAllOptions<Operation extends keyof StorefrontOperations, ResT>
-    = AsyncStorefrontRequestOptions<Operation>
-        & Omit<AsyncDataOptions<ResT, any, any, any>, 'transform' | 'pick'> & {
+type StorefrontDataOptions<Operation extends keyof StorefrontOperations, ResT>
+    = StorefrontDataRequestOptions<Operation>
+        & Omit<AsyncDataOptions<ResT>, 'transform' | 'pick'> & {
             transform?: (data: ResT) => any
             pick?: KeysOf<ResT>
         }
 
-export function useAsyncStorefront<
+export function useStorefrontData<
     Operation extends keyof StorefrontOperations,
     ResT = ReturnData<Operation, StorefrontOperations>,
-    Options extends AsyncStorefrontAllOptions<Operation, ResT> = AsyncStorefrontAllOptions<Operation, ResT>,
+    Options extends StorefrontDataOptions<Operation, ResT> = StorefrontDataOptions<Operation, ResT>,
     NuxtErrorDataT = unknown,
 >(
     operation: Operation,
@@ -52,10 +52,10 @@ export function useAsyncStorefront<
     (NuxtErrorDataT extends Error | NuxtError ? NuxtErrorDataT : NuxtError<NuxtErrorDataT>) | undefined
 >
 
-export function useAsyncStorefront<
+export function useStorefrontData<
     Operation extends keyof StorefrontOperations,
     ResT = ReturnData<Operation, StorefrontOperations>,
-    Options extends AsyncStorefrontAllOptions<Operation, ResT> = AsyncStorefrontAllOptions<Operation, ResT>,
+    Options extends StorefrontDataOptions<Operation, ResT> = StorefrontDataOptions<Operation, ResT>,
     NuxtErrorDataT = unknown,
 >(
     key: MaybeRefOrGetter<string>,
@@ -71,18 +71,18 @@ export function useAsyncStorefront<
     (NuxtErrorDataT extends Error | NuxtError ? NuxtErrorDataT : NuxtError<NuxtErrorDataT>) | undefined
 >
 
-export function useAsyncStorefront<
+export function useStorefrontData<
     Operation extends keyof StorefrontOperations,
     ResT = ReturnData<Operation, StorefrontOperations>,
     NuxtErrorDataT = unknown,
 >(...args: any[]): AsyncData<any, (NuxtErrorDataT extends Error | NuxtError ? NuxtErrorDataT : NuxtError<NuxtErrorDataT>) | undefined> {
     if (args.length < 1 || args.length > 3) {
-        throw new Error('[shopify] [useAsyncStorefront] Invalid number of arguments')
+        throw new Error('[shopify] [useStorefrontData] Invalid number of arguments')
     }
 
     const key = typeof args[1] === 'string' ? args[0] as MaybeRefOrGetter<string> : undefined
     const operation = (key ? args[1] : args[0]) as Operation
-    const options = (key ? args[2] : args[1]) as AsyncStorefrontAllOptions<Operation, ResT> | undefined
+    const options = (key ? args[2] : args[1]) as StorefrontDataOptions<Operation, ResT> | undefined
 
     const { variables, headers, apiVersion, retries, signal, ...asyncOptions } = options ?? {}
 
@@ -105,6 +105,6 @@ export function useAsyncStorefront<
     } as ApiClientRequestOptions<Operation, StorefrontOperations>).then(r => r.data!)
 
     return key
-        ? useAsyncData(key, handler, asyncOptions as AsyncDataOptions<ResT, any, any, any>)
-        : useAsyncData(handler, asyncOptions as AsyncDataOptions<ResT, any, any, any>)
+        ? useAsyncData(key, handler, asyncOptions as AsyncDataOptions<ResT>)
+        : useAsyncData(handler, asyncOptions as AsyncDataOptions<ResT>)
 }

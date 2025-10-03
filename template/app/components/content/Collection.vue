@@ -10,7 +10,7 @@ const route = useRoute()
 
 const key = computed(() => `collection-${locale.value}-${props.handle}-products`)
 
-const { data, status } = await useAsyncStorefront(key, `#graphql
+const { data, status } = await useStorefrontData(key, `#graphql
     query FetchCollectionProducts(
         $handle: String,
         $after: String,

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const localePath = useLocalePath()
 
-const { data: logo } = await useAsyncStorefront('logo', `#graphql
+const { data: logo } = await useStorefrontData('logo', `#graphql
     query FetchLogo {
         shop {
             brand {

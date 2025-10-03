@@ -6,7 +6,7 @@ type Product = {
     image: string
 }
 
-const { data: products } = await useAsyncStorefront('products', `#graphql
+const { data: products } = await useStorefrontData('products', `#graphql
     query GetProducts($first: Int!) {
         products(first: $first) {
             edges {

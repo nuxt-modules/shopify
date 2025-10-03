@@ -5,7 +5,7 @@ const props = defineProps<{
 
 const key = `collection-${props.handle}`
 
-const { data: collection } = await useAsyncStorefront(key, `#graphql
+const { data: collection } = await useStorefrontData(key, `#graphql
     query GetCollection(
         $handle: String!, 
         $first: Int, 

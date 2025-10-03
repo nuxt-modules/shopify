@@ -5,7 +5,7 @@ const props = defineProps<{
 
 const key = computed(() => `menu-${props.handle}`)
 
-const { data: items } = await useAsyncStorefront(key, `#graphql
+const { data: items } = await useStorefrontData(key, `#graphql
     query GetNavigation($handle: String!, $language: LanguageCode, $country: CountryCode)
     @inContext(language: $language, country: $country) {
         menu(handle: $handle) {

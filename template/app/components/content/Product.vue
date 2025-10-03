@@ -6,7 +6,7 @@ const props = defineProps<{
 const { country, language } = useLocalization()
 const { add } = useCart()
 
-const { data: product } = await useAsyncStorefront(`product-${props.handle}`, `#graphql
+const { data: product } = await useStorefrontData(`product-${props.handle}`, `#graphql
     query FetchProduct($handle: String, $language: LanguageCode, $country: CountryCode) 
     @inContext(language: $language, country: $country) {
         product(handle: $handle) {
