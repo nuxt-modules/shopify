@@ -5,7 +5,7 @@ import { z } from 'zod'
 export const useShopifyConfigValidation = (options: ModuleOptions) => {
     const clientSchema = z.object({
         apiVersion: z.string().min(1),
-        headers: z.record(z.string()).optional(),
+        headers: z.record(z.string(), z.string()).optional(),
         retries: z.number().optional(),
         sandbox: z.boolean().optional(),
         documents: z.array(z.string().min(1)).optional(),
@@ -47,5 +47,5 @@ export const useShopifyConfigValidation = (options: ModuleOptions) => {
         }),
     })
 
-    return schema.safeParse(options) satisfies z.SafeParseReturnType<ModuleOptions, ModuleOptions>
+    return schema.safeParse(options) satisfies z.ZodSafeParseResult<ModuleOptions>
 }
