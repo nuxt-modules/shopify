@@ -8,15 +8,15 @@ export const localizationParamsSchema = z.object({
 })
 
 export const connectionParamsSchema = z.object({
-    first: z.number({ coerce: true }).optional(),
-    last: z.number({ coerce: true }).optional(),
+    first: z.number().optional(),
+    last: z.number().optional(),
     after: z.string().optional(),
     before: z.string().optional(),
 })
 
 export const predictiveSearchParamsSchema = z.object({
     query: z.string(),
-    first: z.number({ coerce: true }).optional().default(5),
+    first: z.number().optional().default(5),
 })
 
 export const priceRangeFilterSchema = z.object({
