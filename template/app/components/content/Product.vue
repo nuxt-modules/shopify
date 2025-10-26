@@ -4,8 +4,6 @@ const props = defineProps<{
 }>()
 
 const { country, language } = useLocalization()
-const { add } = useCart()
-const { t } = useI18n()
 
 const { data: product } = await useStorefrontData(`product-${props.handle}`, `#graphql
     query FetchProduct($handle: String, $language: LanguageCode, $country: CountryCode) 
@@ -79,14 +77,13 @@ const state = reactive({
                         />
                     </UFormField>
 
-                    <UButton
+                    <AddToCart
                         v-if="state.selectedVariant"
-                        :label="t('product.addToCart')"
-                        trailing-icon="i-lucide-shopping-cart"
-                        size="xl"
+                        :variant-id="state.selectedVariant.id"
+                        :quantity="state.quantity"
                         :ui="{ trailingIcon: 'size-5' }"
                         :disabled="!state.selectedVariant.availableForSale"
-                        @click="add(state.selectedVariant.id, state.quantity)"
+                        size="xl"
                     />
                 </div>
             </div>

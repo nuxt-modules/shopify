@@ -9,6 +9,7 @@ export const useCart = () => {
     const cart = useState<CartFieldsFragment | undefined>('shopify-cart', () => undefined)
     const loading = useState('shopify-cart-loading', () => ref(false))
     const open = useState('shopify-cart-open', () => ref(false))
+
     const id = useCookie<string>('shopify-cart-id', undefined)
 
     const lines = computed(() => flattenConnection(cart.value?.lines))
@@ -17,6 +18,17 @@ export const useCart = () => {
     const total = computed(() => cart.value?.cost.totalAmount)
 
     const setLoading = async (value: boolean) => loading.value = value
+
+    const getAvatar = (variantId: string, lines?: CartFieldsFragment['lines']) => {
+        const line = lines?.edges?.find(line => line.node.merchandise.id === variantId)
+
+        return line?.node.merchandise.image
+            ? {
+                    src: line.node.merchandise.image.url + '?width=88&height=88',
+                    alt: line.node.merchandise.image.altText || undefined,
+                }
+            : undefined
+    }
 
     const init = () => setLoading(true).then(() => storefront.request(`#graphql
         mutation CreateCart($language: LanguageCode, $country: CountryCode)
@@ -99,10 +111,12 @@ export const useCart = () => {
 
         if (!open.value) toast.add({
             title: t('cart.toast.add'),
+            avatar: getAvatar(variantId, data?.cartLinesAdd?.cart?.lines),
             actions: [
                 { label: t('cart.toast.view'), onClick: () => { open.value = true } },
             ],
             color: 'success',
+            ui: { avatar: 'rounded-sm size-14' },
         })
     }).catch(() => toast.add({
         title: t('cart.toast.error.add'),
@@ -144,10 +158,12 @@ export const useCart = () => {
 
         if (!open.value) toast.add({
             title: t('cart.toast.update'),
+            avatar: getAvatar(variantId, data?.cartLinesUpdate?.cart?.lines),
             actions: [
                 { label: t('cart.toast.view'), onClick: () => { open.value = true } },
             ],
             color: 'success',
+            ui: { avatar: 'rounded-sm size-14' },
         })
     }).catch(() => toast.add({
         title: t('cart.toast.error.update'),

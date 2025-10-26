@@ -8,5 +8,8 @@
     "automerge": true,
     "autodiscover": true,
     "rangeStrategy": "bump",
-    "commitMessagePrefix": "chore:"
+    "commitMessagePrefix": "chore:",
+    "lockFileMaintenance": {
+        "enabled": true
+    }
 }

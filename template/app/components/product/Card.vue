@@ -8,8 +8,6 @@ const props = defineProps<{
 }>()
 
 const localePath = useLocalePath()
-const { add } = useCart()
-const { t } = useI18n()
 
 const url = computed(() => localePath(`/product/${props.product.handle}`))
 const variant = computed(() => props.product.variants.edges[0]?.node)
@@ -68,13 +66,12 @@ const state = reactive<z.infer<typeof schema>>({
                     />
                 </UFormField>
 
-                <UButton
+                <AddToCart
                     v-if="variant"
-                    trailing-icon="i-lucide-shopping-cart"
-                    :label="t('product.addToCart')"
+                    :variant-id="variant.id"
+                    :quantity="state.quantity"
                     :disabled="!variant.availableForSale"
                     :ui="{ trailingIcon: 'size-4' }"
-                    @click="add(variant.id, state.quantity)"
                 />
             </div>
         </UForm>
