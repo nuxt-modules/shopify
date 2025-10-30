@@ -17,6 +17,7 @@
         "minimatch": "^10.1.1",
         "scule": "^1.3.0",
         "ufo": "^1.6.1",
+        "vue": "^3.5.22",
         "zod": "4.1.12",
       },
       "devDependencies": {
@@ -1477,7 +1478,7 @@
 
     "comma-separated-tokens": ["comma-separated-tokens@2.0.3", "", {}, "sha512-Fu4hJdvzeylCfQPp9SGWidpzrMs7tTrlu6Vb8XGaRGck8QSNZJJp538Wrb60Lax4fPwR64ViY468OIUTbRlGZg=="],
 
-    "commander": ["commander@7.2.0", "", {}, "sha512-QrWXB+ZQSVPmIWIhtEO9H+gwHaMGYiF5ChvoJ+K9ZGHG/sVsa6yiesAD1GC/x46sET00Xlwo1u49RVVVzvcSkw=="],
+    "commander": ["commander@2.20.3", "", {}, "sha512-GpVkmM8vF2vQUkj2LvZmD35JxeJOLCwJ9cUkugyk2nuhbv3+mJvpLYYt+0+USMxE+oj+ey/lJEnhZw75x/OMcQ=="],
 
     "comment-parser": ["comment-parser@1.4.1", "", {}, "sha512-buhp5kePrmda3vhc5B9t7pUQXAb2Tnd0qgpkIhPhkHXxJpiPJ11H0ZEU0oBpJ2QztSbzG/ZxMj/CHsYJqRHmyg=="],
 
@@ -3719,9 +3720,9 @@
 
     "nuxt-og-image/execa": ["execa@9.6.0", "", { "dependencies": { "@sindresorhus/merge-streams": "^4.0.0", "cross-spawn": "^7.0.6", "figures": "^6.1.0", "get-stream": "^9.0.0", "human-signals": "^8.0.1", "is-plain-obj": "^4.1.0", "is-stream": "^4.0.1", "npm-run-path": "^6.0.0", "pretty-ms": "^9.2.0", "signal-exit": "^4.1.0", "strip-final-newline": "^4.0.0", "yoctocolors": "^2.1.1" } }, "sha512-jpWzZ1ZhwUmeWRhS7Qv3mhpOhLfwI+uAX4e5fOcXqwMR7EcJ0pj2kV1CVzHVMX/LphnKWD3LObjZCoJ71lKpHw=="],
 
-    "nuxt-shopify-docs/@nuxtjs/shopify": ["@nuxtjs/shopify@file:", { "dependencies": { "@graphql-codegen/cli": "^6.0.1", "@graphql-codegen/import-types-preset": "^3.0.1", "@shopify/api-codegen-preset": "^1.2.0", "@shopify/graphql-client": "^1.4.1", "@shopify/graphql-codegen": "^0.1.0", "citty": "^0.1.6", "consola": "^3.4.2", "defu": "^6.1.4", "giget": "^2.0.0", "h3": "^1.15.4", "minimatch": "^10.1.1", "scule": "^1.3.0", "ufo": "^1.6.1", "zod": "4.1.12" }, "devDependencies": { "@graphql-tools/graphql-tag-pluck": "^8.3.22", "@nuxt/eslint-config": "^1.10.0", "@nuxt/kit": "^4.2.0", "@nuxt/module-builder": "^1.0.2", "@nuxt/schema": "^4.2.0", "@nuxt/test-utils": "^3.20.1", "@types/bun": "^1.3.1", "@vitest/coverage-v8": "^4.0.5", "eslint": "^9.38.0", "happy-dom": "^20.0.10", "nuxt": "^4.2.0", "sharp": "^0.34.4", "typescript": "^5.9.3", "unbuild": "^3.6.1", "vercel": "^48.7.0", "vitest": "^4.0.5", "vue-tsc": "^3.1.2" }, "bin": { "init": "dist/commands/init.mjs" } }],
+    "nuxt-shopify-docs/@nuxtjs/shopify": ["@nuxtjs/shopify@file:", { "dependencies": { "@graphql-codegen/cli": "^6.0.1", "@graphql-codegen/import-types-preset": "^3.0.1", "@shopify/api-codegen-preset": "^1.2.0", "@shopify/graphql-client": "^1.4.1", "@shopify/graphql-codegen": "^0.1.0", "citty": "^0.1.6", "consola": "^3.4.2", "defu": "^6.1.4", "giget": "^2.0.0", "h3": "^1.15.4", "minimatch": "^10.1.1", "scule": "^1.3.0", "ufo": "^1.6.1", "vue": "^3.5.22", "zod": "4.1.12" }, "devDependencies": { "@graphql-tools/graphql-tag-pluck": "^8.3.22", "@nuxt/eslint-config": "^1.10.0", "@nuxt/kit": "^4.2.0", "@nuxt/module-builder": "^1.0.2", "@nuxt/schema": "^4.2.0", "@nuxt/test-utils": "^3.20.1", "@types/bun": "^1.3.1", "@vitest/coverage-v8": "^4.0.5", "eslint": "^9.38.0", "happy-dom": "^20.0.10", "nuxt": "^4.2.0", "sharp": "^0.34.4", "typescript": "^5.9.3", "unbuild": "^3.6.1", "vercel": "^48.7.0", "vitest": "^4.0.5", "vue-tsc": "^3.1.2" }, "bin": { "init": "dist/commands/init.mjs" } }],
 
-    "nuxt-shopify-template/@nuxtjs/shopify": ["@nuxtjs/shopify@file:", { "dependencies": { "@graphql-codegen/cli": "^6.0.1", "@graphql-codegen/import-types-preset": "^3.0.1", "@shopify/api-codegen-preset": "^1.2.0", "@shopify/graphql-client": "^1.4.1", "@shopify/graphql-codegen": "^0.1.0", "citty": "^0.1.6", "consola": "^3.4.2", "defu": "^6.1.4", "giget": "^2.0.0", "h3": "^1.15.4", "minimatch": "^10.1.1", "scule": "^1.3.0", "ufo": "^1.6.1", "zod": "4.1.12" }, "devDependencies": { "@graphql-tools/graphql-tag-pluck": "^8.3.22", "@nuxt/eslint-config": "^1.10.0", "@nuxt/kit": "^4.2.0", "@nuxt/module-builder": "^1.0.2", "@nuxt/schema": "^4.2.0", "@nuxt/test-utils": "^3.20.1", "@types/bun": "^1.3.1", "@vitest/coverage-v8": "^4.0.5", "eslint": "^9.38.0", "happy-dom": "^20.0.10", "nuxt": "^4.2.0", "sharp": "^0.34.4", "typescript": "^5.9.3", "unbuild": "^3.6.1", "vercel": "^48.7.0", "vitest": "^4.0.5", "vue-tsc": "^3.1.2" }, "bin": { "init": "dist/commands/init.mjs" } }],
+    "nuxt-shopify-template/@nuxtjs/shopify": ["@nuxtjs/shopify@file:", { "dependencies": { "@graphql-codegen/cli": "^6.0.1", "@graphql-codegen/import-types-preset": "^3.0.1", "@shopify/api-codegen-preset": "^1.2.0", "@shopify/graphql-client": "^1.4.1", "@shopify/graphql-codegen": "^0.1.0", "citty": "^0.1.6", "consola": "^3.4.2", "defu": "^6.1.4", "giget": "^2.0.0", "h3": "^1.15.4", "minimatch": "^10.1.1", "scule": "^1.3.0", "ufo": "^1.6.1", "vue": "^3.5.22", "zod": "4.1.12" }, "devDependencies": { "@graphql-tools/graphql-tag-pluck": "^8.3.22", "@nuxt/eslint-config": "^1.10.0", "@nuxt/kit": "^4.2.0", "@nuxt/module-builder": "^1.0.2", "@nuxt/schema": "^4.2.0", "@nuxt/test-utils": "^3.20.1", "@types/bun": "^1.3.1", "@vitest/coverage-v8": "^4.0.5", "eslint": "^9.38.0", "happy-dom": "^20.0.10", "nuxt": "^4.2.0", "sharp": "^0.34.4", "typescript": "^5.9.3", "unbuild": "^3.6.1", "vercel": "^48.7.0", "vitest": "^4.0.5", "vue-tsc": "^3.1.2" }, "bin": { "init": "dist/commands/init.mjs" } }],
 
     "ora/cli-cursor": ["cli-cursor@3.1.0", "", { "dependencies": { "restore-cursor": "^3.1.0" } }, "sha512-I/zHAwsKf9FqGoXM4WWRACob9+SNukZTd94DWF57E4toouRulbCxcUh6RKUEOQlYTHJnzkPMySvPNaaSLNfLZw=="],
 
@@ -3797,6 +3798,8 @@
 
     "stylehacks/postcss-selector-parser": ["postcss-selector-parser@7.1.0", "", { "dependencies": { "cssesc": "^3.0.0", "util-deprecate": "^1.0.2" } }, "sha512-8sLjZwK0R+JlxlYcTuVnyT2v+htpdrjDOKuMcOVdYjt52Lh8hWRYpxBPoKx/Zg+bcjc3wx6fmQevMmUztS/ccA=="],
 
+    "svgo/commander": ["commander@7.2.0", "", {}, "sha512-QrWXB+ZQSVPmIWIhtEO9H+gwHaMGYiF5ChvoJ+K9ZGHG/sVsa6yiesAD1GC/x46sET00Xlwo1u49RVVVzvcSkw=="],
+
     "svgo/css-select": ["css-select@5.2.2", "", { "dependencies": { "boolbase": "^1.0.0", "css-what": "^6.1.0", "domhandler": "^5.0.2", "domutils": "^3.0.1", "nth-check": "^2.0.1" } }, "sha512-TizTzUddG/xYLA3NXodFM0fSbNizXjOKhqiQQwvhlspadZokn1KDy0NZFS0wuEubIYAV5/c1/lAr0TaaFXEXzw=="],
 
     "svgo/css-tree": ["css-tree@2.3.1", "", { "dependencies": { "mdn-data": "2.0.30", "source-map-js": "^1.0.1" } }, "sha512-6Fv1DV/TYw//QF5IzQdqsNDjx/wc8TrMBZsqjL9eW01tWb7R7k/mq+/VXfJCl7SoD5emsJop9cOByJZfs8hYIw=="],
@@ -3814,8 +3817,6 @@
     "tar-stream/inherits": ["inherits@2.0.4", "", {}, "sha512-k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ=="],
 
     "tar-stream/readable-stream": ["readable-stream@3.6.2", "", { "dependencies": { "inherits": "^2.0.3", "string_decoder": "^1.1.1", "util-deprecate": "^1.0.1" } }, "sha512-9u/sniCrY3D5WdsERHzHE4G2YCXqoG5FTHUiCC4SIbr6XcLZBY05ya9EKjYek9O5xOAwjGq+1JdGBAS7Q9ScoA=="],
-
-    "terser/commander": ["commander@2.20.3", "", {}, "sha512-GpVkmM8vF2vQUkj2LvZmD35JxeJOLCwJ9cUkugyk2nuhbv3+mJvpLYYt+0+USMxE+oj+ey/lJEnhZw75x/OMcQ=="],
 
     "ts-node/diff": ["diff@4.0.2", "", {}, "sha512-58lmxKSA4BNyLz+HHMUzlOEpg09FV+ev6ZMe3vJihgdxzgcwZ8VoEEPmALCZG9LmqfVoNMMKpttIYTVG6uDY7A=="],
 
@@ -3850,8 +3851,6 @@
     "wrap-ansi/string-width": ["string-width@7.2.0", "", { "dependencies": { "emoji-regex": "^10.3.0", "get-east-asian-width": "^1.0.0", "strip-ansi": "^7.1.0" } }, "sha512-tsaTIkKW9b4N+AEj+SVA+WhJzV7/zMhcSu78mLKWSk7cXMOSHsBKFWUs0fWwq8QyK3MgJBQRX6Gbi4kYbdvGkQ=="],
 
     "wrap-ansi-cjs/strip-ansi": ["strip-ansi@6.0.1", "", { "dependencies": { "ansi-regex": "^5.0.1" } }, "sha512-Y38VPSHcqkFrCpFnQ9vuSXmquuv5oXOKpGeT6aGrr3o3Gc9AlVa6JBfUSOCnbxGGZF+/0ooI7KrPuUSztUdU5A=="],
-
-    "xss/commander": ["commander@2.20.3", "", {}, "sha512-GpVkmM8vF2vQUkj2LvZmD35JxeJOLCwJ9cUkugyk2nuhbv3+mJvpLYYt+0+USMxE+oj+ey/lJEnhZw75x/OMcQ=="],
 
     "yaml-eslint-parser/eslint-visitor-keys": ["eslint-visitor-keys@3.4.3", "", {}, "sha512-wpc+LXeiyiisxPlEkUzU6svyS1frIO3Mgxj1fdy7Pm8Ygzguax2N3Fa/D/ag1WqbOprdI+uY6wMUl8/a2G+iag=="],
 
