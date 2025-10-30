@@ -41,7 +41,7 @@ export function useStorefrontData<
     NuxtErrorDataT = unknown,
 >(
     operation: Operation,
-    options?: Options
+    options?: Options,
 ): AsyncData<
     (Options extends { transform: any }
         ? InferDataType<ResT, Options>
@@ -60,7 +60,7 @@ export function useStorefrontData<
 >(
     key: MaybeRefOrGetter<string>,
     operation: Operation,
-    options?: Options
+    options?: Options,
 ): AsyncData<
     (Options extends { transform: any }
         ? InferDataType<ResT, Options>
