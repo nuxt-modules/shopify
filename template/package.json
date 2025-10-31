@@ -13,21 +13,21 @@
     },
     "dependencies": {
         "@nuxtjs/shopify": "latest",
-        "@nuxt/content": "^3.7.1",
+        "@nuxt/content": "^3.8.0",
         "@nuxt/image": "^1.11.0",
-        "@nuxt/ui": "^4.0.1",
-        "@nuxtjs/i18n": "^10.1.0",
+        "@nuxt/ui": "^4.1.0",
+        "@nuxtjs/i18n": "^10.1.2",
         "@vueuse/nuxt": "^13.9.0",
         "better-sqlite3": "^12.4.1",
-        "nuxt": "^4.1.2",
+        "nuxt": "^4.2.0",
         "vue": "^3.5.22",
-        "vue-router": "^4.5.1"
+        "vue-router": "^4.6.3"
     },
     "devDependencies": {
-        "@nuxt/eslint-config": "^1.9.0",
-        "eslint": "^9.37.0",
+        "@nuxt/eslint-config": "^1.10.0",
+        "eslint": "^9.38.0",
         "typescript": "^5.9.3",
-        "vue-tsc": "^3.1.0"
+        "vue-tsc": "^3.1.2"
     },
     "trustedDependencies": [
         "@parcel/watcher",
