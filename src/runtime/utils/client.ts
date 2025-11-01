@@ -5,7 +5,7 @@ import type {
     RequestParams,
 } from '@shopify/graphql-client'
 
-import type { GenericApiClient, GenericApiClientConfig } from '../../types'
+import type { ShopifyApiClient, ShopifyApiClientConfig } from '../../types'
 
 import { createGraphQLClient } from '@shopify/graphql-client'
 import { joinURL } from 'ufo'
@@ -23,8 +23,8 @@ export const createApiUrl = (storeDomain: string, apiVersion: string, apiPrefix?
 )
 
 export const createClient = <Operations extends AllOperations>(
-    config: GenericApiClientConfig,
-): GenericApiClient<Operations> => {
+    config: ShopifyApiClientConfig,
+): ShopifyApiClient<Operations> => {
     const {
         storeDomain,
         apiUrl,
@@ -65,10 +65,10 @@ export const createClient = <Operations extends AllOperations>(
         logger: logger ? createConsola(logger).withTag('shopify').trace : undefined,
     })
 
-    const getHeaders: GenericApiClient<Operations>['getHeaders'] = customHeaders =>
+    const getHeaders: ShopifyApiClient<Operations>['getHeaders'] = customHeaders =>
         ({ ...(customHeaders ?? {}), ...headers })
 
-    const getApiUrl: GenericApiClient<Operations>['getApiUrl'] = (propApiVersion?: string) =>
+    const getApiUrl: ShopifyApiClient<Operations>['getApiUrl'] = (propApiVersion?: string) =>
         propApiVersion ? getStoreUrl(propApiVersion) : apiUrl
 
     const getGQLClientParams = <
@@ -108,5 +108,5 @@ export const createClient = <Operations extends AllOperations>(
         fetch: (...props) => graphqlClient.fetch(...getGQLClientParams(...props)),
         request: (...props) => graphqlClient.request(...getGQLClientParams(...props)),
         requestStream: (...props) => graphqlClient.requestStream(...getGQLClientParams(...props)),
-    } as GenericApiClient<Operations>
+    } as ShopifyApiClient<Operations>
 }

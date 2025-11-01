@@ -1,11 +1,11 @@
 import type { ConsolaOptions } from 'consola'
 
-import { useLogger } from '@nuxt/kit'
+import { useLogger as nuxtLogger } from '@nuxt/kit'
 
-let loggerInstance: ReturnType<typeof useLogger>
+let loggerInstance: ReturnType<typeof nuxtLogger>
 
-export const useLog = (options?: Partial<ConsolaOptions>) => {
+export const useLogger = (options?: Partial<ConsolaOptions>) => {
     if (loggerInstance) return loggerInstance
 
-    return loggerInstance = useLogger('shopify', options)
+    return loggerInstance = nuxtLogger('shopify', options)
 }

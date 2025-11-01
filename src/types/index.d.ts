@@ -10,18 +10,15 @@ import type {
 } from '@shopify/graphql-client'
 
 import type {
-    PublicShopifyConfig,
+    ModuleOptions,
     ShopifyConfig,
-    ShopifyAdminConfig,
-    ShopifyStorefrontConfig,
-    GenericApiClientConfig,
-    GenericApiClient,
-} from './shopify'
-
-export type ModuleOptions = ShopifyConfig<
-    Partial<Omit<ShopifyStorefrontConfig, 'storeDomain' | 'logger' | 'customFetchApi'>>,
-    Partial<Omit<ShopifyAdminConfig, 'storeDomain' | 'logger' | 'customFetchApi'>>
->
+    PublicShopifyConfig,
+    PublicModuleOptions,
+} from '../schemas/config'
+import type {
+    ShopifyApiClient,
+    ShopifyApiClientConfig,
+} from './clients'
 
 export type ShopifyConfigHookParams = {
     nuxt: Nuxt
@@ -29,11 +26,11 @@ export type ShopifyConfigHookParams = {
 }
 
 export type ShopifyClientOptionHookParams = {
-    config: GenericApiClientConfig
+    config: ShopifyApiClientConfig
 }
 
 export type ShopifyClientHookParams<Operations extends AllOperations> = {
-    client: GenericApiClient<Operations>
+    client: ShopifyApiClient<Operations>
 }
 
 export type ShopifyClientRequestHookParams<Operation extends keyof Operations, Operations extends AllOperations = AllOperations> = {
@@ -61,20 +58,22 @@ export type SandboxConfig = {
     headers: Record<string, string>
 }
 
+export type {
+    ModuleOptions,
+    ShopifyConfig,
+    PublicShopifyConfig,
+}
+
 declare module '@nuxt/schema' {
     interface RuntimeConfig {
         shopify?: ModuleOptions
         _shopify?: ShopifyConfig
+
         _sandbox?: Record<string, SandboxConfig>
     }
 
     interface PublicRuntimeConfig {
-        shopify?: Omit<ModuleOptions, 'clients'> & {
-            clients?: {
-                storefront: Partial<Omit<ShopifyStorefrontConfig, 'storeDomain' | 'logger' | 'customFetchApi' | 'privateAccessToken'>>
-            }
-        }
-
+        shopify?: PublicModuleOptions
         _shopify?: PublicShopifyConfig
     }
 
@@ -83,6 +82,11 @@ declare module '@nuxt/schema' {
          * Called before the config is persisted into the runtime config
          */
         'shopify:config': ({ nuxt, config }: ShopifyConfigHookParams) => HookResult
+
+        /**
+         * Called after the module setup is completed
+         */
+        'shopify:setup': ({ nuxt, config }: ShopifyConfigHookParams) => HookResult
 
         /**
          * Called before the storefront introspection schema is generated
@@ -199,4 +203,4 @@ declare module 'nitropack' {
     }
 }
 
-export * from './shopify'
+export * from './clients'

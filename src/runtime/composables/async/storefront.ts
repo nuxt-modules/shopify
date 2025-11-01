@@ -6,7 +6,7 @@ import type { AsyncDataOptions, AsyncData, NuxtError } from '#app'
 
 import { unref } from 'vue'
 import { useAsyncData } from '#app'
-import { useStorefront } from './storefront'
+import { useStorefront } from '../storefront'
 
 type PickFrom<T, K extends Array<string>> = T extends Array<any> ? T : T extends Record<string, any> ? keyof T extends K[number] ? T : K[number] extends never ? T : Pick<T, K[number]> : T
 type KeysOf<T> = Array<T extends T ? keyof T extends string ? keyof T : never : never>

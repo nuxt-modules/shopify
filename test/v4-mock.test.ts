@@ -4,10 +4,8 @@ import { access, readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import { join } from 'node:path'
 
-import {
-    ShopifyClientType,
-    getInterfaceExtensionFunction,
-} from '../src/utils'
+import { ShopifyClientType } from '../src/schemas/config'
+import { getInterfaceExtensionFunction } from '../src/utils/codegen'
 
 const playgroundDir = fileURLToPath(new URL('../playgrounds/playground-v4-mock', import.meta.url))
 const playgroundStorefrontTypesDir = fileURLToPath(new URL('../playgrounds/playground-v4-mock/.nuxt/types/storefront', import.meta.url))
@@ -23,27 +21,26 @@ describe('test mock.shop integration with nuxt 4', async () => {
 
         expect(json).toStrictEqual({
             name: process.env.NUXT_SHOPIFY_NAME,
-            logger: '',
-            autoImports: {
-                graphql: true,
-                storefront: true,
-                admin: true,
-            },
             errors: {
                 throw: true,
+            },
+            fragments: {
+                autoImport: true,
+                path: '/graphql',
             },
             clients: {
                 storefront: {
                     apiVersion: process.env.NUXT_SHOPIFY_CLIENTS_STOREFRONT_API_VERSION,
+                    autoImport: true,
                     mock: true,
                     proxy: true,
-                    publicAccessToken: 'mock-public-access-token',
+                    retries: 3,
                     sandbox: true,
                     documents: [
+                        '**/*.vue',
                         '**/*.{gql,graphql,ts,js}',
                         '!**/*.admin.{gql,graphql,ts,js}',
                         '!**/admin/**/*.{gql,graphql,ts,js}',
-                        '**/*.vue',
                         '!node_modules',
                         '!dist',
                         '!.nuxt',

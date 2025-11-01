@@ -6,7 +6,7 @@ import type {
     AllOperations,
 } from '@shopify/graphql-client'
 
-type GenericApiClient<Operations extends AllOperations> = ApiClient<ApiClientConfig, Operations> & {
+type ShopifyApiClient<Operations extends AllOperations> = ApiClient<ApiClientConfig, Operations> & {
     requestStream: ApiClientRequestStream<Operations>
 }
 
@@ -28,4 +28,4 @@ interface StorefrontMutations {
 
 interface StorefrontOperations extends StorefrontQueries, StorefrontMutations {}
 
-export type StorefrontApiClient = GenericApiClient<StorefrontOperations>
+export type StorefrontApiClient = ShopifyApiClient<StorefrontOperations>
