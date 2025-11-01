@@ -27,18 +27,20 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - uses: oven-sh/setup-bun@v2
+      - uses: actions/setup-node@v4
         with:
-          bun-version: latest
+          node-version: 24
+          cache: 'npm'
+          cache-dependency-path: 'docs/package-lock.json'
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
       - name: Install dependencies
-        run: bun install
+        run: cd docs && npm install --prefix ./
 
       - name: Build Docs
-        run: bun run build:docs --preset=github_pages
+        run: cd docs && npm run build -- --preset=github_pages
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v4
