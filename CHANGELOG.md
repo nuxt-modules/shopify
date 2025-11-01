@@ -1,3 +1,8 @@
+# 0.3.0
+- Updated configuration
+- Refactored module internals
+- Bumped dependencies
+
 # 0.2.0
 - Replaced `useAsyncStorefront` composable with `useStorefrontData`
 - Bumped dependencies
