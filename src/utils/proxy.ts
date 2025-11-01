@@ -1,8 +1,9 @@
+import type { Resolver } from '@nuxt/kit'
 import type { Nuxt } from '@nuxt/schema'
 
 import type { ShopifyConfig } from '../types'
 
-import { addServerHandler, createResolver } from '@nuxt/kit'
+import { addServerHandler } from '@nuxt/kit'
 import { joinURL } from 'ufo'
 
 import { ShopifyClientType } from '../schemas/config'
@@ -26,15 +27,13 @@ export function shouldEnableProxy(nuxt: Nuxt, config: ShopifyConfig): boolean {
     return true
 }
 
-export function registerProxy(nuxt: Nuxt, config: ShopifyConfig): string | false {
+export function registerProxy(nuxt: Nuxt, config: ShopifyConfig, resolver: Resolver): string | false {
     const url = getProxyUrl(config)
 
     if (!url) return false
 
-    const resolver = createResolver(import.meta.url)
-
     addServerHandler({
-        handler: resolver.resolve(`../runtime/server/api/proxy/storefront`),
+        handler: resolver.resolve(`./runtime/server/api/proxy/storefront`),
         route: url,
     })
 

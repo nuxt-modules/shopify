@@ -56,10 +56,11 @@ export default defineNuxtModule<ModuleOptions>({
 
             await setupClients(config, resolver)
 
+            await setupImports(nuxt, config, resolver)
+            await setupProxy(nuxt, config, resolver)
+
             await setupCodegen(nuxt, config)
-            await setupImports(nuxt, config)
             await setupSandbox(nuxt, config)
-            await setupProxy(nuxt, config)
 
             await nuxt.callHook('shopify:setup', { nuxt, config })
 
