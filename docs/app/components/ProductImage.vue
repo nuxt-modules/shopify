@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { joinURL } from 'ufo';
+import { joinURL } from 'ufo'
 
 const props = defineProps<{
     handle: string

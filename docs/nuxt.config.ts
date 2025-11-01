@@ -2,7 +2,7 @@ export default defineNuxtConfig({
     extends: ['docus'],
 
     modules: [
-        '@nuxtjs/shopify',
+        '../src/module',
         '@nuxt/ui',
         '@nuxtjs/critters',
         'motion-v/nuxt',
