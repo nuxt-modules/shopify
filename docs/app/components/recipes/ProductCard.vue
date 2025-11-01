@@ -35,7 +35,7 @@ const to = computed(() => `https://demostore.mock.shop/products/${props.product.
     >
         <template #header>
             <NuxtImg
-                :src="src"
+                :src="src ?? undefined"
                 :alt="image?.altText ?? undefined"
                 :width="image?.width ?? undefined"
                 :height="image?.height ?? undefined"

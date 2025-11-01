@@ -37,6 +37,184 @@ Plug & play Shopify integration for Nuxt 3 & 4
   :::
 ::
 
+::component-hero
+---
+title: Minimal API for your Storefront
+---
+
+#component
+::product-image
+---
+handle: hoodie-old
+sizes: xs:545px sm:545px md:545px lg:392px xl:392px
+class: w-full aspect-square
+---
+::
+
+#component-title
+ProductImage.vue
+
+#default
+  :::code-tree{default-value="app/components/ProductImage.vue"}
+  ```vue [app/components/ProductImage.vue]
+  <script setup lang="ts">
+  const props = defineProps<{
+    handle: string
+  }>()
+
+  const { data } = await useStorefrontData('product', `#graphql
+    query GetProduct($handle: String!) {
+      product(handle: $handle) {
+        featuredImage {
+          url
+        }
+      }
+    }
+  `, {
+    variables: props,
+  })
+  </script>
+
+  <template>
+    <NuxtImg :src="data?.product?.featuredImage?.url" />
+  </template>
+  ```
+
+  ```ts [nuxt.config.ts]
+  export default defineNuxtConfig({
+    modules: ['@nuxtjs/shopify'],
+
+    shopify: {
+      name: 'store-name',
+
+      clients: {
+        storefront: {
+          publicAccessToken: 'public-access-token',
+          apiVersion: '2025-07',
+        },
+      },
+    },
+  })
+  ```
+
+  ```json [package.json]
+  {
+    "name": "nuxt-shopify-store",
+    "private": true,
+    "type": "module",
+    "scripts": {
+      "dev": "nuxt dev",
+      "build": "nuxt build",
+      "generate": "nuxt generate",
+      "preview": "nuxt preview"
+    },
+    "dependencies": {
+      "@nuxtjs/shopify": "latest",
+      "nuxt": "latest"
+    }
+  }
+  ```
+  :::
+::
+
+::component-hero
+---
+title: Easy integration with the Admin API
+---
+
+#component
+::markets
+::
+
+#component-title
+Markets.vue
+
+#default 
+  :::code-tree{default-value="server/api/admin/markets.ts"}
+  ```vue [app/components/Markets.vue]
+  <script setup lang="ts">
+  const { data } = await useFetch('/api/admin/markets')
+  </script>
+
+  <template>
+    <div class="flex flex-col gap-4">
+      <UCard v-for="market in data" :key="market.name">
+        {{ market.name }}
+      </UCard>
+    </div>
+  </template>
+  ```
+
+  ```ts [server/api/admin/markets.ts]
+  export default defineEventHandler(async () => {
+    const admin = useAdmin()
+
+    const { data } = await admin.request(`#graphql
+      query GetMarkets {
+        markets(first: 4) {
+          nodes {
+            ...MarketFields
+          }
+        }
+      }
+      ${MARKET_FRAGMENT}
+    `)
+
+    return flattenConnection(data?.markets)
+  })
+  ```
+
+  ```ts [graphql/admin/market.ts]
+  export const MARKET_FRAGMENT = `#graphql
+    fragment MarketFields on Market {
+      name
+      webPresence {
+        rootUrls {
+          locale
+          url
+        }
+      }
+    }
+  `
+  ```
+
+  ```ts [nuxt.config.ts]
+  export default defineNuxtConfig({
+    modules: ['@nuxtjs/shopify'],
+
+    shopify: {
+      name: 'store-name',
+
+      clients: {
+        admin: {
+          accessToken: 'public-access-token',
+          apiVersion: '2025-07',
+        },
+      },
+    },
+  })
+  ```
+
+  ```json [package.json]
+  {
+    "name": "nuxt-shopify-store",
+    "private": true,
+    "type": "module",
+    "scripts": {
+      "dev": "nuxt dev",
+      "build": "nuxt build",
+      "generate": "nuxt generate",
+      "preview": "nuxt preview"
+    },
+    "dependencies": {
+      "@nuxtjs/shopify": "latest",
+      "nuxt": "latest"
+    }
+  }
+  ```
+  :::
+::
+
 ::u-page-section
 #title
 Build your Shopify store with Nuxt
