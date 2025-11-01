@@ -54,7 +54,7 @@ const getRandomDelay = (rowIndex: number, index: number) => {
 const initMarqueeProducts = () => {
     if (marqueeProductsData.value.length) return
 
-    const limitedProducts = shuffleArray(products.value).slice(0, 50)
+    const limitedProducts = shuffleArray(products.value ?? []).slice(0, 50)
 
     const row1 = shuffleArray(limitedProducts)
     const row2 = shuffleArray(limitedProducts)

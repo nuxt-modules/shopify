@@ -36,19 +36,6 @@ export default defineNuxtConfig({
         colorMode: false,
     },
 
-    runtimeConfig: {
-        shopify: {
-            name: 'nuxt-shopify-demo-store',
-
-            clients: {
-                storefront: {
-                    mock: true,
-                    apiVersion: '2025-07',
-                },
-            },
-        },
-    },
-
     compatibilityDate: '2025-07-15',
 
     vite: {
@@ -97,6 +84,17 @@ export default defineNuxtConfig({
         providers: {
             shopify: {
                 provider: '~/providers/shopify.ts',
+            },
+        },
+    },
+
+    shopify: {
+        name: 'nuxt-shopify-demo-store',
+
+        clients: {
+            storefront: {
+                mock: true,
+                apiVersion: '2025-07',
             },
         },
     },

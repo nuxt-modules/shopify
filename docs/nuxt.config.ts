@@ -22,6 +22,7 @@ export default defineNuxtConfig({
             meta: [
                 { name: 'apple-mobile-web-app-title', content: 'Nuxt Shopify' },
             ],
+
             link: [
                 { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
                 { rel: 'icon', type: 'image/png', sizes: '96x96', href: '/favicon-96x96.png' },
@@ -54,16 +55,6 @@ export default defineNuxtConfig({
         },
     },
 
-    nitro: {
-        typescript: {
-            tsConfig: {
-                compilerOptions: {
-                    verbatimModuleSyntax: false,
-                },
-            },
-        },
-    },
-
     vite: {
         build: {
             rollupOptions: {
@@ -88,6 +79,10 @@ export default defineNuxtConfig({
         alias: {
             shopify: 'https://cdn.shopify.com',
         },
+    },
+
+    llms: {
+        domain: 'shopify.nuxtjs.org',
     },
 
     ogImage: {
