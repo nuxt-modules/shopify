@@ -8,11 +8,13 @@
         "preview": "nuxt preview --extends docus"
     },
     "dependencies": {
-        "@nuxtjs/shopify": "latest",
+        "@nuxt/ui": "^4.1.0",
         "@nuxtjs/critters": "^0.9.0",
+        "@nuxtjs/shopify": "latest",
         "better-sqlite3": "^12.4.1",
         "docus": "^5.2.1",
         "motion-v": "^1.7.2",
-        "nuxt": "^4.2.0"
+        "nuxt": "^4.2.0",
+        "tailwindcss": "^4.1.16"
     }
 }

@@ -54,6 +54,16 @@ export default defineNuxtConfig({
         },
     },
 
+    nitro: {
+        typescript: {
+            tsConfig: {
+                compilerOptions: {
+                    verbatimModuleSyntax: false,
+                },
+            },
+        },
+    },
+
     vite: {
         build: {
             rollupOptions: {
