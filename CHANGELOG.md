@@ -1,3 +1,6 @@
+# 0.3.2
+- Fixed proxy and utils resolver paths
+
 # 0.3.1
 - Fixed resolver path problems
 
