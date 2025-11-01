@@ -1,8 +1,8 @@
-import type { GenericApiClientConfig, ShopifyConfig } from '../../types'
+import type { ShopifyApiClientConfig, ShopifyConfig } from '../../types'
 
 import { createApiUrl, createStoreDomain } from './client'
 
-export const createAdminConfig = (config?: Partial<ShopifyConfig>): GenericApiClientConfig => {
+export const createAdminConfig = (config?: Partial<ShopifyConfig>): ShopifyApiClientConfig => {
     if (!config?.name || !config.clients?.admin || !config.clients.admin?.accessToken) {
         throw new Error('Could not create admin client')
     }
@@ -30,5 +30,5 @@ export const createAdminConfig = (config?: Partial<ShopifyConfig>): GenericApiCl
             'X-Shopify-Access-Token': accessToken,
             ...headers,
         },
-    } satisfies GenericApiClientConfig
+    } satisfies ShopifyApiClientConfig
 }

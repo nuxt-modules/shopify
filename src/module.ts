@@ -1,34 +1,21 @@
-import type { Nuxt } from '@nuxt/schema'
-
-import type {
-    ModuleOptions,
-    ShopifyConfig,
-    ShopifyClientConfig,
-    ShopifyStorefrontConfig,
-} from './types'
-import type { ShopifyClientType } from './utils'
+import type { ModuleOptions } from './types'
 
 import {
-    createResolver,
     defineNuxtModule,
     useRuntimeConfig,
     updateRuntimeConfig,
-    addImports,
-    addServerHandler,
-    addServerImports,
 } from '@nuxt/kit'
 import { defu } from 'defu'
-import { upperFirst } from 'scule'
-import { joinURL } from 'ufo'
 
-import {
-    registerAutoImports,
-    useLog,
-    useShopifyConfig,
-    useShopifyConfigValidation,
-    installSandbox,
-    registerTemplates,
-} from './utils'
+import setupCodegen from './setup/codegen'
+import setupClients from './setup/clients'
+import setupImports from './setup/imports'
+import setupSandbox from './setup/sandbox'
+import setupProxy from './setup/proxy'
+import setupDevMode from './setup/dev'
+
+import { configSchema } from './schemas/config'
+import { useLogger } from './utils/log'
 
 export default defineNuxtModule<ModuleOptions>({
     meta: {
@@ -41,139 +28,47 @@ export default defineNuxtModule<ModuleOptions>({
 
     async setup(options, nuxt) {
         const runtimeConfig = useRuntimeConfig()
-        const log = useLog(options.logger)
+        const logger = useLogger(options.logger)
 
-        const moduleOptions = useShopifyConfigValidation(defu(
+        const moduleOptions = configSchema.safeParse(defu(
             runtimeConfig.public.shopify,
             runtimeConfig.shopify,
             options,
         ))
 
-        const resolver = createResolver(import.meta.url)
-
         if (moduleOptions.success) {
-            log.start('Starting setup')
+            logger.start('Starting setup')
 
-            const { config, publicConfig } = useShopifyConfig(moduleOptions.data)
-
-            for (const _clientType in config.clients) {
-                const clientType = _clientType as ShopifyClientType
-                const clientConfig = config.clients[clientType]
-
-                if (!clientConfig) continue
-
-                setupClient(nuxt, config, clientType, clientConfig)
-            }
+            const { config, publicConfig } = moduleOptions.data
 
             await nuxt.callHook('shopify:config', { nuxt, config })
 
             updateRuntimeConfig({
                 _shopify: config,
 
-                public: { _shopify: publicConfig },
+                public: {
+                    _shopify: publicConfig,
+                },
             })
 
-            registerAutoImports(nuxt, config, resolver)
+            await setupClients(config)
+            await setupCodegen(nuxt, config)
+            await setupImports(nuxt, config)
+            await setupSandbox(nuxt, config)
+            await setupProxy(nuxt, config)
 
-            log.success('Finished setup')
+            await nuxt.callHook('shopify:setup', { nuxt, config })
+
+            logger.success('Finished setup')
         }
         else {
-            log.info('Skipping setup: config not provided or invalid')
-            log.info('See module configuration reference: https://shopify.nuxtjs.org/essentials/configuration')
-            log.debug(`Error while parsing module options:\n${moduleOptions.error}`)
+            logger.info('Skipping setup: config not provided or invalid')
+            logger.info('See module configuration reference: https://shopify.nuxtjs.org/essentials/configuration')
+            logger.debug(`Error while parsing module options:\n${moduleOptions.error}`)
         }
 
         if (process.env.NUXT_SHOPIFY_DEV_MODULE_ALIAS) {
-            log.info('Development mode enabled: including source files')
-
-            nuxt.options = defu(nuxt.options, {
-                alias: {
-                    '@nuxtjs/shopify/storefront': resolver.resolve('./types/clients/storefront.d.ts'),
-                    '@nuxtjs/shopify/admin': resolver.resolve('./types/clients/admin.d.ts'),
-                },
-
-                nitro: {
-                    typescript: {
-                        tsConfig: {
-                            include: [
-                                resolver.resolve('./types/clients/storefront.d.ts'),
-                                resolver.resolve('./types/clients/admin.d.ts'),
-                            ],
-                        },
-                    },
-                },
-            })
+            setupDevMode(nuxt, options.logger)
         }
     },
 })
-
-export const setupClient = (
-    nuxt: Nuxt,
-    config: ShopifyConfig,
-    clientType: ShopifyClientType,
-    clientConfig: ShopifyClientConfig,
-) => {
-    const log = useLog(config.logger)
-
-    const resolver = createResolver(import.meta.url)
-
-    if (!clientConfig.skipCodegen) {
-        registerTemplates(nuxt, config.name, clientType, clientConfig)
-    }
-    else {
-        log.info(`Skipping type generation for ${clientType}`)
-    }
-
-    if (nuxt.options.dev && clientConfig.sandbox) {
-        const url = installSandbox(nuxt, clientType)
-
-        log.info(`${upperFirst(clientType)} sandbox available at: ${url}`)
-    }
-
-    addServerImports([{
-        from: resolver.resolve(`./runtime/server/utils/${clientType}`),
-        name: `use${upperFirst(clientType)}`,
-    }])
-
-    if (clientType === 'storefront') {
-        setupStorefrontFeatures(nuxt, config, clientConfig)
-    }
-}
-
-export const setupStorefrontFeatures = (nuxt: Nuxt, config: ShopifyConfig, clientConfig: ShopifyStorefrontConfig) => {
-    const log = useLog(config.logger)
-
-    const resolver = createResolver(import.meta.url)
-
-    if (clientConfig.publicAccessToken?.length || clientConfig.mock) {
-        addImports([
-            {
-                from: resolver.resolve(`./runtime/composables/storefront`),
-                name: 'useStorefront',
-            },
-            {
-                from: resolver.resolve(`./runtime/composables/async`),
-                name: 'useStorefrontData',
-            },
-        ])
-
-        if (clientConfig.proxy) {
-            if (!nuxt.options.ssr) {
-                log.info('Server-side request proxying is only available in SSR mode, skipping proxy setup.')
-            }
-
-            const url = typeof clientConfig.proxy === 'string'
-                ? clientConfig.proxy
-                : '/_proxy/storefront'
-
-            addServerHandler({
-                handler: resolver.resolve(`./runtime/server/api/proxy/storefront`),
-                route: url,
-            })
-
-            if (nuxt.options.dev) {
-                log.info(`Storefront proxy available at: ${joinURL(nuxt.options.devServer.url, url)}`)
-            }
-        }
-    }
-}

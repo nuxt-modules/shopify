@@ -4,10 +4,8 @@ import { access, readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import { join } from 'node:path'
 
-import {
-    ShopifyClientType,
-    getInterfaceExtensionFunction,
-} from '../src/utils'
+import { ShopifyClientType } from '../src/schemas/config'
+import { getInterfaceExtensionFunction } from '../src/utils/codegen'
 
 const playgroundDir = fileURLToPath(new URL('../playgrounds/playground-v4', import.meta.url))
 const playgroundStorefrontTypesDir = fileURLToPath(new URL('../playgrounds/playground-v4/.nuxt/types/storefront', import.meta.url))
@@ -24,26 +22,26 @@ describe('test module with nuxt 4', async () => {
 
         expect(json).toStrictEqual({
             name: process.env.NUXT_SHOPIFY_NAME,
-            logger: '',
-            autoImports: {
-                graphql: true,
-                storefront: true,
-                admin: false,
-            },
             errors: {
                 throw: true,
+            },
+            fragments: {
+                autoImport: true,
+                path: '/graphql',
             },
             clients: {
                 storefront: {
                     apiVersion: process.env.NUXT_SHOPIFY_CLIENTS_STOREFRONT_API_VERSION,
+                    autoImport: true,
                     proxy: true,
                     publicAccessToken: process.env.NUXT_SHOPIFY_CLIENTS_STOREFRONT_PUBLIC_ACCESS_TOKEN,
+                    retries: 3,
                     sandbox: true,
                     documents: [
+                        '**/*.vue',
                         '**/*.{gql,graphql,ts,js}',
                         '!**/*.admin.{gql,graphql,ts,js}',
                         '!**/admin/**/*.{gql,graphql,ts,js}',
-                        '**/*.vue',
                         '!node_modules',
                         '!dist',
                         '!.nuxt',
@@ -53,6 +51,8 @@ describe('test module with nuxt 4', async () => {
                 admin: {
                     apiVersion: process.env.NUXT_SHOPIFY_CLIENTS_ADMIN_API_VERSION,
                     accessToken: '<admin_access_token>',
+                    autoImport: false,
+                    retries: 3,
                     sandbox: true,
                     documents: [
                         '**/*.admin.{gql,graphql,ts,js}',

@@ -1,10 +1,10 @@
-import type { GenericApiClientConfig, ShopifyConfig } from '../../types'
+import type { PublicShopifyConfig, ShopifyApiClientConfig, ShopifyConfig } from '../../types'
 
 import { createApiUrl, createStoreDomain } from './client'
 
 const MOCK_STORE_DOMAIN = 'https://mock.shop'
 
-export const createStorefrontConfig = (config?: Partial<ShopifyConfig>): GenericApiClientConfig => {
+export const createStorefrontConfig = (config?: ShopifyConfig | PublicShopifyConfig): ShopifyApiClientConfig => {
     if (!config?.clients?.storefront) {
         throw new Error('Could not create storefront client')
     }
@@ -19,13 +19,14 @@ export const createStorefrontConfig = (config?: Partial<ShopifyConfig>): Generic
                 headers,
 
                 publicAccessToken,
-                privateAccessToken,
                 mock,
             },
         },
     } = config
 
-    if (!name || (!publicAccessToken && !privateAccessToken) || (publicAccessToken && privateAccessToken)) {
+    const privateAccessToken = (config as ShopifyConfig)?.clients?.storefront?.privateAccessToken
+
+    if (!name || ((!publicAccessToken && !privateAccessToken) && !mock)) {
         throw new Error('Could not create storefront client')
     }
 
@@ -43,5 +44,5 @@ export const createStorefrontConfig = (config?: Partial<ShopifyConfig>): Generic
             ...(privateAccessToken ? { 'Shopify-Private-Access-Token': privateAccessToken } : {}),
             ...headers,
         },
-    } satisfies GenericApiClientConfig
+    } satisfies ShopifyApiClientConfig
 }

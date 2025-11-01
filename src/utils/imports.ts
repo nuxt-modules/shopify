@@ -1,5 +1,4 @@
 import type { Nuxt } from '@nuxt/schema'
-import type { Resolver } from '@nuxt/kit'
 
 import type { ShopifyConfig } from '../types'
 
@@ -10,55 +9,67 @@ import {
     addImportsDir,
     addServerImports,
     addServerImportsDir,
+    createResolver,
 } from '@nuxt/kit'
 
-import { useLog } from './log'
+import { ShopifyClientType } from '../schemas/config'
 
-export function autoImportDir(path: string, client: boolean) {
-    if (existsSync(path)) {
-        addServerImportsDir(join(path, '**'))
+export function hasPublicClient(config: ShopifyConfig): boolean {
+    const storefrontConfig = config.clients[ShopifyClientType.Storefront]
 
-        if (client) addImportsDir(join(path, '**'))
+    return !!(storefrontConfig?.publicAccessToken || storefrontConfig?.mock)
+}
+
+export function autoImportDirectory(path: string, includeClient: boolean) {
+    if (!existsSync(path)) return
+
+    addServerImportsDir(join(path, '**'))
+
+    if (includeClient) {
+        addImportsDir(join(path, '**'))
     }
 }
 
-export function autoImportUtil(name: string, resolver: Resolver, client: boolean) {
+export function autoImportUtil(name: string, includeClient: boolean) {
+    const resolver = createResolver(import.meta.url)
+
     const imports = [{
-        from: resolver.resolve(`./runtime/utils/${name}`),
-        name: name,
+        from: resolver.resolve(`../runtime/utils/${name}`),
+        name,
     }]
 
     addServerImports(imports)
 
-    if (client) addImports(imports)
+    if (includeClient) {
+        addImports(imports)
+    }
 }
 
-export function registerUtilImports(resolver: Resolver, client = false) {
-    autoImportUtil('flattenConnection', resolver, client)
+export function registerFragmentImports(nuxt: Nuxt, config: ShopifyConfig) {
+    if (!config.fragments?.autoImport) return
+
+    const includeClient = hasPublicClient(config)
+    const fragmentsPath = join(nuxt.options.rootDir, config.fragments.path)
+
+    autoImportDirectory(fragmentsPath, includeClient)
+
+    nuxt.options.watch = nuxt.options.watch || []
+    nuxt.options.watch.push(fragmentsPath)
 }
 
-export function registerAutoImports(nuxt: Nuxt, config: ShopifyConfig, resolver: Resolver) {
-    const usesClientSide = config.clients.storefront?.mock || (config.clients.storefront?.publicAccessToken?.length ?? 0) > 0
+export function registerClientTypeImports(nuxt: Nuxt, config: ShopifyConfig, clientType: ShopifyClientType) {
+    const clientConfig = config.clients[clientType]
 
-    if (config.autoImports?.graphql) {
-        const graphqlDir = join(nuxt.options.rootDir, 'graphql')
-        autoImportDir(graphqlDir, usesClientSide)
+    if (!clientConfig?.autoImport) return
 
-        nuxt.options.watch = nuxt.options.watch || []
-        nuxt.options.watch.push(graphqlDir)
+    const includeClient = hasPublicClient(config)
+    const typesPath = join(nuxt.options.buildDir, `types/${clientType}`)
 
-        useLog().debug('Auto-importing GraphQL from `~/graphql` directory')
-    }
+    autoImportDirectory(typesPath, includeClient)
+}
 
-    if (config.autoImports?.storefront) {
-        autoImportDir(join(nuxt.options.buildDir, 'types/storefront'), usesClientSide)
-        useLog().debug('Auto-importing Storefront types')
-    }
+export function registerUtilImports(config: ShopifyConfig) {
+    const includeClient = hasPublicClient(config)
 
-    if (config.autoImports?.admin) {
-        autoImportDir(join(nuxt.options.buildDir, 'types/admin'), usesClientSide)
-        useLog().debug('Auto-importing Admin types')
-    }
-
-    registerUtilImports(resolver, usesClientSide)
+    autoImportUtil('flattenConnection', includeClient)
 }
