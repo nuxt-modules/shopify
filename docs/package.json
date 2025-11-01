@@ -8,6 +8,7 @@
         "preview": "nuxt preview --extends docus"
     },
     "dependencies": {
+        "@nuxt/kit": "^4.2.0",
         "@nuxt/ui": "^4.1.0",
         "@nuxtjs/critters": "^0.9.0",
         "@nuxtjs/shopify": "latest",
@@ -15,6 +16,8 @@
         "docus": "^5.2.1",
         "motion-v": "^1.7.2",
         "nuxt": "^4.2.0",
-        "tailwindcss": "^4.1.16"
+        "reka-ui": "^2.6.0",
+        "tailwindcss": "^4.1.16",
+        "vaul-vue": "^0.4.1"
     }
 }

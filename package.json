@@ -72,6 +72,7 @@
     "prepare:dev": "nuxt-module-build --filter={./playgrounds/*,./template} prepare",
     "prepare:playgrounds": "bun run --filter=./playgrounds/* prepare",
     "prepare:template": "bun run --filter=./template prepare",
+    "prepare:docs": "bun run --filter=./docs prepare",
     "cleanup": "bun run --filter={./playgrounds/*,./template} cleanup && nuxt cleanup",
     "cleanup:all": "bun run --filter={./playgrounds/*,./template} cleanup && nuxt cleanup && rm -rf node_modules && rm -rf template/node_modules && rm -rf playgrounds/playground/node_modules && rm -rf playgrounds/playground-mock/node_modules && rm -rf playgrounds/playground-v4/node_modules",
     "qa:all": "bun --env-file=.env run lint && bun --env-file=.env run typecheck:all && bun --env-file=.env run test"
