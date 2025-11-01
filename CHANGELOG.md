@@ -1,3 +1,6 @@
+# 0.3.1
+- Fixed resolver path problems
+
 # 0.3.0
 - Updated configuration
 - Refactored module internals
