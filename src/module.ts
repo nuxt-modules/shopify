@@ -4,6 +4,7 @@ import {
     defineNuxtModule,
     useRuntimeConfig,
     updateRuntimeConfig,
+    createResolver,
 } from '@nuxt/kit'
 import { defu } from 'defu'
 
@@ -30,6 +31,8 @@ export default defineNuxtModule<ModuleOptions>({
         const runtimeConfig = useRuntimeConfig()
         const logger = useLogger(options.logger)
 
+        const resolver = createResolver(import.meta.url)
+
         const moduleOptions = configSchema.safeParse(defu(
             runtimeConfig.public.shopify,
             runtimeConfig.shopify,
@@ -51,7 +54,8 @@ export default defineNuxtModule<ModuleOptions>({
                 },
             })
 
-            await setupClients(config)
+            await setupClients(config, resolver)
+
             await setupCodegen(nuxt, config)
             await setupImports(nuxt, config)
             await setupSandbox(nuxt, config)

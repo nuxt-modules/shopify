@@ -1,28 +1,25 @@
+import type { Resolver } from '@nuxt/kit'
 import type { ShopifyClientType } from '../schemas/config'
 import type { ShopifyConfig } from '../types'
 
-import { createResolver, addServerImports, addImports } from '@nuxt/kit'
+import { addServerImports, addImports } from '@nuxt/kit'
 import { upperFirst } from 'scule'
 
-export function registerClientServerImports(clientType: ShopifyClientType) {
-    const resolver = createResolver(import.meta.url)
-
+export function registerClientServerImports(clientType: ShopifyClientType, resolver: Resolver) {
     addServerImports([{
-        from: resolver.resolve(`../runtime/server/utils/${clientType}`),
+        from: resolver.resolve(`./runtime/server/utils/${clientType}`),
         name: `use${upperFirst(clientType)}`,
     }])
 }
 
-export function registerClientImports(clientType: ShopifyClientType) {
-    const resolver = createResolver(import.meta.url)
-
+export function registerClientImports(clientType: ShopifyClientType, resolver: Resolver) {
     addImports([
         {
-            from: resolver.resolve(`../runtime/composables/${clientType}`),
+            from: resolver.resolve(`./runtime/composables/${clientType}`),
             name: `use${upperFirst(clientType)}`,
         },
         {
-            from: resolver.resolve(`../runtime/composables/async/${clientType}`),
+            from: resolver.resolve(`./runtime/composables/async/${clientType}`),
             name: `use${upperFirst(clientType)}Data`,
         },
     ])
