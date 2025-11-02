@@ -1,3 +1,6 @@
+# 0.3.3
+- Allow simultaneous usage of public and private tokens for storefront clients
+
 # 0.3.2
 - Fixed proxy and utils resolver paths
 
