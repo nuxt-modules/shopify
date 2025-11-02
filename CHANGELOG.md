@@ -1,3 +1,6 @@
+# 0.3.4
+- Fix private access token header name
+
 # 0.3.3
 - Allow simultaneous usage of public and private tokens for storefront clients
 
