@@ -19,13 +19,14 @@ permissions:
 
 concurrency:
   group: pages
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+      - uses: actions/setup-node@v6
       - uses: oven-sh/setup-bun@v2
 
       - name: Setup Pages
@@ -35,7 +36,7 @@ jobs:
         run: bun install
 
       - name: Build Docs
-        run: bun --bun run build:docs --preset=github_pages
+        run: bun run build:docs --preset=github_pages
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v4

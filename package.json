@@ -82,6 +82,7 @@
     "@graphql-codegen/import-types-preset": "^3.0.1",
     "@graphql-codegen/plugin-helpers": "^6.0.0",
     "@graphql-codegen/typescript": "^5.0.2",
+    "@graphql-codegen/introspection": "^5.0.0",
     "@shopify/api-codegen-preset": "^1.2.0",
     "@shopify/graphql-client": "^1.4.1",
     "@shopify/graphql-codegen": "^0.1.0",

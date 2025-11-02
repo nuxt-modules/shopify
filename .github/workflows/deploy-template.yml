@@ -16,6 +16,10 @@ on:
     branches:
       - main
 
+concurrency:
+  group: template
+  cancel-in-progress: true
+
 jobs:
   typecheck:
     runs-on: ubuntu-latest
