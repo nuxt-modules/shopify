@@ -40,7 +40,7 @@ export const createStorefrontConfig = (config?: ShopifyConfig | PublicShopifyCon
         apiVersion,
         logger,
         headers: {
-            ...(privateAccessToken ? { 'Shopify-Private-Access-Token': privateAccessToken } : {}),
+            ...(privateAccessToken ? { 'Shopify-Storefront-Private-Token': privateAccessToken } : {}),
             ...(!privateAccessToken && publicAccessToken ? { 'X-Shopify-Storefront-Access-Token': publicAccessToken } : {}),
             ...headers,
         },
