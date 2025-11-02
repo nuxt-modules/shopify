@@ -187,7 +187,7 @@ Markets.vue
 
       clients: {
         admin: {
-          accessToken: 'public-access-token',
+          accessToken: 'access-token',
           apiVersion: '2025-07',
         },
       },

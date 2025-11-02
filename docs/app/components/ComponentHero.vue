@@ -12,7 +12,7 @@ const props = defineProps<{
 
         <div class="mt-12 flex flex-col gap-x-8 lg:flex-row items-center sm:justify-around">
             <UCard
-                class="ring-neutral-700 w-full max-w-[545px] lg:max-w-[392px] shrink-0"
+                class="ring-0 border-1 border-muted w-full max-w-[545px] lg:max-w-[392px] shrink-0"
             >
                 <slot name="component" />
 
