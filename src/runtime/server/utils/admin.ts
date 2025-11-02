@@ -3,7 +3,7 @@ import type { AdminApiClient, AdminOperations } from '@nuxtjs/shopify/admin'
 import { useNitroApp } from 'nitropack/runtime'
 import { useRuntimeConfig } from '#imports'
 import { createClient } from '../../utils/client'
-import { createAdminConfig } from '../../utils/admin'
+import { createAdminConfig } from '../../utils/clients/admin'
 import useErrors from '../../utils/errors'
 
 export function useAdmin(): AdminApiClient {

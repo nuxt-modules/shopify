@@ -1,6 +1,6 @@
-import type { PublicShopifyConfig, ShopifyApiClientConfig, ShopifyConfig } from '../../types'
+import type { PublicShopifyConfig, ShopifyApiClientConfig, ShopifyConfig } from '../../../types'
 
-import { createApiUrl, createStoreDomain } from './client'
+import { createApiUrl, createStoreDomain } from '../client'
 
 const MOCK_STORE_DOMAIN = 'https://mock.shop'
 
@@ -40,8 +40,8 @@ export const createStorefrontConfig = (config?: ShopifyConfig | PublicShopifyCon
         apiVersion,
         logger,
         headers: {
-            ...(publicAccessToken ? { 'X-Shopify-Storefront-Access-Token': publicAccessToken } : {}),
             ...(privateAccessToken ? { 'Shopify-Private-Access-Token': privateAccessToken } : {}),
+            ...(!privateAccessToken && publicAccessToken ? { 'X-Shopify-Storefront-Access-Token': publicAccessToken } : {}),
             ...headers,
         },
     } satisfies ShopifyApiClientConfig

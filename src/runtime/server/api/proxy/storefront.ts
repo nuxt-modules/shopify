@@ -2,7 +2,7 @@ import { defineEventHandler, readValidatedBody, getRequestHeaders } from 'h3'
 import { z } from 'zod'
 
 import { useRuntimeConfig } from '#imports'
-import { createStorefrontConfig } from '../../../utils/storefront'
+import { createStorefrontConfig } from '../../../utils/clients/storefront'
 
 export default defineEventHandler(async (event) => {
     const schema = z.object({

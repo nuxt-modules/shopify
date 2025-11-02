@@ -63,7 +63,7 @@
     "playgrounds/playground-v3": {
       "name": "playground-v3",
       "dependencies": {
-        "nuxt": "^3.20.0",
+        "nuxt": "^3.19.3",
       },
     },
     "playgrounds/playground-v4": {

@@ -4,7 +4,7 @@ import { joinURL } from 'ufo'
 
 import { useRuntimeConfig, useNuxtApp, useRequestURL } from '#imports'
 import { createClient } from '../utils/client'
-import { createStorefrontConfig } from '../utils/storefront'
+import { createStorefrontConfig } from '../utils/clients/storefront'
 import useErrors from '../utils/errors'
 
 export function useStorefront(): StorefrontApiClient {

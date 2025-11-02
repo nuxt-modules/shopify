@@ -9,8 +9,8 @@ import { defineEventHandler, readValidatedBody } from 'h3'
 import { z } from 'zod'
 
 import { createClient } from '../runtime/utils/client'
-import { createStorefrontConfig } from '../runtime/utils/storefront'
-import { createAdminConfig } from '../runtime/utils/admin'
+import { createStorefrontConfig } from '../runtime/utils/clients/storefront'
+import { createAdminConfig } from '../runtime/utils/clients/admin'
 import getSandboxTemplate from '../templates/sandbox-template'
 
 export function getSandboxUrl(nuxt: Nuxt, clientType: ShopifyClientType): string {

@@ -35,7 +35,7 @@ jobs:
         run: bun install
 
       - name: Build Docs
-        run: bun run build:docs --preset=github_pages
+        run: bun --bun run build:docs --preset=github_pages
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v4

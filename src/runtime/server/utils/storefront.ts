@@ -3,7 +3,7 @@ import type { StorefrontApiClient, StorefrontOperations } from '@nuxtjs/shopify/
 import { useNitroApp } from 'nitropack/runtime'
 import { useRuntimeConfig } from '#imports'
 import { createClient } from '../../utils/client'
-import { createStorefrontConfig } from '../../utils/storefront'
+import { createStorefrontConfig } from '../../utils/clients/storefront'
 import useErrors from '../../utils/errors'
 
 export function useStorefront(): StorefrontApiClient {

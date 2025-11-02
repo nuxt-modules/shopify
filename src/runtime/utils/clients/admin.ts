@@ -1,6 +1,6 @@
-import type { ShopifyApiClientConfig, ShopifyConfig } from '../../types'
+import type { ShopifyApiClientConfig, ShopifyConfig } from '../../../types'
 
-import { createApiUrl, createStoreDomain } from './client'
+import { createApiUrl, createStoreDomain } from '../client'
 
 export const createAdminConfig = (config?: Partial<ShopifyConfig>): ShopifyApiClientConfig => {
     if (!config?.name || !config.clients?.admin || !config.clients.admin?.accessToken) {
