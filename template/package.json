@@ -14,12 +14,12 @@
     "dependencies": {
         "@nuxtjs/shopify": "latest",
         "@nuxt/content": "^3.8.0",
-        "@nuxt/image": "^1.11.0",
+        "@nuxt/image": "^2.0.0",
         "@nuxt/ui": "^4.1.0",
         "@nuxtjs/i18n": "^10.2.0",
         "@vueuse/nuxt": "^14.0.0",
         "better-sqlite3": "^12.4.1",
-        "nuxt": "^4.2.0",
+        "nuxt": "^4.2.1",
         "tailwindcss": "^4.1.16",
         "vue": "^3.5.22",
         "vue-router": "^4.6.3"

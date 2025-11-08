@@ -81,11 +81,7 @@ export default defineNuxtConfig({
     },
 
     image: {
-        providers: {
-            shopify: {
-                provider: '~/providers/shopify.ts',
-            },
-        },
+        provider: 'shopify',
     },
 
     shopify: {

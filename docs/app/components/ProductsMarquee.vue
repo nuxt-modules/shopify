@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { joinURL } from 'ufo'
-
 type Product = {
     title: string
     image: string
@@ -30,7 +28,7 @@ const { data: products } = await useStorefrontData('products', `#graphql
         .flatMap(product => product.images.nodes)
         .map(image => ({
             title: image.altText ?? '',
-            image: joinURL('/shopify', new URL(image.url).pathname),
+            image: image.url,
         })),
 })
 

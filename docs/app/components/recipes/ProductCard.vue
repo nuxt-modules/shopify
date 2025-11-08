@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import type { ProductFieldsFragment } from '#shopify/storefront'
 
-import { joinURL } from 'ufo'
-
 const props = defineProps<{
     product: ProductFieldsFragment
 }>()
@@ -16,7 +14,7 @@ const price = computed(() => {
 })
 
 const image = computed(() => props.product.featuredImage)
-const src = computed(() => image.value ? joinURL('/shopify', new URL(image.value.url).pathname) : null)
+const src = computed(() => image.value?.url ?? '')
 const to = computed(() => `https://demostore.mock.shop/products/${props.product.handle}`)
 </script>
 

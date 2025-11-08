@@ -72,13 +72,11 @@ export default defineNuxtConfig({
     },
 
     image: {
+        format: ['avif', 'webp'],
+
+        provider: 'shopify',
+
         domains: ['cdn.shopify.com'],
-
-        formats: ['avif', 'webp'],
-
-        alias: {
-            shopify: 'https://cdn.shopify.com',
-        },
     },
 
     llms: {

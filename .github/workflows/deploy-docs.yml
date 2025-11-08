@@ -33,7 +33,7 @@ jobs:
         uses: actions/configure-pages@v5
 
       - name: Install dependencies
-        run: bun install --linker hoisted --filter '!./playgrounds/*'
+        run: bun install --linker hoisted
 
       - name: Build Docs
         run: bun run build:docs --preset=github_pages
