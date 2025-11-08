@@ -29,10 +29,10 @@ jobs:
       - uses: oven-sh/setup-bun@v2
 
       - name: Install dependencies
-        run: bun install
+        run: bun install --ignore-scripts
 
       - name: Typecheck
-        run: bun run typecheck:template
+        run: bun run prepare && bun run prepare:template && bun run typecheck:template
 
   deploy:
     runs-on: ubuntu-latest
