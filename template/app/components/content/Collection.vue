@@ -126,7 +126,7 @@ watch(locale, () => {
                     v-for="product in products"
                     :key="product.id"
                     :product="product"
-                    class="pb-14 border-b border-b-[var(--ui-border)]"
+                    class="pb-14 border-b border-b-default"
                 />
             </div>
 

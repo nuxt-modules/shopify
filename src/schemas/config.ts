@@ -7,7 +7,7 @@ import {
 } from '@shopify/graphql-client'
 import { z } from 'zod'
 
-enum ShopifyClientType {
+export enum ShopifyClientType {
     Storefront = 'storefront',
     Admin = 'admin',
 }
@@ -19,13 +19,29 @@ const ignores = [
     '!.output',
 ]
 
-const clientSchema = z.object({
+const cacheDefaults = {
+    max: 500,
+    maxSize: 5000, // approx. 5MB
+    ttl: 1000 * 60 * 5, // 5 minutes
+}
+
+export const cacheSchema = z.boolean().or(z.object({
+    max: z.number().optional(),
+    maxSize: z.number().optional(),
+    ttl: z.number().optional(),
+    allowStale: z.boolean().optional(),
+    updateAgeOnGet: z.boolean().optional(),
+    updateAgeOnHas: z.boolean().optional(),
+}))
+
+export const clientSchema = z.object({
     apiVersion: z.string().optional(),
     headers: z.record(z.string(), z.string()).optional(),
     retries: z.number().optional(),
     sandbox: z.boolean().optional(),
     documents: z.array(z.string()).optional(),
     autoImport: z.boolean().optional(),
+    cache: cacheSchema.optional(),
     codegen: z.object({
         skip: z.boolean().optional(),
         pluginOptions: z.object({
@@ -34,18 +50,18 @@ const clientSchema = z.object({
     }).optional(),
 })
 
-const storefrontClientSchema = clientSchema.extend({
+export const storefrontClientSchema = clientSchema.extend({
     publicAccessToken: z.string().optional(),
     privateAccessToken: z.string().optional(),
     proxy: z.boolean().optional().or(z.string().optional()),
     mock: z.boolean().optional(),
 })
 
-const adminClientSchema = clientSchema.extend({
+export const adminClientSchema = clientSchema.extend({
     accessToken: z.string(),
 })
 
-const moduleOptionsSchema = z.object({
+export const moduleOptionsSchema = z.object({
     name: z.string({
         error: 'Shop name is required',
     }),
@@ -67,11 +83,15 @@ const moduleOptionsSchema = z.object({
     logger: z.any().transform(v => v as Partial<ConsolaOptions> | undefined).optional(),
 })
 
-const clientSchemaWithDefaults = clientSchema.omit({
+export const cacheSchemaWithDefaults = cacheSchema.default(cacheDefaults)
+    .transform(v => v === true ? cacheDefaults : v)
+
+export const clientSchemaWithDefaults = clientSchema.omit({
     apiVersion: true,
     retries: true,
     sandbox: true,
     autoImport: true,
+    cache: true,
 }).extend({
     apiVersion: z.string().refine(v => getCurrentSupportedApiVersions().includes(v), {
         error: v => `Unsupported API version "${v}". Supported versions are: ${getCurrentSupportedApiVersions().join(', ')}`,
@@ -81,9 +101,11 @@ const clientSchemaWithDefaults = clientSchema.omit({
 
     sandbox: z.boolean().optional().default(true),
     autoImport: z.boolean().optional().default(true),
+
+    cache: cacheSchemaWithDefaults,
 })
 
-const storefrontClientSchemaWithDefaults = clientSchemaWithDefaults.omit({
+export const storefrontClientSchemaWithDefaults = clientSchemaWithDefaults.omit({
     documents: true,
 }).extend({
     documents: z.array(z.string()).optional().transform(v => [
@@ -102,7 +124,7 @@ const storefrontClientSchemaWithDefaults = clientSchemaWithDefaults.omit({
     error: 'Either a public or private access token must be provided for the storefront client',
 })
 
-const adminClientSchemaWithDefaults = clientSchemaWithDefaults.omit({
+export const adminClientSchemaWithDefaults = clientSchemaWithDefaults.omit({
     documents: true,
     autoImport: true,
 }).extend({
@@ -120,7 +142,7 @@ const adminClientSchemaWithDefaults = clientSchemaWithDefaults.omit({
     }),
 })
 
-const publicModuleOptionsSchema = moduleOptionsSchema.omit({
+export const publicModuleOptionsSchema = moduleOptionsSchema.omit({
     clients: true,
     fragments: true,
 }).extend({
@@ -135,9 +157,9 @@ const publicModuleOptionsSchema = moduleOptionsSchema.omit({
     }),
 })
 
-const publicConfigSchema = publicModuleOptionsSchema
+export const publicConfigSchema = publicModuleOptionsSchema
 
-const configSchema = moduleOptionsSchema.omit({
+export const configSchema = moduleOptionsSchema.omit({
     clients: true,
     errors: true,
     fragments: true,
@@ -168,13 +190,3 @@ const configSchema = moduleOptionsSchema.omit({
     config,
     publicConfig: publicConfigSchema.parse(config),
 }))
-
-type ModuleOptions = z.infer<typeof moduleOptionsSchema>
-type PublicModuleOptions = z.infer<typeof publicModuleOptionsSchema>
-
-type ShopifyConfig = z.infer<typeof configSchema>['config']
-type PublicShopifyConfig = z.infer<typeof configSchema>['publicConfig']
-
-export { configSchema, ShopifyClientType }
-
-export type { ModuleOptions, PublicModuleOptions, ShopifyConfig, PublicShopifyConfig }

@@ -54,6 +54,7 @@ export default defineNuxtModule<ModuleOptions>({
                 },
             })
 
+            await setupDevMode(nuxt, config.logger)
             await setupClients(config, resolver)
 
             await setupImports(nuxt, config, resolver)
@@ -71,9 +72,7 @@ export default defineNuxtModule<ModuleOptions>({
             logger.info('See module configuration reference: https://shopify.nuxtjs.org/essentials/configuration')
             logger.debug(`Error while parsing module options:\n${moduleOptions.error}`)
         }
-
-        if (process.env.NUXT_SHOPIFY_DEV_MODULE_ALIAS) {
-            setupDevMode(nuxt, options.logger)
-        }
     },
 })
+
+export type * from './types/index'

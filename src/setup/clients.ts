@@ -1,4 +1,8 @@
+import type { Resolver } from '@nuxt/kit'
+
 import type { ShopifyConfig } from '../types'
+
+import { addPlugin, addServerPlugin } from '@nuxt/kit'
 
 import { useLogger } from '../utils/log'
 import {
@@ -6,8 +10,8 @@ import {
     isPublicClient,
     registerClientServerImports,
     registerClientImports,
+    hasPublicClient,
 } from '../utils/clients'
-import type { Resolver } from '@nuxt/kit'
 
 export default async function setupClients(config: ShopifyConfig, resolver: Resolver) {
     const logger = useLogger()
@@ -21,5 +25,13 @@ export default async function setupClients(config: ShopifyConfig, resolver: Reso
         if (isPublicClient(config.clients[clientType])) {
             registerClientImports(clientType, resolver)
         }
+    }
+
+    if (clients.length > 0) {
+        addServerPlugin(resolver.resolve('./runtime/server/plugins/cache'))
+    }
+
+    if (hasPublicClient(config)) {
+        addPlugin(resolver.resolve('./runtime/plugins/cache'))
     }
 }

@@ -1,7 +1,6 @@
 import type { Nuxt, NuxtTemplate } from '@nuxt/schema'
 
-import type { ShopifyClientType } from '../schemas/config'
-import type { ShopifyConfig } from '../types'
+import type { ShopifyClientType, ShopifyConfig } from '../types'
 import type { ShopifyTemplateOptions } from './codegen'
 
 import { readFile } from 'node:fs/promises'

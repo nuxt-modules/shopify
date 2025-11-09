@@ -14,6 +14,8 @@ const { data } = await storefront.request(`#graphql
     variables: {
         first: 5,
     },
+
+    cache: true,
 })
 
 const products = flattenConnection(data?.products)
@@ -31,5 +33,7 @@ const products = flattenConnection(data?.products)
         </div>
 
         <p>Product count: {{ products.length }}</p>
+
+        <NuxtLink to="/async">Async</NuxtLink>
     </div>
 </template>

@@ -9,7 +9,8 @@ export default defineBuildConfig({
 
         {
             builder: 'mkdist',
-            input: 'src/types/clients',
+            input: 'src/clients',
+            outDir: 'dist/clients',
         },
     ],
 

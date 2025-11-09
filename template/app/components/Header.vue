@@ -32,8 +32,8 @@ const { data: items } = await useStorefrontData('main-menu', `#graphql
 </script>
 
 <template>
-    <div class="sticky top-0 border-b border-b-[var(--ui-border)] z-10">
-        <UContainer class="flex justify-between py-3 bg-[var(--ui-bg)]/60 backdrop-blur-lg">
+    <div class="sticky top-0 border-b border-b-default z-10">
+        <UContainer class="flex justify-between py-3 bg-(--ui-bg)/60 backdrop-blur-lg">
             <Logo />
 
             <UNavigationMenu
