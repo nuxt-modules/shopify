@@ -26,6 +26,7 @@ hot-reloaded type generation from your GraphQL queries.
 - 🛠️ Automatic mock.shop integration
 - 🚩 Error handling optimized for Nuxt
 - 📡 Server-side proxy for API requests
+- 🏎️ Sub-request caching support
 - 🧩 GraphQL fragments support
 - ⚙️ Customizable GraphQL code generation
 - 📦 Auto-imports for GraphQL queries and generated types
@@ -37,7 +38,6 @@ hot-reloaded type generation from your GraphQL queries.
 
 Upcoming features and developments for the 1.0.0 release:
 
-- 🏎️ Sub-request caching support
 - 👤 Customer Account API support
 - 🔍 Shopify Analytics support
 - 🪝 Webhook subscription support
@@ -359,6 +359,78 @@ export default defineNitroPlugin((nitroApp) => {
 ```
 
 Read more about all available hooks in our [hooks documentation](https://shopify.nuxtjs.org/going-further/hooks).
+
+### Caching requests
+
+Each request can be cached individually by providing a `cache` option to the request method (opt-in).
+The client caches are stored in memory using [unstorage](https://unstorage.unjs.io) and [lru-cache](https://unstorage.unjs.io/drivers/lru-cache).
+Depending on the environment (server or client), the cache instances are created differently:
+
+- **Server side**: The cache is created in a nitro server plugin, meaning that the cache is shared across all requests handled by the same nitro server instance.
+- **Client side**: The cache is created and provided in a Nuxt plugin, meaning that the cache is shared across the entire client session.
+
+The `cache` option accepts the following properties:
+
+```html
+<script setup lang="ts">
+const storefront = useStorefront()
+
+const { data } = await storefront.request(`#graphql
+    query FetchProducts($first: Int) {
+        products(first: $first) {
+            nodes {
+                id
+                title
+                description
+            }
+        }
+    }
+`, {
+    variables: {
+        first: 3,
+    },
+
+    cache: {
+        // Cache for 5 minutes
+        ttl: 300,
+
+        getKey: (operation, options) => hash({ operation, options }),
+        bypass: (operation, options) => false,
+        invalidate: (operation, options) => false,
+    },
+})
+</script>
+```
+
+- `cache`: boolean | object — Enable or disable caching for the request. If set to `true`, default caching behaviour will be used.
+    - `ttl`: Time to live in seconds. After this time, the cache will be considered stale and a new request will be made. (optional)
+    - `getKey`: Function to generate a unique cache key for the request based on the operation and options. (optional)
+    - `bypass`: Function to determine whether to bypass the cache for the request. (optional)
+    - `invalidate`: Function to determine whether to invalidate (remove and re-create) the cache for the request. (optional)
+
+You can customize the global caching behaviour and defaults by passing the `cache` option to the module configuration:
+
+```ts
+export default defineNuxtConfig({
+    shopify: {
+        clients: {
+            storefront: {
+                cache: {
+                    max: 100, // Maximum number of cache entries
+                    maxSize: 5000, // Maximum cache size
+
+                    ttl: 600, // Default time to live in seconds
+
+                    // Default cache functions
+                    getKey: (operation, options) => hash({ operation, options }),
+                    bypass: (operation, options) => false,
+                    invalidate: (operation, options) => false,
+                },
+            },
+        },
+    },
+})
+```
 
 ## 👥 Maintainers
 

@@ -11,7 +11,7 @@ import { LogLevels } from 'consola'
 import { kebabCase, upperFirst } from 'scule'
 import defu from 'defu'
 
-import { ShopifyClientType } from '../schemas/config'
+import { ShopifyClientType } from '../schemas'
 import { useLogger } from './log'
 
 type ShopifyTemplateOptions = {
@@ -82,6 +82,7 @@ export function getIntrospection(options: ShopifyTemplateOptions, _config: Shopi
         }
     }
 
+    console.log('FETCHING NEW INTROSPECTION NOW')
     return [
         {
             [apiUrl]: { headers },

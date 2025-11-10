@@ -2,12 +2,18 @@ import type { z } from 'zod'
 
 import type {
     cacheSchema,
-    configSchema,
     moduleOptionsSchema,
     publicModuleOptionsSchema,
-} from '../schemas/config'
+} from './config'
 
-export type { ShopifyClientType } from '../schemas/config'
+import { ShopifyClientType } from './config'
+import { moduleOptionsSchemaWithDefaults as configSchema } from './runtime'
+
+export {
+    ShopifyClientType,
+
+    configSchema,
+}
 
 export type CacheOptions = z.infer<typeof cacheSchema>
 

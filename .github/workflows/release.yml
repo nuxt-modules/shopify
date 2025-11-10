@@ -9,8 +9,6 @@ env:
   NUXT_SHOPIFY_CLIENTS_ADMIN_API_VERSION: ${{ secrets.NUXT_SHOPIFY_CLIENTS_ADMIN_API_VERSION }}
   NUXT_SHOPIFY_CLIENTS_ADMIN_ACCESS_TOKEN: ${{ secrets.NUXT_SHOPIFY_CLIENTS_ADMIN_ACCESS_TOKEN }}
 
-  NUXT_SHOPIFY_DEV_MODULE_ALIAS: true
-
 on:
   release:
     types: [published]
@@ -61,8 +59,6 @@ jobs:
 
   release:
     runs-on: ubuntu-latest
-    env:
-      NUXT_SHOPIFY_DEV_MODULE_ALIAS: false
     needs: [ lint, typecheck, test ]
     permissions:
       contents: read

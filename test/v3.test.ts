@@ -4,7 +4,7 @@ import { access, readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import { join } from 'node:path'
 
-import { ShopifyClientType } from '../src/schemas/config'
+import { ShopifyClientType } from '../src/schemas'
 import { getInterfaceExtensionFunction } from '../src/utils/codegen'
 
 const playgroundDir = fileURLToPath(new URL('../playgrounds/playground-v3', import.meta.url))

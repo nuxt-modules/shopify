@@ -3,8 +3,6 @@ name: 'Deploy Docs'
 env:
   NUXT_SHOPIFY_CLIENTS_STOREFRONT_API_VERSION: ${{ secrets.NUXT_SHOPIFY_CLIENTS_STOREFRONT_API_VERSION }}
 
-  NUXT_SHOPIFY_DEV_MODULE_ALIAS: true
-
 on:
   push:
     branches:

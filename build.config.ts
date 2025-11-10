@@ -15,6 +15,6 @@ export default defineBuildConfig({
     ],
 
     replace: {
-        'process.env.NUXT_SHOPIFY_DEV_MODULE_ALIAS': 'false',
+        'await setupDevMode(nuxt, config.logger)': '',
     },
 })

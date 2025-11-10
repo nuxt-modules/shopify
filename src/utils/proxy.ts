@@ -6,7 +6,7 @@ import type { ShopifyConfig } from '../types'
 import { addServerHandler } from '@nuxt/kit'
 import { joinURL } from 'ufo'
 
-import { ShopifyClientType } from '../schemas/config'
+import { ShopifyClientType } from '../schemas'
 
 export function getProxyUrl(config: ShopifyConfig): string | undefined {
     const storefrontConfig = config.clients[ShopifyClientType.Storefront]

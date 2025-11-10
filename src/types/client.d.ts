@@ -9,7 +9,7 @@ import type {
     ApiClientRequestOptions,
 } from '@shopify/graphql-client'
 import type { ConsolaOptions } from 'consola'
-import type { CacheOptions } from './config'
+import type { CacheOptions } from '.'
 
 export type WithCache<Operation extends keyof Operations, Operations extends AllOperations, T> = T & {
     cache?: boolean | {

@@ -5,7 +5,7 @@ import type { ShopifyConfig } from '../types'
 import { addServerImports, addImports } from '@nuxt/kit'
 import { upperFirst } from 'scule'
 
-import { ShopifyClientType } from '../schemas/config'
+import { ShopifyClientType } from '../schemas'
 
 export function registerClientServerImports(clientType: ShopifyClientType, resolver: Resolver) {
     addServerImports([{
