@@ -4,7 +4,7 @@ import { access, readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import { join } from 'node:path'
 
-import { ShopifyClientType } from '../src/schemas/config'
+import { ShopifyClientType } from '../src/schemas'
 import { getInterfaceExtensionFunction } from '../src/utils/codegen'
 
 const playgroundDir = fileURLToPath(new URL('../playgrounds/playground-v4', import.meta.url))
@@ -33,7 +33,7 @@ describe('test module with nuxt 4', async () => {
                 storefront: {
                     apiVersion: process.env.NUXT_SHOPIFY_CLIENTS_STOREFRONT_API_VERSION,
                     autoImport: true,
-                    proxy: true,
+                    proxy: '/_proxy/storefront',
                     publicAccessToken: process.env.NUXT_SHOPIFY_CLIENTS_STOREFRONT_PUBLIC_ACCESS_TOKEN,
                     retries: 3,
                     sandbox: true,

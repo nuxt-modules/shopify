@@ -1,7 +1,7 @@
 import type { Resolver } from '@nuxt/kit'
 import type { Nuxt } from '@nuxt/schema'
 
-import type { ShopifyConfig } from '../types'
+import type { ShopifyClientType, ShopifyConfig } from '../types'
 
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
@@ -12,13 +12,7 @@ import {
     addServerImportsDir,
 } from '@nuxt/kit'
 
-import { ShopifyClientType } from '../schemas/config'
-
-export function hasPublicClient(config: ShopifyConfig): boolean {
-    const storefrontConfig = config.clients[ShopifyClientType.Storefront]
-
-    return !!(storefrontConfig?.publicAccessToken || storefrontConfig?.mock)
-}
+import { hasPublicClient } from './clients'
 
 export function autoImportDirectory(path: string, includeClient: boolean) {
     if (!existsSync(path)) return

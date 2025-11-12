@@ -14,12 +14,8 @@ export function useStorefront(): StorefrontApiClient {
 
     const nuxtApp = useNuxtApp()
 
-    if (_shopify?.clients.storefront?.proxy) {
-        const proxyUrl = typeof _shopify.clients.storefront.proxy === 'string'
-            ? _shopify.clients.storefront.proxy
-            : '_proxy/storefront'
-
-        config.apiUrl = joinURL(useRequestURL().origin, proxyUrl)
+    if (typeof _shopify?.clients.storefront?.proxy === 'string') {
+        config.apiUrl = joinURL(useRequestURL().origin, _shopify.clients.storefront.proxy)
     }
 
     nuxtApp.hooks.callHook('storefront:client:configure', { config })

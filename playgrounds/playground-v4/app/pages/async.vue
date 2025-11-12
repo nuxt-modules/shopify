@@ -30,6 +30,7 @@ const { data: products } = await useStorefrontData('async-data-test', `#graphql
         handle: 'shirts',
         first: 5,
     },
+
     transform: response => flattenConnection(response.collection?.products),
 })
 </script>
@@ -46,5 +47,7 @@ const { data: products } = await useStorefrontData('async-data-test', `#graphql
         </div>
 
         <p>Product count: {{ products?.length }}</p>
+
+        <NuxtLink to="/client">Client</NuxtLink>
     </div>
 </template>

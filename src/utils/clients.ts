@@ -1,9 +1,11 @@
 import type { Resolver } from '@nuxt/kit'
-import type { ShopifyClientType } from '../schemas/config'
+
 import type { ShopifyConfig } from '../types'
 
 import { addServerImports, addImports } from '@nuxt/kit'
 import { upperFirst } from 'scule'
+
+import { ShopifyClientType } from '../schemas'
 
 export function registerClientServerImports(clientType: ShopifyClientType, resolver: Resolver) {
     addServerImports([{
@@ -30,6 +32,12 @@ export function isPublicClient(config: ShopifyConfig['clients'][ShopifyClientTyp
         (config as { publicAccessToken?: string })?.publicAccessToken
         || (config as { mock?: boolean })?.mock
     )
+}
+
+export function hasPublicClient(config: ShopifyConfig): boolean {
+    const storefrontConfig = config.clients[ShopifyClientType.Storefront]
+
+    return !!(storefrontConfig?.publicAccessToken || storefrontConfig?.mock)
 }
 
 export function getConfiguredClients(config: ShopifyConfig): ShopifyClientType[] {

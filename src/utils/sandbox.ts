@@ -1,8 +1,7 @@
 import type { Nuxt } from '@nuxt/schema'
 import type { H3Event } from 'h3'
 
-import type { ShopifyClientType } from '../schemas/config'
-import type { ShopifyConfig } from '../types'
+import type { ShopifyClientType, ShopifyConfig } from '../types'
 
 import { addDevServerHandler } from '@nuxt/kit'
 import { defineEventHandler, readValidatedBody } from 'h3'
