@@ -1,15 +1,11 @@
 import type { Nuxt } from '@nuxt/schema'
-import type { ConsolaOptions } from 'consola'
+import type { ConsolaInstance } from 'consola'
 
 import { stat } from 'node:fs/promises'
 import { createResolver } from '@nuxt/kit'
 import defu from 'defu'
 
-import { useLogger } from '../utils/log'
-
-export default async function setupDevMode(nuxt: Nuxt, logOptions?: Partial<ConsolaOptions>) {
-    const logger = useLogger(logOptions)
-
+export default async function setupDevMode(nuxt: Nuxt, logger: ConsolaInstance) {
     const resolver = createResolver(import.meta.url)
 
     const sourceFiles = {

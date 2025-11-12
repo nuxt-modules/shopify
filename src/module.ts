@@ -39,6 +39,8 @@ export default defineNuxtModule<ModuleOptions>({
             options,
         ))
 
+        await setupDevMode(nuxt, logger)
+
         if (moduleOptions.success) {
             logger.start('Starting setup')
 
@@ -53,8 +55,6 @@ export default defineNuxtModule<ModuleOptions>({
                     _shopify: publicConfig,
                 },
             })
-
-            await setupDevMode(nuxt, config.logger)
 
             await setupClients(config, resolver)
 
