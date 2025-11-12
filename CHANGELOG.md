@@ -1,3 +1,7 @@
+# 0.3.5
+- Refactor module config creation
+- Fix type exports
+
 # 0.3.4
 - Fix private access token header name
 

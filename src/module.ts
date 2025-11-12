@@ -39,8 +39,6 @@ export default defineNuxtModule<ModuleOptions>({
             options,
         ))
 
-        await setupDevMode(nuxt, logger)
-
         if (moduleOptions.success) {
             logger.start('Starting setup')
 
@@ -73,6 +71,8 @@ export default defineNuxtModule<ModuleOptions>({
             logger.info('See module configuration reference: https://shopify.nuxtjs.org/essentials/configuration')
             logger.debug(`Error while parsing module options:\n${moduleOptions.error}`)
         }
+
+        await setupDevMode(nuxt, logger)
     },
 })
 
