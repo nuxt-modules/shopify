@@ -1,11 +1,13 @@
 import type {
-    ApiClientConfig,
-    ApiClientRequestOptions,
     AllOperations,
     RequestParams,
 } from '@shopify/graphql-client'
 
-import type { ShopifyApiClient, ShopifyApiClientConfig } from '../../types'
+import type {
+    ShopifyApiClient,
+    ShopifyApiClientConfig,
+    ShopifyApiClientRequestOptions,
+} from '../../module'
 
 import { createGraphQLClient } from '@shopify/graphql-client'
 import { joinURL } from 'ufo'
@@ -22,7 +24,7 @@ export const createApiUrl = (storeDomain: string, apiVersion: string, apiPrefix?
     'graphql.json',
 )
 
-export const createClient = <Operations extends AllOperations>(
+export const createClient = <Operations extends AllOperations = AllOperations>(
     config: ShopifyApiClientConfig,
 ): ShopifyApiClient<Operations> => {
     const {
@@ -56,7 +58,7 @@ export const createClient = <Operations extends AllOperations>(
             'X-SDK-Version': version,
             ...headers,
         },
-    } satisfies ApiClientConfig
+    } satisfies ShopifyApiClientConfig
 
     const graphqlClient = createGraphQLClient({
         url: apiUrl,
@@ -72,11 +74,10 @@ export const createClient = <Operations extends AllOperations>(
         propApiVersion ? getStoreUrl(propApiVersion) : apiUrl
 
     const getGQLClientParams = <
-        Operations extends AllOperations = AllOperations,
-        Operation extends keyof Operations = string,
+        Operation extends keyof Operations,
     >(
         operation: Operation,
-        options?: ApiClientRequestOptions<Operation, Operations>,
+        options?: ShopifyApiClientRequestOptions<Operation, Operations>,
     ): RequestParams => {
         const props: RequestParams = [operation as string]
 
@@ -92,7 +93,7 @@ export const createClient = <Operations extends AllOperations>(
             props.push({
                 ...(variables ? { variables } : {}),
                 ...(apiVersion ? { url: getApiUrl(apiVersion) } : {}),
-                ...(headers ? { headers: getHeaders(headers) } : {}),
+                ...(headers ? { headers: getHeaders(headers as unknown as Record<string, string[]>) } : {}),
                 ...(retries ? { retries } : {}),
                 ...(signal ? { signal } : {}),
             })

@@ -21,10 +21,10 @@
       "import": "./dist/module.mjs"
     },
     "./storefront": {
-      "types": "./dist/storefront.d.ts"
+      "types": "./dist/clients/storefront.d.ts"
     },
     "./admin": {
-      "types": "./dist/admin.d.ts"
+      "types": "./dist/clients/admin.d.ts"
     }
   },
   "main": "./dist/module.mjs",
@@ -34,10 +34,10 @@
         "./dist/types.d.mts"
       ],
       "storefront": [
-        "./dist/storefront.d.ts"
+        "./dist/clients/storefront.d.ts"
       ],
       "admin": [
-        "./dist/admin.d.ts"
+        "./dist/clients/admin.d.ts"
       ]
     }
   },
@@ -81,9 +81,9 @@
   "dependencies": {
     "@graphql-codegen/cli": "^6.0.1",
     "@graphql-codegen/import-types-preset": "^3.0.1",
+    "@graphql-codegen/introspection": "^5.0.0",
     "@graphql-codegen/plugin-helpers": "^6.0.0",
     "@graphql-codegen/typescript": "^5.0.2",
-    "@graphql-codegen/introspection": "^5.0.0",
     "@shopify/api-codegen-preset": "^1.2.0",
     "@shopify/graphql-client": "^1.4.1",
     "@shopify/graphql-codegen": "^0.1.0",

@@ -9,11 +9,12 @@ export default defineBuildConfig({
 
         {
             builder: 'mkdist',
-            input: 'src/types/clients',
+            input: 'src/clients',
+            outDir: 'dist/clients',
         },
     ],
 
     replace: {
-        'process.env.NUXT_SHOPIFY_DEV_MODULE_ALIAS': 'false',
+        'await setupDevMode(nuxt, config.logger)': '',
     },
 })

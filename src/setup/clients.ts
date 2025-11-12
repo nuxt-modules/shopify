@@ -1,3 +1,5 @@
+import type { Resolver } from '@nuxt/kit'
+
 import type { ShopifyConfig } from '../types'
 
 import { useLogger } from '../utils/log'
@@ -7,7 +9,6 @@ import {
     registerClientServerImports,
     registerClientImports,
 } from '../utils/clients'
-import type { Resolver } from '@nuxt/kit'
 
 export default async function setupClients(config: ShopifyConfig, resolver: Resolver) {
     const logger = useLogger()

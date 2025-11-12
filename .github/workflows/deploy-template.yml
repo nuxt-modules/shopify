@@ -9,8 +9,6 @@ env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
-  NUXT_SHOPIFY_DEV_MODULE_ALIAS: true
-
 on:
   push:
     branches:

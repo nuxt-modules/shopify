@@ -6,16 +6,14 @@ import type { ShopifyConfig } from '../types'
 import { addServerHandler } from '@nuxt/kit'
 import { joinURL } from 'ufo'
 
-import { ShopifyClientType } from '../schemas/config'
+import { ShopifyClientType } from '../schemas'
 
 export function getProxyUrl(config: ShopifyConfig): string | undefined {
     const storefrontConfig = config.clients[ShopifyClientType.Storefront]
 
     if (!storefrontConfig?.proxy) return
 
-    return typeof storefrontConfig.proxy === 'string'
-        ? storefrontConfig.proxy
-        : '/_proxy/storefront'
+    return typeof storefrontConfig.proxy === 'string' ? storefrontConfig.proxy : undefined
 }
 
 export function shouldEnableProxy(nuxt: Nuxt, config: ShopifyConfig): boolean {
@@ -27,13 +25,13 @@ export function shouldEnableProxy(nuxt: Nuxt, config: ShopifyConfig): boolean {
     return true
 }
 
-export function registerProxy(nuxt: Nuxt, config: ShopifyConfig, resolver: Resolver): string | false {
+export function registerProxy(nuxt: Nuxt, config: ShopifyConfig, clientType: ShopifyClientType, resolver: Resolver): string | false {
     const url = getProxyUrl(config)
 
     if (!url) return false
 
     addServerHandler({
-        handler: resolver.resolve(`./runtime/server/api/proxy/storefront`),
+        handler: resolver.resolve(`./runtime/server/api/proxy/${clientType}`),
         route: url,
     })
 
