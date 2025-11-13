@@ -1,3 +1,6 @@
+# 0.3.6
+- Fix public config resolution
+
 # 0.3.5
 - Refactor module config creation
 - Fix type exports
