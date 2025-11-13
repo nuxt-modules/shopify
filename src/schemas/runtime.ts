@@ -7,6 +7,8 @@ import { z } from 'zod'
 import {
     ShopifyClientType,
     clientSchema,
+    storefrontClientSchema,
+    adminClientSchema,
     moduleOptionsSchema,
     publicModuleOptionsSchema,
 } from './config'
@@ -37,7 +39,7 @@ export const clientSchemaWithDefaults = clientSchema.omit({
 export const storefrontClientSchemaWithDefaults = clientSchemaWithDefaults.omit({
     documents: true,
 }).extend({
-    documents: z.array(z.string()).optional().transform(v => [
+    documents: storefrontClientSchema.shape.documents.transform(v => [
         '**/*.{gql,graphql,ts,js}',
         '!**/*.admin.{gql,graphql,ts,js}',
         '!**/admin/**/*.{gql,graphql,ts,js}',
@@ -45,43 +47,28 @@ export const storefrontClientSchemaWithDefaults = clientSchemaWithDefaults.omit(
         ...(v ?? []),
     ]),
 
-    publicAccessToken: z.string().optional(),
-    privateAccessToken: z.string().optional(),
-    proxy: z.boolean().or(z.string()).default(true).transform(v => v === false ? '' : '/_proxy/storefront' as string),
-    mock: z.boolean().optional(),
+    publicAccessToken: storefrontClientSchema.shape.publicAccessToken,
+    privateAccessToken: storefrontClientSchema.shape.privateAccessToken,
+    proxy: storefrontClientSchema.shape.proxy.default(true).transform(v => v === false ? undefined : v === true ? '/_proxy/storefront' : v),
+    mock: storefrontClientSchema.shape.mock,
 }).refine(client => client?.mock || client?.privateAccessToken || client?.publicAccessToken, {
     error: 'Either a public or private access token must be provided for the storefront client',
 })
 
 export const adminClientSchemaWithDefaults = clientSchemaWithDefaults.omit({
     documents: true,
-    autoImport: true,
 }).extend({
-    documents: z.array(z.string()).optional().transform(v => [
+    documents: adminClientSchema.shape.documents.transform(v => [
         '**/*.admin.{gql,graphql,ts,js}',
         '**/admin/**/*.{gql,graphql,ts,js}',
         ...ignores,
         ...(v ?? []),
     ]),
 
-    autoImport: z.boolean().optional(),
+    autoImport: adminClientSchema.shape.autoImport,
 
     accessToken: z.string({
         error: 'Access token is required for the admin client',
-    }),
-})
-
-export const publicModuleOptionsSchemaWithDefaults = publicModuleOptionsSchema.omit({
-    clients: true,
-}).extend({
-    clients: z.object({
-        [ShopifyClientType.Storefront]: storefrontClientSchemaWithDefaults.omit({
-            privateAccessToken: true,
-            sandbox: true,
-            documents: true,
-            codegen: true,
-            autoImport: true,
-        }).optional(),
     }),
 })
 
@@ -112,7 +99,21 @@ export const moduleOptionsSchemaWithDefaults = moduleOptionsSchema.omit({
         path: '/graphql',
         autoImport: true,
     }),
-}).transform(config => ({
-    config,
-    publicConfig: publicModuleOptionsSchemaWithDefaults.parse(config),
-}))
+})
+
+export const publicModuleOptionsSchemaWithDefaults = publicModuleOptionsSchema.omit({
+    clients: true,
+    errors: true,
+}).extend({
+    clients: z.object({
+        [ShopifyClientType.Storefront]: storefrontClientSchemaWithDefaults.omit({
+            privateAccessToken: true,
+            sandbox: true,
+            documents: true,
+            codegen: true,
+            autoImport: true,
+        }).optional(),
+    }),
+
+    errors: moduleOptionsSchemaWithDefaults.shape.errors,
+})

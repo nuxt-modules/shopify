@@ -15,7 +15,7 @@ import setupSandbox from './setup/sandbox'
 import setupProxy from './setup/proxy'
 import setupDevMode from './setup/dev'
 
-import { configSchema } from './schemas'
+import { configSchema, publicConfigSchema } from './schemas'
 import { useLogger } from './utils/log'
 
 export default defineNuxtModule<ModuleOptions>({
@@ -33,16 +33,20 @@ export default defineNuxtModule<ModuleOptions>({
 
         const resolver = createResolver(import.meta.url)
 
-        const moduleOptions = configSchema.safeParse(defu(
+        const rawConfig = defu(
             runtimeConfig.public.shopify,
             runtimeConfig.shopify,
             options,
-        ))
+        )
 
-        if (moduleOptions.success) {
+        const moduleOptions = configSchema.safeParse(rawConfig)
+        const publicModuleOptions = publicConfigSchema.safeParse(rawConfig)
+
+        if (moduleOptions.success && publicModuleOptions.success) {
             logger.start('Starting setup')
 
-            const { config, publicConfig } = moduleOptions.data
+            const config = moduleOptions.data
+            const publicConfig = publicModuleOptions.data
 
             await nuxt.callHook('shopify:config', { nuxt, config })
 
@@ -67,9 +71,11 @@ export default defineNuxtModule<ModuleOptions>({
             logger.success('Finished setup')
         }
         else {
+            const error = `${moduleOptions.error ? moduleOptions.error : ''}${publicModuleOptions.error ? publicModuleOptions.error : ''}`
+
             logger.info('Skipping setup: config not provided or invalid')
             logger.info('See module configuration reference: https://shopify.nuxtjs.org/essentials/configuration')
-            logger.debug(`Error while parsing module options:\n${moduleOptions.error}`)
+            logger.debug(`Error while parsing module options:\n${error}`)
         }
 
         await setupDevMode(nuxt, logger)

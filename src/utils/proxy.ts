@@ -1,34 +1,31 @@
 import type { Resolver } from '@nuxt/kit'
 import type { Nuxt } from '@nuxt/schema'
 
-import type { ShopifyConfig } from '../types'
+import type {
+    ShopifyClientType,
+    ShopifyConfig,
+} from '../types'
 
 import { addServerHandler } from '@nuxt/kit'
 import { joinURL } from 'ufo'
 
-import { ShopifyClientType } from '../schemas'
-
-export function getProxyUrl(config: ShopifyConfig): string | undefined {
-    const storefrontConfig = config.clients[ShopifyClientType.Storefront]
-
-    if (!storefrontConfig?.proxy) return
-
-    return typeof storefrontConfig.proxy === 'string' ? storefrontConfig.proxy : undefined
-}
-
-export function shouldEnableProxy(nuxt: Nuxt, config: ShopifyConfig): boolean {
-    const storefrontConfig = config.clients[ShopifyClientType.Storefront]
-
-    if (!storefrontConfig?.proxy) return false
-    if (!nuxt.options.ssr) return false
-
-    return true
-}
+import { useLogger } from './log'
+import { upperFirst } from 'scule'
 
 export function registerProxy(nuxt: Nuxt, config: ShopifyConfig, clientType: ShopifyClientType, resolver: Resolver): string | false {
-    const url = getProxyUrl(config)
+    const clientConfig = config.clients[clientType]
+
+    if (!clientConfig) return false
+
+    const url = 'proxy' in clientConfig ? clientConfig.proxy : undefined
 
     if (!url) return false
+
+    if (!nuxt.options.ssr) {
+        const logger = useLogger(config.logger)
+
+        logger.warn(`Server-side request proxying is only available in SSR mode, skipping ${upperFirst(clientType)} proxy setup.`)
+    }
 
     addServerHandler({
         handler: resolver.resolve(`./runtime/server/api/proxy/${clientType}`),
