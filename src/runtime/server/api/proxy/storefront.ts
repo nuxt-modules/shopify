@@ -12,15 +12,18 @@ export default defineEventHandler(async (event) => {
 
     const body = await readValidatedBody(event, schema.parse)
 
-    const headers = getRequestHeaders(event) as Record<string, string>
+    const requestHeaders = getRequestHeaders(event) as Record<string, string>
 
     const { _shopify } = useRuntimeConfig()
 
-    const { apiUrl } = createStorefrontConfig(_shopify)
+    const { apiUrl, headers: storefrontHeaders } = createStorefrontConfig(_shopify)
 
     return await $fetch(apiUrl, {
         method: event.method,
-        headers,
+        headers: {
+            ...requestHeaders,
+            ...storefrontHeaders,
+        },
         body,
     })
 })
