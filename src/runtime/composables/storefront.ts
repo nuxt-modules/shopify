@@ -14,7 +14,7 @@ export function useStorefront(): StorefrontApiClient {
 
     const nuxtApp = useNuxtApp()
 
-    if (_shopify?.clients.storefront?.proxy) {
+    if (_shopify?.clients.storefront?.proxy && !nuxtApp.payload.prerenderedAt) {
         config.apiUrl = joinURL(useRequestURL().origin, _shopify.clients.storefront.proxy)
     }
 

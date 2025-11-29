@@ -21,10 +21,12 @@ export function registerProxy(nuxt: Nuxt, config: ShopifyConfig, clientType: Sho
 
     if (!url) return false
 
-    if (!nuxt.options.ssr) {
+    if (!nuxt.options.ssr || (nuxt.options as { _generate?: boolean })._generate) {
         const logger = useLogger(config.logger)
 
-        logger.warn(`Server-side request proxying is only available in SSR mode, skipping ${upperFirst(clientType)} proxy setup.`)
+        logger.info(`Server-side request proxying is only available in SSR mode, skipping ${upperFirst(clientType)} proxy setup.`)
+
+        return false
     }
 
     addServerHandler({
