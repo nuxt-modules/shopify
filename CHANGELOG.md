@@ -1,3 +1,6 @@
+# 0.3.7
+- Fix proxy staying activated with prerendering
+
 # 0.3.6
 - Fix public config resolution
 
