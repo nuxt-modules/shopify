@@ -1,6 +1,5 @@
 {
   "lockfileVersion": 1,
-  "configVersion": 1,
   "workspaces": {
     "": {
       "name": "@nuxtjs/shopify",
@@ -656,8 +655,6 @@
 
     "@nuxtjs/robots": ["@nuxtjs/robots@5.5.6", "", { "dependencies": { "@fingerprintjs/botd": "^1.9.1", "@nuxt/kit": "^4.1.3", "consola": "^3.4.2", "defu": "^6.1.4", "nuxt-site-config": "^3.2.10", "pathe": "^2.0.3", "pkg-types": "^2.3.0", "sirv": "^3.0.2", "std-env": "^3.10.0", "ufo": "^1.6.1" } }, "sha512-PFp0sSaQs2ceEubvkiUPrWQ0GYTTu5bDH0lGVmJlm0h/Dqmt/e9TziXNKahL8HUV3VG22YzRyuyjd7p8+BaNgw=="],
 
-    "@nuxtjs/shopify": ["@nuxtjs/shopify@root:", { "bin": { "init": "dist/commands/init.mjs" } }],
-
     "@oxc-minify/binding-android-arm64": ["@oxc-minify/binding-android-arm64@0.96.0", "", { "os": "android", "cpu": "arm64" }, "sha512-lzeIEMu/v6Y+La5JSesq4hvyKtKBq84cgQpKYTYM/yGuNk2tfd5Ha31hnC+mTh48lp/5vZH+WBfjVUjjINCfug=="],
 
     "@oxc-minify/binding-darwin-arm64": ["@oxc-minify/binding-darwin-arm64@0.96.0", "", { "os": "darwin", "cpu": "arm64" }, "sha512-i0LkJAUXb4BeBFrJQbMKQPoxf8+cFEffDyLSb7NEzzKuPcH8qrVsnEItoOzeAdYam8Sr6qCHVwmBNEQzl7PWpw=="],
@@ -850,7 +847,7 @@
 
     "@rolldown/binding-win32-x64-msvc": ["@rolldown/binding-win32-x64-msvc@1.0.0-beta.35", "", { "os": "win32", "cpu": "x64" }, "sha512-rftASFKVzjbcQHTCYHaBIDrnQFzbeV50tm4hVugG3tPjd435RHZC2pbeGV5IPdKEqyJSuurM/GfbV3kLQ3LY/A=="],
 
-    "@rolldown/pluginutils": ["@rolldown/pluginutils@1.0.0-beta.50", "", {}, "sha512-5e76wQiQVeL1ICOZVUg4LSOVYg9jyhGCin+icYozhsUzM+fHE7kddi1bdiE0jwVqTfkjba3jUFbEkoC9WkdvyA=="],
+    "@rolldown/pluginutils": ["@rolldown/pluginutils@1.0.0-beta.35", "", {}, "sha512-slYrCpoxJUqzFDDNlvrOYRazQUNRvWPjXA17dAOISY3rDMxX6k8K4cj2H+hEYMHF81HO3uNd5rHVigAWRM5dSg=="],
 
     "@rollup/plugin-alias": ["@rollup/plugin-alias@5.1.1", "", { "peerDependencies": { "rollup": "^1.20.0||^2.0.0||^3.0.0||^4.0.0" }, "optionalPeers": ["rollup"] }, "sha512-PR9zDb+rOzkRb2VD+EuKB7UC41vU5DIwZ5qqCpk0KJudcWAyi8rvYOhS7+L5aZCspw1stTViLgN5v6FF1p5cgQ=="],
 
@@ -3548,6 +3545,10 @@
 
     "@vercel/static-config/ajv": ["ajv@8.6.3", "", { "dependencies": { "fast-deep-equal": "^3.1.1", "json-schema-traverse": "^1.0.0", "require-from-string": "^2.0.2", "uri-js": "^4.2.2" } }, "sha512-SMJOdDP6LqTkD0Uq8qLi+gMwSt0imXLSV080qFVwJCpH9U6Mb+SUGHAXM0KNbcBPguytWyvFxcHgMLe2D2XSpw=="],
 
+    "@vitejs/plugin-vue/@rolldown/pluginutils": ["@rolldown/pluginutils@1.0.0-beta.50", "", {}, "sha512-5e76wQiQVeL1ICOZVUg4LSOVYg9jyhGCin+icYozhsUzM+fHE7kddi1bdiE0jwVqTfkjba3jUFbEkoC9WkdvyA=="],
+
+    "@vitejs/plugin-vue-jsx/@rolldown/pluginutils": ["@rolldown/pluginutils@1.0.0-beta.50", "", {}, "sha512-5e76wQiQVeL1ICOZVUg4LSOVYg9jyhGCin+icYozhsUzM+fHE7kddi1bdiE0jwVqTfkjba3jUFbEkoC9WkdvyA=="],
+
     "@vue/compiler-core/estree-walker": ["estree-walker@2.0.2", "", {}, "sha512-Rfkk/Mp/DL7JVje3u18FxFujQlTNR2q6QfMSMB7AvCBx91NGj/ba3kCfza0f6dVDbw7YlRf/nDrn7pQrCCyQ/w=="],
 
     "@vue/compiler-sfc/estree-walker": ["estree-walker@2.0.2", "", {}, "sha512-Rfkk/Mp/DL7JVje3u18FxFujQlTNR2q6QfMSMB7AvCBx91NGj/ba3kCfza0f6dVDbw7YlRf/nDrn7pQrCCyQ/w=="],
@@ -3688,6 +3689,10 @@
 
     "nuxt-og-image/execa": ["execa@9.6.1", "", { "dependencies": { "@sindresorhus/merge-streams": "^4.0.0", "cross-spawn": "^7.0.6", "figures": "^6.1.0", "get-stream": "^9.0.0", "human-signals": "^8.0.1", "is-plain-obj": "^4.1.0", "is-stream": "^4.0.1", "npm-run-path": "^6.0.0", "pretty-ms": "^9.2.0", "signal-exit": "^4.1.0", "strip-final-newline": "^4.0.0", "yoctocolors": "^2.1.1" } }, "sha512-9Be3ZoN4LmYR90tUoVu2te2BsbzHfhJyfEiAVfz7N5/zv+jduIfLrV2xdQXOHbaD6KgpGdO9PRPM1Y4Q9QkPkA=="],
 
+    "nuxt-shopify-docs/@nuxtjs/shopify": ["@nuxtjs/shopify@file:", { "dependencies": { "@graphql-codegen/cli": "^6.1.0", "@graphql-codegen/import-types-preset": "^3.0.1", "@graphql-codegen/introspection": "^5.0.0", "@graphql-codegen/plugin-helpers": "^6.1.0", "@graphql-codegen/typescript": "^5.0.6", "@shopify/api-codegen-preset": "^1.2.0", "@shopify/graphql-client": "^1.4.1", "@shopify/graphql-codegen": "^0.1.0", "citty": "^0.1.6", "consola": "^3.4.2", "defu": "^6.1.4", "giget": "^2.0.0", "h3": "^1.15.4", "hookable": "^5.5.3", "minimatch": "^10.1.1", "scule": "^1.3.0", "ufo": "^1.6.1", "vue": "^3.5.25", "zod": "4.1.13" }, "devDependencies": { "@graphql-tools/graphql-tag-pluck": "^8.3.26", "@nuxt/eslint-config": "^1.11.0", "@nuxt/kit": "^4.2.1", "@nuxt/module-builder": "^1.0.2", "@nuxt/schema": "^4.2.1", "@nuxt/test-utils": "^3.20.1", "@types/bun": "^1.3.3", "@vitest/coverage-v8": "^4.0.14", "eslint": "^9.39.1", "happy-dom": "^20.0.11", "nitropack": "^2.12.9", "nuxt": "^4.2.1", "sharp": "^0.34.5", "typescript": "^5.9.3", "unbuild": "^3.6.1", "vercel": "^48.12.0", "vitest": "^4.0.14", "vue-tsc": "^3.1.5" }, "bin": { "init": "dist/commands/init.mjs" } }],
+
+    "nuxt-shopify-template/@nuxtjs/shopify": ["@nuxtjs/shopify@file:", { "dependencies": { "@graphql-codegen/cli": "^6.1.0", "@graphql-codegen/import-types-preset": "^3.0.1", "@graphql-codegen/introspection": "^5.0.0", "@graphql-codegen/plugin-helpers": "^6.1.0", "@graphql-codegen/typescript": "^5.0.6", "@shopify/api-codegen-preset": "^1.2.0", "@shopify/graphql-client": "^1.4.1", "@shopify/graphql-codegen": "^0.1.0", "citty": "^0.1.6", "consola": "^3.4.2", "defu": "^6.1.4", "giget": "^2.0.0", "h3": "^1.15.4", "hookable": "^5.5.3", "minimatch": "^10.1.1", "scule": "^1.3.0", "ufo": "^1.6.1", "vue": "^3.5.25", "zod": "4.1.13" }, "devDependencies": { "@graphql-tools/graphql-tag-pluck": "^8.3.26", "@nuxt/eslint-config": "^1.11.0", "@nuxt/kit": "^4.2.1", "@nuxt/module-builder": "^1.0.2", "@nuxt/schema": "^4.2.1", "@nuxt/test-utils": "^3.20.1", "@types/bun": "^1.3.3", "@vitest/coverage-v8": "^4.0.14", "eslint": "^9.39.1", "happy-dom": "^20.0.11", "nitropack": "^2.12.9", "nuxt": "^4.2.1", "sharp": "^0.34.5", "typescript": "^5.9.3", "unbuild": "^3.6.1", "vercel": "^48.12.0", "vitest": "^4.0.14", "vue-tsc": "^3.1.5" }, "bin": { "init": "dist/commands/init.mjs" } }],
+
     "open/is-docker": ["is-docker@2.2.1", "", { "bin": { "is-docker": "cli.js" } }, "sha512-F+i2BKsFrH66iaUFc0woD8sLy8getkwTwtOBjvs56Cx4CgJDeKQeqfz8wAYiSb8JOprWhHH5p77PbmYCvvUuXQ=="],
 
     "open/is-wsl": ["is-wsl@2.2.0", "", { "dependencies": { "is-docker": "^2.0.0" } }, "sha512-fKzAra0rGJUUBwGBgNkHZuToZcn+TtXHpeCgmkMJMMYx1sQDYaCSyjJBSCa2nH1DGm7s3n1oBnohoVTBaN7Lww=="],
@@ -3719,8 +3724,6 @@
     "restore-cursor/onetime": ["onetime@7.0.0", "", { "dependencies": { "mimic-function": "^5.0.0" } }, "sha512-VXJjc87FScF88uafS3JllDgvAm+c/Slfz06lorj2uAY34rlUu0Nt+v8wreiImcrgAjjIHp1rXpTDlLOGw29WwQ=="],
 
     "rolldown/@oxc-project/types": ["@oxc-project/types@0.82.3", "", {}, "sha512-6nCUxBnGX0c6qfZW5MaF6/fmu5dHJDMiMPaioKHKs5mi5+8/FHQ7WGjgQIz1zxpmceMYfdIXkOaLYE+ejbuOtA=="],
-
-    "rolldown/@rolldown/pluginutils": ["@rolldown/pluginutils@1.0.0-beta.35", "", {}, "sha512-slYrCpoxJUqzFDDNlvrOYRazQUNRvWPjXA17dAOISY3rDMxX6k8K4cj2H+hEYMHF81HO3uNd5rHVigAWRM5dSg=="],
 
     "send/mime-types": ["mime-types@3.0.2", "", { "dependencies": { "mime-db": "^1.54.0" } }, "sha512-Lbgzdk0h4juoQ9fCKXW4by0UJqj+nOOrI9MJ1sSj4nI8aI2eo1qmvQEie4VD1glsS250n15LsWsYtCugiStS5A=="],
 
