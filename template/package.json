@@ -12,7 +12,7 @@
         "lint": "eslint ."
     },
     "dependencies": {
-        "@nuxt/content": "^3.8.2",
+        "@nuxt/content": "^3.9.0",
         "@nuxt/image": "^2.0.0",
         "@nuxt/ui": "^4.2.1",
         "@nuxtjs/i18n": "^10.2.1",
@@ -28,7 +28,7 @@
         "@nuxt/eslint-config": "^1.11.0",
         "eslint": "^9.39.1",
         "typescript": "^5.9.3",
-        "vue-tsc": "^3.1.5"
+        "vue-tsc": "^3.1.7"
     },
     "trustedDependencies": [
         "@parcel/watcher",
