@@ -53,6 +53,18 @@ export const moduleOptionsSchema = z.object({
         autoImport: z.boolean().optional(),
     }).optional(),
 
+    webhooks: z.object({
+        hooks: z.array(z.object({
+            url: z.string(),
+            topic: z.string(),
+            filter: z.string().optional(),
+            includeFields: z.array(z.string()).optional(),
+            apiVersion: z.string().optional(),
+        })).optional(),
+
+        secret: z.string(),
+    }).optional(),
+
     logger: z.any().transform(v => v as Partial<ConsolaOptions> | undefined).optional(),
 })
 

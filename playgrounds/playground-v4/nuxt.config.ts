@@ -20,6 +20,18 @@ export default defineNuxtConfig({
                     autoImport: false,
                 },
             },
+
+            webhooks: {
+                hooks: [
+                    {
+                        topic: 'THEMES_UPDATE',
+                        uri: '/api/webhooks/themes-update',
+                        filter: '',
+                    },
+                ],
+
+                secret: '',
+            },
         },
     },
 
