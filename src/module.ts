@@ -13,6 +13,7 @@ import setupClients from './setup/clients'
 import setupImports from './setup/imports'
 import setupSandbox from './setup/sandbox'
 import setupProxy from './setup/proxy'
+import setupWebhooks from './setup/webhooks'
 import setupDevMode from './setup/dev'
 
 import { configSchema, publicConfigSchema } from './schemas'
@@ -62,6 +63,7 @@ export default defineNuxtModule<ModuleOptions>({
 
             await setupImports(nuxt, config, resolver)
             await setupProxy(nuxt, config, resolver)
+            await setupWebhooks(nuxt, config, resolver)
 
             await setupCodegen(nuxt, config)
             await setupSandbox(nuxt, config)

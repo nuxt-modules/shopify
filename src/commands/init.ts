@@ -2,11 +2,11 @@
 
 import { access, readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
-import { defineCommand, runMain } from 'citty'
+import { defineCommand } from 'citty'
 import log from 'consola'
 import { downloadTemplate } from 'giget'
 
-const command = defineCommand({
+export default defineCommand({
     meta: {
         name: 'init',
         description: 'Create a new Nuxt Shopify template project',
@@ -16,13 +16,13 @@ const command = defineCommand({
         directory: {
             type: 'positional',
             description: 'Directory to initialize the project template into.',
-            required: true,
+            required: false,
         },
     },
 
     run: async ({ args }) => {
         const template = await downloadTemplate('gh:nuxt-modules/shopify/template', {
-            dir: args.directory,
+            dir: args.directory ?? '.',
         }).catch((error) => {
             log.error('Failed to download template:', error)
         })
@@ -51,5 +51,3 @@ const command = defineCommand({
         log.success(`Nuxt Shopify Template initialized in ${template.dir}`)
     },
 })
-
-runMain(command)

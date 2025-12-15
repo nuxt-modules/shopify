@@ -1,6 +1,5 @@
 {
   "lockfileVersion": 1,
-  "configVersion": 0,
   "workspaces": {
     "": {
       "name": "@nuxtjs/shopify",
@@ -13,6 +12,7 @@
         "@shopify/api-codegen-preset": "^1.2.0",
         "@shopify/graphql-client": "^1.4.1",
         "@shopify/graphql-codegen": "^0.1.0",
+        "c12": "^3.3.2",
         "citty": "^0.1.6",
         "consola": "^3.4.2",
         "defu": "^6.1.4",

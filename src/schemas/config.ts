@@ -54,15 +54,20 @@ export const moduleOptionsSchema = z.object({
     }).optional(),
 
     webhooks: z.object({
+        secret: z.string(),
+
         hooks: z.array(z.object({
-            url: z.string(),
+            uri: z.string(),
             topic: z.string(),
+            format: z.enum(['JSON', 'XML']).default('JSON').optional(),
             filter: z.string().optional(),
             includeFields: z.array(z.string()).optional(),
-            apiVersion: z.string().optional(),
+            metafieldNamespaces: z.array(z.string()).optional(),
+            metafields: z.array(z.object({
+                key: z.string(),
+                namespace: z.string().optional(),
+            })).optional(),
         })).optional(),
-
-        secret: z.string(),
     }).optional(),
 
     logger: z.any().transform(v => v as Partial<ConsolaOptions> | undefined).optional(),
