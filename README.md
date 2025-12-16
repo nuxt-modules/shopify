@@ -362,10 +362,34 @@ Read more about all available hooks in our [hooks documentation](https://shopify
 
 ### Subscribing / Unsubscribing webhooks
 
-To subscribe or unsubscribe a webhook, you can either do so manually within the Shopify Admin UI or via the API.
-Additionally, the module introduces a CLI command to easily add Webhooks from your local dev environment.
+To subscribe or unsubscribe a webhook, you can either do so manually within the Shopify Admin UI or via Shopify's CLI.
+The module also introduces a CLI command to easily add Webhooks from your local dev environment.
 
-...
+First, configure your webhooks:
+
+```ts
+export default defineNuxtConfig({
+    modules: ['@nuxtjs/shopify'],
+
+    shopify: {
+        secret: 'my-shopify-app-client-secret',
+
+        hooks: {
+            topic: 'ORDERS_CREATE',
+            uri: 'https://shopify.nuxtjs.org/api/webhooks/orders-create',
+        },
+    },
+})
+```
+
+Then subscribe with the CLI command:
+
+```sh
+npx @nuxtjs/shopify@latest webhooks subscribe
+```
+
+To receive webhooks with Shopify's HMAC validation the module introduces `defineWebhookEventHandler`, which automatically
+validates any incoming request against the app client secret.
 
 ## 👥 Maintainers
 
