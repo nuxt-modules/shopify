@@ -29,6 +29,7 @@ hot-reloaded type generation from your GraphQL queries.
 - 🧩 GraphQL fragments support
 - ⚙️ Customizable GraphQL code generation
 - 📦 Auto-imports for GraphQL queries and generated types
+- 🪝 Webhook subscription support
 - 🏖️ Sandbox integrated with GraphiQL Explorer
 - 🔄 Hooks for customizing the module behavior
 - 🧪 Tested with Nuxt 3 & 4
@@ -40,7 +41,6 @@ Upcoming features and developments for the 1.0.0 release:
 - 🏎️ Sub-request caching support
 - 👤 Customer Account API support
 - 🔍 Shopify Analytics support
-- 🪝 Webhook subscription support
 - 🛍️ Store template with Nuxt UI & Nuxt Content
 
 ## 📦 Setup
@@ -359,6 +359,37 @@ export default defineNitroPlugin((nitroApp) => {
 ```
 
 Read more about all available hooks in our [hooks documentation](https://shopify.nuxtjs.org/going-further/hooks).
+
+### Subscribing / Unsubscribing webhooks
+
+To subscribe or unsubscribe a webhook, you can either do so manually within the Shopify Admin UI or via Shopify's CLI.
+The module also introduces a CLI command to easily add Webhooks from your local dev environment.
+
+First, configure your webhooks:
+
+```ts
+export default defineNuxtConfig({
+    modules: ['@nuxtjs/shopify'],
+
+    shopify: {
+        secret: 'my-shopify-app-client-secret',
+
+        hooks: {
+            topic: 'ORDERS_CREATE',
+            uri: 'https://shopify.nuxtjs.org/api/webhooks/orders-create',
+        },
+    },
+})
+```
+
+Then subscribe with the CLI command:
+
+```sh
+npx @nuxtjs/shopify@latest webhooks subscribe
+```
+
+To receive webhooks with Shopify's HMAC validation the module introduces `defineWebhookEventHandler`, which automatically
+validates any incoming request against the app client secret.
 
 ## 👥 Maintainers
 

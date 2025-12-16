@@ -1,4 +1,4 @@
-name: 'Deploy Docs'
+name: "Deploy Docs"
 
 env:
   NUXT_SHOPIFY_CLIENTS_STOREFRONT_API_VERSION: ${{ secrets.NUXT_SHOPIFY_CLIENTS_STOREFRONT_API_VERSION }}
@@ -31,7 +31,7 @@ jobs:
         uses: actions/configure-pages@v5
 
       - name: Install dependencies
-        run: bun install --linker hoisted
+        run: bun install
 
       - name: Build Docs
         run: bun run build:docs --preset=github_pages
@@ -42,7 +42,7 @@ jobs:
           path: docs/dist
 
   deploy:
-    needs: [ build ]
+    needs: [build]
     runs-on: ubuntu-latest
 
     environment:

@@ -1,6 +1,6 @@
-import type { ShopifyConfig } from '../types'
-
 import type { Nuxt } from '@nuxt/schema'
+
+import type { ShopifyConfig } from '../types'
 
 import { upperFirst } from 'scule'
 

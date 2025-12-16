@@ -20,6 +20,17 @@ export default defineNuxtConfig({
                     autoImport: false,
                 },
             },
+
+            webhooks: {
+                hooks: [
+                    {
+                        topic: 'ORDERS_CREATE',
+                        uri: 'https://shopify.nuxtjs.org/api/webhooks/orders-create',
+                    },
+                ],
+
+                secret: '',
+            },
         },
     },
 

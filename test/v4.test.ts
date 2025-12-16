@@ -64,6 +64,17 @@ describe('test module with nuxt 4', async () => {
                     ],
                 },
             },
+            webhooks: {
+                hooks: [
+                    {
+                        topic: 'ORDERS_CREATE',
+                        uri: 'https://shopify.nuxtjs.org/api/webhooks/orders-create',
+                        format: 'JSON',
+                    },
+                ],
+
+                secret: process.env.NUXT_SHOPIFY_WEBHOOKS_SECRET,
+            },
         })
     })
 
