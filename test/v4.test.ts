@@ -73,7 +73,7 @@ describe('test module with nuxt 4', async () => {
                     },
                 ],
 
-                secret: process.env.NUXT_SHOPIFY_WEBHOOKS_SECRET,
+                secret: '<webhooks_secret>',
             },
         })
     })

@@ -9,5 +9,8 @@ export default defineEventHandler((event) => {
                 accessToken: '<admin_access_token>',
             },
         },
+        webhooks: {
+            secret: '<webhooks_secret>',
+        },
     }, _shopify)
 })
