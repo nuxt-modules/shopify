@@ -25,7 +25,7 @@ export default defineNuxtConfig({
                 hooks: [
                     {
                         topic: 'ORDERS_CREATE',
-                        uri: 'https://shopify.nuxtjs.org/api/webhooks/themes-update',
+                        uri: 'https://shopify.nuxtjs.org/api/webhooks/orders-create',
                     },
                 ],
 
