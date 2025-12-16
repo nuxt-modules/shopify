@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 import { access, readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { defineCommand } from 'citty'

@@ -2,8 +2,10 @@ import type { H3Event } from 'h3'
 
 import { createHmac, timingSafeEqual } from 'node:crypto'
 import { createConsola } from 'consola'
-import { getHeaders, readRawBody, createError } from 'h3'
+import { readRawBody, createError } from 'h3'
 import { useRuntimeConfig } from '#imports'
+
+import { getWebhookHmac } from './functions'
 
 const unauthorized = () => createError({ statusCode: 401, statusMessage: 'Unauthorized' })
 
@@ -23,9 +25,7 @@ export const validate = async (event: H3Event) => {
 
     if (!_shopify?.webhooks?.secret) throw unauthorized()
 
-    const headers = getHeaders(event)
-
-    const shopifyHmac = headers['x-shopify-hmac-sha256']
+    const shopifyHmac = getWebhookHmac(event)
 
     if (!shopifyHmac?.length) throw unauthorized()
 
