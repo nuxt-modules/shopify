@@ -1,4 +1,4 @@
-name: 'Deploy Template'
+name: "Deploy Template"
 
 env:
   NUXT_SHOPIFY_NAME: ${{ secrets.NUXT_SHOPIFY_NAME }}
@@ -34,7 +34,7 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
-    needs: [ typecheck ]
+    needs: [typecheck]
     steps:
       - uses: actions/checkout@v6
       - uses: oven-sh/setup-bun@v2
