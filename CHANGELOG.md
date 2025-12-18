@@ -1,3 +1,6 @@
+# 0.3.11
+- Fixed json import type in CLI
+
 # 0.3.10
 - Fixed @nuxt/kit dependency resolution in CLI
 
