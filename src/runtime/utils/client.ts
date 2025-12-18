@@ -13,7 +13,7 @@ import { createGraphQLClient } from '@shopify/graphql-client'
 import { joinURL } from 'ufo'
 import { createConsola } from 'consola'
 
-import { version } from '../../../package.json'
+import { version } from '../../../package.json' with { type: 'json' }
 
 export const createStoreDomain = (name: string) => `https://${name}.myshopify.com`
 
