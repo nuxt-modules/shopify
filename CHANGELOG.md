@@ -1,3 +1,6 @@
+# 0.3.8
+- Added webhooks support
+
 # 0.3.7
 - Fix proxy staying activated with prerendering
 
