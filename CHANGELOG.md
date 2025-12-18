@@ -1,3 +1,6 @@
+# 0.3.12
+- Fixed package version resolution in CLI
+
 # 0.3.11
 - Fixed json import type in CLI
 
