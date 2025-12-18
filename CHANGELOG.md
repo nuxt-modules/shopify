@@ -1,3 +1,6 @@
+# 0.3.10
+- Fixed @nuxt/kit dependency resolution in CLI
+
 # 0.3.9
 - Fixed CLI commands
 
