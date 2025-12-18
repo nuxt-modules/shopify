@@ -1,3 +1,6 @@
+# 0.3.9
+- Fixed CLI commands
+
 # 0.3.8
 - Added webhooks support
 
