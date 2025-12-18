@@ -17,6 +17,18 @@ export default defineNuxtConfig({
         ],
     },
 
+    app: {
+        head: {
+            link: [
+                {
+                    rel: 'icon',
+                    type: 'image/png',
+                    href: '/icon.png',
+                },
+            ],
+        },
+    },
+
     css: ['~/assets/css/main.css'],
 
     site: {
