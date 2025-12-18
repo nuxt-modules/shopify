@@ -13,7 +13,7 @@ import { createGraphQLClient } from '@shopify/graphql-client'
 import { joinURL } from 'ufo'
 import { createConsola } from 'consola'
 
-import { version } from '../../../package.json' with { type: 'json' }
+import pkg from '../../../package.json' with { type: 'json' }
 
 export const createStoreDomain = (name: string) => `https://${name}.myshopify.com`
 
@@ -55,7 +55,7 @@ export const createClient = <Operations extends AllOperations = AllOperations>(
             'Content-Type': 'application/json',
             'Accept': 'application/json',
             'X-SDK-Variant': 'nuxt-shopify',
-            'X-SDK-Version': version,
+            'X-SDK-Version': pkg?.version ?? 'unknown',
             ...headers,
         },
     } satisfies ShopifyApiClientConfig
