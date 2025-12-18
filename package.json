@@ -45,7 +45,7 @@
     "dist"
   ],
   "bin": {
-    "init": "dist/commands/init.mjs"
+    "init": "dist/cli.mjs"
   },
   "scripts": {
     "build": "nuxt-module-build build",

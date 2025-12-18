@@ -10,8 +10,8 @@ const main = defineCommand({
     },
 
     subCommands: {
-        init: () => import('./init').then(r => r.default),
-        webhooks: () => import('./webhooks').then(r => r.default),
+        init: () => import('./commands/init').then(r => r.default),
+        webhooks: () => import('./commands/webhooks').then(r => r.default),
     },
 })
 

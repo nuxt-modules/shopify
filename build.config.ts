@@ -5,7 +5,7 @@ export default defineBuildConfig({
 
     entries: [
         'src/module',
-        'src/commands/init',
+        'src/cli',
 
         {
             builder: 'mkdist',
@@ -15,6 +15,6 @@ export default defineBuildConfig({
     ],
 
     replace: {
-        'await setupDevMode(nuxt, config.logger)': '',
+        'await setupDevMode(nuxt, logger)': '',
     },
 })
