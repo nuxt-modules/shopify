@@ -391,6 +391,8 @@ npx @nuxtjs/shopify@latest webhooks subscribe
 To receive webhooks with Shopify's HMAC validation the module introduces `defineWebhookEventHandler`, which automatically
 validates any incoming request against the app client secret.
 
+Read more about webhooks in our [webhooks documentation](https://shopify.nuxtjs.org/essentials/webhooks)
+
 ## 👥 Maintainers
 
 * Frederik Bußmann ([@freb97](https://github.com/freb97))
