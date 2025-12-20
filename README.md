@@ -372,11 +372,13 @@ export default defineNuxtConfig({
     modules: ['@nuxtjs/shopify'],
 
     shopify: {
-        secret: 'my-shopify-app-client-secret',
-
-        hooks: {
-            topic: 'ORDERS_CREATE',
-            uri: 'https://shopify.nuxtjs.org/api/webhooks/orders-create',
+        webhooks: {
+            secret: 'my-shopify-app-client-secret',
+    
+            hooks: {
+                topic: 'ORDERS_CREATE',
+                uri: 'https://shopify.nuxtjs.org/api/webhooks/orders-create',
+            },
         },
     },
 })
@@ -391,7 +393,7 @@ npx @nuxtjs/shopify@latest webhooks subscribe
 To receive webhooks with Shopify's HMAC validation the module introduces `defineWebhookEventHandler`, which automatically
 validates any incoming request against the app client secret.
 
-Read more about webhooks in our [webhooks documentation](https://shopify.nuxtjs.org/essentials/webhooks)
+Read more about webhooks in our [webhooks documentation](https://shopify.nuxtjs.org/essentials/webhooks).
 
 ## 👥 Maintainers
 
