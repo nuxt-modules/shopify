@@ -14,22 +14,22 @@
     "dependencies": {
         "@nuxt/content": "^3.9.0",
         "@nuxt/image": "^2.0.0",
-        "@nuxt/ui": "^4.2.1",
+        "@nuxt/ui": "^4.3.0",
         "@nuxtjs/i18n": "^10.2.1",
         "@nuxtjs/shopify": "latest",
         "@vueuse/nuxt": "^14.1.0",
         "better-sqlite3": "^12.5.0",
         "nuxt": "^4.2.2",
-        "tailwindcss": "^4.1.17",
-        "vue": "^3.5.25",
-        "vue-router": "^4.6.3",
+        "tailwindcss": "^4.1.18",
+        "vue": "^3.5.26",
+        "vue-router": "^4.6.4",
         "zod": "^4.2.1"
     },
     "devDependencies": {
-        "@nuxt/eslint-config": "^1.11.0",
-        "eslint": "^9.39.1",
+        "@nuxt/eslint-config": "^1.12.1",
+        "eslint": "^9.39.2",
         "typescript": "^5.9.3",
-        "vue-tsc": "^3.1.7"
+        "vue-tsc": "^3.2.1"
     },
     "trustedDependencies": [
         "@parcel/watcher",
