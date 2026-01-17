@@ -51,8 +51,6 @@ export const storefrontClientSchemaWithDefaults = clientSchemaWithDefaults.omit(
     privateAccessToken: storefrontClientSchema.shape.privateAccessToken,
     proxy: storefrontClientSchema.shape.proxy.default(true).transform(v => v === false ? undefined : v === true ? '/_proxy/storefront' : v),
     mock: storefrontClientSchema.shape.mock,
-}).refine(client => client?.mock || client?.privateAccessToken || client?.publicAccessToken, {
-    error: 'Either a public or private access token must be provided for the storefront client',
 })
 
 export const adminClientSchemaWithDefaults = clientSchemaWithDefaults.omit({
@@ -81,7 +79,9 @@ export const moduleOptionsSchemaWithDefaults = moduleOptionsSchema.omit({
         [ShopifyClientType.Storefront]: storefrontClientSchemaWithDefaults.transform(client => ({
             ...client,
             ...((client.mock || client.publicAccessToken) ? { documents: ['**/*.vue', ...client.documents] } : {}),
-        })).optional(),
+        })).refine(client => client?.mock || client?.privateAccessToken || client?.publicAccessToken, {
+            error: 'Either a public or private access token must be provided for the storefront client',
+        }).optional(),
 
         [ShopifyClientType.Admin]: adminClientSchemaWithDefaults.optional(),
     }),
