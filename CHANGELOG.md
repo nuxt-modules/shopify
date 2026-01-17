@@ -1,3 +1,7 @@
+# 0.3.13
+- Fixed config schema validation error with Zod 4.3
+- Bumped dependencies
+
 # 0.3.12
 - Fixed package version resolution in CLI
 
