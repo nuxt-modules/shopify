@@ -48,7 +48,7 @@ Upcoming features and developments for the 1.0.0 release:
 Run the following command to install the module in your project:
 
 ```bash
-npx nuxt@latest module add nuxt-shopify
+npx nuxi@latest module add shopify
 ```
 
 <details>
