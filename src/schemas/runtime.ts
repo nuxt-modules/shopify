@@ -1,3 +1,5 @@
+import type { LRUDriverOptions } from 'unstorage/drivers/lru-cache'
+
 import {
     getCurrentApiVersion,
     getCurrentSupportedApiVersions,
@@ -51,6 +53,7 @@ const storefrontClientSchemaWithDefaults = clientSchemaWithDefaults.omit({
     privateAccessToken: storefrontClientSchema.shape.privateAccessToken,
     proxy: storefrontClientSchema.shape.proxy.default(true).transform(v => v === false ? undefined : v === true ? '/_proxy/storefront' : v),
     mock: storefrontClientSchema.shape.mock,
+    cache: storefrontClientSchema.shape.cache,
 })
 
 const adminClientSchemaWithDefaults = clientSchemaWithDefaults.omit({
@@ -64,6 +67,8 @@ const adminClientSchemaWithDefaults = clientSchemaWithDefaults.omit({
     ]),
 
     autoImport: adminClientSchema.shape.autoImport,
+
+    cache: adminClientSchema.shape.cache,
 
     accessToken: z.string({
         error: 'Access token is required for the admin client',
@@ -112,7 +117,12 @@ export const publicModuleOptionsSchemaWithDefaults = publicModuleOptionsSchema.o
             documents: true,
             codegen: true,
             autoImport: true,
-        }).optional(),
+            cache: true,
+        }).and(z.object({
+            cache: z.object({
+                public: z.any().transform(v => v as LRUDriverOptions | undefined).optional(),
+            }).optional(),
+        })).optional(),
     }),
 
     errors: moduleOptionsSchemaWithDefaults.shape.errors,

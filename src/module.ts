@@ -8,13 +8,14 @@ import {
 } from '@nuxt/kit'
 import { defu } from 'defu'
 
-import setupCodegen from './setup/codegen'
+import setupCache from './setup/cache'
 import setupClients from './setup/clients'
-import setupImports from './setup/imports'
-import setupSandbox from './setup/sandbox'
-import setupProxy from './setup/proxy'
-import setupWebhooks from './setup/webhooks'
+import setupCodegen from './setup/codegen'
 import setupDevMode from './setup/dev'
+import setupImports from './setup/imports'
+import setupProxy from './setup/proxy'
+import setupSandbox from './setup/sandbox'
+import setupWebhooks from './setup/webhooks'
 
 import { configSchema, publicConfigSchema } from './schemas'
 import { useLogger } from './utils/log'
@@ -65,6 +66,7 @@ export default defineNuxtModule<ModuleOptions>({
             await setupProxy(nuxt, config, resolver)
             await setupWebhooks(nuxt, config, resolver)
 
+            await setupCache(nuxt, config)
             await setupCodegen(nuxt, config)
             await setupSandbox(nuxt, config)
 
