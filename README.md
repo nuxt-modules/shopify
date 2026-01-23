@@ -425,7 +425,7 @@ Published under the [MIT License](https://github.com/nuxt-modules/shopify/tree/m
 [npm-version-src]: https://img.shields.io/npm/v/@nuxtjs/shopify/latest.svg?style=flat&colorA=18181B&colorB=31C553
 [npm-version-href]: https://npmjs.com/package/@nuxtjs/shopify
 
-[nuxt-health-src]: https://img.shields.io/endpoint?url=https://nuxt.care/api/badge/shopify
+[nuxt-health-src]: https://img.shields.io/endpoint?url=https://nuxt.care/api/v1/badge?module=shopify
 [nuxt-health-href]: https://nuxt.care/?search=shopify
 
 [npm-last-update-src]: https://img.shields.io/npm/last-update/%40nuxtjs%2Fshopify.svg?style=flat&colorA=18181B&colorB=31C553
