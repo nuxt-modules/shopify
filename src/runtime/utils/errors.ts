@@ -1,22 +1,17 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { ResponseErrors } from '@shopify/graphql-client'
-import type { Hookable, HookKeys } from 'hookable'
 
 import { createError } from '#imports'
 
-export default function useErrors<
-    HooksT extends Record<string, any> = Record<string, any>,
-    HookNameT extends HookKeys<HooksT> = HookKeys<HooksT>,
->(
-    hooks: Hookable<HooksT, HookNameT>,
-    hookKey: HookNameT,
+export default function useErrors(
+    hooks: any,
+    hookKey: any,
     errors: ResponseErrors,
     shouldThrow: boolean,
 ) {
     const tag = '[shopify]'
 
     if (errors) {
-        // @ts-expect-error Hookable types are hard
         hooks.callHook(hookKey, { errors })
     }
 
