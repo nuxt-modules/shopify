@@ -8,17 +8,17 @@
         "preview": "nuxt preview --extends docus"
     },
     "dependencies": {
-        "@nuxt/kit": "^4.2.2",
-        "@nuxt/ui": "^4.3.0",
+        "@nuxt/kit": "^4.3.0",
+        "@nuxt/ui": "^4.4.0",
         "@nuxtjs/critters": "^0.9.0",
         "@nuxtjs/shopify": "latest",
         "better-sqlite3": "^12.6.2",
-        "docus": "^5.4.2",
-        "motion-v": "^1.9.0",
+        "docus": "^5.4.4",
+        "motion-v": "^1.10.2",
         "nuxt": "^4.3.0",
         "reka-ui": "^2.7.0",
         "tailwindcss": "^4.1.18",
         "vaul-vue": "^0.4.1",
-        "zod": "^4.3.5"
+        "zod": "^4.3.6"
     }
 }
