@@ -26,10 +26,10 @@
         "zod": "^4.3.6"
     },
     "devDependencies": {
-        "@nuxt/eslint-config": "^1.12.1",
+        "@nuxt/eslint-config": "^1.13.0",
         "eslint": "^9.39.2",
         "typescript": "^5.9.3",
-        "vue-tsc": "^3.2.3"
+        "vue-tsc": "^3.2.4"
     },
     "trustedDependencies": [
         "@parcel/watcher",
