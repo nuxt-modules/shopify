@@ -17,7 +17,7 @@
         "@nuxt/ui": "^4.4.0",
         "@nuxtjs/i18n": "^10.2.1",
         "@nuxtjs/shopify": "latest",
-        "@vueuse/nuxt": "^14.1.0",
+        "@vueuse/nuxt": "^14.2.0",
         "better-sqlite3": "^12.6.2",
         "nuxt": "^4.3.0",
         "tailwindcss": "^4.1.18",
