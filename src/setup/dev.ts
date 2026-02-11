@@ -11,6 +11,7 @@ export default async function setupDevMode(nuxt: Nuxt, logger: ConsolaInstance) 
     const sourceFiles = {
         admin: resolver.resolve('../../src/clients/admin.d.ts'),
         storefront: resolver.resolve('../../src/clients/storefront.d.ts'),
+        types: resolver.resolve('../../src/types/index.d.ts'),
     }
 
     const sourceFilesExist = await Promise.all([
@@ -25,6 +26,14 @@ export default async function setupDevMode(nuxt: Nuxt, logger: ConsolaInstance) 
             alias: {
                 '@nuxtjs/shopify/storefront': sourceFiles.storefront,
                 '@nuxtjs/shopify/admin': sourceFiles.admin,
+            },
+
+            typescript: {
+                tsConfig: {
+                    include: [
+                        sourceFiles.types,
+                    ],
+                },
             },
 
             nitro: {

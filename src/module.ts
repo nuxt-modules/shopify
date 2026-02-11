@@ -12,7 +12,6 @@ import setupCodegen from './setup/codegen'
 import setupClients from './setup/clients'
 import setupImports from './setup/imports'
 import setupSandbox from './setup/sandbox'
-import setupTypes from './setup/types'
 import setupProxy from './setup/proxy'
 import setupWebhooks from './setup/webhooks'
 import setupDevMode from './setup/dev'
@@ -43,8 +42,6 @@ export default defineNuxtModule<ModuleOptions>({
 
         const moduleOptions = configSchema.safeParse(rawConfig)
         const publicModuleOptions = publicConfigSchema.safeParse(rawConfig)
-
-        setupTypes(nuxt, resolver)
 
         if (moduleOptions.success && publicModuleOptions.success) {
             logger.start('Starting setup')
