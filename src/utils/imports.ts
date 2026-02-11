@@ -14,7 +14,7 @@ import {
 
 import { hasPublicClient } from './clients'
 
-export function autoImportDirectory(path: string, includeClient: boolean) {
+function autoImportDirectory(path: string, includeClient: boolean) {
     if (!existsSync(path)) return
 
     addServerImportsDir(join(path, '**'))
@@ -24,7 +24,7 @@ export function autoImportDirectory(path: string, includeClient: boolean) {
     }
 }
 
-export function autoImportUtil(name: string, includeClient: boolean, resolver: Resolver) {
+function autoImportUtil(name: string, includeClient: boolean, resolver: Resolver) {
     const imports = [{
         from: resolver.resolve(`./runtime/utils/${name}`),
         name,

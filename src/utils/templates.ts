@@ -26,7 +26,7 @@ export * from './${basename(operations)}'
 `
 }
 
-export function setupWatcher(nuxt: Nuxt, template: NuxtTemplate<ShopifyTemplateOptions>) {
+function setupWatcher(nuxt: Nuxt, template: NuxtTemplate<ShopifyTemplateOptions>) {
     nuxt.hook('builder:watch', async (_event, file) => {
         for (const document of template.options?.clientConfig?.documents ?? []) {
             if (!minimatch(file, document)) continue

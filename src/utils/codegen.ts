@@ -47,7 +47,7 @@ declare module '@nuxtjs/shopify/${kebabCase(clientType)}' {
 `
 }
 
-export function getIntrospection(options: ShopifyTemplateOptions, _config: ShopifyConfig) {
+function getIntrospection(options: ShopifyTemplateOptions, _config: ShopifyConfig) {
     const { shopName, clientType, clientConfig, introspection } = options
 
     if (introspection && existsSync(introspection)) {
@@ -89,7 +89,7 @@ export function getIntrospection(options: ShopifyTemplateOptions, _config: Shopi
     ]
 }
 
-export function getTypescriptPluginConfig(config: ShopifyConfig['clients'][ShopifyClientType]) {
+function getTypescriptPluginConfig(config: ShopifyConfig['clients'][ShopifyClientType]) {
     return defu({ typescript: config?.codegen?.pluginOptions?.typescript }, {
         typescript: {
             useTypeImports: true,

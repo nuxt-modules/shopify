@@ -12,13 +12,13 @@ import { createStorefrontConfig } from '../runtime/utils/clients/storefront'
 import { createAdminConfig } from '../runtime/utils/clients/admin'
 import getSandboxTemplate from '../templates/sandbox-template'
 
-export function getSandboxUrl(nuxt: Nuxt, clientType: ShopifyClientType): string {
+function getSandboxUrl(nuxt: Nuxt, clientType: ShopifyClientType): string {
     const url = new URL(nuxt.options.devServer.url)
 
     return url.href + '_sandbox/' + clientType
 }
 
-export function createSandboxHandler(clientType: ShopifyClientType) {
+function createSandboxHandler(clientType: ShopifyClientType) {
     return defineEventHandler(async (event: H3Event) => {
         event.headers.set('content-type', 'text/html')
 
@@ -26,7 +26,7 @@ export function createSandboxHandler(clientType: ShopifyClientType) {
     })
 }
 
-export function createSandboxProxyHandler(nuxt: Nuxt, clientType: ShopifyClientType) {
+function createSandboxProxyHandler(nuxt: Nuxt, clientType: ShopifyClientType) {
     return defineEventHandler(async (event: H3Event) => {
         const config = nuxt.options.runtimeConfig._shopify
 

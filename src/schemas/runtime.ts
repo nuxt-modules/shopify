@@ -20,7 +20,7 @@ const ignores = [
     '!.output',
 ]
 
-export const clientSchemaWithDefaults = clientSchema.omit({
+const clientSchemaWithDefaults = clientSchema.omit({
     apiVersion: true,
     retries: true,
     sandbox: true,
@@ -36,7 +36,7 @@ export const clientSchemaWithDefaults = clientSchema.omit({
     autoImport: z.boolean().optional().default(true),
 })
 
-export const storefrontClientSchemaWithDefaults = clientSchemaWithDefaults.omit({
+const storefrontClientSchemaWithDefaults = clientSchemaWithDefaults.omit({
     documents: true,
 }).extend({
     documents: storefrontClientSchema.shape.documents.transform(v => [
@@ -53,7 +53,7 @@ export const storefrontClientSchemaWithDefaults = clientSchemaWithDefaults.omit(
     mock: storefrontClientSchema.shape.mock,
 })
 
-export const adminClientSchemaWithDefaults = clientSchemaWithDefaults.omit({
+const adminClientSchemaWithDefaults = clientSchemaWithDefaults.omit({
     documents: true,
 }).extend({
     documents: adminClientSchema.shape.documents.transform(v => [
