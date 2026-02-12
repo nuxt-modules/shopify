@@ -93,10 +93,10 @@ export const moduleOptionsSchemaWithDefaults = moduleOptionsSchema.omit({
     }),
 
     fragments: z.object({
-        path: z.string().optional().default('/graphql'),
+        paths: z.array(z.string()).optional().default(['/graphql']),
         autoImport: z.boolean().optional().default(true),
     }).optional().default({
-        path: '/graphql',
+        paths: ['/graphql'],
         autoImport: true,
     }),
 })

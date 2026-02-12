@@ -16,7 +16,8 @@ export default async function setupImports(nuxt: Nuxt, config: ShopifyConfig, re
     const clients = getConfiguredClients(config)
 
     if (config.fragments?.autoImport) {
-        logger.debug(`Auto-importing fragments from \`~${config.fragments.path}\``)
+        logger.debug(`Auto-importing fragments from \`~${config.fragments.paths.join(', ~')}\``)
+
         registerFragmentImports(nuxt, config)
     }
 

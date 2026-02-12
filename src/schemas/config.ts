@@ -49,7 +49,7 @@ export const moduleOptionsSchema = z.object({
     }).optional(),
 
     fragments: z.object({
-        path: z.string().optional(),
+        paths: z.array(z.string()).optional(),
         autoImport: z.boolean().optional(),
     }).optional(),
 

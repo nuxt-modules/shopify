@@ -27,7 +27,7 @@ describe('test module with nuxt 4', async () => {
             },
             fragments: {
                 autoImport: true,
-                path: '/graphql',
+                paths: ['/graphql'],
             },
             clients: {
                 storefront: {

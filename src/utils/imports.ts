@@ -41,12 +41,15 @@ export function registerFragmentImports(nuxt: Nuxt, config: ShopifyConfig) {
     if (!config.fragments?.autoImport) return
 
     const includeClient = hasPublicClient(config)
-    const fragmentsPath = join(nuxt.options.rootDir, config.fragments.path)
-
-    autoImportDirectory(fragmentsPath, includeClient)
-
     nuxt.options.watch = nuxt.options.watch || []
-    nuxt.options.watch.push(fragmentsPath)
+
+    for (const path of config.fragments.paths) {
+        const fragmentsPath = join(nuxt.options.rootDir, path)
+
+        autoImportDirectory(fragmentsPath, includeClient)
+
+        nuxt.options.watch.push(fragmentsPath)
+    }
 }
 
 export function registerClientTypeImports(nuxt: Nuxt, config: ShopifyConfig, clientType: ShopifyClientType) {

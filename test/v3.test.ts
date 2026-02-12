@@ -62,7 +62,7 @@ describe('test module with nuxt 3', async () => {
             },
             fragments: {
                 autoImport: true,
-                path: '/graphql',
+                paths: ['/graphql'],
             },
         })
     })
