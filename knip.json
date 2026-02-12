@@ -14,6 +14,12 @@
       ],
       "project": [
         "src/**/*.ts"
+      ],
+      "ignoreDependencies": [
+        "@graphql-codegen/import-types-preset",
+        "@graphql-codegen/introspection",
+        "@shopify/api-codegen-preset",
+        "@graphql-tools/graphql-tag-pluck"
       ]
     },
     "docs": {
