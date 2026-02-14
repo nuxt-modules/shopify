@@ -7,6 +7,7 @@ import type {
     ResponseErrors,
     ReturnData,
 } from '@shopify/graphql-client'
+import type { Storage, StorageValue } from 'unstorage'
 
 import type {
     ShopifyClientType,
@@ -116,6 +117,14 @@ declare module '@nuxt/schema' {
 }
 
 declare module '#app' {
+    interface NuxtApp {
+        $shopify?: {
+            cache?: {
+                storefront?: Storage<StorageValue>
+            }
+        }
+    }
+
     interface RuntimeNuxtHooks {
         /**
          * Called before the storefront client is created within nuxt

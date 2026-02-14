@@ -1,5 +1,7 @@
 import type { ConsolaOptions } from 'consola'
 import type { TypeScriptPluginConfig } from '@graphql-codegen/typescript'
+import type { LRUDriverOptions } from 'unstorage/drivers/lru-cache'
+import type { StorageMounts } from 'nitropack'
 
 import { z } from 'zod'
 
@@ -18,7 +20,7 @@ export const clientSchema = z.object({
     codegen: z.object({
         skip: z.boolean().optional(),
         pluginOptions: z.object({
-            typescript: z.any().transform(v => v as Partial<TypeScriptPluginConfig> | undefined).optional(),
+            typescript: z.any().transform(v => v as TypeScriptPluginConfig | undefined).optional(),
         }).optional(),
     }).optional(),
 })
@@ -28,10 +30,15 @@ export const storefrontClientSchema = clientSchema.extend({
     privateAccessToken: z.string().optional(),
     proxy: z.boolean().or(z.string()).optional(),
     mock: z.boolean().optional(),
+    cache: z.object({
+        client: z.any().transform(v => v as LRUDriverOptions | undefined).or(z.boolean()).optional(),
+        server: z.any().transform(v => v as StorageMounts[string] | undefined).or(z.boolean()).optional(),
+    }).optional(),
 })
 
 export const adminClientSchema = clientSchema.extend({
     accessToken: z.string(),
+    cache: z.any().transform(v => v as StorageMounts[string] | undefined).or(z.boolean()).optional(),
 })
 
 export const moduleOptionsSchema = z.object({
@@ -84,6 +91,11 @@ export const publicModuleOptionsSchema = moduleOptionsSchema.omit({
             documents: true,
             codegen: true,
             autoImport: true,
-        }).optional(),
+            cache: true,
+        }).and(z.object({
+            cache: z.object({
+                client: z.any().transform(v => v as LRUDriverOptions | undefined).or(z.boolean()).optional(),
+            }).optional(),
+        })).optional(),
     }),
 })

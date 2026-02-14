@@ -5,7 +5,7 @@ import { createError } from '#imports'
 
 export default function useErrors(
     hooks: any,
-    hookKey: any,
+    hookKey: string,
     errors: ResponseErrors,
     shouldThrow: boolean,
 ) {
