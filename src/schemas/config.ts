@@ -31,14 +31,14 @@ export const storefrontClientSchema = clientSchema.extend({
     proxy: z.boolean().or(z.string()).optional(),
     mock: z.boolean().optional(),
     cache: z.object({
-        public: z.any().transform(v => v as LRUDriverOptions | undefined).optional(),
-        private: z.any().transform(v => v as StorageMounts[string] | undefined).optional(),
+        client: z.any().transform(v => v as LRUDriverOptions | undefined).or(z.boolean()).optional(),
+        server: z.any().transform(v => v as StorageMounts[string] | undefined).or(z.boolean()).optional(),
     }).optional(),
 })
 
 export const adminClientSchema = clientSchema.extend({
     accessToken: z.string(),
-    cache: z.any().transform(v => v as StorageMounts[string] | undefined).optional(),
+    cache: z.any().transform(v => v as StorageMounts[string] | undefined).or(z.boolean()).optional(),
 })
 
 export const moduleOptionsSchema = z.object({
@@ -91,6 +91,11 @@ export const publicModuleOptionsSchema = moduleOptionsSchema.omit({
             documents: true,
             codegen: true,
             autoImport: true,
-        }).optional(),
+            cache: true,
+        }).and(z.object({
+            cache: z.object({
+                client: z.any().transform(v => v as LRUDriverOptions | undefined).or(z.boolean()).optional(),
+            }).optional(),
+        })).optional(),
     }),
 })

@@ -11,15 +11,15 @@ import {
     publicModuleOptionsSchemaWithDefaults as publicConfigSchema,
 } from './runtime'
 
+export type ModuleOptions = z.infer<typeof moduleOptionsSchema>
+export type PublicModuleOptions = z.infer<typeof publicModuleOptionsSchema>
+
+export type ShopifyConfig = z.infer<typeof configSchema>
+export type PublicShopifyConfig = z.infer<typeof publicConfigSchema>
+
 export {
     ShopifyClientType,
 
     configSchema,
     publicConfigSchema,
 }
-
-export type ModuleOptions = z.infer<typeof moduleOptionsSchema>
-export type PublicModuleOptions = z.infer<typeof publicModuleOptionsSchema>
-
-export type ShopifyConfig = z.infer<typeof configSchema>
-export type PublicShopifyConfig = z.infer<typeof publicConfigSchema>

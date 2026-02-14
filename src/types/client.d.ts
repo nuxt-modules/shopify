@@ -10,7 +10,9 @@ import type {
 } from '@shopify/graphql-client'
 import type { ConsolaOptions } from 'consola'
 
-export type ShopifyApiClientRequestOptions<Operation extends keyof Operations, Operations extends AllOperations> = ApiClientRequestOptions<Operation, Operations>
+export type ShopifyApiClientRequestOptions<Operation extends keyof Operations, Operations extends AllOperations> = ApiClientRequestOptions<Operation, Operations> & {
+    cache?: boolean
+}
 
 export type ShopifyApiClientRequestParams<Operation extends keyof Operations, Operations extends AllOperations> = [
     operation: Operation,

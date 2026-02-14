@@ -120,7 +120,7 @@ export const publicModuleOptionsSchemaWithDefaults = publicModuleOptionsSchema.o
             cache: true,
         }).and(z.object({
             cache: z.object({
-                public: z.any().transform(v => v as LRUDriverOptions | undefined).optional(),
+                client: z.any().transform(v => v as LRUDriverOptions | undefined).or(z.boolean()).optional(),
             }).optional(),
         })).optional(),
     }),
