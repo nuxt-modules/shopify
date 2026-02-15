@@ -1,5 +1,3 @@
-import type { LRUDriverOptions } from 'unstorage/drivers/lru-cache'
-
 import {
     getCurrentApiVersion,
     getCurrentSupportedApiVersions,
@@ -68,8 +66,6 @@ const adminClientSchemaWithDefaults = clientSchemaWithDefaults.omit({
 
     autoImport: adminClientSchema.shape.autoImport,
 
-    cache: adminClientSchema.shape.cache,
-
     accessToken: z.string({
         error: 'Access token is required for the admin client',
     }),
@@ -117,12 +113,7 @@ export const publicModuleOptionsSchemaWithDefaults = publicModuleOptionsSchema.o
             documents: true,
             codegen: true,
             autoImport: true,
-            cache: true,
-        }).and(z.object({
-            cache: z.object({
-                client: z.any().transform(v => v as LRUDriverOptions | undefined).or(z.boolean()).optional(),
-            }).optional(),
-        })).optional(),
+        }).optional(),
     }),
 
     errors: moduleOptionsSchemaWithDefaults.shape.errors,

@@ -1,7 +1,6 @@
 import type { ConsolaOptions } from 'consola'
 import type { TypeScriptPluginConfig } from '@graphql-codegen/typescript'
 import type { LRUDriverOptions } from 'unstorage/drivers/lru-cache'
-import type { StorageMounts } from 'nitropack'
 
 import { z } from 'zod'
 
@@ -30,15 +29,11 @@ export const storefrontClientSchema = clientSchema.extend({
     privateAccessToken: z.string().optional(),
     proxy: z.boolean().or(z.string()).optional(),
     mock: z.boolean().optional(),
-    cache: z.object({
-        client: z.any().transform(v => v as LRUDriverOptions | undefined).or(z.boolean()).optional(),
-        server: z.any().transform(v => v as StorageMounts[string] | undefined).or(z.boolean()).optional(),
-    }).optional(),
+    cache: z.any().transform(v => v as LRUDriverOptions | undefined).or(z.boolean()).optional(),
 })
 
 export const adminClientSchema = clientSchema.extend({
     accessToken: z.string(),
-    cache: z.any().transform(v => v as StorageMounts[string] | undefined).or(z.boolean()).optional(),
 })
 
 export const moduleOptionsSchema = z.object({
@@ -91,11 +86,6 @@ export const publicModuleOptionsSchema = moduleOptionsSchema.omit({
             documents: true,
             codegen: true,
             autoImport: true,
-            cache: true,
-        }).and(z.object({
-            cache: z.object({
-                client: z.any().transform(v => v as LRUDriverOptions | undefined).or(z.boolean()).optional(),
-            }).optional(),
-        })).optional(),
+        }).optional(),
     }),
 })

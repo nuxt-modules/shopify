@@ -1,12 +1,13 @@
-import type { Nuxt } from '@nuxt/schema'
 import type { Resolver } from '@nuxt/kit'
 
 import type { ShopifyConfig } from '../types'
 
 import { addPlugin } from '@nuxt/kit'
 
-export default async function setupCache(nuxt: Nuxt, config: ShopifyConfig, resolver: Resolver) {
-    const pluginPath = resolver.resolve('./runtime/plugins/cache')
+export default async function setupCache(config: ShopifyConfig, resolver: Resolver) {
+    const storefrontPluginPath = resolver.resolve('./runtime/plugins/cache/storefront')
 
-    addPlugin(pluginPath)
+    if (config.clients.storefront?.cache !== false) {
+        addPlugin(storefrontPluginPath)
+    }
 }

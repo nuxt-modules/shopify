@@ -61,11 +61,11 @@ export default defineNuxtModule<ModuleOptions>({
             })
 
             await setupClients(config, resolver)
+            await setupCache(config, resolver)
 
             await setupImports(nuxt, config, resolver)
             await setupProxy(nuxt, config, resolver)
             await setupWebhooks(nuxt, config, resolver)
-            await setupCache(nuxt, config, resolver)
 
             await setupCodegen(nuxt, config)
             await setupSandbox(nuxt, config)
