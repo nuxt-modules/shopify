@@ -17,8 +17,8 @@ type StorefrontDataRequestOptions<Operation extends keyof StorefrontOperations> 
     apiVersion?: ShopifyApiClientRequestOptions<Operation, StorefrontOperations>['apiVersion']
     retries?: ShopifyApiClientRequestOptions<Operation, StorefrontOperations>['retries']
     signal?: ShopifyApiClientRequestOptions<Operation, StorefrontOperations>['signal']
+    cache?: MaybeRef<ShopifyApiClientRequestOptions<Operation, StorefrontOperations, true>['cache']>
     headers?: MaybeRef<ShopifyApiClientRequestOptions<Operation, StorefrontOperations>['headers']>
-    cache?: ShopifyApiClientRequestOptions<Operation, StorefrontOperations>['cache']
     variables?: MaybeRef<{ [k in keyof OperationVariables<Operation, StorefrontOperations>['variables']]: MaybeRef<OperationVariables<Operation, StorefrontOperations>['variables'][k]> }>
 }
 
@@ -98,14 +98,16 @@ export function useStorefrontData<
 
     const getHeaders = () => unref(headers)
 
+    const getCache = () => unref(cache)
+
     const handler = () => useStorefront().request(operation, {
         ...(variables ? { variables: getVariables() } : {}),
         ...(headers ? { headers: getHeaders() } : {}),
+        ...(cache ? { cache: getCache() } : {}),
         ...(apiVersion ? { apiVersion } : {}),
         ...(retries ? { retries } : {}),
         ...(signal ? { signal } : {}),
-        ...(cache ? { cache } : {}),
-    } as ShopifyApiClientRequestOptions<Operation, StorefrontOperations>).then(r => r.data!)
+    } as ShopifyApiClientRequestOptions<Operation, StorefrontOperations, true>).then(r => r.data!)
 
     return key
         ? useAsyncData(key, handler, asyncOptions as AsyncDataOptions<ResT>)

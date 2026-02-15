@@ -15,7 +15,10 @@ const { data } = await storefront.request(`#graphql
         first: 5,
     },
 
-    cache: true,
+    cache: {
+        ttl: 1000 * 60 * 60, // 1 hour
+        updateAgeOnGet: true,
+    },
 })
 
 const products = flattenConnection(data?.products)

@@ -26,6 +26,7 @@ hot-reloaded type generation from your GraphQL queries.
 - 🌐 Server & client side support
 - 🛠️ Automatic mock.shop integration
 - 🚩 Error handling optimized for Nuxt
+- 🏎️ Sub-request caching support
 - 📡 Server-side proxy for API requests
 - 🧩 GraphQL fragments support
 - ⚙️ Customizable GraphQL code generation
@@ -39,7 +40,6 @@ hot-reloaded type generation from your GraphQL queries.
 
 Upcoming features and developments for the 1.0.0 release:
 
-- 🏎️ Sub-request caching support
 - 👤 Customer Account API support
 - 🔍 Shopify Analytics support
 - 🛍️ Store template with Nuxt UI & Nuxt Content

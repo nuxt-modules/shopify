@@ -9,14 +9,14 @@ import type {
     ApiClientRequestOptions,
 } from '@shopify/graphql-client'
 import type { ConsolaOptions } from 'consola'
+import type { LRUDriverOptions } from 'unstorage/drivers/lru-cache'
 
-export type ShopifyApiClientRequestOptions<Operation extends keyof Operations, Operations extends AllOperations> = ApiClientRequestOptions<Operation, Operations> & {
-    cache?: boolean
-}
+export type ShopifyApiClientRequestOptions<Operation extends keyof Operations, Operations extends AllOperations, Cache extends boolean | undefined = undefined> = ApiClientRequestOptions<Operation, Operations>
+    & (Cache extends true ? { cache?: boolean | LRUDriverOptions } : { cache?: undefined })
 
-export type ShopifyApiClientRequestParams<Operation extends keyof Operations, Operations extends AllOperations> = [
+export type ShopifyApiClientRequestParams<Operation extends keyof Operations, Operations extends AllOperations, Cache extends boolean | undefined = undefined> = [
     operation: Operation,
-    options?: ShopifyApiClientRequestOptions<Operation, Operations>,
+    options?: ShopifyApiClientRequestOptions<Operation, Operations, Cache>,
 ]
 
 export type ShopifyApiClientConfig = ApiClientConfig & {
@@ -24,11 +24,11 @@ export type ShopifyApiClientConfig = ApiClientConfig & {
 }
 
 export type ShopifyApiClientFetch<Operations extends AllOperations = AllOperations> = <Operation extends keyof Operations = string>(...params: ShopifyApiClientRequestParams<Operation, Operations>) => Promise<ResponseWithType<FetchResponseBody<ReturnData<Operation, Operations>>>>
-export type ShopifyApiClientRequest<Operations extends AllOperations = AllOperations> = <TData = undefined, Operation extends keyof Operations = string>(...params: ShopifyApiClientRequestParams<Operation, Operations>) => Promise<ClientResponse<TData extends undefined ? ReturnData<Operation, Operations> : TData>>
+export type ShopifyApiClientRequest<Operations extends AllOperations = AllOperations, Cache extends boolean | undefined = undefined> = <TData = undefined, Operation extends keyof Operations = string>(...params: ShopifyApiClientRequestParams<Operation, Operations, Cache>) => Promise<ClientResponse<TData extends undefined ? ReturnData<Operation, Operations> : TData>>
 export type ShopifyApiClientRequestStream<Operations extends AllOperations = AllOperations> = <TData = undefined, Operation extends keyof Operations = string>(...params: ShopifyApiClientRequestParams<Operation, Operations>) => Promise<ClientStreamIterator<TData extends undefined ? ReturnData<Operation, Operations> : TData>>
 
-export type ShopifyApiClient<Operations extends AllOperations> = Omit<ApiClient<ShopifyApiClientConfig, Operations>, 'fetch' | 'request'> & {
+export type ShopifyApiClient<Operations extends AllOperations, Cache extends boolean | undefined = undefined> = Omit<ApiClient<ShopifyApiClientConfig, Operations>, 'fetch' | 'request'> & {
     fetch: ShopifyApiClientFetch<Operations>
-    request: ShopifyApiClientRequest<Operations>
+    request: ShopifyApiClientRequest<Operations, Cache>
     requestStream: ShopifyApiClientRequestStream<Operations>
 }
