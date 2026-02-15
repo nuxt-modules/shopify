@@ -1,5 +1,6 @@
 import type { ConsolaOptions } from 'consola'
 import type { TypeScriptPluginConfig } from '@graphql-codegen/typescript'
+import type { LRUDriverOptions } from 'unstorage/drivers/lru-cache'
 
 import { z } from 'zod'
 
@@ -18,7 +19,7 @@ export const clientSchema = z.object({
     codegen: z.object({
         skip: z.boolean().optional(),
         pluginOptions: z.object({
-            typescript: z.any().transform(v => v as Partial<TypeScriptPluginConfig> | undefined).optional(),
+            typescript: z.any().transform(v => v as TypeScriptPluginConfig | undefined).optional(),
         }).optional(),
     }).optional(),
 })
@@ -28,6 +29,7 @@ export const storefrontClientSchema = clientSchema.extend({
     privateAccessToken: z.string().optional(),
     proxy: z.boolean().or(z.string()).optional(),
     mock: z.boolean().optional(),
+    cache: z.any().transform(v => v as LRUDriverOptions | undefined).or(z.boolean()).optional(),
 })
 
 export const adminClientSchema = clientSchema.extend({

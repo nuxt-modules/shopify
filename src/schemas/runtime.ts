@@ -51,6 +51,7 @@ const storefrontClientSchemaWithDefaults = clientSchemaWithDefaults.omit({
     privateAccessToken: storefrontClientSchema.shape.privateAccessToken,
     proxy: storefrontClientSchema.shape.proxy.default(true).transform(v => v === false ? undefined : v === true ? '/_proxy/storefront' : v),
     mock: storefrontClientSchema.shape.mock,
+    cache: storefrontClientSchema.shape.cache,
 })
 
 const adminClientSchemaWithDefaults = clientSchemaWithDefaults.omit({
