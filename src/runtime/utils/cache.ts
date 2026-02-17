@@ -9,15 +9,14 @@ import type {
 import { hash } from 'ohash'
 
 export default async function useCache<
-    Cache extends boolean,
-    Request extends ShopifyApiClientRequest<Operations, Cache>,
+    Request extends ShopifyApiClientRequest<Operations, true>,
     Operation extends keyof Operations,
     Operations extends AllOperations,
 >(
     storage: Storage<StorageValue> | undefined,
     request: Request,
     operation: Operation,
-    options?: ShopifyApiClientRequestOptions<Operation, Operations, Cache>,
+    options?: ShopifyApiClientRequestOptions<Operation, Operations, true>,
 ): Promise<ClientResponse<ReturnData<Operation, Operations>>> {
     const shouldCache = storage && options?.cache !== false
     const cacheKey = hash({ operation, options })
