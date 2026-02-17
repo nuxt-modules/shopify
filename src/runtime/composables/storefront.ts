@@ -8,7 +8,7 @@ import { createStorefrontConfig } from '../utils/clients/storefront'
 import useErrors from '../utils/errors'
 import useCache from '../utils/cache'
 
-export function useStorefront(): StorefrontApiClient {
+export function useStorefront(): StorefrontApiClient<true> {
     const { _shopify } = useRuntimeConfig().public
 
     const config = createStorefrontConfig(_shopify)
@@ -21,11 +21,11 @@ export function useStorefront(): StorefrontApiClient {
 
     nuxtApp.hooks.callHook('storefront:client:configure', { config })
 
-    const originalClient = createClient<StorefrontOperations>(config)
+    const originalClient = createClient<StorefrontOperations, true>(config)
 
     const storage = nuxtApp.$shopify?.cache?.storefront
 
-    const request: StorefrontApiClient['request'] = async (operation, options) => {
+    const request: StorefrontApiClient<true>['request'] = async (operation, options) => {
         nuxtApp.hooks.callHook('storefront:client:request', { operation, options })
 
         const response = await useCache(storage, originalClient.request, operation, options)
@@ -37,7 +37,7 @@ export function useStorefront(): StorefrontApiClient {
         return response
     }
 
-    const client = { ...originalClient, request } satisfies StorefrontApiClient
+    const client = { ...originalClient, request } satisfies StorefrontApiClient<true>
 
     nuxtApp.hooks.callHook('storefront:client:create', { client })
 

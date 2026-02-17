@@ -9,17 +9,17 @@ import type {
 import { hash } from 'ohash'
 
 export default async function useCache<
-    Request extends ShopifyApiClientRequest<Operations>,
+    Cache extends boolean,
+    Request extends ShopifyApiClientRequest<Operations, Cache>,
     Operation extends keyof Operations,
     Operations extends AllOperations,
 >(
     storage: Storage<StorageValue> | undefined,
     request: Request,
     operation: Operation,
-    options?: ShopifyApiClientRequestOptions<Operation, Operations>,
+    options?: ShopifyApiClientRequestOptions<Operation, Operations, Cache>,
 ): Promise<ClientResponse<ReturnData<Operation, Operations>>> {
-    const shouldCache = storage && options?.cache
-
+    const shouldCache = storage && options?.cache !== false
     const cacheKey = hash({ operation, options })
 
     if (shouldCache && await storage.hasItem(cacheKey)) {
@@ -28,7 +28,11 @@ export default async function useCache<
 
     const response = await request(operation, options)
 
-    if (shouldCache) await storage.setItem(cacheKey, response)
+    if (shouldCache) {
+        const cacheConfig = typeof options?.cache === 'object' ? options.cache : undefined
+
+        await storage.setItem(cacheKey, response, cacheConfig)
+    }
 
     return response
 }

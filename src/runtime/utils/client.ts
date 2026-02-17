@@ -24,9 +24,9 @@ export const createApiUrl = (storeDomain: string, apiVersion: string, apiPrefix?
     'graphql.json',
 )
 
-export const createClient = <Operations extends AllOperations = AllOperations>(
+export const createClient = <Operations extends AllOperations = AllOperations, Cache extends boolean | undefined = undefined>(
     config: ShopifyApiClientConfig,
-): ShopifyApiClient<Operations> => {
+): ShopifyApiClient<Operations, Cache> => {
     const {
         storeDomain,
         apiUrl,
@@ -75,9 +75,10 @@ export const createClient = <Operations extends AllOperations = AllOperations>(
 
     const getGQLClientParams = <
         Operation extends keyof Operations,
+        Cache extends boolean | undefined = undefined,
     >(
         operation: Operation,
-        options?: ShopifyApiClientRequestOptions<Operation, Operations>,
+        options?: ShopifyApiClientRequestOptions<Operation, Operations, Cache>,
     ): RequestParams => {
         const props: RequestParams = [operation as string]
 
@@ -88,6 +89,7 @@ export const createClient = <Operations extends AllOperations = AllOperations>(
                 headers,
                 retries,
                 signal,
+                cache,
             } = options
 
             props.push({
@@ -96,6 +98,7 @@ export const createClient = <Operations extends AllOperations = AllOperations>(
                 ...(headers ? { headers: getHeaders(headers as unknown as Record<string, string[]>) } : {}),
                 ...(retries ? { retries } : {}),
                 ...(signal ? { signal } : {}),
+                ...(cache ? { cache } : {}),
             })
         }
 
@@ -109,5 +112,5 @@ export const createClient = <Operations extends AllOperations = AllOperations>(
         fetch: (...props) => graphqlClient.fetch(...getGQLClientParams(...props)),
         request: (...props) => graphqlClient.request(...getGQLClientParams(...props)),
         requestStream: (...props) => graphqlClient.requestStream(...getGQLClientParams(...props)),
-    } as ShopifyApiClient<Operations>
+    } as ShopifyApiClient<Operations, Cache>
 }

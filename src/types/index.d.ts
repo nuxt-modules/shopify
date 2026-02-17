@@ -31,19 +31,19 @@ type ShopifyClientOptionHookParams = {
     config: ShopifyApiClientConfig
 }
 
-type ShopifyClientHookParams<Operations extends AllOperations> = {
-    client: ShopifyApiClient<Operations>
+type ShopifyClientHookParams<Operations extends AllOperations, Cache extends boolean | undefined = undefined> = {
+    client: ShopifyApiClient<Operations, Cache>
 }
 
-type ShopifyClientRequestHookParams<Operation extends keyof Operations, Operations extends AllOperations> = {
+type ShopifyClientRequestHookParams<Operation extends keyof Operations, Operations extends AllOperations, Cache extends boolean | undefined = undefined> = {
     operation: Operation
-    options?: ShopifyApiClientRequestOptions<Operation, Operations>
+    options?: ShopifyApiClientRequestOptions<Operation, Operations, Cache>
 }
 
-type ShopifyClientResponseHookParams<Operation extends keyof Operations, Operations extends AllOperations> = {
+type ShopifyClientResponseHookParams<Operation extends keyof Operations, Operations extends AllOperations, Cache extends boolean | undefined = undefined> = {
     response: ClientResponse<ReturnData<Operation, Operations>>
     operation: Operation
-    options?: ShopifyApiClientRequestOptions<Operation, Operations>
+    options?: ShopifyApiClientRequestOptions<Operation, Operations, Cache>
 }
 
 type ShopifyErrorHookParams = {
@@ -134,17 +134,17 @@ declare module '#app' {
         /**
          * Called after the storefront client is created within nuxt
          */
-        'storefront:client:create': ({ client }: ShopifyClientHookParams<StorefrontOperations>) => HookResult
+        'storefront:client:create': ({ client }: ShopifyClientHookParams<StorefrontOperations, true>) => HookResult
 
         /**
          * Called before the storefront client sends a request within nuxt
          */
-        'storefront:client:request': ({ operation, options }: ShopifyClientRequestHookParams<keyof StorefrontOperations, StorefrontOperations>) => HookResult
+        'storefront:client:request': ({ operation, options }: ShopifyClientRequestHookParams<keyof StorefrontOperations, StorefrontOperations, true>) => HookResult
 
         /**
          * Called after the storefront client receives a response within nuxt
          */
-        'storefront:client:response': ({ response, operation, options }: ShopifyClientResponseHookParams<keyof StorefrontOperations, StorefrontOperations>) => HookResult
+        'storefront:client:response': ({ response, operation, options }: ShopifyClientResponseHookParams<keyof StorefrontOperations, StorefrontOperations, true>) => HookResult
 
         /**
          * Called when the storefront client throws an error within nuxt

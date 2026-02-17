@@ -19,4 +19,4 @@ export interface StorefrontMutations {
 
 export interface StorefrontOperations extends StorefrontQueries, StorefrontMutations {}
 
-export type StorefrontApiClient = ShopifyApiClient<StorefrontOperations>
+export type StorefrontApiClient<Cache extends boolean | undefined = undefined> = ShopifyApiClient<StorefrontOperations, Cache>
