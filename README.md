@@ -26,9 +26,9 @@ hot-reloaded type generation from your GraphQL queries.
 - 🌐 Server & client side support
 - 🛠️ Automatic mock.shop integration
 - 🚩 Error handling optimized for Nuxt
-- 🏎️ Sub-request caching support
 - 📡 Server-side proxy for API requests
 - 🧩 GraphQL fragments support
+- 🏎️ Caching for client and server-side requests
 - ⚙️ Customizable GraphQL code generation
 - 📦 Auto-imports for GraphQL queries and generated types
 - 🪝 Webhook subscription support
