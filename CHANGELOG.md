@@ -1,3 +1,7 @@
+# 0.3.15
+- Added client side caching support
+- Bumped dependencies
+
 # 0.3.14
 - Added multiple paths support for graphql fragments
 - Bumped dependencies
