@@ -1,3 +1,6 @@
+# 0.3.16
+- Fixed client side caching default behaviour
+
 # 0.3.15
 - Added client side caching support
 - Bumped dependencies
