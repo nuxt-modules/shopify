@@ -33,7 +33,8 @@ export const storefrontClientSchema = clientSchema.extend({
     proxy: z.object({
         path: z.string().optional(),
         cache: z.any().transform(v => v as StorageMounts[string]).or(z.string()).or(z.boolean()).optional(),
-    }).optional(),
+        cacheHeaders: z.record(z.string(), z.string()).optional(),
+    }).or(z.boolean()).optional(),
 })
 
 export const adminClientSchema = clientSchema.extend({

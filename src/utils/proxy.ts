@@ -7,7 +7,7 @@ import type {
 } from '../types'
 
 import { addServerHandler } from '@nuxt/kit'
-import { joinURL } from 'ufo'
+import { joinURL, withLeadingSlash } from 'ufo'
 
 import { useLogger } from './log'
 import { upperFirst } from 'scule'
@@ -17,7 +17,7 @@ export function registerProxy(nuxt: Nuxt, config: ShopifyConfig, clientType: Sho
 
     if (!clientConfig) return false
 
-    const url = 'proxy' in clientConfig ? clientConfig.proxy : undefined
+    const url = 'proxy' in clientConfig ? typeof clientConfig.proxy === 'object' ? clientConfig.proxy.path : undefined : undefined
 
     if (!url) return false
 
@@ -31,7 +31,7 @@ export function registerProxy(nuxt: Nuxt, config: ShopifyConfig, clientType: Sho
 
     addServerHandler({
         handler: resolver.resolve(`./runtime/server/api/proxy/${clientType}`),
-        route: url,
+        route: withLeadingSlash(url),
     })
 
     return joinURL(nuxt.options.devServer.url, url)

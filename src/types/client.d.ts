@@ -11,8 +11,18 @@ import type {
 import type { ConsolaOptions } from 'consola'
 import type { LRUDriverOptions } from 'unstorage/drivers/lru-cache'
 
+type CacheHeaderType = 'short' | 'long' | 'none' | string
+
+type ShopifyApiClientRequestCacheOptions = CacheHeaderType | {
+    client?: CacheHeaderType | LRUDriverOptions
+    proxy?: CacheHeaderType
+}
+
 export type ShopifyApiClientRequestOptions<Operation extends keyof Operations, Operations extends AllOperations, Cache extends boolean | undefined = undefined> = ApiClientRequestOptions<Operation, Operations>
-    & (Cache extends true ? { cache?: boolean | LRUDriverOptions } : { cache?: undefined })
+    & (Cache extends true
+        ? { cache?: ShopifyApiClientRequestCacheOptions }
+        : { cache?: undefined }
+    )
 
 export type ShopifyApiClientRequestParams<Operation extends keyof Operations, Operations extends AllOperations, Cache extends boolean | undefined = undefined> = [
     operation: Operation,

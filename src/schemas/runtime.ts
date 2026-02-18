@@ -22,6 +22,11 @@ const ignores = [
     '!.output',
 ]
 
+const defaultProxyCacheHeaders = {
+    short: 'public, max-age=1, stale-while-revalidate=9',
+    long: 'public, max-age=3600, stale-while-revalidate=82800',
+}
+
 const clientSchemaWithDefaults = clientSchema.omit({
     apiVersion: true,
     retries: true,
@@ -41,13 +46,14 @@ const clientSchemaWithDefaults = clientSchema.omit({
 const storefrontClientSchemaWithDefaults = clientSchemaWithDefaults.omit({
     documents: true,
 }).extend({
-    documents: storefrontClientSchema.shape.documents.transform(v => [
-        '**/*.{gql,graphql,ts,js}',
-        '!**/*.admin.{gql,graphql,ts,js}',
-        '!**/admin/**/*.{gql,graphql,ts,js}',
-        ...ignores,
-        ...(v ?? []),
-    ]),
+    documents: storefrontClientSchema.shape.documents.transform(v => v
+        ? v
+        : [
+                '**/*.{gql,graphql,ts,js}',
+                '!**/*.admin.{gql,graphql,ts,js}',
+                '!**/admin/**/*.{gql,graphql,ts,js}',
+                ...ignores,
+            ]),
 
     publicAccessToken: storefrontClientSchema.shape.publicAccessToken,
     privateAccessToken: storefrontClientSchema.shape.privateAccessToken,
@@ -56,26 +62,31 @@ const storefrontClientSchemaWithDefaults = clientSchemaWithDefaults.omit({
 
     proxy: z.object({
         path: z.string().optional().default('_proxy/storefront'),
-        cache: z.any().transform(v => v as StorageMounts[string]).or(z.string()).or(z.boolean()).optional().default({
-            driver: 'lru-cache',
-        }),
-    }).optional().default({
+        cache: z.any().transform(v => v as StorageMounts[string]).or(z.string()).or(z.boolean()).optional().default({ driver: 'lru-cache' }),
+        cacheHeaders: z.record(z.string(), z.string()).default(defaultProxyCacheHeaders).optional(),
+    }).or(z.boolean()).optional().default({
         path: '_proxy/storefront',
-        cache: {
-            driver: 'lru-cache',
-        },
-    }),
+        cache: { driver: 'lru-cache' },
+        cacheHeaders: defaultProxyCacheHeaders,
+    }).transform(v => v === true
+        ? {
+                path: '_proxy/storefront',
+                cache: { driver: 'lru-cache' },
+                cacheHeaders: defaultProxyCacheHeaders,
+            }
+        : v),
 })
 
 const adminClientSchemaWithDefaults = clientSchemaWithDefaults.omit({
     documents: true,
 }).extend({
-    documents: adminClientSchema.shape.documents.transform(v => [
-        '**/*.admin.{gql,graphql,ts,js}',
-        '**/admin/**/*.{gql,graphql,ts,js}',
-        ...ignores,
-        ...(v ?? []),
-    ]),
+    documents: adminClientSchema.shape.documents.transform(v => v
+        ? v
+        : [
+                '**/*.admin.{gql,graphql,ts,js}',
+                '**/admin/**/*.{gql,graphql,ts,js}',
+                ...ignores,
+            ]),
 
     autoImport: adminClientSchema.shape.autoImport,
 
@@ -128,8 +139,10 @@ export const publicModuleOptionsSchemaWithDefaults = publicModuleOptionsSchema.o
             autoImport: true,
             proxy: true,
         }).and(z.object({
-            proxy: storefrontClientSchemaWithDefaults.omit({
-                cache: true,
+            proxy: z.object({
+                path: z.string().optional().default('_proxy/storefront'),
+            }).optional().default({
+                path: '_proxy/storefront',
             }),
         })).optional(),
     }),
