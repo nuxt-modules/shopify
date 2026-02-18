@@ -1,3 +1,5 @@
+import type { StorageMounts } from 'nitropack'
+
 import {
     getCurrentApiVersion,
     getCurrentSupportedApiVersions,
@@ -49,9 +51,20 @@ const storefrontClientSchemaWithDefaults = clientSchemaWithDefaults.omit({
 
     publicAccessToken: storefrontClientSchema.shape.publicAccessToken,
     privateAccessToken: storefrontClientSchema.shape.privateAccessToken,
-    proxy: storefrontClientSchema.shape.proxy.default(true).transform(v => v === false ? undefined : v === true ? '/_proxy/storefront' : v),
     mock: storefrontClientSchema.shape.mock,
     cache: storefrontClientSchema.shape.cache,
+
+    proxy: z.object({
+        path: z.string().optional().default('_proxy/storefront'),
+        cache: z.any().transform(v => v as StorageMounts[string]).or(z.string()).or(z.boolean()).optional().default({
+            driver: 'lru-cache',
+        }),
+    }).optional().default({
+        path: '_proxy/storefront',
+        cache: {
+            driver: 'lru-cache',
+        },
+    }),
 })
 
 const adminClientSchemaWithDefaults = clientSchemaWithDefaults.omit({
@@ -113,7 +126,12 @@ export const publicModuleOptionsSchemaWithDefaults = publicModuleOptionsSchema.o
             documents: true,
             codegen: true,
             autoImport: true,
-        }).optional(),
+            proxy: true,
+        }).and(z.object({
+            proxy: storefrontClientSchemaWithDefaults.omit({
+                cache: true,
+            }),
+        })).optional(),
     }),
 
     errors: moduleOptionsSchemaWithDefaults.shape.errors,
