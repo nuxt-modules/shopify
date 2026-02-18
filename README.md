@@ -361,6 +361,52 @@ export default defineNitroPlugin((nitroApp) => {
 
 Read more about all available hooks in our [hooks documentation](https://shopify.nuxtjs.org/going-further/hooks).
 
+### Caching API Requests
+
+The module provides caching solutions for both client and server-side requests.
+Client side caching is enabled globally by default and can be configured in the module options.
+For each client side request, caching is opt-in by setting the `cache` option in the request options.
+
+```ts
+<script setup lang="ts">
+const storefront = useStorefront()
+
+const { data } = await storefront.request(`#graphql
+    query FetchProducts($first: Int) {
+        products(first: $first) {
+            nodes {
+                ...ProductFields
+            }
+        }
+    }
+    ${PRODUCT_FRAGMENT}
+`, {
+    variables: {
+        first: 5,
+    },
+
+    // Cache settings for this request
+    cache: {
+        ttl: 1000 * 60 * 60, // 1 hour
+        updateAgeOnGet: true, // Update age when accessed
+    },
+
+    // Or true, to use default cache settings from module configuration
+    cache: true,
+
+    // Or false, to disable caching for this request (default)
+    cache: false,
+})
+</script>
+```
+
+This also applies to the `useStorefrontData` composable.
+
+On the server side you can use nitro's built-in caching utilities within your API routes or plugins to cache requests
+to both the storefront and admin API.
+
+See the [caching documentation](https://shopify.nuxtjs.org/essentials/caching) for more details and examples.
+
 ### Subscribing / Unsubscribing webhooks
 
 To subscribe or unsubscribe a webhook, you can either do so manually within the Shopify Admin UI or via Shopify's CLI.
