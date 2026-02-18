@@ -367,7 +367,7 @@ The module provides caching solutions for both client and server-side requests.
 Client side caching is enabled globally by default and can be configured in the module options.
 For each client side request, caching is opt-in by setting the `cache` option in the request options.
 
-```ts
+```html
 <script setup lang="ts">
 const storefront = useStorefront()
 
