@@ -18,7 +18,7 @@ export default async function useCache<
     operation: Operation,
     options?: ShopifyApiClientRequestOptions<Operation, Operations, true>,
 ): Promise<ClientResponse<ReturnData<Operation, Operations>>> {
-    const shouldCache = storage && options?.cache !== false
+    const shouldCache = storage && options?.cache
     const cacheKey = hash({ operation, options })
 
     if (shouldCache && await storage.hasItem(cacheKey)) {
@@ -28,7 +28,7 @@ export default async function useCache<
     const response = await request(operation, options)
 
     if (shouldCache) {
-        const cacheConfig = typeof options?.cache === 'object' ? options.cache : undefined
+        const cacheConfig = typeof options.cache === 'object' ? options.cache : undefined
 
         await storage.setItem(cacheKey, response, cacheConfig)
     }
