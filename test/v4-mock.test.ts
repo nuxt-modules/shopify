@@ -33,7 +33,9 @@ describe('test mock.shop integration with nuxt 4', async () => {
                     apiVersion: process.env.NUXT_SHOPIFY_CLIENTS_STOREFRONT_API_VERSION,
                     autoImport: true,
                     mock: true,
-                    proxy: '/_proxy/storefront',
+                    proxy: {
+                        path: '_proxy/storefront',
+                    },
                     retries: 3,
                     sandbox: true,
                     documents: [
@@ -46,6 +48,26 @@ describe('test mock.shop integration with nuxt 4', async () => {
                         '!.nuxt',
                         '!.output',
                     ],
+                    cache: {
+                        client: {
+                            ttl: 60,
+                        },
+                        options: {
+                            long: {
+                                maxAge: 3600,
+                                staleMaxAge: 82800,
+                                swr: true,
+                            },
+                            short: {
+                                maxAge: 1,
+                                staleMaxAge: 9,
+                                swr: true,
+                            },
+                        },
+                        proxy: {
+                            driver: 'lru-cache',
+                        },
+                    },
                 },
             },
         })

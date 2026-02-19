@@ -31,7 +31,7 @@ const { data: products } = await useStorefrontData('async-data-test', `#graphql
         first: 5,
     },
 
-    cache: 'short',
+    cache: 'long',
 
     transform: response => flattenConnection(response.collection?.products),
 })

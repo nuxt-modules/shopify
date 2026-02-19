@@ -20,11 +20,9 @@ export default defineEventHandler(async (event) => {
 
     const { apiUrl } = createStorefrontConfig(_shopify)
 
+    const storefrontConfig = _shopify?.clients.storefront
+    const cacheConfig = storefrontConfig?.cache ? storefrontConfig.cache : undefined
     const cacheOption = headers['x-shopify-proxy-cache'] ?? 'none'
-
-    const cacheConfig = typeof _shopify?.clients?.storefront?.proxy === 'object'
-        ? _shopify.clients.storefront.proxy.cache
-        : undefined
 
     const requestCacheConfig = cacheConfig?.options
         ? cacheOption in cacheConfig.options
@@ -32,7 +30,11 @@ export default defineEventHandler(async (event) => {
             : undefined
         : undefined
 
-    const cacheBase = typeof cacheConfig?.storage === 'string' ? cacheConfig.storage : cacheConfig?.storage?.base
+    const cacheBase = typeof cacheConfig?.proxy === 'string'
+        ? cacheConfig.proxy
+        : cacheConfig?.proxy
+            ? cacheConfig.proxy.base
+            : undefined
 
     const cachedProxyRequest = defineCachedFunction(async (
         url: string,

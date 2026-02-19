@@ -25,18 +25,20 @@ export const clientSchema = z.object({
     }).optional(),
 })
 
+export const clientCacheSchema = z.object({
+    client: z.any().transform(v => v as LRUDriverOptions).or(z.boolean()).optional(),
+    proxy: z.any().transform(v => v as StorageMounts[string]).or(z.string()).or(z.boolean()).optional(),
+    options: z.record(z.string(), z.any().transform(v => v as Pick<CacheOptions, 'maxAge' | 'staleMaxAge' | 'swr'>)).optional(),
+})
+
 export const storefrontClientSchema = clientSchema.extend({
     publicAccessToken: z.string().optional(),
     privateAccessToken: z.string().optional(),
     mock: z.boolean().optional(),
-    cache: z.any().transform(v => v as LRUDriverOptions).or(z.boolean()).optional(),
     proxy: z.object({
         path: z.string().optional(),
-        cache: z.object({
-            storage: z.any().transform(v => v as StorageMounts[string]).or(z.string()).optional(),
-            options: z.record(z.string(), z.any().transform(v => v as Pick<CacheOptions, 'maxAge' | 'staleMaxAge' | 'swr'>)).optional(),
-        }).or(z.boolean()).optional(),
     }).or(z.boolean()).optional(),
+    cache: clientCacheSchema.or(z.boolean()).optional(),
 })
 
 export const adminClientSchema = clientSchema.extend({
@@ -93,14 +95,11 @@ export const publicModuleOptionsSchema = moduleOptionsSchema.omit({
             documents: true,
             codegen: true,
             autoImport: true,
-            proxy: true,
+            cache: true,
         }).and(z.object({
-            proxy: z.object({
-                path: z.string().optional(),
-                cache: z.object({
-                    options: z.record(z.string(), z.any().transform(v => v as Pick<CacheOptions, 'maxAge' | 'staleMaxAge' | 'swr'>)).optional(),
-                }).optional(),
-            }).optional(),
+            cache: clientCacheSchema.omit({
+                proxy: true,
+            }).or(z.boolean()).optional(),
         })).optional().optional(),
     }),
 })

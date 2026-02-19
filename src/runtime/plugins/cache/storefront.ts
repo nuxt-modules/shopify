@@ -6,7 +6,8 @@ import { defineNuxtPlugin, useRuntimeConfig } from '#app'
 export default defineNuxtPlugin(() => {
     const runtimeConfig = useRuntimeConfig()
 
-    const storefrontCache = runtimeConfig._shopify?.clients.storefront?.cache
+    const storefrontConfig = runtimeConfig._shopify?.clients.storefront
+    const storefrontCache = storefrontConfig?.cache && storefrontConfig.cache.client ? storefrontConfig.cache.client : undefined
 
     const config = typeof storefrontCache === 'object' ? storefrontCache : undefined
 

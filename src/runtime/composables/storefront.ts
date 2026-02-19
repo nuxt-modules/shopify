@@ -24,7 +24,7 @@ export function useStorefront(): StorefrontApiClient<true> {
     const originalClient = createClient<StorefrontOperations, true>(config)
 
     const storage = nuxtApp.$shopify?.cache?.storefront
-    const cacheOptions = _shopify?.clients.storefront?.proxy?.cache?.options
+    const cacheOptions = _shopify?.clients.storefront?.cache ? _shopify?.clients.storefront?.cache?.options : undefined
 
     const request: StorefrontApiClient<true>['request'] = async (operation, options) => {
         nuxtApp.hooks.callHook('storefront:client:request', { operation, options })
