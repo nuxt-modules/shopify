@@ -27,12 +27,12 @@ type InterfaceExtensionsParams = {
     mutationType: string
 }
 
-async function extractResult(input: Promise<Types.FileOutput[]>) {
+async function extractResult(input: Promise<Types.FileOutput[]>, config: ShopifyConfig) {
     try {
         return (await input)?.at(0)?.content ?? ''
     }
     catch (error) {
-        useLogger().error((error as Error).message)
+        useLogger(config).error((error as Error).message)
         return ''
     }
 }
@@ -129,11 +129,11 @@ export function createIntrospectionGenerator(config: ShopifyConfig): NuxtTemplat
         return extractResult(generate({
             overwrite: true,
             ignoreNoDocuments: true,
-            silent: useLogger().level < LogLevels.debug,
+            silent: useLogger(config).level < LogLevels.debug,
             generates: {
                 [data.options.filename]: generatorConfig,
             },
-        }, false))
+        }, false), config)
     }
 }
 
@@ -152,11 +152,11 @@ export function createTypesGenerator(config: ShopifyConfig): NuxtTemplate<Shopif
         return extractResult(generate({
             overwrite: true,
             ignoreNoDocuments: true,
-            silent: useLogger().level < LogLevels.debug,
+            silent: useLogger(config).level < LogLevels.debug,
             generates: {
                 [data.options.filename]: generatorConfig,
             },
-        }, false))
+        }, false), config)
     }
 }
 
@@ -195,13 +195,13 @@ export function createOperationsGenerator(config: ShopifyConfig): NuxtTemplate<S
 
         return extractResult(generate({
             overwrite: true,
-            silent: useLogger().level < LogLevels.debug,
+            silent: useLogger(config).level < LogLevels.debug,
             generates: {
                 [data.options.filename]: generatorConfig,
             },
             // @ts-expect-error weird behavior
             pluckConfig,
-        }, false))
+        }, false), config)
     }
 }
 

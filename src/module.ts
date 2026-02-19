@@ -31,7 +31,6 @@ export default defineNuxtModule<ModuleOptions>({
 
     async setup(options, nuxt) {
         const runtimeConfig = useRuntimeConfig()
-        const logger = useLogger(options.logger)
 
         const resolver = createResolver(import.meta.url)
 
@@ -40,6 +39,8 @@ export default defineNuxtModule<ModuleOptions>({
             runtimeConfig.shopify,
             options,
         )
+
+        const logger = useLogger(rawConfig)
 
         const moduleOptions = configSchema.safeParse(rawConfig)
         const publicModuleOptions = publicConfigSchema.safeParse(rawConfig)

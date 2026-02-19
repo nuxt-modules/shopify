@@ -16,7 +16,7 @@ export function useStorefront(): StorefrontApiClient<true> {
     const nuxtApp = useNuxtApp()
 
     if (_shopify?.clients.storefront?.proxy && !nuxtApp.payload.prerenderedAt) {
-        config.apiUrl = joinURL(useRequestURL().origin, _shopify.clients.storefront.proxy)
+        config.apiUrl = joinURL(useRequestURL().origin, _shopify.clients.storefront.proxy.path)
     }
 
     nuxtApp.hooks.callHook('storefront:client:configure', { config })
@@ -24,11 +24,12 @@ export function useStorefront(): StorefrontApiClient<true> {
     const originalClient = createClient<StorefrontOperations, true>(config)
 
     const storage = nuxtApp.$shopify?.cache?.storefront
+    const cacheOptions = _shopify?.clients.storefront?.cache ? _shopify?.clients.storefront?.cache?.options : undefined
 
     const request: StorefrontApiClient<true>['request'] = async (operation, options) => {
         nuxtApp.hooks.callHook('storefront:client:request', { operation, options })
 
-        const response = await useCache(storage, originalClient.request, operation, options)
+        const response = await useCache(storage, originalClient.request, operation, options, cacheOptions)
 
         if (response.errors) useErrors(nuxtApp.hooks, 'storefront:client:errors', response.errors, _shopify?.errors?.throw ?? false)
 
