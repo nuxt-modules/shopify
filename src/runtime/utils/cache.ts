@@ -12,16 +12,25 @@ import { hash } from 'ohash'
 function getLRUCacheSettings<
     Operation extends keyof Operations,
     Operations extends AllOperations,
->(options?: ShopifyApiClientRequestOptions<Operation, Operations, true>, cacheOptions?: Record<string, Pick<CacheOptions, 'maxAge' | 'staleMaxAge' | 'swr'>>) {
+>(
+    options?: ShopifyApiClientRequestOptions<Operation, Operations, true>,
+    cacheOptions?: Record<string, Pick<CacheOptions, 'maxAge' | 'staleMaxAge' | 'swr'>>,
+) {
     if (typeof options?.cache === 'string' && cacheOptions?.[options.cache]) {
+        const maxAge = cacheOptions[options.cache]!.maxAge ?? 0
+        const staleMaxAge = cacheOptions[options.cache]!.staleMaxAge ?? 0
+
         return {
-            ttl: (cacheOptions[options.cache]!.maxAge ?? 0) + (cacheOptions[options.cache]!.staleMaxAge ?? 0),
+            ttl: (maxAge ?? 0) * 1000 + (staleMaxAge ?? 0) * 1000,
         }
     }
     else if (typeof options?.cache === 'object') {
         if (typeof options.cache.client === 'string' && cacheOptions?.[options.cache.client]) {
+            const maxAge = cacheOptions[options.cache.client]!.maxAge ?? 0
+            const staleMaxAge = cacheOptions[options.cache.client]!.staleMaxAge ?? 0
+
             return {
-                ttl: (cacheOptions[options.cache.client]!.maxAge ?? 0) + (cacheOptions[options.cache.client]!.staleMaxAge ?? 0),
+                ttl: (maxAge ?? 0) * 1000 + (staleMaxAge ?? 0) * 1000,
             }
         }
         else if (typeof options.cache.client === 'object') return options.cache.client
@@ -51,8 +60,8 @@ export default async function useCache<
     options?: ShopifyApiClientRequestOptions<Operation, Operations, true>,
     cacheOptions?: Record<string, Pick<CacheOptions, 'maxAge' | 'staleMaxAge' | 'swr'>>,
 ): Promise<ClientResponse<ReturnData<Operation, Operations>>> {
-    const inMemoryConfig = getLRUCacheSettings(options, cacheOptions)
-    const proxyCacheHeaders = getProxyCacheHeaders(options)
+    const inMemoryConfig = storage ? getLRUCacheSettings(options, cacheOptions) : undefined
+    const proxyCacheHeaders = storage ? getProxyCacheHeaders(options) : undefined
 
     const cacheKey = hash({ operation, options })
 
@@ -69,9 +78,7 @@ export default async function useCache<
     } as typeof options)
 
     if (storage && inMemoryConfig) {
-        const cacheConfig = typeof options?.cache === 'object' ? options.cache : undefined
-
-        await storage.setItem(cacheKey, response, cacheConfig)
+        await storage.setItem(cacheKey, response, inMemoryConfig)
     }
 
     return response

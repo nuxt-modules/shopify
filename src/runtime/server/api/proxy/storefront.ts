@@ -42,6 +42,8 @@ export default defineEventHandler(async (event) => {
         headers: Record<string, string>,
         body: Record<string, unknown> | string,
     ) => {
+        delete headers['x-shopify-proxy-cache']
+
         return await $fetch<object>(url, { method, headers, body })
     }, {
         name: 'storefront-proxy',

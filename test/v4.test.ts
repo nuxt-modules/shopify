@@ -51,7 +51,7 @@ describe('test module with nuxt 4', async () => {
                     ],
                     cache: {
                         client: {
-                            ttl: 60,
+                            ttl: 10000,
                         },
                         options: {
                             long: {

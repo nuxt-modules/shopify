@@ -9,12 +9,11 @@ import type {
     ApiClientRequestOptions,
 } from '@shopify/graphql-client'
 import type { ConsolaOptions } from 'consola'
-import type { LRUDriverOptions } from 'unstorage/drivers/lru-cache'
 
 type CacheHeaderType = 'short' | 'long' | 'none' | string
 
 type ShopifyApiClientRequestCacheOptions = CacheHeaderType | {
-    client?: CacheHeaderType | LRUDriverOptions
+    client?: CacheHeaderType | { ttl?: number }
     proxy?: CacheHeaderType
 }
 

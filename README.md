@@ -385,17 +385,14 @@ const { data } = await storefront.request(`#graphql
         first: 5,
     },
 
-    // Cache settings for this request
+    // Cache settings for this request, client and server side (proxy)
+    cache: 'short',
+
+    // Or set client and server side cache separately
     cache: {
-        ttl: 1000 * 60 * 60, // 1 hour
-        updateAgeOnGet: true, // Update age when accessed
+        client: 'short',
+        proxy: 'long',
     },
-
-    // Or true, to use default cache settings from module configuration
-    cache: true,
-
-    // Or false, to disable caching for this request (default)
-    cache: false,
 })
 </script>
 ```
