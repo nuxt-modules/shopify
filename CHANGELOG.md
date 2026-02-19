@@ -1,3 +1,6 @@
+# 0.4.2
+- Fixed proxy cache storage mount base fallback
+
 # 0.4.1
 - Fixed proxy cache custom storage mount
 
