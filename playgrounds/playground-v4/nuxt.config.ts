@@ -11,6 +11,12 @@ export default defineNuxtConfig({
                 storefront: {
                     apiVersion: '',
                     publicAccessToken: '',
+
+                    proxy: {
+                        cache: {
+                            storage: 'shopify-storefront-proxy',
+                        },
+                    },
                 },
 
                 admin: {

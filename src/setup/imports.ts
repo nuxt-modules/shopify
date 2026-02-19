@@ -12,7 +12,7 @@ import {
 } from '../utils/imports'
 
 export default async function setupImports(nuxt: Nuxt, config: ShopifyConfig, resolver: Resolver) {
-    const logger = useLogger()
+    const logger = useLogger(config)
     const clients = getConfiguredClients(config)
 
     if (config.fragments?.autoImport) {

@@ -11,7 +11,7 @@ import {
 } from '../utils/clients'
 
 export default async function setupClients(config: ShopifyConfig, resolver: Resolver) {
-    const logger = useLogger()
+    const logger = useLogger(config)
     const clients = getConfiguredClients(config)
 
     for (const clientType of clients) {

@@ -1,6 +1,6 @@
 import type { TypeScriptPluginConfig } from '@graphql-codegen/typescript'
 import type { ConsolaOptions } from 'consola'
-import type { StorageMounts } from 'nitropack'
+import type { CacheOptions, StorageMounts } from 'nitropack'
 import type { LRUDriverOptions } from 'unstorage/drivers/lru-cache'
 
 import { z } from 'zod'
@@ -32,8 +32,10 @@ export const storefrontClientSchema = clientSchema.extend({
     cache: z.any().transform(v => v as LRUDriverOptions).or(z.boolean()).optional(),
     proxy: z.object({
         path: z.string().optional(),
-        cache: z.any().transform(v => v as StorageMounts[string]).or(z.string()).or(z.boolean()).optional(),
-        cacheHeaders: z.record(z.string(), z.string()).optional(),
+        cache: z.object({
+            storage: z.any().transform(v => v as StorageMounts[string]).or(z.string()).optional(),
+            options: z.record(z.string(), z.any().transform(v => v as Pick<CacheOptions, 'maxAge' | 'staleMaxAge' | 'swr'>)).optional(),
+        }).or(z.boolean()).optional(),
     }).or(z.boolean()).optional(),
 })
 
@@ -91,6 +93,14 @@ export const publicModuleOptionsSchema = moduleOptionsSchema.omit({
             documents: true,
             codegen: true,
             autoImport: true,
-        }).optional(),
+            proxy: true,
+        }).and(z.object({
+            proxy: z.object({
+                path: z.string().optional(),
+                cache: z.object({
+                    options: z.record(z.string(), z.any().transform(v => v as Pick<CacheOptions, 'maxAge' | 'staleMaxAge' | 'swr'>)).optional(),
+                }).optional(),
+            }).optional(),
+        })).optional().optional(),
     }),
 })

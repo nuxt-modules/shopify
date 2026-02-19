@@ -1,21 +1,12 @@
-import { readValidatedBody, getRequestHeaders } from 'h3'
-import { defineCachedEventHandler, useStorage } from 'nitropack/runtime'
+import { defineEventHandler, readValidatedBody, getRequestHeaders } from 'h3'
+import { defineCachedFunction } from 'nitropack/runtime'
 import { hash } from 'ohash'
 import { z } from 'zod'
 
 import { useRuntimeConfig } from '#imports'
 import { createStorefrontConfig } from '../../../utils/clients/storefront'
 
-const cacheOptions = {
-    short: {
-        maxAge: 10,
-    },
-    long: {
-        maxAge: 86400,
-    },
-}
-
-export default defineCachedEventHandler(async (event) => {
+export default defineEventHandler(async (event) => {
     const schema = z.object({
         query: z.string(),
         variables: z.record(z.string(), z.unknown()).optional(),
@@ -29,51 +20,36 @@ export default defineCachedEventHandler(async (event) => {
 
     const { apiUrl } = createStorefrontConfig(_shopify)
 
+    const cacheOption = headers['x-shopify-proxy-cache'] ?? 'none'
+
     const cacheConfig = typeof _shopify?.clients?.storefront?.proxy === 'object'
         ? _shopify.clients.storefront.proxy.cache
         : undefined
 
-    const storage = _shopify?.clients?.storefront?.proxy !== false && headers['x-shopify-proxy-cache']
-        ? useStorage(typeof cacheConfig === 'string' ? cacheConfig : 'shopify-storefront')
+    const requestCacheConfig = cacheConfig?.options
+        ? cacheOption in cacheConfig.options
+            ? cacheConfig.options[cacheOption]
+            : undefined
         : undefined
 
-    const cacheKey = hash(body)
+    const cacheBase = typeof cacheConfig?.storage === 'string' ? cacheConfig.storage : cacheConfig?.storage?.base
 
-    if (storage) {
-        if (await storage.hasItem(cacheKey)) {
-            return await storage.getItem(cacheKey)
-        }
-    }
+    const cachedProxyRequest = defineCachedFunction(async (
+        url: string,
+        method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 'OPTIONS' | 'CONNECT' | 'TRACE',
+        headers: Record<string, string>,
+        body: Record<string, unknown> | string,
+    ) => {
+        return await $fetch<object>(url, { method, headers, body })
+    }, {
+        name: 'storefront-proxy',
 
-    const response = await $fetch<object>(apiUrl, {
-        method: event.method,
-        headers,
-        body,
+        shouldBypassCache: () => !requestCacheConfig,
+        getKey: (_url, _method, _headers, body) => hash(body),
+
+        ...(cacheBase ? { base: cacheBase } : {}),
+        ...requestCacheConfig,
     })
 
-    if (storage && headers['x-shopify-proxy-cache'] && headers['x-shopify-proxy-cache'] in cacheOptions) {
-        const config = cacheOptions[headers['x-shopify-proxy-cache'] as keyof typeof cacheOptions]
-
-        await storage.setItem(cacheKey, response, {
-            maxAge: config.maxAge,
-        })
-    }
-
-    return response
-}, {
-    base: (() => {
-        const { _shopify } = useRuntimeConfig()
-
-        return _shopify?.clients?.storefront?.proxy !== false
-            ? _shopify?.clients.storefront?.proxy?.path || '_proxy/storefront'
-            : undefined
-    })(),
-
-    shouldBypassCache: (event) => {
-        const { _shopify } = useRuntimeConfig(event)
-
-        console.log(_shopify)
-
-        return true
-    },
+    return await cachedProxyRequest(apiUrl, event.method, headers, body)
 })

@@ -1,4 +1,4 @@
-import type { StorageMounts } from 'nitropack'
+import type { CacheOptions, StorageMounts } from 'nitropack'
 
 import {
     getCurrentApiVersion,
@@ -22,10 +22,12 @@ const ignores = [
     '!.output',
 ]
 
-const defaultProxyCacheHeaders = {
-    short: 'public, max-age=1, stale-while-revalidate=9',
-    long: 'public, max-age=3600, stale-while-revalidate=82800',
+const defaultProxyCacheOptions = {
+    short: { maxAge: 1, staleMaxAge: 9, swr: true },
+    long: { maxAge: 3600, staleMaxAge: 82800, swr: true },
 }
+
+const defaultProxyCacheStorage = { driver: 'lru-cache' }
 
 const clientSchemaWithDefaults = clientSchema.omit({
     apiVersion: true,
@@ -62,19 +64,17 @@ const storefrontClientSchemaWithDefaults = clientSchemaWithDefaults.omit({
 
     proxy: z.object({
         path: z.string().optional().default('_proxy/storefront'),
-        cache: z.any().transform(v => v as StorageMounts[string]).or(z.string()).or(z.boolean()).optional().default({ driver: 'lru-cache' }),
-        cacheHeaders: z.record(z.string(), z.string()).default(defaultProxyCacheHeaders).optional(),
+        cache: z.object({
+            storage: z.any().transform(v => v as StorageMounts[string]).or(z.string()).optional().default(defaultProxyCacheStorage),
+            options: z.record(z.string(), z.any().transform(v => v as Pick<CacheOptions, 'maxAge' | 'staleMaxAge' | 'swr'>)).optional().default(defaultProxyCacheOptions),
+        }),
     }).or(z.boolean()).optional().default({
         path: '_proxy/storefront',
-        cache: { driver: 'lru-cache' },
-        cacheHeaders: defaultProxyCacheHeaders,
-    }).transform(v => v === true
-        ? {
-                path: '_proxy/storefront',
-                cache: { driver: 'lru-cache' },
-                cacheHeaders: defaultProxyCacheHeaders,
-            }
-        : v),
+        cache: {
+            storage: defaultProxyCacheStorage,
+            options: defaultProxyCacheOptions,
+        },
+    }),
 })
 
 const adminClientSchemaWithDefaults = clientSchemaWithDefaults.omit({
@@ -141,8 +141,14 @@ export const publicModuleOptionsSchemaWithDefaults = publicModuleOptionsSchema.o
         }).and(z.object({
             proxy: z.object({
                 path: z.string().optional().default('_proxy/storefront'),
-            }).optional().default({
+                cache: z.object({
+                    options: z.record(z.string(), z.any().transform(v => v as Pick<CacheOptions, 'maxAge' | 'staleMaxAge' | 'swr'>)).optional().default(defaultProxyCacheOptions),
+                }).optional(),
+            }).or(z.boolean()).optional().default({
                 path: '_proxy/storefront',
+                cache: {
+                    options: defaultProxyCacheOptions,
+                },
             }),
         })).optional(),
     }),

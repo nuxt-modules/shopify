@@ -12,10 +12,10 @@ export default defineNuxtPlugin(() => {
 
     const storage = createStorage({
         driver: lruCacheDriver({
-            max: config?.max || 1000, // 1000 items
-            maxSize: config?.maxSize || 1024 * 1024, // 1 MB
-            maxEntrySize: config?.maxEntrySize || 100 * 1024, // 100 KB
-            ttl: config?.ttl || 1000 * 60 * 60, // 1 hour
+            ...(config?.max ? { max: config?.max } : {}),
+            ...(config?.maxSize ? { maxSize: config?.maxSize } : {}),
+            ...(config?.maxEntrySize ? { maxEntrySize: config?.maxEntrySize } : {}),
+            ...(config?.ttl ? { ttl: config?.ttl } : {}),
         }),
     })
 

@@ -12,7 +12,7 @@ import {
 } from '../utils/sandbox'
 
 export default async function setupSandbox(nuxt: Nuxt, config: ShopifyConfig) {
-    const logger = useLogger()
+    const logger = useLogger(config)
     const clients = getConfiguredClients(config)
 
     for (const clientType of clients) {
