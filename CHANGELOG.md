@@ -1,3 +1,9 @@
+# 0.4.0
+- Added proxy cache support
+- Fixed client side caching per request options
+- Updated proxy configuration options
+- Bumped dependencies
+
 # 0.3.16
 - Fixed client side caching default behaviour
 
