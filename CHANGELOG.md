@@ -1,3 +1,6 @@
+# 0.4.1
+- Fixed proxy cache custom storage mount
+
 # 0.4.0
 - Added proxy cache support
 - Fixed client side caching per request options
