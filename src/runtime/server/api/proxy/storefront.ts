@@ -33,7 +33,7 @@ export default defineEventHandler(async (event) => {
     const cacheBase = typeof cacheConfig?.proxy === 'string'
         ? cacheConfig.proxy
         : typeof cacheConfig?.proxy === 'object'
-            ? cacheConfig.proxy.base ?? 'storefront-proxy'
+            ? cacheConfig.proxy.base
             : undefined
 
     const cachedProxyRequest = defineCachedFunction(async (
