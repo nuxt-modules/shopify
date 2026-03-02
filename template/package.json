@@ -12,22 +12,22 @@
         "lint": "eslint ."
     },
     "dependencies": {
-        "@nuxt/content": "^3.11.2",
+        "@nuxt/content": "^3.12.0",
         "@nuxt/image": "^2.0.0",
-        "@nuxt/ui": "^4.4.0",
+        "@nuxt/ui": "^4.5.0",
         "@nuxtjs/i18n": "^10.2.3",
         "@nuxtjs/shopify": "latest",
         "@vueuse/nuxt": "^14.2.1",
         "better-sqlite3": "^12.6.2",
         "nuxt": "^4.3.1",
-        "tailwindcss": "^4.2.0",
-        "vue": "^3.5.28",
+        "tailwindcss": "^4.2.1",
+        "vue": "^3.5.29",
         "vue-router": "^5.0.3",
         "zod": "^4.3.6"
     },
     "devDependencies": {
-        "@nuxt/eslint-config": "^1.15.1",
-        "eslint": "^10.0.1",
+        "@nuxt/eslint-config": "^1.15.2",
+        "eslint": "^10.0.2",
         "typescript": "^5.9.3",
         "vue-tsc": "^3.2.5"
     },
