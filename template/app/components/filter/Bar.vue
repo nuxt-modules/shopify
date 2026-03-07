@@ -5,8 +5,6 @@ const props = defineProps<{
     filters?: ProductFilterFieldsFragment['filters']
 }>()
 
-const { t } = useI18n()
-
 const filters = computed(() => props.filters?.map((filter) => {
     const filterItem = {
         label: filter.label,
@@ -18,12 +16,12 @@ const filters = computed(() => props.filters?.map((filter) => {
     switch (filter.type) {
         case 'PRICE_RANGE':
             return {
-                component: resolveComponent('FilterPriceRange'),
+                component: resolveComponent('FilterTypePriceRange'),
                 ...filterItem,
             }
         case 'LIST':
             return {
-                component: resolveComponent('FilterList'),
+                component: resolveComponent('FilterTypeList'),
                 ...filterItem,
             }
         case 'BOOLEAN':
@@ -37,7 +35,7 @@ const filters = computed(() => props.filters?.map((filter) => {
     <div class="lg:mt-14 lg:me-16">
         <div class="lg:sticky lg:top-24">
             <p class="text-xl font-bold mb-4">
-                {{ t('filters.title') }}
+                {{ $t('filters.title') }}
             </p>
 
             <UAccordion

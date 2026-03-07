@@ -37,6 +37,13 @@ export const PRODUCT_FRAGMENT = `#graphql
         featuredImage {
             ...ImageFields
         }
+        images(first: 250) {
+            edges {
+                node {
+                    ...ImageFields
+                }
+            }
+        }
         priceRange {
             minVariantPrice {
                 ...PriceFields

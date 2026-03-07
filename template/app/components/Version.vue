@@ -1,8 +1,6 @@
 <script setup lang="ts">
-type NPMResponse = { version?: string }
-
 const { data: version } = await useAsyncData('nuxt-shopify-version', () =>
-    $fetch<NPMResponse>('https://registry.npmjs.org/@nuxtjs/shopify/latest').then(data => data?.version))
+    $fetch<{ version?: string }>('https://registry.npmjs.org/@nuxtjs/shopify/latest').then(data => data?.version))
 </script>
 
 <template>

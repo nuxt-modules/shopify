@@ -82,7 +82,7 @@ const groups = computed(() => [
     },
 ])
 
-const updateQuery = useDebounceFn((value: string) => query.value = value, 300)
+const updateQuery = debounce((value: string) => query.value = value, 300)
 </script>
 
 <template>

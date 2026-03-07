@@ -20,9 +20,7 @@ const state = reactive<z.infer<typeof schema>>({
     quantity: props.line.quantity,
 })
 
-watchDebounced(state, (state) => {
-    update(props.line.id, state.quantity)
-}, { debounce: 200 })
+watch(state, state => update(props.line.id, state.quantity))
 </script>
 
 <template>

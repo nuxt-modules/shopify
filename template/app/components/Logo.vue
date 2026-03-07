@@ -28,11 +28,11 @@ const { data: logo } = await useStorefrontData('logo', `#graphql
             :src="logo?.url"
             :alt="logo?.altText || 'Nuxt Shopify'"
             provider="shopify"
-            class="h-5 w-auto invert"
+            class="h-5 w-auto hue-rotate-300"
             width="50"
             height="22"
         />
 
-        Demo Store
+        Nuxt Shopify
     </NuxtLink>
 </template>

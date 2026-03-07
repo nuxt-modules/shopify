@@ -80,12 +80,12 @@ export default defineNuxtConfig({
         name: 'quickstart-abcd1234',
         clients: {
             storefront: {
-                apiVersion: '2025-07',
+                apiVersion: '2026-01',
                 publicAccessToken: 'YOUR_ACCESS_TOKEN',
             },
 
             admin: {
-                apiVersion: '2025-07',
+                apiVersion: '2026-01',
                 accessToken: 'YOUR_ACCESS_TOKEN',
             },
         },
@@ -258,7 +258,7 @@ export default defineNuxtConfig({
             storefront: {
                 mock: true,
 
-                apiVersion: '2025-07',
+                apiVersion: '2026-01',
             },
         },
     },
@@ -466,13 +466,13 @@ Published under the [MIT License](https://github.com/nuxt-modules/shopify/tree/m
 [github-actions-href]: https://github.com/nuxt-modules/shopify/actions
 
 [npm-version-src]: https://img.shields.io/npm/v/@nuxtjs/shopify/latest.svg?style=flat&colorA=18181B&colorB=31C553
-[npm-version-href]: https://npmjs.com/package/@nuxtjs/shopify
+[npm-version-href]: https://npmx.dev/package/@nuxtjs/shopify
 
 [nuxt-health-src]: https://img.shields.io/endpoint?url=https://nuxt.care/api/v1/badge?module=shopify
 [nuxt-health-href]: https://nuxt.care/?search=shopify
 
 [npm-last-update-src]: https://img.shields.io/npm/last-update/%40nuxtjs%2Fshopify.svg?style=flat&colorA=18181B&colorB=31C553
-[npm-last-update-href]: https://npmjs.com/package/@nuxtjs/shopify
+[npm-last-update-href]: https://npmx.dev/package/@nuxtjs/shopify
 
 [license-src]: https://img.shields.io/github/license/nuxt-modules/shopify.svg?style=flat&colorA=18181B&colorB=31C553
 [license-href]: https://github.com/nuxt-modules/shopify/tree/main/LICENSE

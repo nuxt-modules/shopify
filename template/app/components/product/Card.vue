@@ -10,7 +10,10 @@ const props = defineProps<{
 const localePath = useLocalePath()
 
 const url = computed(() => localePath(`/product/${props.product.handle}`))
-const variant = computed(() => props.product.variants.edges[0]?.node)
+const images = computed(() => flattenConnection(props.product.images))
+const variants = computed(() => flattenConnection(props.product.variants))
+
+const variant = ref(variants.value[0])
 
 const schema = z.object({
     quantity: z.number().min(1).max(10),
@@ -30,24 +33,48 @@ const state = reactive<z.infer<typeof schema>>({
             root: 'rounded-none !bg-transparent',
         }"
     >
+        <UCarousel
+            v-if="images.length > 1"
+            v-slot="{ item }"
+            :items="images"
+            class="w-full group mb-6"
+            :ui="{
+                prev: 'left-3! transition-opacity duration-150 opacity-0 group-hover:opacity-100',
+                next: 'right-3! transition-opacity duration-150 opacity-0 group-hover:opacity-100',
+            }"
+            arrows
+            loop
+        >
+            <NuxtLink :to="url">
+                <ProductImage
+                    :image="item"
+                />
+            </NuxtLink>
+        </UCarousel>
+
         <NuxtLink
+            v-else
             :to="url"
         >
             <ProductImage
-                :product="props.product"
+                :image="variant?.image ?? undefined"
                 class="mb-6"
             />
+        </NuxtLink>
 
-            <div class="flex justify-between items-center mb-6">
-                <p class="font-headings font-medium text-lg">
-                    {{ props.product.title }}
-                </p>
+        <NuxtLink
+            :to="url"
+            class="flex justify-between flex-wrap items-center mb-6"
+        >
+            <p class="font-headings font-medium text-lg me-4">
+                {{ props.product.title }}
+            </p>
 
-                <Price
-                    v-if="variant"
-                    :price="variant.price"
-                />
-            </div>
+            <Price
+                v-if="variant"
+                :price="variant.price"
+                class="grow text-right"
+            />
         </NuxtLink>
 
         <UForm

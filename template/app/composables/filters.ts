@@ -38,7 +38,7 @@ export const useFilter = (name: keyof ProductFilter) => {
         }
     }
 
-    const set = (value: ProductFilter[]) => {
+    const set = debounce((value: ProductFilter[]) => {
         let query = { ...route.query }
 
         delete query.before
@@ -58,7 +58,7 @@ export const useFilter = (name: keyof ProductFilter) => {
         }
 
         return router.push({ query })
-    }
+    }, 300)
 
     return { get, set }
 }
