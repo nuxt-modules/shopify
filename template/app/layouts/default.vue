@@ -2,9 +2,9 @@
     <div>
         <Header />
 
-        <main>
+        <UMain>
             <slot />
-        </main>
+        </UMain>
 
         <Footer />
     </div>

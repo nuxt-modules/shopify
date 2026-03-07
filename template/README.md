@@ -13,7 +13,6 @@
 ## ⚡️ Features
 
 - 🛍️ **Shopify Integration**: Sell your products directly from your Nuxt app with [Nuxt Shopify](https://github.com/nuxt-modules/shopify)
-- 📝 **Content Management**: Change the template content to your needs with Nuxt Content
 - 🌐 **Internationalization**: Built-in page localizations with Nuxt i18n
 - 🔒 **Authentication**: Built-in authentication and customer management with Nuxt Auth Utils
 - 👤 **Order and Account Management**: View and manage order status and customer accounts
