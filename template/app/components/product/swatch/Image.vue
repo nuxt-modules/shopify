@@ -10,7 +10,7 @@ const props = defineProps<{
     <UFormField
         :label="props.option.name"
         :name="props.option.name"
-        class="mb-6"
+        class="mb-6 lg:mb-8"
     >
         <URadioGroup
             variant="card"

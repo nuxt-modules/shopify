@@ -12,7 +12,7 @@ const state = defineModel<string>()
     <UFormField
         :label="props.option.name"
         :name="props.option.name"
-        class="mb-6"
+        class="mb-6 lg:mb-8"
     >
         <URadioGroup
             v-model="state"

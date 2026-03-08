@@ -11,10 +11,13 @@ const carousel = useTemplateRef('carousel')
 
 const handle = computed(() => route.params.handle as string)
 
-const { data: product } = await useStorefrontData(`collection-${locale.value}-${handle.value}`, `#graphql
+const { data } = await useStorefrontData(`collection-${locale.value}-${handle.value}`, `#graphql
     query FetchProduct($handle: String, $language: LanguageCode, $country: CountryCode) 
     @inContext(language: $language, country: $country) {
         product(handle: $handle) {
+            ...ProductFields
+        }
+        productRecommendations(productHandle: $handle) {
             ...ProductFields
         }
     }
@@ -27,8 +30,10 @@ const { data: product } = await useStorefrontData(`collection-${locale.value}-${
         language: language.value,
         country: country.value,
     }),
-    transform: data => data?.product,
 })
+
+const product = computed(() => data.value?.product)
+const recommendations = computed(() => data.value?.productRecommendations)
 
 useSeoMeta({
     title: `${product.value?.title} | Nuxt Shopify Demo Store`,
@@ -56,7 +61,7 @@ watch(selectedVariant, () => carousel.value?.emblaApi?.scrollTo(0))
 
         <div
             v-if="product"
-            class="lg:grid lg:grid-cols-12"
+            class="lg:grid lg:grid-cols-12 mb-16 lg:mb-24"
         >
             <div class="lg:col-span-6">
                 <UCarousel
@@ -68,14 +73,14 @@ watch(selectedVariant, () => carousel.value?.emblaApi?.scrollTo(0))
                         prev: 'left-3!',
                         next: 'right-3!',
                     }"
-                    class="mb-6"
+                    class="mb-6 lg:mb-8"
                     arrows
                     loop
                 >
                     <ProductImage :image="item" />
                 </UCarousel>
 
-                <div class="hidden lg:grid grid-cols-12 gap-6">
+                <div class="hidden lg:grid grid-cols-12 gap-8">
                     <ProductImage
                         v-for="variant in variants"
                         :key="variant.id"
@@ -87,7 +92,7 @@ watch(selectedVariant, () => carousel.value?.emblaApi?.scrollTo(0))
 
             <div class="flex flex-col gap-4 lg:col-span-4 lg:col-start-8">
                 <div class="lg:sticky lg:top-[calc(var(--ui-header-height)+3rem)]">
-                    <div class="flex-col lg:flex lg:pb-4">
+                    <div class="flex-col lg:flex pb-6 lg:pb-8">
                         <h1 class="text-4xl lg:text-5xl font-extrabold text-gray-900 mb-4">
                             {{ product.title }}
                         </h1>
@@ -95,13 +100,13 @@ watch(selectedVariant, () => carousel.value?.emblaApi?.scrollTo(0))
                         <Price
                             v-if="selectedVariant"
                             :price="selectedVariant.price"
-                            class="inline-block mb-4 lg:text-lg lg:mb-0"
+                            class="inline-block lg:text-lg lg:mb-0"
                         />
                     </div>
 
-                    <USeparator class="mb-5" />
+                    <USeparator class="mb-6 lg:mb-8" />
 
-                    <p class="lg:text-lg max-w-md mb-4">
+                    <p class="lg:text-lg max-w-md mb-6 lg:mb-8">
                         {{ product.description }}
                     </p>
 
@@ -111,6 +116,25 @@ watch(selectedVariant, () => carousel.value?.emblaApi?.scrollTo(0))
                         @choose="variant => selectedVariant = variant"
                     />
                 </div>
+            </div>
+        </div>
+
+        <div v-if="recommendations">
+            <h2 class="text-3xl lg:text-4xl text-gray-900 font-bold mb-6 lg:mb-8">
+                You may also like
+            </h2>
+
+            <div class="mb-12 sm:px-12 lg:mb-16">
+                <UCarousel
+                    v-slot="{ item }"
+                    :items="recommendations"
+                    :ui="{ item: 'md:basis-1/2 lg:basis-1/3' }"
+                    class="w-full mb-6"
+                    arrows
+                    loop
+                >
+                    <ProductCard :product="item" />
+                </UCarousel>
             </div>
         </div>
     </UContainer>

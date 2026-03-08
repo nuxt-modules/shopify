@@ -71,7 +71,7 @@ watch(state, value => emit('choose', flattenConnection(props.product.variants).f
     >
         <div
             v-if="options.length > 0"
-            class="mb-12"
+            class="mb-8 lg:mb-10"
         >
             <template
                 v-for="option in options"
@@ -94,7 +94,7 @@ watch(state, value => emit('choose', flattenConnection(props.product.variants).f
                         v-else
                         :label="option.name"
                         :name="option.name"
-                        class="mb-6"
+                        class="mb-6 lg:mb-8"
                     >
                         <URadioGroup
                             v-model="state.options[option.name]"
