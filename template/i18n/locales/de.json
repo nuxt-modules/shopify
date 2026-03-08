@@ -30,7 +30,8 @@
         "description": "Produkte und Kollektionen finden",
         "queries": "Suche nach",
         "products": "Produkte",
-        "collections": "Kollektionen"
+        "collections": "Kollektionen",
+        "articles": "Artikel"
     },
     "pagination": {
         "previous": "Vorherige Laden",

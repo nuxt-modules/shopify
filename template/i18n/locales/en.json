@@ -30,7 +30,8 @@
         "description": "Find products and collections",
         "queries": "Search for",
         "products": "Products",
-        "collections": "Collections"
+        "collections": "Collections",
+        "articles": "Articles"
     },
     "pagination": {
         "previous": "Load previous",

@@ -35,6 +35,18 @@ const { data, status } = await useStorefrontData(`search-${query.value ?? 'none'
                 }
             }
         }
+        articles(first: $first, query: $query) {
+            edges {
+                node {
+                    handle
+                    title
+                    excerpt
+                    blog {
+                        handle
+                    }
+                }
+            }
+        }
     }
     ${IMAGE_FRAGMENT}
 `, {
@@ -77,6 +89,16 @@ const groups = computed(() => [
             label: collection.title,
             suffix: collection.description,
             to: localePath(`/collection/${collection.handle}`),
+            onSelect: () => open.value = false,
+        })),
+    },
+    {
+        id: 'articles',
+        label: t('search.articles'),
+        items: flattenConnection(data.value?.articles).map(article => ({
+            label: article.title,
+            suffix: article.excerpt ?? undefined,
+            to: localePath(`/blog/${article.blog.handle}/${article.handle}`),
             onSelect: () => open.value = false,
         })),
     },
