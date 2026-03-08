@@ -28,6 +28,7 @@ const { data: blog } = await useStorefrontData(`article-${locale.value}-${handle
         article: article.value,
     },
     transform: data => data?.blog,
+    cache: 'long',
 })
 
 const articleData = computed(() => blog.value?.articleByHandle)

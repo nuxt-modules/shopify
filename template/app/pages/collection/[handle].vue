@@ -55,6 +55,7 @@ const { data: collection, status } = await useStorefrontData(key, `#graphql
     })),
     transform: data => data?.collection,
     watch: [params],
+    cache: 'long',
 })
 
 useSeoMeta({

@@ -24,6 +24,7 @@ const { data: items } = await useStorefrontData('main-menu', `#graphql
                 ? localePath(`/collection/${item.resource?.handle}`)
                 : item.url ?? undefined,
     })) ?? [],
+    cache: 'long',
 })
 </script>
 

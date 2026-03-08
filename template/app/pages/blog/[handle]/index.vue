@@ -21,6 +21,7 @@ const { data: blog } = await useStorefrontData(`blog-${locale.value}-${handle.va
         handle: handle.value,
     },
     transform: data => data?.blog,
+    cache: 'long',
 })
 </script>
 

@@ -27,6 +27,7 @@ const { data: localization } = await useStorefrontData(`localizations-${locale.v
         country: country.value,
     }),
     transform: data => data?.localization,
+    cache: 'long',
 })
 
 const getCountryLabel = (code: Locale) => {

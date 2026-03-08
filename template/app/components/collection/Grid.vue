@@ -22,6 +22,7 @@ const { data: collections } = await useStorefrontData(`collections-${locale.valu
         country: country.value,
     }),
     transform: data => flattenConnection(data?.collections).filter(c => c.description),
+    cache: 'long',
 })
 </script>
 

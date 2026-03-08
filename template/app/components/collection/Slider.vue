@@ -69,6 +69,7 @@ const { data: products } = await useStorefrontData(key, `#graphql
         country: country.value,
     }),
     transform: data => flattenConnection(data?.collection?.products),
+    cache: 'long',
 })
 </script>
 

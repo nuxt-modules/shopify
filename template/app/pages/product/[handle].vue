@@ -31,6 +31,7 @@ const { data } = await useStorefrontData(`collection-${locale.value}-${handle.va
         language: language.value,
         country: country.value,
     }),
+    cache: 'long',
 })
 
 const product = computed(() => data.value?.product)
