@@ -27,13 +27,13 @@ Plug & play Shopify integration for Nuxt 3 & 4
   :::u-button
   ---
   color: neutral
-  icon: i-lucide-star
+  icon: i-lucide-shopping-bag
   size: xl
   target: _blank
-  to: https://github.com/nuxt-modules/shopify
+  to: https://nuxt-shopify.vercel.app
   variant: subtle
   ---
-  Star on GitHub
+  View Demo Store
   :::
 ::
 
