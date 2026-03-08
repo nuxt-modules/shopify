@@ -132,7 +132,7 @@ watch(state, value => emit('choose', flattenConnection(props.product.variants).f
                 :disabled="loading"
                 :trailing-icon="loading ? 'i-lucide-loader-circle' : 'i-lucide-shopping-bag'"
                 :ui="{ trailingIcon: loading ? 'size-5 animate-spin' : 'size-5' }"
-                :label="$t('product.addToCart')"
+                :label="$t('product.add')"
             />
         </div>
     </UForm>

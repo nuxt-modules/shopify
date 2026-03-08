@@ -5,6 +5,7 @@ definePageMeta({
         && typeof route.params.article === 'string',
 })
 
+const localePath = useLocalePath()
 const { locale } = useI18n()
 const route = useRoute()
 
@@ -37,8 +38,8 @@ const articleData = computed(() => blog.value?.articleByHandle)
         <UBreadcrumb
             :items="[
                 { label: 'Blog' },
-                { label: blog?.title, to: `/blog/${handle}` },
-                { label: articleData?.title, to: `/blog/${handle}/${article}` },
+                { label: blog?.title, to: localePath(`/blog/${handle}`) },
+                { label: articleData?.title, to: localePath(`/blog/${handle}/${article}`) },
             ]"
             class="mb-8"
         />

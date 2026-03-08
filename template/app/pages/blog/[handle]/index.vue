@@ -3,6 +3,7 @@ definePageMeta({
     validate: route => typeof route.params.handle === 'string',
 })
 
+const localePath = useLocalePath()
 const { locale } = useI18n()
 const route = useRoute()
 
@@ -28,7 +29,7 @@ const { data: blog } = await useStorefrontData(`blog-${locale.value}-${handle.va
         <UBreadcrumb
             :items="[
                 { label: 'Blog' },
-                { label: blog?.title, to: `/blog/${handle}` },
+                { label: blog?.title, to: localePath(`/blog/${handle}`) },
             ]"
             class="mb-6 lg:mb-8"
         />
@@ -44,7 +45,7 @@ const { data: blog } = await useStorefrontData(`blog-${locale.value}-${handle.va
                 :title="article.title"
                 :date="article.publishedAt"
                 :description="article.excerpt ?? undefined"
-                :to="`/blog/${handle}/${article.handle}`"
+                :to="localePath(`/blog/${handle}/${article.handle}`)"
             />
         </UBlogPosts>
     </UContainer>

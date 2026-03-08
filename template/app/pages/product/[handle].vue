@@ -4,6 +4,7 @@ definePageMeta({
 })
 
 const { language, country } = useLocalization()
+const localePath = useLocalePath()
 const { locale } = useI18n()
 const route = useRoute()
 
@@ -54,7 +55,7 @@ watch(selectedVariant, () => carousel.value?.emblaApi?.scrollTo(0))
         <UBreadcrumb
             :items="[
                 { label: 'Products' },
-                { label: product?.title, to: `/product/${handle}` },
+                { label: product?.title, to: localePath(`/product/${handle}`) },
             ]"
             class="mb-6 lg:mb-8"
         />
@@ -121,7 +122,7 @@ watch(selectedVariant, () => carousel.value?.emblaApi?.scrollTo(0))
 
         <div v-if="recommendations">
             <h2 class="text-3xl lg:text-4xl text-gray-900 font-bold mb-6 lg:mb-8">
-                You may also like
+                {{ $t('product.recommendations') }}
             </h2>
 
             <div class="mb-12 sm:px-12 lg:mb-16">

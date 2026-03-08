@@ -178,7 +178,7 @@ watch(locale, () => {
                     v-if="status === 'pending'"
                     class="flex justify-center pt-8"
                 >
-                    Loading...
+                    {{ $t('collection.products.loading') }}
                 </div>
 
                 <div
@@ -192,7 +192,7 @@ watch(locale, () => {
                         />
 
                         <p class="text-xl text-dimmed">
-                            No products found
+                            {{ $t('collection.products.notFound') }}
                         </p>
                     </div>
                 </div>
