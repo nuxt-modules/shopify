@@ -1,24 +1,18 @@
 <script setup lang="ts">
 import type { ProductFieldsFragment } from '#shopify/storefront'
 
-import { z } from 'zod'
-
 const props = defineProps<{
     product: ProductFieldsFragment
+    carousel?: boolean
 }>()
 
 const localePath = useLocalePath()
 
 const url = computed(() => localePath(`/product/${props.product.handle}`))
-const variant = computed(() => props.product.variants.edges[0]?.node)
+const images = computed(() => flattenConnection(props.product.images))
+const variants = computed(() => flattenConnection(props.product.variants))
 
-const schema = z.object({
-    quantity: z.number().min(1).max(10),
-})
-
-const state = reactive<z.infer<typeof schema>>({
-    quantity: 1,
-})
+const variant = ref(variants.value[0])
 </script>
 
 <template>
@@ -30,50 +24,62 @@ const state = reactive<z.infer<typeof schema>>({
             root: 'rounded-none !bg-transparent',
         }"
     >
-        <NuxtLink
-            :to="url"
-        >
-            <ProductImage
-                :product="props.product"
-                class="mb-6"
-            />
+        <div class="group relative rounded-md overflow-hidden mb-4">
+            <UCarousel
+                v-if="carousel && images.length > 1"
+                v-slot="{ item }"
+                :items="images"
+                :ui="{
+                    prev: 'left-3! transition-opacity duration-150 lg:opacity-0 lg:group-hover:opacity-100',
+                    next: 'right-3! transition-opacity duration-150 lg:opacity-0 lg:group-hover:opacity-100',
+                }"
+                arrows
+                loop
+            >
+                <NuxtLink :to="url">
+                    <ProductImage :image="item" />
+                </NuxtLink>
+            </UCarousel>
 
-            <div class="flex justify-between items-center mb-6">
-                <p class="font-headings font-medium text-lg">
+            <NuxtLink
+                v-else
+                :to="url"
+            >
+                <ProductImage :image="images?.[0] ?? undefined" />
+
+                <ProductImage
+                    v-if="images?.[1]"
+                    :image="images[1]"
+                    class="hidden absolute inset-0 bg-default group-hover:block"
+                />
+            </NuxtLink>
+        </div>
+
+        <div class="flex justify-end flex-wrap items-center relative">
+            <NuxtLink
+                :to="url"
+                class="grow"
+            >
+                <p class="font-headings text-xl me-12">
                     {{ props.product.title }}
                 </p>
 
                 <Price
                     v-if="variant"
                     :price="variant.price"
+                    class="grow text-right"
                 />
-            </div>
-        </NuxtLink>
+            </NuxtLink>
 
-        <UForm
-            :state="state"
-            :schema="schema"
-            :validate-on="['change']"
-            class="flex flex-col gap-4"
-        >
-            <div class="flex flex-row gap-4 justify-between">
-                <UFormField name="quantity">
-                    <UInputNumber
-                        v-model="state.quantity"
-                        :min="1"
-                        :max="10"
-                        class="w-24"
-                    />
-                </UFormField>
+            <ProductChoose
+                v-if="variants.length > 1"
+                :product="props.product"
+            />
 
-                <AddToCart
-                    v-if="variant"
-                    :variant-id="variant.id"
-                    :quantity="state.quantity"
-                    :disabled="!variant.availableForSale"
-                    :ui="{ trailingIcon: 'size-4' }"
-                />
-            </div>
-        </UForm>
+            <ProductAdd
+                v-else
+                :product="props.product"
+            />
+        </div>
     </UCard>
 </template>

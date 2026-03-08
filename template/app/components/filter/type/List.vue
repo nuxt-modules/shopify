@@ -12,9 +12,8 @@ const { get, set } = useFilter(key.value)
 
 const value = ref(get().map(f => props.filter.values.find(v => v.input === JSON.stringify(f))?.label).filter(v => v !== undefined))
 
-const submit = async (value: (string | number | bigint | Record<string, unknown> | null)[]) => {
-    await set(props.filter.values.filter(v => value.includes(v.label)).map(v => JSON.parse(v.input) as ProductFilter))
-}
+const submit = async (value: (string | number | bigint | Record<string, unknown> | null)[]) =>
+    set(props.filter.values.filter(v => value.includes(v.label)).map(v => JSON.parse(v.input) as ProductFilter))
 </script>
 
 <template>

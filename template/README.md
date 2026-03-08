@@ -1,37 +1,23 @@
-# Nuxt Shopify Template (WIP)
+# Nuxt Shopify Template
 
 [![Github Actions][github-actions-src]][github-actions-href]
 [![License][license-src]][license-href]
 [![Nuxt][nuxt-src]][nuxt-href]
 
-> [!WARNING]
-> 🚧 This template is a work in progress and is not yet ready for production use. Please check back later for updates. 🚧
-
-- 🏀 [Online demo (coming soon)](https://nuxt-shopify.vercel.app/)
+- 🏀 [Online demo](https://nuxt-shopify.vercel.app/)
 - 📚 [Nuxt Shopify documentation](https://shopify.nuxtjs.org)
 
-## ⚡️ Features
+## Features
 
 - 🛍️ **Shopify Integration**: Sell your products directly from your Nuxt app with [Nuxt Shopify](https://github.com/nuxt-modules/shopify)
-- 📝 **Content Management**: Change the template content to your needs with Nuxt Content
 - 🌐 **Internationalization**: Built-in page localizations with Nuxt i18n
-- 🔒 **Authentication**: Built-in authentication and customer management with Nuxt Auth Utils
-- 👤 **Order and Account Management**: View and manage order status and customer accounts
+- 👤 **Order and Account Management**: View and manage order status and customer accounts (Coming soon)
 - 🧩 **UI Components**: Built with Nuxt UI components and Tailwind 4 for a consistent look and feel
 - 🖼️ **Image Optimization**: Automatically optimized images with Nuxt Image
 - 🔗 **Type Safety**: Fully type-safe and checked with Vue-Tsc
 - 🧹 **Code Quality**: Minimally configured ESLint for code quality
 
-### 🛒 E-Commerce Features (WIP 🚧)
-
-- **Product Listing & Filters**: Display products with images, titles, and prices
-- **Product Details**: Show detailed information about each product, including variants and options
-- **Cart Management**: Add, remove, and update items in the cart
-- **Checkout Process**: Seamlessly integrate with Shopify's Storefront API for a smooth checkout experience
-- **Order Management**: View and manage customer orders
-- **Customer Accounts**: Allow customers to create accounts, view order history, and manage their profiles
-
-## 🚀 Quick Start
+## Quick Start
 
 Deploy to vercel:
 
@@ -67,7 +53,7 @@ Create a `.env` file in the root of the project and add your Shopify credentials
 
 ```sh
 NUXT_SHOPIFY_NAME="YOUR_SHOP_NAME"
-NUXT_SHOPIFY_CLIENTS_STOREFRONT_API_VERSION="2025-07"
+NUXT_SHOPIFY_CLIENTS_STOREFRONT_API_VERSION="2026-01"
 NUXT_SHOPIFY_CLIENTS_STOREFRONT_PUBLIC_ACCESS_TOKEN="YOUR_PUBLIC_ACCESS_TOKEN"
 ```
 

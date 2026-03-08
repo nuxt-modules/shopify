@@ -8,9 +8,10 @@ const props = defineProps<{
 }>()
 
 const { update, remove } = useCart()
+const localePath = useLocalePath()
 
 const variant = computed(() => props.line.merchandise)
-const to = computed(() => `/product/${variant.value.product.handle}`)
+const to = computed(() => localePath(`/product/${variant.value.product.handle}`))
 
 const schema = z.object({
     quantity: z.number().min(1).max(10),
@@ -20,9 +21,7 @@ const state = reactive<z.infer<typeof schema>>({
     quantity: props.line.quantity,
 })
 
-watchDebounced(state, (state) => {
-    update(props.line.id, state.quantity)
-}, { debounce: 200 })
+watch(state, state => update(props.line.id, state.quantity))
 </script>
 
 <template>

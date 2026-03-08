@@ -30,7 +30,8 @@
         "description": "Find products and collections",
         "queries": "Search for",
         "products": "Products",
-        "collections": "Collections"
+        "collections": "Collections",
+        "articles": "Articles"
     },
     "pagination": {
         "previous": "Load previous",
@@ -41,9 +42,24 @@
         "to": "to"
     },
     "product": {
-        "addToCart": "Add to cart"
+        "add": "Add",
+        "choose": "Choose",
+        "recommendations": "You may also like"
+    },
+    "collection": {
+        "products": {
+            "loading": "Loading products...",
+            "notFound": "No products found."
+        },
+        "women": "Women's Clothing",
+        "men": "Men's Clothing",
+        "all": "All Collections"
     },
     "filters": {
         "title": "Filters"
+    },
+    "home": {
+        "title": "Nuxt Shopify Demo Store",
+        "description": "This is a demo store built with Nuxt 4 and the Shopify Storefront API. It showcases how to build a fully functional e-commerce storefront with Nuxt UI."
     }
 }

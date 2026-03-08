@@ -35,6 +35,18 @@ const { data, status } = await useStorefrontData(`search-${query.value ?? 'none'
                 }
             }
         }
+        articles(first: $first, query: $query) {
+            edges {
+                node {
+                    handle
+                    title
+                    excerpt
+                    blog {
+                        handle
+                    }
+                }
+            }
+        }
     }
     ${IMAGE_FRAGMENT}
 `, {
@@ -80,9 +92,19 @@ const groups = computed(() => [
             onSelect: () => open.value = false,
         })),
     },
+    {
+        id: 'articles',
+        label: t('search.articles'),
+        items: flattenConnection(data.value?.articles).map(article => ({
+            label: article.title,
+            suffix: article.excerpt ?? undefined,
+            to: localePath(`/blog/${article.blog.handle}/${article.handle}`),
+            onSelect: () => open.value = false,
+        })),
+    },
 ])
 
-const updateQuery = useDebounceFn((value: string) => query.value = value, 300)
+const updateQuery = debounce((value: string) => query.value = value, 300)
 </script>
 
 <template>

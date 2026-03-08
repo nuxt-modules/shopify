@@ -4,7 +4,7 @@ import type { Locale } from '#i18n'
 
 const { language, country, getCountry } = useLocalization()
 const switchLocalePath = useSwitchLocalePath()
-const { t, locale, locales } = useI18n()
+const { locale, locales } = useI18n()
 
 const { data: localization } = await useStorefrontData(`localizations-${locale.value}`, `#graphql
     query AllLocalizations($language: LanguageCode, $country: CountryCode)
@@ -48,7 +48,7 @@ const items = computed<NavigationMenuItem[]>(() => [
         label: 'Github',
     },
     {
-        to: 'https://nuxt.com/modules/nuxt-shopify',
+        to: 'https://nuxt.com/modules/shopify',
         label: 'Module Page',
     },
     {
@@ -56,72 +56,71 @@ const items = computed<NavigationMenuItem[]>(() => [
         label: 'Documentation',
     },
     {
-        to: 'https://npmjs.com/package/@nuxtjs/shopify',
+        to: 'https://npmx.dev/package/@nuxtjs/shopify',
         label: 'NPM Package',
     },
 ].map(item => ({
     ...item,
     target: '_blank',
-    icon: 'hugeicons:solid-line-01',
+    icon: 'i-lucide-minus',
 })))
 </script>
 
 <template>
-    <footer class="pt-8 pb-6 bg-[var(--bg-ui)] border-t border-[var(--ui-border)]">
-        <UContainer>
-            <div class="md:flex items-center gap-4">
+    <UFooter
+        :ui="{
+            root: 'border-t border-neutral-200',
+            top: 'pb-0 lg:pb-0',
+        }"
+    >
+        <template #top>
+            <UContainer class="flex flex-col sm:flex-row sm:items-end">
                 <Version />
 
-                <USeparator
-                    orientation="vertical"
-                    class="h-5 mx-2 mt-2 hidden md:block"
-                />
-
-                <div class="text-muted mt-2">
-                    <UNavigationMenu
-                        :items="items"
-                        orientation="vertical"
-                        :ui="{
-                            list: 'md:flex',
-                            linkLabel: 'font-normal',
-                            linkLabelExternalIcon: 'hidden',
-                            linkLeadingIcon: 'size-2.5 mt-0.5 md:hidden',
-                        }"
-                    />
-                </div>
-            </div>
-
-            <USeparator class="my-8 md:my-6" />
-
-            <div class="flex flex-col items-center md:flex-row">
-                <p class="text-muted grow pb-5 md:pb-0">
-                    {{ t('footer.message') }}
-                </p>
-
-                <USelect
-                    :items="countries"
-                    :default-value="locale"
-                    icon="i-lucide-globe"
-                    class="mr-4"
-                    variant="ghost"
-                    @update:model-value="async value => switchLocale(value)"
-                />
+                <span class="hidden mx-4 mb-2 h-6 w-px bg-neutral-200 sm:block sm:mb-4 sm:mx-6" />
 
                 <UNavigationMenu
-                    orientation="horizontal"
-                    :items="[
-                        {
-                            icon: 'i-lucide-github',
-                            to: 'https://github.com/nuxt-modules/shopify/tree/main/template',
-                            label: t('footer.github'),
-                            target: '_blank',
-                        },
-                    ]"
+                    :items="items"
                     :ui="{
+                        root: 'sm:-mb-1 md:mb-1',
+                        list: 'flex items-start flex-col sm:flex-row',
+                        item: 'py-1 sm:py-2',
+                        linkLeadingIcon: 'sm:hidden',
                         linkLabelExternalIcon: 'hidden',
                     }"
                 />
-            </div>
-        </UContainer>
-    </footer>
+            </UContainer>
+        </template>
+
+        <template #left>
+            <p class="text-muted text-sm">
+                Published under the MIT License.
+            </p>
+        </template>
+
+        <template #right>
+            <UNavigationMenu
+                orientation="horizontal"
+                :items="[
+                    {
+                        icon: 'i-lucide-github',
+                        to: 'https://github.com/nuxt-modules/shopify/tree/main/template',
+                        label: $t('footer.github'),
+                        target: '_blank',
+                    },
+                ]"
+                :ui="{
+                    linkLabelExternalIcon: 'hidden',
+                }"
+            />
+
+            <USelect
+                :items="countries"
+                :default-value="locale"
+                icon="i-lucide-globe"
+                variant="ghost"
+                @update:model-value="async value => switchLocale(value)"
+            />
+        </template>
+    </UFooter>
 </template>

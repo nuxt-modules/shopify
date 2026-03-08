@@ -2,11 +2,9 @@
 export default defineNuxtConfig({
     modules: [
         '../src/module',
-        '@nuxt/ui',
-        '@nuxt/content',
         '@nuxtjs/i18n',
+        '@nuxt/ui',
         '@nuxt/image',
-        '@vueuse/nuxt',
     ],
 
     components: {
@@ -25,12 +23,6 @@ export default defineNuxtConfig({
     devtools: { enabled: true },
 
     css: ['~/assets/main.css'],
-
-    content: {
-        renderer: {
-            anchorLinks: false,
-        },
-    },
 
     ui: {
         colorMode: false,
@@ -90,7 +82,7 @@ export default defineNuxtConfig({
         clients: {
             storefront: {
                 mock: true,
-                apiVersion: '2025-07',
+                apiVersion: '2026-01',
             },
         },
     },

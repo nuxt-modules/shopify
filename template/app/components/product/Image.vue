@@ -1,6 +1,8 @@
 <script setup lang="ts">
+import type { Image } from '#shopify/storefront'
+
 const props = defineProps<{
-    product?: ProductFieldsFragment
+    image?: Partial<Image>
     title?: string
 }>()
 
@@ -10,7 +12,7 @@ const emits = defineEmits<{
 
 const imgLoading = ref(true)
 
-const url = computed(() => (props.product?.featuredImage as { url: string })?.url)
+const url = computed(() => props.image?.url)
 
 const handleImageLoad = () => requestAnimationFrame(() => {
     imgLoading.value = false
@@ -24,14 +26,14 @@ const handleImageLoad = () => requestAnimationFrame(() => {
         :class="{
             'animate-pulse': imgLoading,
         }"
-        class="flex items-center justify-center max-w-full rounded-md overflow-hidden"
+        class="max-w-full rounded-md overflow-hidden"
     >
         <NuxtImg
             provider="shopify"
             :src="url"
-            :alt="props.product?.featuredImage?.altText ?? props.product?.title ?? undefined"
-            :width="props.product?.featuredImage?.width ?? undefined"
-            :height="props.product?.featuredImage?.height ?? undefined"
+            :alt="props.image?.altText ?? props.title ?? undefined"
+            :width="props.image?.width ?? undefined"
+            :height="props.image?.height ?? undefined"
             sizes="xs:100vw md:50vw lg:40vw xl:25vw"
             class="aspect-square max-w-full max-h-full animate-pop-up select-none object-contain"
             placeholder

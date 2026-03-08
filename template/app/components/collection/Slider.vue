@@ -5,12 +5,12 @@ import { z } from 'zod'
 
 const props = defineProps<{
     handle: string
-    first?: string
-    last?: string
+    first?: number
+    last?: number
     after?: string
     before?: string
     sortKey?: string
-    reverse?: string
+    reverse?: boolean
     filters?: ProductFilter[]
 }>()
 
@@ -29,7 +29,7 @@ const reverse = computed(() => props.reverse ? Boolean(props.reverse) : undefine
 const filters = computed(() => props.filters ? props.filters : undefined)
 
 const { data: products } = await useStorefrontData(key, `#graphql
-    query FetchSliderProducts(
+    query FetchSliderCollection(
         $handle: String,
         $after: String,
         $before: String,
@@ -70,74 +70,17 @@ const { data: products } = await useStorefrontData(key, `#graphql
     }),
     transform: data => flattenConnection(data?.collection?.products),
 })
-
-const slider = ref<HTMLElement>()
-
-const {
-    initialized,
-    isFirst,
-    isLast,
-    previous,
-    next,
-} = useSlider(slider)
 </script>
 
 <template>
-    <div class="py-6 relative flex flex-wrap gap-y-10 gap-x-6 justify-center">
-        <div
-            ref="slider"
-            class="flex overflow-x-auto overflow-y-visible gap-x-6 snap-x no-scrollbar"
-        >
-            <ProductCard
-                v-for="product in products"
-                :key="product.id"
-                :product="product"
-                class="shrink-0 snap-start"
-                :class="[
-                    'w-full',
-                    'sm:w-[calc(50%-16px)]',
-                    'md:w-[calc(33.333333%-22px)]',
-                ]"
-            />
-        </div>
-
-        <UButton
-            icon="hugeicons:arrow-left-01"
-            variant="soft"
-            size="sm"
-            class="transition-opacity opacity-0"
-            :ui="{
-                base: 'rounded-full border border-primary',
-            }"
-            :class="{
-                'cursor-pointer opacity-100': initialized && !isFirst,
-            }"
-            @click="previous"
-        />
-
-        <UButton
-            icon="hugeicons:arrow-right-01"
-            variant="soft"
-            size="sm"
-            class="transition-opacity opacity-0"
-            :ui="{
-                base: 'rounded-full border border-primary',
-            }"
-            :class="{
-                'cursor-pointer opacity-100': initialized && !isLast,
-            }"
-            @click="next"
-        />
-    </div>
+    <UCarousel
+        v-slot="{ item: product }"
+        :items="products"
+        class="w-full mb-6"
+        :ui="{ item: 'md:basis-1/2 lg:basis-1/3' }"
+        arrows
+        loop
+    >
+        <ProductCard :product="product" />
+    </UCarousel>
 </template>
-
-<style scoped>
-.no-scrollbar::-webkit-scrollbar {
-    display: none;
-}
-
-.no-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-}
-</style>

@@ -1,2 +1,0 @@
-::product{:handle="product.handle"}
-::
