@@ -13,7 +13,7 @@ the [Shopify Admin API](https://shopify.dev/docs/api/admin-graphql).
 You can use it on the server and client side, with built-in support for [mock.shop](https://mock.shop) and automatic,
 hot-reloaded type generation from your GraphQL queries.
 
-- 🛍️ [Store Template (Coming soon)](https://github.com/nuxt-modules/shopify/tree/main/template)
+- 🛍️ [Store Template](https://github.com/nuxt-modules/shopify/tree/main/template)
 - 📚 [Documentation](https://shopify.nuxtjs.org)
 - ✨ [Release Notes](https://github.com/nuxt-modules/shopify/tree/main/CHANGELOG.md)
 
