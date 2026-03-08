@@ -3,6 +3,8 @@ const props = defineProps<{
     handle: string
 }>()
 
+const route = useRoute()
+
 const key = `collection-${props.handle}`
 
 const { data: collection } = await useStorefrontData(key, `#graphql
@@ -27,16 +29,28 @@ const { data: collection } = await useStorefrontData(key, `#graphql
     ${COLLECTION_FRAGMENT}
     ${PRODUCT_CONNECTION_FRAGMENT}
 `, {
-    variables: {
+    variables: computed(() => ({
         handle: props.handle,
-        first: 4,
         language: 'EN',
         country: 'US',
-    },
+        first: route.query.before ? undefined : 4,
+        last: route.query.before ? 4 : undefined,
+        after: route.query.after,
+        before: route.query.before,
+    })),
     transform: data => data.collection,
+    watch: [
+        () => route.query.after,
+        () => route.query.before,
+    ],
 })
 
 const products = computed(() => flattenConnection(collection.value?.products))
+
+const startCursor = computed(() => collection.value?.products.pageInfo.startCursor)
+const endCursor = computed(() => collection.value?.products.pageInfo.endCursor)
+const hasPreviousPage = computed(() => collection.value?.products.pageInfo.hasPreviousPage)
+const hasNextPage = computed(() => collection.value?.products.pageInfo.hasNextPage)
 </script>
 
 <template>
@@ -55,6 +69,24 @@ const products = computed(() => flattenConnection(collection.value?.products))
                 :key="product.id"
                 :product="product"
             />
+        </div>
+
+        <div class="flex justify-between mt-8">
+            <UButton
+                v-if="hasPreviousPage"
+                :to="`?before=${startCursor}`"
+                icon="i-lucide-arrow-left"
+            >
+                Previous
+            </UButton>
+
+            <UButton
+                v-if="hasNextPage"
+                :to="`?after=${endCursor}`"
+                trailing-icon="i-lucide-arrow-right"
+            >
+                Next
+            </UButton>
         </div>
     </div>
 </template>
