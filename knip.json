@@ -46,15 +46,14 @@
         "app/**/*.{ts,vue,css}",
         "graphql/**/*.ts",
         "shared/**/*.ts",
-        "i18n/locales/**",
-        "content/**",
-        "content.config.ts"
+        "i18n/locales/**"
       ],
       "project": [
         "**/*.{ts,vue,css,md,json}"
       ],
       "ignoreDependencies": [
         "@nuxtjs/shopify",
+        "@tailwindcss/typography",
         "vue-tsc"
       ]
     },
