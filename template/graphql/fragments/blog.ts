@@ -14,7 +14,7 @@ export const BLOG_FRAGMENT = `#graphql
     fragment BlogFields on Blog {
         id
         title
-        articles(first: 10) {
+        articles(first: 250) {
             edges {
                 node {
                     ...ArticleFields

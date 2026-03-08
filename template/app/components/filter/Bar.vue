@@ -43,26 +43,30 @@ const resetFilters = () => {
 <template>
     <div class="lg:mt-14 lg:me-16">
         <div class="lg:sticky lg:top-24">
-            <div class="relative flex justify-between items-center mb-4">
+            <div class="flex justify-between items-center mb-4">
                 <p class="text-xl font-bold">
                     {{ $t('filters.title') }}
                 </p>
 
-                <UButton
-                    variant="ghost"
-                    color="primary"
-                    class="ms-4"
-                    label="Reset Filters"
-                    @click="resetFilters"
-                />
-
-                <UBadge
+                <div
                     v-if="quantity"
-                    class="absolute font-bold rounded-full -top-1.5 -right-2 px-1.5 font-mono lg:text-xs lg:-right-3 lg:-top-2"
-                    size="xs"
+                    class="relative"
                 >
-                    {{ quantity }}
-                </UBadge>
+                    <UButton
+                        variant="ghost"
+                        color="primary"
+                        class="ms-4"
+                        label="Reset Filters"
+                        @click="resetFilters"
+                    />
+
+                    <UBadge
+                        class="absolute font-bold rounded-full -top-1.5 -right-2 px-1.5 font-mono lg:text-xs lg:-right-3 lg:-top-2"
+                        size="xs"
+                    >
+                        {{ quantity }}
+                    </UBadge>
+                </div>
             </div>
 
             <UAccordion

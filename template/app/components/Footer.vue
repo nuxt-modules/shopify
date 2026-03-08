@@ -62,7 +62,7 @@ const items = computed<NavigationMenuItem[]>(() => [
 ].map(item => ({
     ...item,
     target: '_blank',
-    icon: 'hugeicons:solid-line-01',
+    icon: 'i-lucide-minus',
 })))
 </script>
 
@@ -99,14 +99,6 @@ const items = computed<NavigationMenuItem[]>(() => [
         </template>
 
         <template #right>
-            <USelect
-                :items="countries"
-                :default-value="locale"
-                icon="i-lucide-globe"
-                variant="ghost"
-                @update:model-value="async value => switchLocale(value)"
-            />
-
             <UNavigationMenu
                 orientation="horizontal"
                 :items="[
@@ -120,6 +112,14 @@ const items = computed<NavigationMenuItem[]>(() => [
                 :ui="{
                     linkLabelExternalIcon: 'hidden',
                 }"
+            />
+
+            <USelect
+                :items="countries"
+                :default-value="locale"
+                icon="i-lucide-globe"
+                variant="ghost"
+                @update:model-value="async value => switchLocale(value)"
             />
         </template>
     </UFooter>

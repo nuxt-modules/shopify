@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const { language, country } = useLocalization()
+const localePath = useLocalePath()
 const { locale } = useI18n()
 
 const { data: collections } = await useStorefrontData(`collections-${locale.value}`, `#graphql
@@ -25,14 +26,14 @@ const { data: collections } = await useStorefrontData(`collections-${locale.valu
 </script>
 
 <template>
-    <div class="py-6 sm:grid sm:grid-cols-2 sm:gap-x-6 sm:gap-y-2 lg:grid-cols-3">
+    <div class="sm:grid sm:grid-cols-2 sm:gap-x-6 sm:gap-y-2 lg:grid-cols-3">
         <UPageCard
             v-for="(collection, index) in collections"
             :key="`collection-${index}`"
             class="mb-4"
             :title="collection.title"
             :description="collection.description"
-            :to="`/collection/${collection.handle}`"
+            :to="localePath(`/collection/${collection.handle}`)"
             reverse
         >
             <NuxtImg
@@ -40,7 +41,7 @@ const { data: collections } = await useStorefrontData(`collections-${locale.valu
                 provider="shopify"
                 :src="collection.image.url"
                 :alt="collection.image.altText || collection.title"
-                class="rounded-md"
+                class="rounded-md object-cover aspect-square"
                 :width="600"
                 :height="600"
             />

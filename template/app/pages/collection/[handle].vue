@@ -3,6 +3,7 @@ definePageMeta({
     validate: route => typeof route.params.handle === 'string',
 })
 
+const localePath = useLocalePath()
 const { params } = useCollection()
 const { locale } = useI18n()
 const router = useRouter()
@@ -112,7 +113,7 @@ watch(locale, () => {
         <UBreadcrumb
             :items="[
                 { label: 'Collections' },
-                { label: collection?.title, to: `/collection/${handle}` },
+                { label: collection?.title, to: localePath(`/collection/${handle}`) },
             ]"
             class="mb-6 lg:mb-8"
         />
@@ -121,7 +122,7 @@ watch(locale, () => {
             {{ collection?.title }}
         </h1>
 
-        <p class="max-w-md mb-8 lg:mb-10">
+        <p class="lg:text-lg max-w-md mb-8 lg:mb-10">
             {{ collection?.description }}
         </p>
 
@@ -141,7 +142,7 @@ watch(locale, () => {
                         variant="soft"
                         color="primary"
                         class="cursor-pointer"
-                        icon="hugeicons:arrow-up-01"
+                        icon="i-lucide-arrow-up"
                         @click="loadPrevious"
                     >
                         {{ $t('pagination.previous') }}
@@ -154,6 +155,7 @@ watch(locale, () => {
                         :key="product.id"
                         :product="product"
                         class="pb-14 border-b border-b-default"
+                        carousel
                     />
                 </div>
 
@@ -165,7 +167,7 @@ watch(locale, () => {
                         variant="soft"
                         color="primary"
                         class="cursor-pointer"
-                        icon="hugeicons:arrow-down-01"
+                        icon="i-lucide-arrow-down"
                         @click="loadNext"
                     >
                         {{ $t('pagination.next') }}
@@ -185,7 +187,7 @@ watch(locale, () => {
                 >
                     <div class="flex items-center pb-2 gap-2">
                         <UIcon
-                            name="hugeicons:alert-01"
+                            name="i-lucide-triangle-alert"
                             class="text-dimmed size-6"
                         />
 

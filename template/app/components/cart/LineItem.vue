@@ -8,9 +8,10 @@ const props = defineProps<{
 }>()
 
 const { update, remove } = useCart()
+const localePath = useLocalePath()
 
 const variant = computed(() => props.line.merchandise)
-const to = computed(() => `/product/${variant.value.product.handle}`)
+const to = computed(() => localePath(`/product/${variant.value.product.handle}`))
 
 const schema = z.object({
     quantity: z.number().min(1).max(10),

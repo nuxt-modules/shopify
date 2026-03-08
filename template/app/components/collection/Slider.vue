@@ -5,12 +5,12 @@ import { z } from 'zod'
 
 const props = defineProps<{
     handle: string
-    first?: string
-    last?: string
+    first?: number
+    last?: number
     after?: string
     before?: string
     sortKey?: string
-    reverse?: string
+    reverse?: boolean
     filters?: ProductFilter[]
 }>()
 
@@ -29,7 +29,7 @@ const reverse = computed(() => props.reverse ? Boolean(props.reverse) : undefine
 const filters = computed(() => props.filters ? props.filters : undefined)
 
 const { data: products } = await useStorefrontData(key, `#graphql
-    query FetchSliderProducts(
+    query FetchSliderCollection(
         $handle: String,
         $after: String,
         $before: String,
@@ -73,15 +73,14 @@ const { data: products } = await useStorefrontData(key, `#graphql
 </script>
 
 <template>
-    <ProductCard
-        v-for="product in products"
-        :key="product.id"
-        :product="product"
-        class="shrink-0 snap-start"
-        :class="[
-            'w-full',
-            'sm:w-[calc(50%-16px)]',
-            'md:w-[calc(33.333333%-22px)]',
-        ]"
-    />
+    <UCarousel
+        v-slot="{ item: product }"
+        :items="products"
+        class="w-full mb-6"
+        :ui="{ item: 'md:basis-1/2 lg:basis-1/3' }"
+        arrows
+        loop
+    >
+        <ProductCard :product="product" />
+    </UCarousel>
 </template>

@@ -41,7 +41,8 @@
         "to": "bis"
     },
     "product": {
-        "addToCart": "In den Warenkorb"
+        "addToCart": "Hinzufügen",
+        "choose": "Auswählen"
     },
     "filters": {
         "title": "Filter"

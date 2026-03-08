@@ -41,7 +41,8 @@
         "to": "to"
     },
     "product": {
-        "addToCart": "Add to cart"
+        "addToCart": "Add",
+        "choose": "Choose"
     },
     "filters": {
         "title": "Filters"

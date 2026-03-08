@@ -26,7 +26,7 @@ const handleImageLoad = () => requestAnimationFrame(() => {
         :class="{
             'animate-pulse': imgLoading,
         }"
-        class="flex items-center justify-center max-w-full rounded-md overflow-hidden"
+        class="max-w-full rounded-md overflow-hidden"
     >
         <NuxtImg
             provider="shopify"
