@@ -39,10 +39,6 @@ const { data: collection } = await useStorefrontData(key, `#graphql
         before: route.query.before,
     })),
     transform: data => data.collection,
-    watch: [
-        () => route.query.after,
-        () => route.query.before,
-    ],
 })
 
 const products = computed(() => flattenConnection(collection.value?.products))
@@ -76,6 +72,7 @@ const hasNextPage = computed(() => collection.value?.products.pageInfo.hasNextPa
                 v-if="hasPreviousPage"
                 :to="`?before=${startCursor}`"
                 icon="i-lucide-arrow-left"
+                external
             >
                 Previous
             </UButton>
@@ -84,6 +81,7 @@ const hasNextPage = computed(() => collection.value?.products.pageInfo.hasNextPa
                 v-if="hasNextPage"
                 :to="`?after=${endCursor}`"
                 trailing-icon="i-lucide-arrow-right"
+                external
             >
                 Next
             </UButton>
