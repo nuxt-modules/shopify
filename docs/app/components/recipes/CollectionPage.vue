@@ -3,11 +3,12 @@ const props = defineProps<{
     handle: string
 }>()
 
+const router = useRouter()
 const route = useRoute()
 
 const key = `collection-${props.handle}`
 
-const { data: collection } = await useStorefrontData(key, `#graphql
+const { data: collection, refresh } = await useStorefrontData(key, `#graphql
     query GetCollection(
         $handle: String!, 
         $first: Int, 
@@ -47,6 +48,10 @@ const startCursor = computed(() => collection.value?.products.pageInfo.startCurs
 const endCursor = computed(() => collection.value?.products.pageInfo.endCursor)
 const hasPreviousPage = computed(() => collection.value?.products.pageInfo.hasPreviousPage)
 const hasNextPage = computed(() => collection.value?.products.pageInfo.hasNextPage)
+
+const pushToQuery = async (query: Record<string, string | undefined | null>) => {
+    await router.push({ query }).then(async () => await refresh())
+}
 </script>
 
 <template>
@@ -70,18 +75,16 @@ const hasNextPage = computed(() => collection.value?.products.pageInfo.hasNextPa
         <div class="flex justify-between mt-8">
             <UButton
                 v-if="hasPreviousPage"
-                :to="`?before=${startCursor}`"
                 icon="i-lucide-arrow-left"
-                external
+                @click="pushToQuery({ before: startCursor })"
             >
                 Previous
             </UButton>
 
             <UButton
                 v-if="hasNextPage"
-                :to="`?after=${endCursor}`"
                 trailing-icon="i-lucide-arrow-right"
-                external
+                @click="pushToQuery({ after: endCursor })"
             >
                 Next
             </UButton>
