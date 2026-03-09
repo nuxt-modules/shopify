@@ -3,17 +3,21 @@ import type { ProductFilter } from '#shopify/storefront'
 export const useFilters = () => {
     const route = useRoute()
 
-    const filters = computed(() => Object.entries(route.query).filter(([key]) => key.startsWith('filter.')).reduce(
-        (filters, [key, value]) => {
-            if (key.startsWith('filter.')) {
-                const filterKey = key.split('.').at(-1) ?? key
+    const filters = computed(() => Object.entries(route.query).filter(([key]) =>
+        key.startsWith('filter.')).reduce((filters, [key, value]) => {
+        if (key.startsWith('filter.')) {
+            const filterKey = key.split('.').at(-1) ?? key
 
-                if (Array.isArray(value)) value.forEach(v => filters.push({ [filterKey]: JSON.parse(String(v)) }))
-                else filters.push({ [filterKey]: JSON.parse(String(value)) })
+            if (Array.isArray(value)) {
+                value.forEach(v => filters.push({ [filterKey]: String(v) }))
             }
-            return filters
-        },
-        [] as ProductFilter[]))
+            else {
+                filters.push({ [filterKey]: JSON.parse(String(value)) })
+            }
+        }
+
+        return filters
+    }, [] as ProductFilter[]))
 
     return { filters }
 }

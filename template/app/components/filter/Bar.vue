@@ -27,16 +27,18 @@ const filters = computed(() => props.filters?.map((filter) => {
                 component: resolveComponent('FilterTypeList'),
                 ...filterItem,
             }
-        case 'BOOLEAN':
-            // TODO: Implement
-            return undefined
     }
 })?.filter(f => f !== undefined))
 
 const quantity = computed(() => Object.keys(route.query).filter(p => p.includes('filter')).length)
 
-const resetFilters = () => {
-    router.push({ query: {} })
+const filtersKey = ref(useId())
+
+const resetFilters = async () => {
+    await router.push({ query: {} })
+
+    console.log('Filters reset', filtersKey.value)
+    filtersKey.value += 1
 }
 </script>
 
@@ -70,6 +72,7 @@ const resetFilters = () => {
             </div>
 
             <UAccordion
+                :key="filtersKey"
                 :items="filters"
                 type="multiple"
             >

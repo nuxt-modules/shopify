@@ -12,7 +12,7 @@
             {{ $t('collection.women') }}
         </h2>
 
-        <div class="mb-12 sm:px-12 lg:mb-16">
+        <div class="mb-12 sm:px-12 lg:mb-16 2xl:px-0">
             <CollectionSlider
                 handle="women"
                 :first="12"
@@ -23,7 +23,7 @@
             {{ $t('collection.men') }}
         </h2>
 
-        <div class="mb-12 sm:px-12 lg:mb-16">
+        <div class="mb-12 sm:px-12 lg:mb-16 2xl:px-0">
             <CollectionSlider
                 handle="men"
                 :first="12"
