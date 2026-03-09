@@ -42,7 +42,7 @@ Upcoming features and developments for the 1.0.0 release:
 
 - 👤 Customer Account API support
 - 🔍 Shopify Analytics support
-- 🛍️ Store template with Nuxt UI & Nuxt Content
+- 🛍️ Store template with Nuxt UI
 
 ## 📦 Setup
 
