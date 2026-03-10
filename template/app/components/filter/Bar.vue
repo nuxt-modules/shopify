@@ -40,16 +40,16 @@ const filtersKey = ref(useId())
 
 const resetFilters = async () => {
     await router.push({ query: {} })
-
-    filtersKey.value += 1
 }
+
+watch(() => route.query, value => Object.keys(value).length === 0 ? filtersKey.value += 1 : null, { deep: true })
 </script>
 
 <template>
     <div class="lg:mt-14 lg:me-16">
         <div class="lg:sticky lg:top-24">
             <div class="flex justify-between items-center mb-4">
-                <p class="text-xl font-bold">
+                <p class="leading-8 text-xl font-bold">
                     {{ $t('filters.title') }}
                 </p>
 

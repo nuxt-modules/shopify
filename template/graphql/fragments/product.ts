@@ -27,6 +27,9 @@ export const PRODUCT_OPTION_FRAGMENT = `#graphql
         optionValues {
             id
             name
+            firstSelectableVariant {
+                ...ProductVariantFields
+            }
             swatch {
                 color
                 image {

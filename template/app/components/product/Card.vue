@@ -64,19 +64,19 @@ const variant = ref(variants.value[0])
                     {{ props.product.title }}
                 </p>
 
-                <Price
+                <ProductPrice
                     v-if="variant"
                     :price="variant.price"
                     class="grow text-right"
                 />
             </NuxtLink>
 
-            <ProductChoose
+            <CartChoose
                 v-if="variants.length > 1"
                 :product="props.product"
             />
 
-            <ProductAdd
+            <CartAdd
                 v-else
                 :product="props.product"
             />

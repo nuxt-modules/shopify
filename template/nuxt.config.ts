@@ -3,24 +3,9 @@ export default defineNuxtConfig({
     modules: [
         '../src/module',
         '@nuxtjs/i18n',
-        '@nuxt/ui',
         '@nuxt/image',
+        '@nuxt/ui',
     ],
-
-    components: {
-        dirs: [
-            {
-                path: '~/components/common',
-                pathPrefix: false,
-            },
-            {
-                path: '~/components',
-                pathPrefix: true,
-            },
-        ],
-    },
-
-    devtools: { enabled: true },
 
     css: ['~/assets/main.css'],
 
@@ -28,7 +13,7 @@ export default defineNuxtConfig({
         colorMode: false,
     },
 
-    compatibilityDate: '2025-11-01',
+    compatibilityDate: '2026-03-10',
 
     vite: {
         server: {

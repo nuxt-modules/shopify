@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export const debounce = (callback: (...args: any[]) => void, wait: number) => {
+export const debounce = <T extends (...args: any[]) => void>(callback: T, wait: number) => {
     let timeoutId: number | null = null
 
-    return (...args: any[]) => {
+    return (...args: Parameters<T>) => {
         window.clearTimeout(timeoutId!)
 
         timeoutId = window.setTimeout(() => {

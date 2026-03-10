@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { SelectedOption } from '#shopify/storefront'
+
 definePageMeta({
     validate: route => typeof route.params.handle === 'string',
 })
@@ -12,11 +14,17 @@ const carousel = useTemplateRef('carousel')
 
 const handle = computed(() => route.params.handle as string)
 
-const { data } = await useStorefrontData(`collection-${locale.value}-${handle.value}`, `#graphql
-    query FetchProduct($handle: String, $language: LanguageCode, $country: CountryCode) 
+const selectedOptions = ref<SelectedOption[]>()
+
+const { data, error } = await useStorefrontData(`collection-${locale.value}-${handle.value}`, `#graphql
+    query FetchProduct($handle: String, $language: LanguageCode, $country: CountryCode, $selectedOptions: [SelectedOptionInput!]) 
     @inContext(language: $language, country: $country) {
         product(handle: $handle) {
             ...ProductFields
+
+            selectedOrFirstAvailableVariant(selectedOptions: $selectedOptions) {
+                ...ProductVariantFields
+            }
         }
         productRecommendations(productHandle: $handle) {
             ...ProductFields
@@ -26,27 +34,35 @@ const { data } = await useStorefrontData(`collection-${locale.value}-${handle.va
     ${PRICE_FRAGMENT}
     ${PRODUCT_FRAGMENT}
 `, {
-    variables: productInputSchema.parse({
+    variables: computed(() => productInputSchema.parse({
         handle: handle.value,
         language: language.value,
         country: country.value,
-    }),
-    cache: 'long',
+        selectedOptions: Object.entries(selectedOptions.value ?? {}).map(([name, value]) => ({ name, value })),
+    })),
+    watch: [selectedOptions],
+    deep: true,
 })
+
+if (error.value) {
+    throw createError({
+        statusCode: 404,
+        message: error.value.message,
+    })
+}
 
 const product = computed(() => data.value?.product)
 const recommendations = computed(() => data.value?.productRecommendations)
-
-useSeoMeta({
-    title: `${product.value?.title} | Nuxt Shopify Demo Store`,
-    description: product.value?.description,
-})
+const selectedVariant = computed(() => data.value?.product?.selectedOrFirstAvailableVariant)
 
 const variants = computed(() => flattenConnection(product.value?.variants))
 const images = computed(() => (selectedVariant.value?.image ? [selectedVariant.value.image] : [])
     .concat(flattenConnection(product.value?.images)))
 
-const selectedVariant = ref(variants.value[0])
+useSeoMeta({
+    title: `${product.value?.title} | Nuxt Shopify Demo Store`,
+    description: product.value?.description,
+})
 
 watch(selectedVariant, () => carousel.value?.emblaApi?.scrollTo(0))
 </script>
@@ -63,7 +79,7 @@ watch(selectedVariant, () => carousel.value?.emblaApi?.scrollTo(0))
 
         <div
             v-if="product"
-            class="lg:grid lg:grid-cols-12 mb-16 lg:mb-24"
+            class="lg:grid lg:grid-cols-12 mb-12 lg:mb-16"
         >
             <div class="lg:col-span-6">
                 <UCarousel
@@ -82,7 +98,7 @@ watch(selectedVariant, () => carousel.value?.emblaApi?.scrollTo(0))
                     <ProductImage :image="item" />
                 </UCarousel>
 
-                <div class="hidden lg:grid grid-cols-12 gap-8">
+                <div class="hidden lg:grid grid-cols-12 gap-8 mb-6 lg:mb-8">
                     <ProductImage
                         v-for="variant in variants"
                         :key="variant.id"
@@ -93,13 +109,13 @@ watch(selectedVariant, () => carousel.value?.emblaApi?.scrollTo(0))
             </div>
 
             <div class="flex flex-col gap-4 lg:col-span-4 lg:col-start-8">
-                <div class="lg:sticky lg:top-[calc(var(--ui-header-height)+3rem)]">
+                <div class="flex flex-col lg:sticky lg:top-[calc(var(--ui-header-height)+3rem)]">
                     <div class="flex-col lg:flex pb-6 lg:pb-8">
                         <h1 class="text-4xl lg:text-5xl font-extrabold text-gray-900 mb-4">
                             {{ product.title }}
                         </h1>
 
-                        <Price
+                        <ProductPrice
                             v-if="selectedVariant"
                             :price="selectedVariant.price"
                             class="inline-block lg:text-lg lg:mb-0"
@@ -108,14 +124,15 @@ watch(selectedVariant, () => carousel.value?.emblaApi?.scrollTo(0))
 
                     <USeparator class="mb-6 lg:mb-8" />
 
-                    <p class="lg:text-lg max-w-md mb-6 lg:mb-8">
+                    <p class="order-2 lg:order-1 lg:text-lg max-w-md mb-6 lg:mb-8">
                         {{ product.description }}
                     </p>
 
                     <ProductOptions
                         v-if="product.options.length > 0"
                         :product="product"
-                        @choose="variant => selectedVariant = variant"
+                        class="order-1 lg:order-2 mb-6 lg:mb-8"
+                        @choose="options => selectedOptions = options"
                     />
                 </div>
             </div>

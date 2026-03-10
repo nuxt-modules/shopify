@@ -1,22 +1,24 @@
 <script setup lang="ts">
-import type { ProductFilterFieldsFragment, ProductFilter } from '#shopify/storefront'
+import type { Filter, ProductFilter } from '#shopify/storefront'
 
 import { z } from 'zod'
 
 type FilterValue = { min?: number, max?: number }
 
 const props = defineProps<{
-    filter: ProductFilterFieldsFragment['filters'][number]
+    filter: Filter
 }>()
 
-const { get, set } = useFilter('price')
+const { get, set } = useFilters('price')
 const { t } = useI18n()
 
 const input = computed(() => JSON.parse(props.filter.values.at(0)?.input ?? '{}')?.price as FilterValue)
 
-const componentToFilter = (value: FilterValue) => [{ price: value } as ProductFilter]
+const componentToFilter = (value: FilterValue) =>
+    [{ price: value } as ProductFilter]
 
-const filterToComponent = (filter: ProductFilter[]) => filter.map(f => f.price).filter(p => p !== undefined).at(0) as FilterValue ?? input.value
+const filterToComponent = (filter: ProductFilter[]) =>
+    filter.map(f => f.price).filter(p => p !== undefined).at(0) as FilterValue ?? input.value
 
 const schema = z.object({
     min: z.number().min(0).optional(),

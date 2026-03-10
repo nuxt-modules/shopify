@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import type { ProductFieldsFragment, ProductVariantFieldsFragment } from '#shopify/storefront'
+import type { FetchProductQuery, SelectedOption } from '#shopify/storefront'
 import type { FormSubmitEvent } from '#ui/types'
 
 const props = defineProps<{
-    product: ProductFieldsFragment
+    product: NonNullable<FetchProductQuery['product']>
 }>()
 
 const emit = defineEmits<{
-    choose: [ProductVariantFieldsFragment | undefined]
+    choose: [SelectedOption]
     submit: [FormSubmitEvent<typeof state>]
 }>()
 
@@ -17,13 +17,15 @@ const toast = useToast()
 const options = computed(() => props.product.options)
 const variants = computed(() => flattenConnection(props.product.variants))
 
+const loading = ref(false)
+
 const state = reactive({
     quantity: 1,
-    options: options.value.reduce((acc, option) => {
-        acc[option.name] = option.optionValues[0]?.name ?? ''
+    options: props.product.selectedOrFirstAvailableVariant?.selectedOptions.reduce((acc, selectedOption) => {
+        acc[selectedOption.name] = selectedOption.value
 
         return acc
-    }, {} as Record<string, string>),
+    }, {} as Record<string, string>) ?? {},
 })
 
 const isColorSwatchOption = (option?: typeof options.value[number]) => {
@@ -34,9 +36,7 @@ const isImageSwatchOption = (option?: typeof options.value[number]) => {
     return !!option?.optionValues?.every(value => value.swatch?.image?.previewImage?.url)
 }
 
-const loading = ref(false)
-
-async function onSubmit(event: FormSubmitEvent<typeof state>) {
+const onSubmit = async (event: FormSubmitEvent<typeof state>) => {
     const variant = variants.value.find(variant => variant.selectedOptions.every((selectedOption) => {
         const optionValue = event.data.options[selectedOption.name]
 
@@ -58,10 +58,7 @@ async function onSubmit(event: FormSubmitEvent<typeof state>) {
     }
 }
 
-watch(state, value => emit('choose', flattenConnection(props.product.variants).find(v => v.selectedOptions.every((selectedOption) => {
-    const optionValue = value.options[selectedOption.name]
-    return optionValue === selectedOption.value
-}))), { deep: true })
+watch(state, value => emit('choose', value.options), { deep: true })
 </script>
 
 <template>

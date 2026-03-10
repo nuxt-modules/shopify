@@ -33,4 +33,8 @@ export const productConnectionParamsSchema = connectionParamsSchema.extend({
 
 export const productInputSchema = z.object({
     handle: z.string(),
+    selectedOptions: z.array(z.object({
+        name: z.string(),
+        value: z.string(),
+    })).optional(),
 }).extend(localizationParamsSchema.shape)

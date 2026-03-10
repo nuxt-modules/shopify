@@ -61,7 +61,7 @@ watch(state, state => update(props.line.id, state.quantity))
                     </UFormField>
                 </UForm>
 
-                <Price
+                <ProductPrice
                     :price="variant.price"
                     class="font-semibold leading-8"
                 />

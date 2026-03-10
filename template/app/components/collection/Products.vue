@@ -25,8 +25,7 @@ const { data: collection, status } = await useStorefrontData(key, `#graphql
     )
     @inContext(language: $language, country: $country) {
         collection(handle: $handle) {
-            title,
-            description,
+            ...CollectionFields
             products(
                 after: $after,
                 before: $before,
@@ -43,6 +42,7 @@ const { data: collection, status } = await useStorefrontData(key, `#graphql
     }
     ${PRODUCT_CONNECTION_FRAGMENT}
     ${PRODUCT_FILTERS_FRAGMENT}
+    ${COLLECTION_FRAGMENT}
     ${IMAGE_FRAGMENT}
     ${PRICE_FRAGMENT}
 `, {
@@ -64,13 +64,6 @@ const filters = computed(() => collection.value?.products.filters)
 const pageInfo = computed(() => collection.value?.products.pageInfo)
 const products = computed(() => flattenConnection(collection.value?.products))
 
-const toTop = () => {
-    window.scrollTo({
-        top: 0,
-        behavior: 'smooth',
-    })
-}
-
 const loadPrevious = async () => {
     route.query.after = null
     route.query.before = pageInfo.value?.startCursor ?? null
@@ -82,8 +75,6 @@ const loadPrevious = async () => {
         first: undefined,
         last: 12,
     } })
-
-    toTop()
 }
 
 const loadNext = async () => {
@@ -94,16 +85,15 @@ const loadNext = async () => {
         first: 12,
         last: undefined,
     } })
-
-    toTop()
 }
 
 watch(locale, () => {
     route.query.first = null
     route.query.last = null
-
-    toTop()
 })
+
+watch(() => collection.value?.products.pageInfo, async () => await nextTick().then(() =>
+    window.scrollTo({ top: 0, behavior: 'smooth' })), { deep: true })
 </script>
 
 <template>
@@ -154,37 +144,37 @@ watch(locale, () => {
                     {{ $t('pagination.next') }}
                 </UButton>
             </div>
-        </div>
 
-        <div
-            v-if="status === 'pending'"
-            class="flex justify-center pt-8"
-        >
-            {{ $t('collection.products.loading') }}
-        </div>
-
-        <div
-            v-else-if="!products || products.length === 0"
-            class="flex flex-col justify-center items-center col-span-full text-center"
-        >
-            <div class="flex items-center pb-2 gap-2">
-                <UIcon
-                    name="i-lucide-triangle-alert"
-                    class="text-dimmed size-6"
-                />
-
-                <p class="text-xl text-dimmed">
-                    {{ $t('collection.products.notFound') }}
-                </p>
+            <div
+                v-if="status === 'pending'"
+                class="flex justify-center pt-8"
+            >
+                {{ $t('collection.products.loading') }}
             </div>
 
-            <UButton
-                variant="subtle"
-                color="primary"
-                class="mt-4"
-                :label="$t('filters.clear')"
-                @click="router.push({ query: {} })"
-            />
+            <div
+                v-else-if="!products || products.length === 0"
+                class="flex flex-col justify-center items-center col-span-full text-center"
+            >
+                <div class="flex items-center pb-2 gap-2">
+                    <UIcon
+                        name="i-lucide-triangle-alert"
+                        class="text-dimmed size-6"
+                    />
+
+                    <p class="text-xl text-dimmed">
+                        {{ $t('collection.products.notFound') }}
+                    </p>
+                </div>
+
+                <UButton
+                    variant="subtle"
+                    color="primary"
+                    class="mt-4"
+                    :label="$t('filters.clear')"
+                    @click="router.push({ query: {} })"
+                />
+            </div>
         </div>
     </div>
 </template>

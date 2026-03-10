@@ -19,10 +19,11 @@ const { data: collection } = await useStorefrontData(key, `#graphql
     )
     @inContext(language: $language, country: $country) {
         collection(handle: $handle) {
-            title,
-            description,
+            ...CollectionFields
         }
     }
+    ${COLLECTION_FRAGMENT}
+    ${IMAGE_FRAGMENT}
 `, {
     variables: computed(() => collectionInputSchema.parse({
         handle: handle.value,

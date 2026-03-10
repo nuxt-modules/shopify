@@ -24,7 +24,6 @@
     },
     "docs": {
       "entry": [
-        "app/app.config.ts",
         "app/**/*.{vue,ts,css}",
         "graphql/**/*.ts",
         "content/**/*.md"
@@ -54,6 +53,7 @@
       "ignoreDependencies": [
         "@nuxtjs/shopify",
         "@tailwindcss/typography",
+        "vue-router",
         "vue-tsc"
       ]
     },
@@ -87,10 +87,5 @@
         "**/*.{ts,vue}"
       ]
     }
-  },
-  "ignoreUnresolved": [
-    "#i18n",
-    "#shopify/.+",
-    "#ui/.+"
-  ]
+  }
 }

@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import type { ProductFilterFieldsFragment, ProductFilter } from '#shopify/storefront'
+import type { Filter, ProductFilter } from '#shopify/storefront'
 
 const props = defineProps<{
-    filter: ProductFilterFieldsFragment['filters'][number]
+    filter: Filter
 }>()
 
 const key = computed(() => Object.keys(JSON.parse(props.filter.values.at(0)?.input ?? '{}')).at(0) as keyof ProductFilter)
 const items = computed(() => props.filter.values.map(v => v.label))
 
-const { get, set } = useFilter(key.value)
+const { get, set } = useFilters(key.value)
 
 const componentToFilter = (value: string[]) =>
     props.filter.values.filter(v => value.includes(v.label)).map(v => JSON.parse(v.input) as ProductFilter)

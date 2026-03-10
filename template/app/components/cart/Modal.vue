@@ -65,7 +65,7 @@ watch(() => route.path, () => open.value = false)
                 <div class="flex items-center gap-2">
                     <p class="font-medium inline-block">
                         {{ t('cart.subtotal') }}:
-                        <Price :price="total" />
+                        <ProductPrice :price="total" />
                     </p>
 
                     <Icon
