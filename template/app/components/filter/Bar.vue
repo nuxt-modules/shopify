@@ -5,6 +5,10 @@ const props = defineProps<{
     filters?: ProductFilterFieldsFragment['filters']
 }>()
 
+defineExpose({
+    reset: () => resetFilters(),
+})
+
 const router = useRouter()
 const route = useRoute()
 
@@ -37,7 +41,6 @@ const filtersKey = ref(useId())
 const resetFilters = async () => {
     await router.push({ query: {} })
 
-    console.log('Filters reset', filtersKey.value)
     filtersKey.value += 1
 }
 </script>
@@ -58,7 +61,7 @@ const resetFilters = async () => {
                         variant="ghost"
                         color="primary"
                         class="ms-4"
-                        label="Reset Filters"
+                        :label="$t('filters.clear')"
                         @click="resetFilters"
                     />
 

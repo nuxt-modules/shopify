@@ -10,10 +10,15 @@ const items = computed(() => props.filter.values.map(v => v.label))
 
 const { get, set } = useFilter(key.value)
 
-const value = ref(get().map(f => props.filter.values.find(v => v.input === JSON.stringify(f))?.label).filter(v => v !== undefined))
+const componentToFilter = (value: string[]) =>
+    props.filter.values.filter(v => value.includes(v.label)).map(v => JSON.parse(v.input) as ProductFilter)
 
-const submit = async (value: (string | number | bigint | Record<string, unknown> | null)[]) =>
-    set(props.filter.values.filter(v => value.includes(v.label)).map(v => JSON.parse(v.input) as ProductFilter))
+const filterToComponent = (filter: ProductFilter[]) =>
+    filter.map(f => props.filter.values.find(v => v.input === JSON.stringify(f))?.label).filter(v => v !== undefined) as string[]
+
+const value = ref(filterToComponent(get()))
+
+const submit = async (value: string[]) => set(componentToFilter(value))
 </script>
 
 <template>

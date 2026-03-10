@@ -56,7 +56,8 @@
         "all": "Alle Kollektionen"
     },
     "filters": {
-        "title": "Filter"
+        "title": "Filter",
+        "clear": "Filter zurücksetzen"
     },
     "home": {
         "title": "Nuxt Shopify Demo Store",

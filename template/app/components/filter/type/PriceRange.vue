@@ -3,6 +3,8 @@ import type { ProductFilterFieldsFragment, ProductFilter } from '#shopify/storef
 
 import { z } from 'zod'
 
+type FilterValue = { min?: number, max?: number }
+
 const props = defineProps<{
     filter: ProductFilterFieldsFragment['filters'][number]
 }>()
@@ -10,20 +12,20 @@ const props = defineProps<{
 const { get, set } = useFilter('price')
 const { t } = useI18n()
 
-const input = computed(() => JSON.parse(props.filter.values.at(0)?.input ?? '{}')?.price as ProductFilter['price'])
-const query = computed(() => get().at(0) as ProductFilter['price'])
+const input = computed(() => JSON.parse(props.filter.values.at(0)?.input ?? '{}')?.price as FilterValue)
+
+const componentToFilter = (value: FilterValue) => [{ price: value } as ProductFilter]
+
+const filterToComponent = (filter: ProductFilter[]) => filter.map(f => f.price).filter(p => p !== undefined).at(0) as FilterValue ?? input.value
 
 const schema = z.object({
     min: z.number().min(0).optional(),
     max: z.number().min(1).optional(),
 })
 
-const state = reactive<z.infer<typeof schema>>({
-    min: query.value?.min ?? input.value?.min ?? 0,
-    max: query.value?.max ?? input.value?.max ?? 1,
-})
+const state = reactive<z.infer<typeof schema>>(filterToComponent(get()) ?? {})
 
-const submit = async (values: { min?: number, max?: number }) => set([{ price: values }])
+const submit = async (value: FilterValue) => set(componentToFilter(value))
 </script>
 
 <template>
@@ -42,7 +44,7 @@ const submit = async (values: { min?: number, max?: number }) => set([{ price: v
                     class="w-24"
                     :min="0"
                     :max="state.max"
-                    @change="async () => submit(state)"
+                    @change="submit(state)"
                 />
             </UFormField>
 
@@ -54,7 +56,7 @@ const submit = async (values: { min?: number, max?: number }) => set([{ price: v
                     v-model="state.max"
                     class="w-24"
                     :min="state.min"
-                    @change="async () => submit(state)"
+                    @change="submit(state)"
                 />
             </UFormField>
         </div>
