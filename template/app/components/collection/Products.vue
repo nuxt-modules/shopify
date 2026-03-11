@@ -98,7 +98,7 @@ watch(() => collection.value?.products.pageInfo, async () => await nextTick().th
 
 <template>
     <div class="w-full lg:grid lg:grid-cols-12">
-        <FilterBar
+        <FilterGroup
             v-if="filters?.length"
             :filters="filters"
             class="lg:col-span-4 xl:col-span-3"

@@ -5,7 +5,30 @@ const props = defineProps<{
     product: ProductFieldsFragment
 }>()
 
+const { data, error } = await useStorefrontData(`product-${locale.value}-${handle.value}`, `#graphql
+    query FetchProduct($handle: String, $language: LanguageCode, $country: CountryCode) 
+    @inContext(language: $language, country: $country) {
+        product(handle: $handle) {
+            ...ProductFields
+        }
+        productRecommendations(productHandle: $handle) {
+            ...ProductFields
+        }
+    }
+    ${IMAGE_FRAGMENT}
+    ${PRICE_FRAGMENT}
+    ${PRODUCT_FRAGMENT}
+`, {
+    variables: computed(() => productInputSchema.parse({
+        handle: handle.value,
+        language: language.value,
+        country: country.value,
+    })),
+})
+
 const open = ref(false)
+
+const variant = ref(props.product.selectedOrFirstAvailableVariant!)
 </script>
 
 <template>
@@ -13,6 +36,9 @@ const open = ref(false)
         v-model:open="open"
         title="Choose Options"
         description="Select the options you want to add to your cart."
+        :ui="{
+            content: 'max-w-4xl!',
+        }"
     >
         <UButton
             color="neutral"
@@ -40,10 +66,18 @@ const open = ref(false)
         />
 
         <template #body>
-            <ProductOptions
-                :product="props.product"
-                @submit="open = false"
-            />
+            <div class="lg:grid lg:grid-cols-12">
+                <ProductGallery
+                    :product="props.product"
+                    :selected-variant="variant ?? undefined"
+                    class="lg:col-span-6"
+                />
+
+                <ProductConfigurator
+                    v-model="variant"
+                    class="lg:col-start-8 lg:col-span-5"
+                />
+            </div>
         </template>
     </UModal>
 </template>

@@ -9,23 +9,23 @@
         </p>
 
         <h2 class="text-3xl lg:text-4xl text-gray-900 font-bold mb-6 lg:mb-8">
-            {{ $t('collection.women') }}
+            {{ $t('collection.featured') }}
         </h2>
 
         <div class="mb-12 sm:px-12 lg:mb-16 2xl:px-0">
             <CollectionSlider
-                handle="women"
+                handle="featured"
                 :first="12"
             />
         </div>
 
         <h2 class="text-3xl lg:text-4xl text-gray-900 font-bold mb-6 lg:mb-8">
-            {{ $t('collection.men') }}
+            {{ $t('collection.unisex') }}
         </h2>
 
         <div class="mb-12 sm:px-12 lg:mb-16 2xl:px-0">
             <CollectionSlider
-                handle="men"
+                handle="unisex"
                 :first="12"
             />
         </div>

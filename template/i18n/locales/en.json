@@ -51,8 +51,8 @@
             "loading": "Loading products...",
             "notFound": "No products found."
         },
-        "women": "Women's Clothing",
-        "men": "Men's Clothing",
+        "featured": "Featured Collection",
+        "unisex": "Unisex Clothing",
         "all": "All Collections"
     },
     "filters": {
@@ -62,5 +62,11 @@
     "home": {
         "title": "Nuxt Shopify Demo Store",
         "description": "This is a demo store built with Nuxt 4 and the Shopify Storefront API. It showcases how to build a fully functional e-commerce storefront with Nuxt UI."
+    },
+    "error": {
+        "home": "Back to Homepage",
+        "notFound": "Page not found",
+        "collection": "Collection not found",
+        "product": "Product not found"
     }
 }

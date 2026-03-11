@@ -11,7 +11,7 @@ const handle = computed(() => route.params.handle as string)
 
 const key = computed(() => `collection-${locale.value}-${handle.value}`)
 
-const { data: collection } = await useStorefrontData(key, `#graphql
+const { data: collection, error } = await useStorefrontData(key, `#graphql
     query FetchCollection(
         $handle: String,
         $language: LanguageCode,
@@ -31,6 +31,15 @@ const { data: collection } = await useStorefrontData(key, `#graphql
     transform: data => data?.collection,
     cache: 'long',
 })
+
+if (!collection.value || error.value) {
+    throw createError({
+        status: 404,
+        statusText: `${$t('error.notFound')}: ${route.fullPath}`,
+        message: error.value?.message || $t('error.collection'),
+        fatal: true,
+    })
+}
 </script>
 
 <template>

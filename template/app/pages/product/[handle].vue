@@ -10,21 +10,13 @@ const localePath = useLocalePath()
 const { locale } = useI18n()
 const route = useRoute()
 
-const carousel = useTemplateRef('carousel')
-
 const handle = computed(() => route.params.handle as string)
 
-const selectedOptions = ref<SelectedOption[]>()
-
-const { data, error } = await useStorefrontData(`collection-${locale.value}-${handle.value}`, `#graphql
-    query FetchProduct($handle: String, $language: LanguageCode, $country: CountryCode, $selectedOptions: [SelectedOptionInput!]) 
+const { data, error } = await useStorefrontData(`product-${locale.value}-${handle.value}`, `#graphql
+    query FetchProduct($handle: String, $language: LanguageCode, $country: CountryCode) 
     @inContext(language: $language, country: $country) {
         product(handle: $handle) {
             ...ProductFields
-
-            selectedOrFirstAvailableVariant(selectedOptions: $selectedOptions) {
-                ...ProductVariantFields
-            }
         }
         productRecommendations(productHandle: $handle) {
             ...ProductFields
@@ -38,33 +30,32 @@ const { data, error } = await useStorefrontData(`collection-${locale.value}-${ha
         handle: handle.value,
         language: language.value,
         country: country.value,
-        selectedOptions: Object.entries(selectedOptions.value ?? {}).map(([name, value]) => ({ name, value })),
     })),
-    watch: [selectedOptions],
-    deep: true,
 })
 
-if (error.value) {
+if (!data.value?.product || error.value) {
     throw createError({
-        statusCode: 404,
-        message: error.value.message,
+        status: 404,
+        statusText: `${$t('error.notFound')}: ${route.fullPath}`,
+        message: error.value?.message || $t('error.product'),
     })
 }
 
 const product = computed(() => data.value?.product)
 const recommendations = computed(() => data.value?.productRecommendations)
-const selectedVariant = computed(() => data.value?.product?.selectedOrFirstAvailableVariant)
 
-const variants = computed(() => flattenConnection(product.value?.variants))
-const images = computed(() => (selectedVariant.value?.image ? [selectedVariant.value.image] : [])
-    .concat(flattenConnection(product.value?.images)))
+const selectedOptions = ref<SelectedOption[]>([])
+
+const selectedVariant = computed(() => flattenConnection(data.value?.product?.variants)
+    .find(variant => variant.id.replace('gid://shopify/ProductVariant/', '') === route.query.variantId)
+    ?? product.value?.selectedOrFirstAvailableVariant)
 
 useSeoMeta({
     title: `${product.value?.title} | Nuxt Shopify Demo Store`,
     description: product.value?.description,
 })
 
-watch(selectedVariant, () => carousel.value?.emblaApi?.scrollTo(0))
+watch(selectedOptions, value => console.log(value))
 </script>
 
 <template>
@@ -79,67 +70,32 @@ watch(selectedVariant, () => carousel.value?.emblaApi?.scrollTo(0))
 
         <div
             v-if="product"
-            class="lg:grid lg:grid-cols-12 mb-12 lg:mb-16"
+            class="mb-12 lg:grid lg:grid-cols-12 lg:mb-16"
         >
-            <div class="lg:col-span-6">
-                <UCarousel
-                    v-if="images"
-                    ref="carousel"
-                    v-slot="{ item }"
-                    :items="images"
-                    :ui="{
-                        prev: 'left-3!',
-                        next: 'right-3!',
-                    }"
-                    class="mb-6 lg:mb-8"
-                    arrows
-                    loop
-                >
-                    <ProductImage :image="item" />
-                </UCarousel>
+            <ProductGallery
+                ref="carousel"
+                :product="product"
+                :selected-variant="selectedVariant ?? undefined"
+                class="lg:col-span-6"
+                thumbnails
+            />
 
-                <div class="hidden lg:grid grid-cols-12 gap-8 mb-6 lg:mb-8">
-                    <ProductImage
-                        v-for="variant in variants"
-                        :key="variant.id"
-                        :image="variant.image ?? undefined"
-                        class="col-span-6"
+            <div class="lg:col-span-4 lg:col-start-8">
+                <div class="lg:sticky lg:top-[calc(var(--ui-header-height)+3rem)]">
+                    <ProductConfigurator
+                        :handle="handle"
+                        class="mb-12 lg:mb-16"
                     />
-                </div>
-            </div>
 
-            <div class="flex flex-col gap-4 lg:col-span-4 lg:col-start-8">
-                <div class="flex flex-col lg:sticky lg:top-[calc(var(--ui-header-height)+3rem)]">
-                    <div class="flex-col lg:flex pb-6 lg:pb-8">
-                        <h1 class="text-4xl lg:text-5xl font-extrabold text-gray-900 mb-4">
-                            {{ product.title }}
-                        </h1>
-
-                        <ProductPrice
-                            v-if="selectedVariant"
-                            :price="selectedVariant.price"
-                            class="inline-block lg:text-lg lg:mb-0"
-                        />
-                    </div>
-
-                    <USeparator class="mb-6 lg:mb-8" />
-
-                    <p class="order-2 lg:order-1 lg:text-lg max-w-md mb-6 lg:mb-8">
+                    <p class="mb-6 lg:text-lg lg:mb-8">
                         {{ product.description }}
                     </p>
-
-                    <ProductOptions
-                        v-if="product.options.length > 0"
-                        :product="product"
-                        class="order-1 lg:order-2 mb-6 lg:mb-8"
-                        @choose="options => selectedOptions = options"
-                    />
                 </div>
             </div>
         </div>
 
         <div v-if="recommendations">
-            <h2 class="text-3xl lg:text-4xl text-gray-900 font-bold mb-6 lg:mb-8">
+            <h2 class="text-3xl text-gray-900 font-bold mb-6 lg:mb-8 lg:text-4xl">
                 {{ $t('product.recommendations') }}
             </h2>
 

@@ -62,5 +62,11 @@
     "home": {
         "title": "Nuxt Shopify Demo Store",
         "description": "Dies ist ein Demo-Shop, der mit Nuxt 4 und der Shopify Storefront API erstellt wurde. Er zeigt, wie man einen voll funktionsfähigen E-Commerce-Storefront mit Nuxt UI erstellt."
+    },
+    "error": {
+        "home": "Zurück zur Startseite",
+        "notFound": "Seite nicht gefunden",
+        "collection": "Kollektion nicht gefunden",
+        "product": "Produkt nicht gefunden"
     }
 }

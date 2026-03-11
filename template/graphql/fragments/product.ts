@@ -15,7 +15,7 @@ export const PRODUCT_VARIANT_FRAGMENT = `#graphql
             ...ImageFields
         }
         product {
-            title
+            handle
         }
     }
 `
@@ -89,6 +89,9 @@ export const PRODUCT_FRAGMENT = `#graphql
         descriptionHtml
         availableForSale
         vendor
+        selectedOrFirstAvailableVariant {
+            ...ProductVariantFields
+        }
         variants(first: 250) {
             ...ProductVariantConnectionFields
         }

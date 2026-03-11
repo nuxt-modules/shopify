@@ -23,7 +23,7 @@ export const queryToFilters = (query: LocationQuery) => {
 }
 
 export const filtersToQuery = (filters: ProductFilter[]) => {
-    let query: Record<string, string | string[]> = {}
+    let query: LocationQuery = {}
 
     filters.forEach((filter) => {
         const name = Object.keys(filter).at(0) as keyof ProductFilter
@@ -42,3 +42,11 @@ export const filtersToQuery = (filters: ProductFilter[]) => {
 
     return query
 }
+
+export const queryToVariantId = (query: LocationQuery) => typeof query.variantId === 'string'
+    ? `gid://shopify/ProductVariant/${query.variantId}`
+    : undefined
+
+export const variantIdToQuery = (variantId?: string): LocationQuery => variantId
+    ? { variantId: variantId.replace('gid://shopify/ProductVariant/', '') }
+    : {}
