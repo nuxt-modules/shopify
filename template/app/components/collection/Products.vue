@@ -26,6 +26,7 @@ const { data: collection, status } = await useStorefrontData(key, `#graphql
     @inContext(language: $language, country: $country) {
         collection(handle: $handle) {
             ...CollectionFields
+
             products(
                 after: $after,
                 before: $before,

@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import type { SelectedOption } from '#shopify/storefront'
-
 definePageMeta({
     validate: route => typeof route.params.handle === 'string',
 })
@@ -8,6 +6,7 @@ definePageMeta({
 const { language, country } = useLocalization()
 const localePath = useLocalePath()
 const { locale } = useI18n()
+const router = useRouter()
 const route = useRoute()
 
 const handle = computed(() => route.params.handle as string)
@@ -18,6 +17,7 @@ const { data, error } = await useStorefrontData(`product-${locale.value}-${handl
         product(handle: $handle) {
             ...ProductFields
         }
+
         productRecommendations(productHandle: $handle) {
             ...ProductFields
         }
@@ -31,6 +31,7 @@ const { data, error } = await useStorefrontData(`product-${locale.value}-${handl
         language: language.value,
         country: country.value,
     })),
+    cache: 'long',
 })
 
 if (!data.value?.product || error.value) {
@@ -44,9 +45,7 @@ if (!data.value?.product || error.value) {
 const product = computed(() => data.value?.product)
 const recommendations = computed(() => data.value?.productRecommendations)
 
-const selectedOptions = ref<SelectedOption[]>([])
-
-const selectedVariant = computed(() => flattenConnection(data.value?.product?.variants)
+const selectedVariant = ref(flattenConnection(data.value?.product?.variants)
     .find(variant => variant.id.replace('gid://shopify/ProductVariant/', '') === route.query.variantId)
     ?? product.value?.selectedOrFirstAvailableVariant)
 
@@ -55,7 +54,14 @@ useSeoMeta({
     description: product.value?.description,
 })
 
-watch(selectedOptions, value => console.log(value))
+watch(selectedVariant, (variant) => {
+    if (variant) {
+        router.push({
+            path: localePath(`/product/${variant.product.handle}`),
+            query: { variantId: variant.id.replace('gid://shopify/ProductVariant/', '') },
+        })
+    }
+})
 </script>
 
 <template>
@@ -69,13 +75,13 @@ watch(selectedOptions, value => console.log(value))
         />
 
         <div
-            v-if="product"
+            v-if="product && selectedVariant"
             class="mb-12 lg:grid lg:grid-cols-12 lg:mb-16"
         >
             <ProductGallery
                 ref="carousel"
+                :selected-variant="selectedVariant"
                 :product="product"
-                :selected-variant="selectedVariant ?? undefined"
                 class="lg:col-span-6"
                 thumbnails
             />
@@ -83,7 +89,7 @@ watch(selectedOptions, value => console.log(value))
             <div class="lg:col-span-4 lg:col-start-8">
                 <div class="lg:sticky lg:top-[calc(var(--ui-header-height)+3rem)]">
                     <ProductConfigurator
-                        :handle="handle"
+                        v-model="selectedVariant"
                         class="mb-12 lg:mb-16"
                     />
 

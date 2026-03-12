@@ -25,35 +25,26 @@ const isColorSwatchOption = (option?: typeof props.options[number]) =>
 
 const isImageSwatchOption = (option?: typeof props.options[number]) =>
     !!option?.optionValues?.every(value => value.swatch?.image?.previewImage?.url)
+
+const getFilterComponent = (option: typeof props.options[number]) => {
+    if (isColorSwatchOption(option)) return resolveComponent('ProductOptionSwatchColor')
+    if (isImageSwatchOption(option)) return resolveComponent('ProductOptionSwatchImage')
+
+    return resolveComponent('ProductOptionSwatchText')
+}
 </script>
 
 <template>
-    <div
-        v-for="option in props.options"
-        :key="option.id"
-    >
+    <div>
         <UFormField
-            v-if="option.optionValues.length > 1"
+            v-for="option in props.options.filter(option => option.optionValues.length > 1)"
+            :key="option.id"
             :label="option.name"
             :name="option.name"
             class="mb-6 lg:mb-8"
         >
-            <ProductOptionSwatchColor
-                v-if="isColorSwatchOption(option)"
-                v-model="state[option.name]"
-                :option="option"
-                @update:model-value="onChange"
-            />
-
-            <ProductOptionSwatchImage
-                v-else-if="isImageSwatchOption(option)"
-                v-model="state[option.name]"
-                :option="option"
-                @update:model-value="onChange"
-            />
-
-            <ProductOptionSwatchText
-                v-else
+            <component
+                :is="getFilterComponent(option)"
                 v-model="state[option.name]"
                 :option="option"
                 @update:model-value="onChange"

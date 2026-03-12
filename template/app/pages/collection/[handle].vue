@@ -40,6 +40,11 @@ if (!collection.value || error.value) {
         fatal: true,
     })
 }
+
+useSeoMeta({
+    title: `${collection.value?.title} | Nuxt Shopify Demo Store`,
+    description: collection.value?.description,
+})
 </script>
 
 <template>

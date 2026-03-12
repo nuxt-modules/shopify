@@ -5,30 +5,9 @@ const props = defineProps<{
     product: ProductFieldsFragment
 }>()
 
-const { data, error } = await useStorefrontData(`product-${locale.value}-${handle.value}`, `#graphql
-    query FetchProduct($handle: String, $language: LanguageCode, $country: CountryCode) 
-    @inContext(language: $language, country: $country) {
-        product(handle: $handle) {
-            ...ProductFields
-        }
-        productRecommendations(productHandle: $handle) {
-            ...ProductFields
-        }
-    }
-    ${IMAGE_FRAGMENT}
-    ${PRICE_FRAGMENT}
-    ${PRODUCT_FRAGMENT}
-`, {
-    variables: computed(() => productInputSchema.parse({
-        handle: handle.value,
-        language: language.value,
-        country: country.value,
-    })),
-})
+const selectedVariant = ref(props.product?.selectedOrFirstAvailableVariant)
 
 const open = ref(false)
-
-const variant = ref(props.product.selectedOrFirstAvailableVariant!)
 </script>
 
 <template>
@@ -66,15 +45,18 @@ const variant = ref(props.product.selectedOrFirstAvailableVariant!)
         />
 
         <template #body>
-            <div class="lg:grid lg:grid-cols-12">
+            <div
+                v-if="product && selectedVariant"
+                class="lg:grid lg:grid-cols-12"
+            >
                 <ProductGallery
-                    :product="props.product"
-                    :selected-variant="variant ?? undefined"
+                    :selected-variant="selectedVariant"
+                    :product="product"
                     class="lg:col-span-6"
                 />
 
                 <ProductConfigurator
-                    v-model="variant"
+                    v-model="selectedVariant"
                     class="lg:col-start-8 lg:col-span-5"
                 />
             </div>

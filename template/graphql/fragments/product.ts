@@ -7,7 +7,6 @@ export const PRODUCT_VARIANT_FRAGMENT = `#graphql
             name
             value
         }
-        sku
         price {
             ...PriceFields
         }
@@ -16,6 +15,7 @@ export const PRODUCT_VARIANT_FRAGMENT = `#graphql
         }
         product {
             handle
+            title
         }
     }
 `
@@ -63,6 +63,7 @@ export const PRODUCT_FRAGMENT = `#graphql
         handle
         title
         description
+        vendor
         featuredImage {
             ...ImageFields
         }
@@ -73,9 +74,6 @@ export const PRODUCT_FRAGMENT = `#graphql
                 }
             }
         }
-        options(first: 250) {
-            ...ProductOptionFields
-        }
         priceRange {
             minVariantPrice {
                 ...PriceFields
@@ -84,19 +82,13 @@ export const PRODUCT_FRAGMENT = `#graphql
                 ...PriceFields
             }
         }
-        productType
-        tags
-        descriptionHtml
-        availableForSale
-        vendor
-        selectedOrFirstAvailableVariant {
-            ...ProductVariantFields
-        }
         variants(first: 250) {
             ...ProductVariantConnectionFields
         }
+        selectedOrFirstAvailableVariant {
+            ...ProductVariantFields
+        }
     }
-    ${PRODUCT_OPTION_FRAGMENT}
     ${PRODUCT_VARIANT_CONNECTION_FRAGMENT}
 `
 

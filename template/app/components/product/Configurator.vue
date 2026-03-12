@@ -1,30 +1,68 @@
 <script setup lang="ts">
-import type { ProductFieldsFragment, ProductVariantFieldsFragment } from '#shopify/storefront'
-
-const props = defineProps<{
-    product: ProductFieldsFragment
-}>()
+import type { ProductVariantFieldsFragment } from '#shopify/storefront'
+import type { FormSubmitEvent } from '#ui/types'
 
 const selectedVariant = defineModel<ProductVariantFieldsFragment>()
 
+const { language, country } = useLocalization()
+const { locale } = useI18n()
+const { add } = useCart()
+
+const handle = computed(() => selectedVariant.value?.product.handle)
+
 const state = reactive({
-    selectedOptions: props.product.selectedOrFirstAvailableVariant?.selectedOptions || [],
     quantity: 1,
+    selectedOptions: selectedVariant.value?.selectedOptions,
 })
 
-const onChange = () => selectedVariant.value = flattenConnection(props.product.variants)
-    .find(variant => variant.selectedOptions.every(option =>
-        state.selectedOptions.every(selectedOption =>
-            selectedOption.name === option.name && selectedOption.value === option.value,
-        ),
-    ))
+const { data: product } = await useStorefrontData(`product-options-${locale.value}-${handle.value}`, `#graphql
+    query FetchProductOptions($handle: String, $language: LanguageCode, $country: CountryCode, $selectedOptions: [SelectedOptionInput!]) 
+    @inContext(language: $language, country: $country) {
+        product(handle: $handle) {
+            options(first: 250) {
+                ...ProductOptionFields
+            }
+
+            selectedOrFirstAvailableVariant(selectedOptions: $selectedOptions) {
+                ...ProductVariantFields
+            }
+        }
+    }
+    ${IMAGE_FRAGMENT}
+    ${PRICE_FRAGMENT}
+    ${PRODUCT_VARIANT_FRAGMENT}
+    ${PRODUCT_OPTION_FRAGMENT}
+`, {
+    variables: computed(() => productInputSchema.parse({
+        handle: handle.value,
+        language: language.value,
+        country: country.value,
+        selectedOptions: state.selectedOptions,
+    })),
+    transform: value => value.product,
+    watch: [() => state.selectedOptions],
+    cache: 'long',
+    lazy: true,
+})
+
+const loading = ref(false)
+
+watch(() => product.value?.selectedOrFirstAvailableVariant, variant => selectedVariant.value = variant ?? undefined)
+
+const onSubmit = async (event: FormSubmitEvent<typeof state>) => {
+    if (!selectedVariant.value) return
+
+    loading.value = true
+
+    await add(selectedVariant.value.id, event.data.quantity).then(() => loading.value = false)
+}
 </script>
 
 <template>
     <div>
         <div class="flex-col lg:flex pb-6 lg:pb-8">
             <h1 class="text-4xl lg:text-5xl font-extrabold text-gray-900 mb-4">
-                {{ props.product?.title }}
+                {{ selectedVariant?.product?.title }}
             </h1>
 
             <ProductPrice
@@ -36,13 +74,15 @@ const onChange = () => selectedVariant.value = flattenConnection(props.product.v
 
         <USeparator class="mb-6 lg:mb-8" />
 
-        <UForm>
+        <UForm
+            v-if="product"
+            :state="state"
+            @submit="onSubmit"
+        >
             <ProductOptionGroup
-                v-if="product?.options"
                 v-model="state.selectedOptions"
                 :options="product.options"
                 class="order-1 lg:order-2 mb-6 lg:mb-8"
-                @update:model-value="onChange"
             />
 
             <div class="flex justify-between items-center">
@@ -65,8 +105,9 @@ const onChange = () => selectedVariant.value = flattenConnection(props.product.v
                     type="submit"
                     size="xl"
                     variant="subtle"
-                    :trailing-icon="'i-lucide-shopping-bag'"
-                    :ui="{ trailingIcon: 'size-5' }"
+                    :disabled="!selectedVariant || loading"
+                    :trailing-icon="loading ? 'i-lucide-loader-circle' : 'i-lucide-shopping-bag'"
+                    :ui="{ trailingIcon: loading ? 'animate-spin size-5' : 'size-5' }"
                     :label="$t('product.add')"
                 />
             </div>
