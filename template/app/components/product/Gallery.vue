@@ -11,8 +11,18 @@ const carousel = useTemplateRef('carousel')
 
 const images = computed(() => flattenConnection(props.product.images))
 
-const sliderImages = computed(() => (props.selectedVariant?.image ? [props.selectedVariant.image] : [])
-    .concat(flattenConnection(props.product?.images)))
+const sliderImages = computed(() => {
+    if (props.selectedVariant?.image) {
+        const variantImage = props.selectedVariant.image
+
+        return [
+            variantImage,
+            ...images.value.filter(image => image.url !== variantImage.url),
+        ]
+    }
+
+    return images.value
+})
 
 watch(() => props.selectedVariant, () => carousel.value?.emblaApi?.scrollTo(0))
 </script>

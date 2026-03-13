@@ -7,6 +7,7 @@ const props = defineProps<{
     error: NuxtError
 }>()
 
+const { shopify: { shopName } } = useAppConfig()
 const { language } = useLocalization()
 const { id, init, get } = useCart()
 const localePath = useLocalePath()
@@ -19,7 +20,7 @@ useHead({
         lang,
         dir,
     },
-    title: 'Nuxt Shopify Demo Store',
+    title: shopName,
 })
 
 watch(id, value => !value ? init().then(get) : get(), { immediate: true })

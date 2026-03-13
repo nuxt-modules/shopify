@@ -3,6 +3,7 @@ definePageMeta({
     validate: route => typeof route.params.handle === 'string',
 })
 
+const { shopify: { shopName } } = useAppConfig()
 const { language, country } = useLocalization()
 const localePath = useLocalePath()
 const { locale } = useI18n()
@@ -50,8 +51,8 @@ const selectedVariant = ref(flattenConnection(data.value?.product?.variants)
     ?? product.value?.selectedOrFirstAvailableVariant)
 
 useSeoMeta({
-    title: `${product.value?.title} | Nuxt Shopify Demo Store`,
-    description: product.value?.description,
+    title: `${product.value?.title} | ${shopName}`,
+    description: product.value?.description ?? $t('seo.description'),
 })
 
 watch(selectedVariant, (variant) => {
@@ -90,6 +91,7 @@ watch(selectedVariant, (variant) => {
                 <div class="lg:sticky lg:top-[calc(var(--ui-header-height)+3rem)]">
                     <ProductConfigurator
                         v-model="selectedVariant"
+                        :product="product"
                         class="mb-12 lg:mb-16"
                     />
 

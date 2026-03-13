@@ -5,6 +5,7 @@ definePageMeta({
         && typeof route.params.article === 'string',
 })
 
+const { shopify: { shopName } } = useAppConfig()
 const localePath = useLocalePath()
 const { locale } = useI18n()
 const route = useRoute()
@@ -12,7 +13,7 @@ const route = useRoute()
 const handle = computed(() => route.params.handle as string)
 const article = computed(() => route.params.article as string)
 
-const { data: blog } = await useStorefrontData(`article-${locale.value}-${handle.value}`, `#graphql
+const { data: blog, error } = await useStorefrontData(`article-${locale.value}-${handle.value}`, `#graphql
     query FetchBlogArticle($handle: String!, $article: String!) {
         blog(handle: $handle) {
             title
@@ -32,6 +33,19 @@ const { data: blog } = await useStorefrontData(`article-${locale.value}-${handle
 })
 
 const articleData = computed(() => blog.value?.articleByHandle)
+
+if (!articleData.value || error.value) {
+    throw createError({
+        status: 404,
+        statusText: `${$t('error.notFound')}: ${route.fullPath}`,
+        message: error.value?.message || $t('error.article'),
+    })
+}
+
+useSeoMeta({
+    title: `${articleData.value?.seo?.title ?? articleData.value?.title} | ${shopName}`,
+    description: articleData.value?.seo?.description ?? $t('seo.description'),
+})
 </script>
 
 <template>

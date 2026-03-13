@@ -1,8 +1,16 @@
 <script setup lang="ts">
-import type { ProductVariantFieldsFragment } from '#shopify/storefront'
+import type { ProductFieldsFragment, ProductVariantFieldsFragment } from '#shopify/storefront'
 import type { FormSubmitEvent } from '#ui/types'
 
+const props = defineProps<{
+    product?: ProductFieldsFragment
+}>()
+
 const selectedVariant = defineModel<ProductVariantFieldsFragment>()
+
+const emit = defineEmits<{
+    submit: [FormSubmitEvent<typeof state>]
+}>()
 
 const { language, country } = useLocalization()
 const { locale } = useI18n()
@@ -15,7 +23,7 @@ const state = reactive({
     selectedOptions: selectedVariant.value?.selectedOptions,
 })
 
-const { data: product } = await useStorefrontData(`product-options-${locale.value}-${handle.value}`, `#graphql
+const { data } = await useStorefrontData(`product-options-${locale.value}-${handle.value}`, `#graphql
     query FetchProductOptions($handle: String, $language: LanguageCode, $country: CountryCode, $selectedOptions: [SelectedOptionInput!]) 
     @inContext(language: $language, country: $country) {
         product(handle: $handle) {
@@ -47,14 +55,20 @@ const { data: product } = await useStorefrontData(`product-options-${locale.valu
 
 const loading = ref(false)
 
-watch(() => product.value?.selectedOrFirstAvailableVariant, variant => selectedVariant.value = variant ?? undefined)
+const product = computed(() => data.value ?? props.product)
+
+watch(() => data.value?.selectedOrFirstAvailableVariant, variant => selectedVariant.value = variant ?? undefined)
 
 const onSubmit = async (event: FormSubmitEvent<typeof state>) => {
     if (!selectedVariant.value) return
 
     loading.value = true
 
-    await add(selectedVariant.value.id, event.data.quantity).then(() => loading.value = false)
+    await add(selectedVariant.value.id, event.data.quantity).finally(() => {
+        loading.value = false
+
+        emit('submit', event)
+    })
 }
 </script>
 

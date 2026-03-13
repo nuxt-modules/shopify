@@ -7,6 +7,10 @@ export const ARTICLE_FRAGMENT = `#graphql
         content
         contentHtml
         publishedAt
+        seo {
+            title
+            description
+        }
     }
 `
 
@@ -20,6 +24,10 @@ export const BLOG_FRAGMENT = `#graphql
                     ...ArticleFields
                 }
             }
+        }
+        seo {
+            title
+            description
         }
     }
     ${ARTICLE_FRAGMENT}

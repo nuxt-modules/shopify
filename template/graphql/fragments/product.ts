@@ -63,7 +63,7 @@ export const PRODUCT_FRAGMENT = `#graphql
         handle
         title
         description
-        vendor
+        availableForSale
         featuredImage {
             ...ImageFields
         }
@@ -73,6 +73,9 @@ export const PRODUCT_FRAGMENT = `#graphql
                     ...ImageFields
                 }
             }
+        }
+        options(first: 250) {
+            ...ProductOptionFields
         }
         priceRange {
             minVariantPrice {
@@ -89,6 +92,7 @@ export const PRODUCT_FRAGMENT = `#graphql
             ...ProductVariantFields
         }
     }
+    ${PRODUCT_OPTION_FRAGMENT}
     ${PRODUCT_VARIANT_CONNECTION_FRAGMENT}
 `
 

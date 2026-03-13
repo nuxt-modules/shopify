@@ -63,10 +63,15 @@
         "title": "Nuxt Shopify Demo Store",
         "description": "This is a demo store built with Nuxt 4 and the Shopify Storefront API. It showcases how to build a fully functional e-commerce storefront with Nuxt UI."
     },
+    "seo": {
+        "description": "Welcome to our demo store! Explore our collections and find the perfect items for you. Enjoy a seamless shopping experience with Nuxt and Shopify."
+    },
     "error": {
         "home": "Back to Homepage",
         "notFound": "Page not found",
         "collection": "Collection not found",
-        "product": "Product not found"
+        "product": "Product not found",
+        "blog": "Blog not found",
+        "article": "Article not found"
     }
 }

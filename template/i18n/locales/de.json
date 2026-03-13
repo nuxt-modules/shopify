@@ -51,8 +51,8 @@
             "loading": "Produkte werden geladen...",
             "notFound": "Keine Produkte gefunden."
         },
-        "women": "Damenbekleidung",
-        "men": "Herrenbekleidung",
+        "featured": "Empfohlene Kollektion",
+        "unisex": "Unisex-Kleidung",
         "all": "Alle Kollektionen"
     },
     "filters": {
@@ -63,10 +63,15 @@
         "title": "Nuxt Shopify Demo Store",
         "description": "Dies ist ein Demo-Shop, der mit Nuxt 4 und der Shopify Storefront API erstellt wurde. Er zeigt, wie man einen voll funktionsfähigen E-Commerce-Storefront mit Nuxt UI erstellt."
     },
+    "seo": {
+        "description": "Willkommen in unserem Demo-Shop! Entdecken Sie unsere Kollektionen und finden Sie die perfekten Artikel für Sie. Genießen Sie ein nahtloses Einkaufserlebnis mit Nuxt und Shopify."
+    },
     "error": {
         "home": "Zurück zur Startseite",
         "notFound": "Seite nicht gefunden",
         "collection": "Kollektion nicht gefunden",
-        "product": "Produkt nicht gefunden"
+        "product": "Produkt nicht gefunden",
+        "blog": "Blog nicht gefunden",
+        "article": "Artikel nicht gefunden"
     }
 }

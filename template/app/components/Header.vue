@@ -25,6 +25,7 @@ const { data: items } = await useStorefrontData('main-menu', `#graphql
                 : item.url ?? undefined,
     })) ?? [],
     cache: 'long',
+    watch: [language, country],
 })
 </script>
 

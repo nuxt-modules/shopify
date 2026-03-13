@@ -3,6 +3,7 @@ const props = defineProps<{
     handle: string
 }>()
 
+const { shopify: { shopName } } = useAppConfig()
 const { params } = useCollection()
 const { locale } = useI18n()
 const router = useRouter()
@@ -57,7 +58,7 @@ const { data: collection, status } = await useStorefrontData(key, `#graphql
 })
 
 useSeoMeta({
-    title: `${collection.value?.title} | Nuxt Shopify Demo Store`,
+    title: `${collection.value?.title} | ${shopName}`,
     description: collection.value?.description,
 })
 

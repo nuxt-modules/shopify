@@ -46,18 +46,20 @@ const open = ref(false)
 
         <template #body>
             <div
-                v-if="product && selectedVariant"
+                v-if="props.product && selectedVariant"
                 class="lg:grid lg:grid-cols-12"
             >
                 <ProductGallery
                     :selected-variant="selectedVariant"
-                    :product="product"
+                    :product="props.product"
                     class="lg:col-span-6"
                 />
 
                 <ProductConfigurator
                     v-model="selectedVariant"
+                    :product="props.product"
                     class="lg:col-start-8 lg:col-span-5"
+                    @submit="open = false"
                 />
             </div>
         </template>

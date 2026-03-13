@@ -3,6 +3,7 @@ definePageMeta({
     validate: route => typeof route.params.handle === 'string',
 })
 
+const { shopify: { shopName } } = useAppConfig()
 const localePath = useLocalePath()
 const { locale } = useI18n()
 const route = useRoute()
@@ -42,8 +43,8 @@ if (!collection.value || error.value) {
 }
 
 useSeoMeta({
-    title: `${collection.value?.title} | Nuxt Shopify Demo Store`,
-    description: collection.value?.description,
+    title: `${collection.value?.title} | ${shopName}`,
+    description: collection.value?.description ?? $t('seo.description'),
 })
 </script>
 

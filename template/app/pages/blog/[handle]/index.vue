@@ -3,13 +3,14 @@ definePageMeta({
     validate: route => typeof route.params.handle === 'string',
 })
 
+const { shopify: { shopName } } = useAppConfig()
 const localePath = useLocalePath()
 const { locale } = useI18n()
 const route = useRoute()
 
 const handle = computed(() => route.params.handle as string)
 
-const { data: blog } = await useStorefrontData(`blog-${locale.value}-${handle.value}`, `#graphql
+const { data: blog, error } = await useStorefrontData(`blog-${locale.value}-${handle.value}`, `#graphql
     query FetchBlog($handle: String) {
         blog(handle: $handle) {
             ...BlogFields
@@ -22,6 +23,19 @@ const { data: blog } = await useStorefrontData(`blog-${locale.value}-${handle.va
     },
     transform: data => data?.blog,
     cache: 'long',
+})
+
+if (!blog.value || error.value) {
+    throw createError({
+        status: 404,
+        statusText: `${$t('error.notFound')}: ${route.fullPath}`,
+        message: error.value?.message || $t('error.blog'),
+    })
+}
+
+useSeoMeta({
+    title: `${blog.value?.seo?.title ?? blog.value?.title} | ${shopName}`,
+    description: blog.value?.seo?.description ?? $t('seo.description'),
 })
 </script>
 

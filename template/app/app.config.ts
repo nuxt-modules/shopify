@@ -1,5 +1,7 @@
 export default defineAppConfig({
     shopify: {
+        shopName: 'Nuxt Shopify Demo Store',
+
         collection: {
             perPage: 12,
         },
