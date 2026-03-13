@@ -4,6 +4,7 @@ import type { ProductFieldsFragment } from '#shopify/storefront'
 const props = defineProps<{
     product: ProductFieldsFragment
     carousel?: boolean
+    loading?: 'eager' | 'lazy'
 }>()
 
 const localePath = useLocalePath()
@@ -27,7 +28,7 @@ const variant = ref(variants.value[0])
         <div class="group relative rounded-md overflow-hidden mb-4">
             <UCarousel
                 v-if="carousel && images.length > 1"
-                v-slot="{ item }"
+                v-slot="{ item, index }"
                 :items="images"
                 :ui="{
                     prev: 'left-3! transition-opacity duration-150 lg:opacity-0 lg:group-hover:opacity-100',
@@ -37,7 +38,10 @@ const variant = ref(variants.value[0])
                 loop
             >
                 <NuxtLink :to="url">
-                    <ProductImage :image="item" />
+                    <ProductImage
+                        :image="item"
+                        :loading="index === 0 ? props.loading : 'lazy'"
+                    />
                 </NuxtLink>
             </UCarousel>
 
@@ -45,7 +49,10 @@ const variant = ref(variants.value[0])
                 v-else
                 :to="url"
             >
-                <ProductImage :image="images?.[0] ?? undefined" />
+                <ProductImage
+                    :image="images?.[0] ?? undefined"
+                    :loading="props.loading"
+                />
 
                 <ProductImage
                     v-if="images?.[1]"

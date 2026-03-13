@@ -4,6 +4,7 @@ import type { Image } from '#shopify/storefront'
 const props = defineProps<{
     image?: Partial<Image>
     title?: string
+    loading?: 'eager' | 'lazy'
 }>()
 
 const emits = defineEmits<{
@@ -36,6 +37,7 @@ const handleImageLoad = () => requestAnimationFrame(() => {
             :height="props.image?.height ?? undefined"
             sizes="xs:100vw md:50vw lg:40vw xl:25vw"
             class="aspect-square max-w-full max-h-full animate-pop-up select-none object-contain"
+            :loading="props.loading ?? 'lazy'"
             placeholder
             @load="handleImageLoad"
         />

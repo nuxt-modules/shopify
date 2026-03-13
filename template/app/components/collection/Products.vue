@@ -124,10 +124,11 @@ watch(() => collection.value?.products.pageInfo, async () => await nextTick().th
 
             <div class="grid w-full grid-cols-1 gap-16 md:grid-cols-2 xl:grid-cols-3">
                 <ProductCard
-                    v-for="product in products"
+                    v-for="(product, index) in products"
                     :key="product.id"
                     :product="product"
                     class="pb-14 border-b border-b-default"
+                    :loading="index === 0 ? 'eager' : 'lazy'"
                     carousel
                 />
             </div>

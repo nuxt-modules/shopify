@@ -25,6 +25,7 @@ useSeoMeta({
             <CollectionSlider
                 handle="featured"
                 :first="12"
+                loading="eager"
             />
         </div>
 

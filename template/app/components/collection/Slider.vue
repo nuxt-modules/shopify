@@ -12,6 +12,7 @@ const props = defineProps<{
     sortKey?: string
     reverse?: boolean
     filters?: ProductFilter[]
+    loading?: 'eager' | 'lazy'
 }>()
 
 const { language, country } = useLocalization()
@@ -75,13 +76,16 @@ const { data: products } = await useStorefrontData(key, `#graphql
 
 <template>
     <UCarousel
-        v-slot="{ item: product }"
+        v-slot="{ item: product, index }"
         :items="products"
         class="w-full mb-6"
         :ui="{ item: 'md:basis-1/2 lg:basis-1/3' }"
         arrows
         loop
     >
-        <ProductCard :product="product" />
+        <ProductCard
+            :product="product"
+            :loading="index === 0 ? props.loading : 'lazy'"
+        />
     </UCarousel>
 </template>

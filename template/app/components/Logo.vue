@@ -31,6 +31,7 @@ const { data: logo } = await useStorefrontData('logo', `#graphql
             class="h-5 w-auto hue-rotate-300"
             width="50"
             height="22"
+            loading="eager"
         />
 
         Nuxt Shopify

@@ -32,7 +32,7 @@ watch(() => props.selectedVariant, () => carousel.value?.emblaApi?.scrollTo(0))
         <UCarousel
             v-if="sliderImages.length > 1"
             ref="carousel"
-            v-slot="{ item }"
+            v-slot="{ item, index }"
             :items="sliderImages"
             :ui="{
                 prev: 'left-3!',
@@ -42,13 +42,17 @@ watch(() => props.selectedVariant, () => carousel.value?.emblaApi?.scrollTo(0))
             arrows
             loop
         >
-            <ProductImage :image="item" />
+            <ProductImage
+                :image="item"
+                :loading="index === 0 ? 'eager' : 'lazy'"
+            />
         </UCarousel>
 
         <ProductImage
             v-else
             :image="sliderImages[0]"
             class="mb-6 lg:mb-8"
+            loading="eager"
         />
 
         <div

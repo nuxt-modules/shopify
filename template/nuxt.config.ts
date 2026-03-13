@@ -2,6 +2,7 @@
 export default defineNuxtConfig({
     modules: [
         '../src/module',
+        '@nuxtjs/critters',
         '@nuxtjs/i18n',
         '@nuxt/image',
         '@nuxt/ui',

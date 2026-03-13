@@ -43,6 +43,7 @@ const { data: collections } = await useStorefrontData(`collections-${locale.valu
                 :src="collection.image.url"
                 :alt="collection.image.altText || collection.title"
                 class="rounded-md object-cover aspect-square"
+                sizes="xs:100vw sm:50vw lg:33vw xl:33vw"
                 :width="600"
                 :height="600"
             />
