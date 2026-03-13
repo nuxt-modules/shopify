@@ -14,6 +14,11 @@ export default defineNuxtConfig({
         colorMode: false,
     },
 
+    routeRules: {
+        '/': { prerender: true },
+        '/blog/**': { isr: 3600 },
+    },
+
     compatibilityDate: '2026-03-10',
 
     vite: {
