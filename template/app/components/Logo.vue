@@ -32,6 +32,7 @@ const { data: logo } = await useStorefrontData('logo', `#graphql
             width="50"
             height="22"
             loading="eager"
+            fetchpriority="high"
         />
 
         Nuxt Shopify

@@ -38,7 +38,8 @@ const handleImageLoad = () => requestAnimationFrame(() => {
             sizes="xs:100vw md:50vw lg:40vw xl:25vw"
             class="aspect-square max-w-full max-h-full animate-pop-up select-none object-contain"
             :loading="props.loading ?? 'lazy'"
-            placeholder
+            :fetchpriority="props.loading === 'eager' ? 'high' : undefined"
+            :placeholder="props.loading === 'eager' ? false : true"
             @load="handleImageLoad"
         />
     </div>
