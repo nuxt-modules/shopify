@@ -85,7 +85,7 @@ const { data: products } = await useStorefrontData(key, `#graphql
     >
         <ProductCard
             :product="product"
-            :loading="index === 0 ? props.loading : 'lazy'"
+            :loading="index < 3 ? props.loading : 'lazy'"
         />
     </UCarousel>
 </template>

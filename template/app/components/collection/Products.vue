@@ -128,7 +128,7 @@ watch(() => collection.value?.products.pageInfo, async () => await nextTick().th
                     :key="product.id"
                     :product="product"
                     class="pb-14 border-b border-b-default"
-                    :loading="index === 0 ? 'eager' : 'lazy'"
+                    :loading="index < 3 ? 'eager' : 'lazy'"
                     carousel
                 />
             </div>

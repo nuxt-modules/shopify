@@ -1,7 +1,8 @@
 {
     "footer": {
         "message": "Published under the MIT License.",
-        "github": "View on GitHub"
+        "github": "View on GitHub",
+        "country": "Select country and currency"
     },
     "cart": {
         "title": "Cart",
@@ -9,6 +10,7 @@
         "empty": "Your cart is empty.",
         "subtotal": "Subtotal",
         "checkout": "Checkout",
+        "open": "Open Cart",
         "toast": {
             "add": "Item added to cart.",
             "update": "Cart updated.",
@@ -44,6 +46,7 @@
     "product": {
         "add": "Add",
         "choose": "Choose",
+        "view": "View product",
         "recommendations": "You may also like"
     },
     "collection": {

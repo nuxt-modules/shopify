@@ -1,7 +1,8 @@
 {
     "footer": {
         "message": "Veröffentlicht unter der MIT License.",
-        "github": "Auf GitHub ansehen"
+        "github": "Auf GitHub ansehen",
+        "country": "Land und Währung auswählen"
     },
     "cart": {
         "title": "Warenkorb",
@@ -9,6 +10,7 @@
         "empty": "Ihr Warenkorb ist leer.",
         "subtotal": "Summe",
         "checkout": "Zur Kasse",
+        "open": "Warenkorb öffnen",
         "toast": {
             "add": "Artikel zum Warenkorb hinzugefügt.",
             "update": "Ihr Warenkorb wurde aktualisiert.",
@@ -44,6 +46,7 @@
     "product": {
         "add": "Hinzufügen",
         "choose": "Auswählen",
+        "view": "Produkt ansehen",
         "recommendations": "Das könnte Ihnen auch gefallen"
     },
     "collection": {

@@ -11,7 +11,7 @@ const emits = defineEmits<{
     (e: 'load'): void
 }>()
 
-const imgLoading = ref(true)
+const imgLoading = ref(props.loading === 'eager' ? false : true)
 
 const url = computed(() => props.image?.url)
 

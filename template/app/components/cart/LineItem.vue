@@ -26,7 +26,10 @@ watch(state, state => update(props.line.id, state.quantity))
 
 <template>
     <UCard :ui="{ body: 'relative flex justify-between gap-8' }">
-        <NuxtLink :to="to">
+        <NuxtLink
+            :to="to"
+            :aria-label="`${$t('product.view')}: '${variant.product.title}'`"
+        >
             <NuxtImg
                 provider="shopify"
                 :src="variant.image?.url"

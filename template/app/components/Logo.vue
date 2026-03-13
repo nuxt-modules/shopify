@@ -26,7 +26,7 @@ const { data: logo } = await useStorefrontData('logo', `#graphql
     >
         <NuxtImg
             :src="logo?.url"
-            :alt="logo?.altText || 'Nuxt Shopify'"
+            :alt="logo?.altText || 'Nuxt Shopify Store Logo'"
             provider="shopify"
             class="h-5 w-auto hue-rotate-300"
             width="50"

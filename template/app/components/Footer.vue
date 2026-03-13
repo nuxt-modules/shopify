@@ -95,7 +95,7 @@ const items = computed<NavigationMenuItem[]>(() => [
 
         <template #left>
             <p class="text-muted text-sm">
-                Published under the MIT License.
+                {{ $t('footer.message') }}
             </p>
         </template>
 
@@ -120,6 +120,7 @@ const items = computed<NavigationMenuItem[]>(() => [
                 :default-value="locale"
                 icon="i-lucide-globe"
                 variant="ghost"
+                :aria-label="$t('footer.country')"
                 @update:model-value="async value => switchLocale(value)"
             />
         </template>

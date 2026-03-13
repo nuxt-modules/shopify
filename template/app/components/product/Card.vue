@@ -37,10 +37,14 @@ const variant = ref(variants.value[0])
                 arrows
                 loop
             >
-                <NuxtLink :to="url">
+                <NuxtLink
+                    :to="url"
+                    :aria-label="`${$t('product.view')}: '${props.product.title}'`"
+                >
                     <ProductImage
                         :image="item"
                         :loading="index === 0 ? props.loading : 'lazy'"
+                        :title="`${props.product.title}${index !== 0 ? ` (${index})` : ''}`"
                     />
                 </NuxtLink>
             </UCarousel>
@@ -48,15 +52,18 @@ const variant = ref(variants.value[0])
             <NuxtLink
                 v-else
                 :to="url"
+                :aria-label="`${$t('product.view')}: '${props.product.title}'`"
             >
                 <ProductImage
                     :image="images?.[0] ?? undefined"
                     :loading="props.loading"
+                    :title="props.product.title"
                 />
 
                 <ProductImage
                     v-if="images?.[1]"
                     :image="images[1]"
+                    :title="`${props.product.title} (1)`"
                     class="hidden absolute inset-0 bg-default group-hover:block"
                 />
             </NuxtLink>

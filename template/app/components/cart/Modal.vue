@@ -17,6 +17,11 @@ watch(() => route.path, () => open.value = false)
                 icon="i-lucide-shopping-cart"
                 variant="ghost"
                 color="neutral"
+                :label="$t('cart.open')"
+                :ui="{
+                    label: 'sr-only',
+                    base: 'px-1.5 lg:px-2',
+                }"
             />
 
             <ClientOnly>

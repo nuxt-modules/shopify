@@ -24,6 +24,7 @@ const open = ref(false)
             variant="ghost"
             trailing-icon="i-lucide-shopping-bag"
             :label="$t('product.choose')"
+            :aria-label="$t('product.choose')"
             :ui="{
                 trailingIcon: 'size-5',
                 label: [

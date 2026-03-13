@@ -45,12 +45,14 @@ watch(() => props.selectedVariant, () => carousel.value?.emblaApi?.scrollTo(0))
             <ProductImage
                 :image="item"
                 :loading="index === 0 ? 'eager' : 'lazy'"
+                :title="`${props.product.title}${index !== 0 ? ` (${index})` : ''}`"
             />
         </UCarousel>
 
         <ProductImage
             v-else
             :image="sliderImages[0]"
+            :title="props.product.title"
             class="mb-6 lg:mb-8"
             loading="eager"
         />
@@ -60,9 +62,10 @@ watch(() => props.selectedVariant, () => carousel.value?.emblaApi?.scrollTo(0))
             class="hidden lg:grid grid-cols-12 gap-8 mb-6 lg:mb-8"
         >
             <ProductImage
-                v-for="image in images"
+                v-for="(image, index) in images"
                 :key="image.url"
                 :image="image ?? undefined"
+                :title="`${props.product.title} Thumbnail ${index !== 0 ? ` (${index})` : ''}`"
                 class="col-span-6"
             />
         </div>
