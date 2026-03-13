@@ -10,7 +10,6 @@ const props = defineProps<{
 }>()
 
 const { get, set } = useFilters('price')
-const { t } = useI18n()
 
 const input = computed(() => JSON.parse(props.filter.values.at(0)?.input ?? '{}')?.price as FilterValue)
 
@@ -39,7 +38,7 @@ const submit = async (value: FilterValue) => set(componentToFilter(value))
         <div class="flex flex-row gap-4">
             <UFormField
                 name="min"
-                :label="t('price.from')"
+                :label="$t('price.from')"
             >
                 <UInputNumber
                     v-model="state.min"
@@ -52,7 +51,7 @@ const submit = async (value: FilterValue) => set(componentToFilter(value))
 
             <UFormField
                 name="max"
-                :label="t('price.to')"
+                :label="$t('price.to')"
             >
                 <UInputNumber
                     v-model="state.max"

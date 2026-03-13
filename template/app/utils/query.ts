@@ -42,11 +42,3 @@ export const filtersToQuery = (filters: ProductFilter[]) => {
 
     return query
 }
-
-export const queryToVariantId = (query: LocationQuery) => typeof query.variantId === 'string'
-    ? `gid://shopify/ProductVariant/${query.variantId}`
-    : undefined
-
-export const variantIdToQuery = (variantId?: string): LocationQuery => variantId
-    ? { variantId: variantId.replace('gid://shopify/ProductVariant/', '') }
-    : {}

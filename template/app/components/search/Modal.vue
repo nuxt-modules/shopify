@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const { language, country } = useLocalization()
 const localePath = useLocalePath()
-const { t, locale } = useI18n()
+const { locale } = useI18n()
 
 const query = ref('')
 const open = ref(false)
@@ -62,7 +62,7 @@ const { data, status } = await useStorefrontData(`search-${query.value ?? 'none'
 const groups = computed(() => [
     {
         id: 'queries',
-        label: t('search.queries'),
+        label: $t('search.queries'),
         items: data.value?.predictiveSearch?.queries.map(predictedQuery => ({
             label: predictedQuery.text,
             onSelect: () => query.value = predictedQuery.text,
@@ -70,7 +70,7 @@ const groups = computed(() => [
     },
     {
         id: 'products',
-        label: t('search.products'),
+        label: $t('search.products'),
         items: flattenConnection(data.value?.products).map(product => ({
             label: product.title,
             suffix: product.description,
@@ -84,7 +84,7 @@ const groups = computed(() => [
     },
     {
         id: 'collections',
-        label: t('search.collections'),
+        label: $t('search.collections'),
         items: flattenConnection(data.value?.collections).map(collection => ({
             label: collection.title,
             suffix: collection.description,
@@ -94,7 +94,7 @@ const groups = computed(() => [
     },
     {
         id: 'articles',
-        label: t('search.articles'),
+        label: $t('search.articles'),
         items: flattenConnection(data.value?.articles).map(article => ({
             label: article.title,
             suffix: article.excerpt ?? undefined,
@@ -110,20 +110,20 @@ const updateQuery = debounce((value: string) => query.value = value, 300)
 <template>
     <UModal
         v-model:open="open"
-        :title="t('search.label')"
-        :description="t('search.description')"
+        :title="$t('search.label')"
+        :description="$t('search.description')"
     >
         <UButton
             icon="i-lucide-search"
             variant="ghost"
             color="neutral"
-            :label="t('search.label')"
+            :label="$t('search.label')"
         />
 
         <template #content>
             <UCommandPalette
                 :loading="status === 'pending'"
-                :placeholder="t('search.placeholder')"
+                :placeholder="$t('search.placeholder')"
                 :groups="groups"
                 :close="true"
                 @update:search-term="updateQuery"
