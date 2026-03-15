@@ -19,7 +19,8 @@
         "@graphql-codegen/import-types-preset",
         "@graphql-codegen/introspection",
         "@shopify/api-codegen-preset",
-        "@graphql-tools/graphql-tag-pluck"
+        "@graphql-tools/graphql-tag-pluck",
+        "@shopify/hydrogen"
       ]
     },
     "docs": {
@@ -73,6 +74,9 @@
       ],
       "project": [
         "**/*.{ts,vue}"
+      ],
+      "ignoreDependencies": [
+        "@shopify/hydrogen"
       ]
     },
     "playgrounds/playground-v4-mock": {
