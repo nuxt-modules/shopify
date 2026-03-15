@@ -15,7 +15,7 @@ export default defineNuxtConfig({
         },
     },
 
-    compatibilityDate: '2025-11-01',
+    compatibilityDate: '2026-03-15',
 
     shopify: {
         clients: {
