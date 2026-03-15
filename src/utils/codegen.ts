@@ -47,7 +47,7 @@ declare module '@nuxtjs/shopify/${kebabCase(clientType)}' {
 `
 }
 
-function getIntrospection(options: ShopifyTemplateOptions, _config: ShopifyConfig) {
+function getIntrospection(options: ShopifyTemplateOptions, config: ShopifyConfig) {
   const { shopName, clientType, clientConfig, introspection } = options
 
   if (introspection && existsSync(introspection)) {
@@ -59,12 +59,7 @@ function getIntrospection(options: ShopifyTemplateOptions, _config: ShopifyConfi
 
   let apiUrl: string
 
-  if (clientType === ShopifyClientType.Admin) {
-    const adminConfig = clientConfig as NonNullable<ShopifyConfig['clients']['admin']>
-    apiUrl = `https://${shopName}.myshopify.com/admin/api/${apiVersion}/graphql.json`
-    headers['X-Shopify-Access-Token'] = adminConfig.accessToken
-  }
-  else {
+  if (clientType === ShopifyClientType.Storefront) {
     const storefrontConfig = clientConfig as NonNullable<ShopifyConfig['clients']['storefront']>
 
     if (storefrontConfig.mock) {
@@ -80,6 +75,24 @@ function getIntrospection(options: ShopifyTemplateOptions, _config: ShopifyConfi
         headers['X-Shopify-Storefront-Access-Token'] = storefrontConfig.publicAccessToken
       }
     }
+  }
+  else if (clientType === ShopifyClientType.CustomerAccount) {
+    try {
+      return [import.meta.resolve('@shopify/hydrogen/customer-account.schema.json')]
+    }
+    catch (error) {
+      useLogger(config).error('Failed to load customer account schema. Please ensure @shopify/hydrogen is installed.', error)
+    }
+
+    return []
+  }
+  else if (clientType === ShopifyClientType.Admin) {
+    const adminConfig = clientConfig as NonNullable<ShopifyConfig['clients']['admin']>
+    apiUrl = `https://${shopName}.myshopify.com/admin/api/${apiVersion}/graphql.json`
+    headers['X-Shopify-Access-Token'] = adminConfig.accessToken
+  }
+  else {
+    throw new Error(`Unsupported client type: ${clientType}`)
   }
 
   return [
