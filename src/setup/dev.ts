@@ -9,14 +9,16 @@ export default async function setupDevMode(nuxt: Nuxt, logger: ConsolaInstance) 
     const resolver = createResolver(import.meta.url)
 
     const sourceFiles = {
-        admin: resolver.resolve('../../src/clients/admin.d.ts'),
         storefront: resolver.resolve('../../src/clients/storefront.d.ts'),
+        customerAccount: resolver.resolve('../../src/clients/customer-account.d.ts'),
+        admin: resolver.resolve('../../src/clients/admin.d.ts'),
         types: resolver.resolve('../../src/types/index.d.ts'),
     }
 
     const sourceFilesExist = await Promise.all([
-        stat(sourceFiles.admin).catch(() => false),
         stat(sourceFiles.storefront).catch(() => false),
+        stat(sourceFiles.customerAccount).catch(() => false),
+        stat(sourceFiles.admin).catch(() => false),
     ]).then(results => results.every(result => result !== false))
 
     if (sourceFilesExist) {
@@ -25,6 +27,7 @@ export default async function setupDevMode(nuxt: Nuxt, logger: ConsolaInstance) 
         nuxt.options = defu(nuxt.options, {
             alias: {
                 '@nuxtjs/shopify/storefront': sourceFiles.storefront,
+                '@nuxtjs/shopify/customer-account': sourceFiles.customerAccount,
                 '@nuxtjs/shopify/admin': sourceFiles.admin,
             },
 
@@ -41,6 +44,7 @@ export default async function setupDevMode(nuxt: Nuxt, logger: ConsolaInstance) 
                     tsConfig: {
                         include: [
                             sourceFiles.storefront,
+                            sourceFiles.customerAccount,
                             sourceFiles.admin,
                         ],
                     },

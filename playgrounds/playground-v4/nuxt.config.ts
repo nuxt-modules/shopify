@@ -13,6 +13,13 @@ export default defineNuxtConfig({
                     publicAccessToken: '',
                 },
 
+                customerAccount: {
+                    apiVersion: '',
+                    clientId: '',
+
+                    autoImport: false,
+                },
+
                 admin: {
                     apiVersion: '',
                     accessToken: '',
@@ -30,6 +37,10 @@ export default defineNuxtConfig({
                 ],
 
                 secret: '',
+            },
+
+            logger: {
+                // level: 999,
             },
         },
     },
