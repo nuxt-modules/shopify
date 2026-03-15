@@ -19,7 +19,7 @@ export default defineNuxtConfig({
         '/blog/**': { isr: 3600 },
     },
 
-    compatibilityDate: '2026-03-10',
+    compatibilityDate: '2026-03-15',
 
     vite: {
         server: {
