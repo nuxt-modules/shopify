@@ -5,6 +5,7 @@ import type { ShopifyClientType, ShopifyConfig } from '../types'
 
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
+import { kebabCase } from 'scule'
 import {
     addImports,
     addImportsDir,
@@ -58,7 +59,7 @@ export function registerClientTypeImports(nuxt: Nuxt, config: ShopifyConfig, cli
     if (!clientConfig?.autoImport) return
 
     const includeClient = hasPublicClient(config)
-    const typesPath = join(nuxt.options.buildDir, `types/${clientType}`)
+    const typesPath = join(nuxt.options.buildDir, `types/${kebabCase(clientType)}`)
 
     autoImportDirectory(typesPath, includeClient)
 }

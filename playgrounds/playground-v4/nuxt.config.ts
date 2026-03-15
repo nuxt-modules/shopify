@@ -13,6 +13,13 @@ export default defineNuxtConfig({
                     publicAccessToken: '',
                 },
 
+                customerAccount: {
+                    apiVersion: '',
+                    clientId: '',
+
+                    autoImport: false,
+                },
+
                 admin: {
                     apiVersion: '',
                     accessToken: '',
@@ -34,5 +41,5 @@ export default defineNuxtConfig({
         },
     },
 
-    compatibilityDate: '2025-11-01',
+    compatibilityDate: '2026-03-15',
 })
