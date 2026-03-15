@@ -75,6 +75,7 @@
     "playgrounds/playground-v4": {
       "name": "playground-v4",
       "dependencies": {
+        "@shopify/hydrogen": "^2026.1.2",
         "nuxt": "^4.4.2",
       },
     },

@@ -1,21 +1,24 @@
 import type { Nuxt } from '@nuxt/schema'
 import type { H3Event } from 'h3'
 
-import type { ShopifyClientType, ShopifyConfig } from '../types'
+import type { ShopifyConfig } from '../types'
 
+import { ShopifyClientType } from '../schemas'
 import { addDevServerHandler } from '@nuxt/kit'
 import { defineEventHandler, readValidatedBody } from 'h3'
+import { kebabCase } from 'scule'
 import { z } from 'zod'
 
 import { createClient } from '../runtime/utils/client'
 import { createStorefrontConfig } from '../runtime/utils/clients/storefront'
+import { createCustomerAccountConfig } from '../runtime/utils/clients/customer-account'
 import { createAdminConfig } from '../runtime/utils/clients/admin'
 import getSandboxTemplate from '../templates/sandbox'
 
 function getSandboxUrl(nuxt: Nuxt, clientType: ShopifyClientType): string {
   const url = new URL(nuxt.options.devServer.url)
 
-  return url.href + '_sandbox/' + clientType
+  return url.href + '_sandbox/' + kebabCase(clientType)
 }
 
 function createSandboxHandler(clientType: ShopifyClientType) {
@@ -42,10 +45,13 @@ function createSandboxProxyHandler(nuxt: Nuxt, clientType: ShopifyClientType) {
     let client: ReturnType<typeof createClient>
 
     switch (clientType) {
-      case 'storefront':
+      case ShopifyClientType.Storefront:
         client = createClient(createStorefrontConfig(config))
         break
-      case 'admin':
+      case ShopifyClientType.CustomerAccount:
+        client = createClient(createCustomerAccountConfig(config))
+        break
+      case ShopifyClientType.Admin:
         client = createClient(createAdminConfig(config))
         break
       default:
@@ -61,12 +67,12 @@ function createSandboxProxyHandler(nuxt: Nuxt, clientType: ShopifyClientType) {
 export function registerSandbox(nuxt: Nuxt, clientType: ShopifyClientType): string {
   addDevServerHandler({
     handler: createSandboxHandler(clientType),
-    route: `/_sandbox/${clientType}`,
+    route: `/_sandbox/${kebabCase(clientType)}`,
   })
 
   addDevServerHandler({
     handler: createSandboxProxyHandler(nuxt, clientType),
-    route: `/_sandbox/proxy/${clientType}`,
+    route: `/_sandbox/proxy/${kebabCase(clientType)}`,
   })
 
   return getSandboxUrl(nuxt, clientType)

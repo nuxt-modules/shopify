@@ -7,6 +7,7 @@ import { z } from 'zod'
 
 export enum ShopifyClientType {
   Storefront = 'storefront',
+  CustomerAccount = 'customerAccount',
   Admin = 'admin',
 }
 
@@ -41,6 +42,13 @@ export const storefrontClientSchema = clientSchema.extend({
   cache: clientCacheSchema.or(z.boolean()).optional(),
 })
 
+export const customerAccountClientSchema = clientSchema.extend({
+  clientId: z.string(),
+  clientSecret: z.string().optional(),
+  scope: z.array(z.string()).optional(),
+  redirectURL: z.string().optional(),
+})
+
 export const adminClientSchema = clientSchema.extend({
   accessToken: z.string().optional(),
   clientId: z.string().optional(),
@@ -57,6 +65,7 @@ export const moduleOptionsSchema = z.object({
   clients: z.object({
     [ShopifyClientType.Storefront]: storefrontClientSchema.optional(),
     [ShopifyClientType.Admin]: adminClientSchema.optional(),
+    [ShopifyClientType.CustomerAccount]: customerAccountClientSchema.optional(),
   }),
 
   errors: z.object({
