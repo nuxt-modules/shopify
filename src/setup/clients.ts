@@ -6,8 +6,10 @@ import { useLogger } from '../utils/log'
 import {
   getConfiguredClients,
   isPublicClient,
-  registerClientServerImports,
   registerClientImports,
+  registerClientServerImports,
+  registerClientAsyncImports,
+  isPublicAsyncClient,
 } from '../utils/clients'
 
 export default async function setupClients(config: ShopifyConfig, resolver: Resolver) {
@@ -21,6 +23,10 @@ export default async function setupClients(config: ShopifyConfig, resolver: Reso
 
     if (isPublicClient(config.clients[clientType])) {
       registerClientImports(clientType, resolver)
+    }
+
+    if (isPublicAsyncClient(config.clients[clientType])) {
+      registerClientAsyncImports(clientType, resolver)
     }
   }
 }
