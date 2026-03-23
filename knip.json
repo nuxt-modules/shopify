@@ -34,8 +34,6 @@
       "ignoreDependencies": [
         "@nuxt/kit",
         "@nuxtjs/shopify",
-        "better-sqlite3",
-        "docus",
         "reka-ui",
         "vaul-vue"
       ]
