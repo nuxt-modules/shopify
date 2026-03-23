@@ -1,14 +1,14 @@
 import type { z } from 'zod'
 
 import type {
-    moduleOptionsSchema,
-    publicModuleOptionsSchema,
+  moduleOptionsSchema,
+  publicModuleOptionsSchema,
 } from './config'
 
 import { ShopifyClientType } from './config'
 import {
-    moduleOptionsSchemaWithDefaults as configSchema,
-    publicModuleOptionsSchemaWithDefaults as publicConfigSchema,
+  moduleOptionsSchemaWithDefaults as configSchema,
+  publicModuleOptionsSchemaWithDefaults as publicConfigSchema,
 } from './runtime'
 
 export type ModuleOptions = z.infer<typeof moduleOptionsSchema>
@@ -18,8 +18,8 @@ export type ShopifyConfig = z.infer<typeof configSchema>
 export type PublicShopifyConfig = z.infer<typeof publicConfigSchema>
 
 export {
-    ShopifyClientType,
+  ShopifyClientType,
 
-    configSchema,
-    publicConfigSchema,
+  configSchema,
+  publicConfigSchema,
 }

@@ -11,21 +11,21 @@ const { data } = await storefront.request(`#graphql
     }
     ${PRODUCT_FRAGMENT}
 `, {
-    variables: {
-        first: 3,
-    },
+  variables: {
+    first: 3,
+  },
 })
 </script>
 
 <template>
-    <div>
-        <div
-            v-for="product in flattenConnection(data?.products)"
-            :key="product.id"
-        >
-            <h2>{{ product.title }}</h2>
-            <p>{{ product.description }}</p>
-            <br>
-        </div>
+  <div>
+    <div
+      v-for="product in flattenConnection(data?.products)"
+      :key="product.id"
+    >
+      <h2>{{ product.title }}</h2>
+      <p>{{ product.description }}</p>
+      <br>
     </div>
+  </div>
 </template>

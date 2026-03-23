@@ -9,13 +9,13 @@ import { createAdminConfig } from '../runtime/utils/clients/admin'
 import { flattenConnection } from '../runtime/utils/flattenConnection'
 
 const createAdminClient = (config: ShopifyConfig): AdminApiClient => {
-    const adminConfig = createAdminConfig(config)
+  const adminConfig = createAdminConfig(config)
 
-    return createClient(adminConfig)
+  return createClient(adminConfig)
 }
 
 const fetchSubscriptions = async (client: AdminApiClient) => {
-    const { data, errors } = await client.request(`#graphql
+  const { data, errors } = await client.request(`#graphql
         query GetWebhookSubscriptions($first: Int!) {
             webhookSubscriptions(first: $first) {
                 edges {
@@ -33,20 +33,20 @@ const fetchSubscriptions = async (client: AdminApiClient) => {
             }
         }
     `, {
-        variables: {
-            first: 250,
-        },
-    })
+    variables: {
+      first: 250,
+    },
+  })
 
-    if (errors) {
-        throw new Error(`Failed to fetch webhook subscriptions: ${JSON.stringify(errors)}`)
-    }
+  if (errors) {
+    throw new Error(`Failed to fetch webhook subscriptions: ${JSON.stringify(errors)}`)
+  }
 
-    return flattenConnection(data?.webhookSubscriptions)
+  return flattenConnection(data?.webhookSubscriptions)
 }
 
 const createSubscription = async (client: AdminApiClient, hook: NonNullable<NonNullable<ShopifyConfig['webhooks']>['hooks']>[number]) => {
-    const { data, errors } = await client.request(`#graphql
+  const { data, errors } = await client.request(`#graphql
         mutation WebhookSubscriptionCreate(
             $topic: WebhookSubscriptionTopic!,
             $webhookSubscription: WebhookSubscriptionInput!
@@ -72,32 +72,32 @@ const createSubscription = async (client: AdminApiClient, hook: NonNullable<NonN
             }
         }
     `, {
-        variables: {
-            topic: hook.topic,
-            webhookSubscription: {
-                callbackUrl: hook.uri,
-                format: hook.format,
-                filter: hook.filter,
-                includeFields: hook.includeFields,
-                metafields: hook.metafields,
-                metafieldNamespaces: hook.metafieldNamespaces,
-            },
-        },
-    })
+    variables: {
+      topic: hook.topic,
+      webhookSubscription: {
+        callbackUrl: hook.uri,
+        format: hook.format,
+        filter: hook.filter,
+        includeFields: hook.includeFields,
+        metafields: hook.metafields,
+        metafieldNamespaces: hook.metafieldNamespaces,
+      },
+    },
+  })
 
-    if (errors) {
-        throw new Error(`Failed to create webhook subscription: ${JSON.stringify(errors), null, 2}`)
-    }
+  if (errors) {
+    throw new Error(`Failed to create webhook subscription: ${JSON.stringify(errors), null, 2}`)
+  }
 
-    if (data?.webhookSubscriptionCreate.userErrors.length) {
-        throw new Error(`Failed to create webhook subscription: ${JSON.stringify(data.webhookSubscriptionCreate.userErrors, null, 2)}`)
-    }
+  if (data?.webhookSubscriptionCreate.userErrors.length) {
+    throw new Error(`Failed to create webhook subscription: ${JSON.stringify(data.webhookSubscriptionCreate.userErrors, null, 2)}`)
+  }
 
-    return data?.webhookSubscriptionCreate
+  return data?.webhookSubscriptionCreate
 }
 
 const deleteSubscription = async (client: AdminApiClient, id: string) => {
-    const { data, errors } = await client.request(`#graphql
+  const { data, errors } = await client.request(`#graphql
         mutation webhookSubscriptionDelete($id: ID!) {
             webhookSubscriptionDelete(id: $id) {
                 deletedWebhookSubscriptionId
@@ -108,90 +108,90 @@ const deleteSubscription = async (client: AdminApiClient, id: string) => {
             }
         }
     `, {
-        variables: {
-            id,
-        },
-    })
+    variables: {
+      id,
+    },
+  })
 
-    if (errors) {
-        throw new Error(`Failed to delete webhook subscription: ${JSON.stringify(errors), null, 2}`)
-    }
+  if (errors) {
+    throw new Error(`Failed to delete webhook subscription: ${JSON.stringify(errors), null, 2}`)
+  }
 
-    if (data?.webhookSubscriptionDelete.userErrors.length) {
-        throw new Error(`Failed to delete webhook subscription: ${JSON.stringify(data.webhookSubscriptionDelete.userErrors, null, 2)}`)
-    }
+  if (data?.webhookSubscriptionDelete.userErrors.length) {
+    throw new Error(`Failed to delete webhook subscription: ${JSON.stringify(data.webhookSubscriptionDelete.userErrors, null, 2)}`)
+  }
 
-    return data?.webhookSubscriptionDelete
+  return data?.webhookSubscriptionDelete
 }
 
 export const getShopifyConfig = async () => {
-    const config = await loadNuxt({
-        dotenv: true,
-    })
+  const config = await loadNuxt({
+    dotenv: true,
+  })
 
-    if (!config?.options?.runtimeConfig?._shopify) {
-        throw new Error('Nuxt Shopify module ist not configured.')
-    }
+  if (!config?.options?.runtimeConfig?._shopify) {
+    throw new Error('Nuxt Shopify module ist not configured.')
+  }
 
-    return config.options.runtimeConfig._shopify
+  return config.options.runtimeConfig._shopify
 }
 
 export const getSubscribedWebhooks = async (config: ShopifyConfig) => {
-    const client = createAdminClient(config)
+  const client = createAdminClient(config)
 
-    const subscriptions = await fetchSubscriptions(client)
+  const subscriptions = await fetchSubscriptions(client)
 
-    return subscriptions
+  return subscriptions
 }
 
 export const subscribeWebhook = async (config: ShopifyConfig) => {
-    const client = createAdminClient(config)
+  const client = createAdminClient(config)
 
-    const subscriptions = await fetchSubscriptions(client)
+  const subscriptions = await fetchSubscriptions(client)
 
-    const results = []
+  const results = []
 
-    for (const hook of config.webhooks?.hooks || []) {
-        if (subscriptions.some(subscription =>
-            (subscription as { topic: string })?.topic === hook.topic
-            && (subscription as { endpoint: { callbackUrl: string } })?.endpoint.callbackUrl === hook.uri,
-        )) {
-            continue
-        }
-
-        const result = await createSubscription(client, hook)
-
-        results.push(result?.webhookSubscription)
+  for (const hook of config.webhooks?.hooks || []) {
+    if (subscriptions.some(subscription =>
+      (subscription as { topic: string })?.topic === hook.topic
+      && (subscription as { endpoint: { callbackUrl: string } })?.endpoint.callbackUrl === hook.uri,
+    )) {
+      continue
     }
 
-    return results
+    const result = await createSubscription(client, hook)
+
+    results.push(result?.webhookSubscription)
+  }
+
+  return results
 }
 
 export const unsubscribeWebhook = async (config: ShopifyConfig) => {
-    const client = createAdminClient(config)
+  const client = createAdminClient(config)
 
-    const subscriptions = await fetchSubscriptions(client)
+  const subscriptions = await fetchSubscriptions(client)
 
-    const results = []
+  const results = []
 
-    for (const hook of config.webhooks?.hooks || []) {
-        const subscription = subscriptions.find(subscription =>
-            (subscription as { topic: string })?.topic === hook.topic
-            && (subscription as { endpoint: { callbackUrl: string } })?.endpoint.callbackUrl === hook.uri,
-        )
+  for (const hook of config.webhooks?.hooks || []) {
+    const subscription = subscriptions.find(subscription =>
+      (subscription as { topic: string })?.topic === hook.topic
+      && (subscription as { endpoint: { callbackUrl: string } })?.endpoint.callbackUrl === hook.uri,
+    )
 
-        if (!subscription) {
-            continue
-        }
-
-        const result = await deleteSubscription(client, (subscription as { id: string })?.id)
-
-        results.push({
-            id: result?.deletedWebhookSubscriptionId?.replace('gid://shopify/WebhookSubscription/', '') || '',
-            topic: hook.topic,
-            endpoint: { callbackUrl: hook.uri },
-        })
+    if (!subscription) {
+      continue
     }
 
-    return results
+    const result = await deleteSubscription(client, (subscription as { id: string })?.id)
+
+    results.push({
+      id: result?.deletedWebhookSubscriptionId?.replace('gid://shopify/WebhookSubscription/', '') || '',
+      topic: hook.topic,
+      endpoint: { callbackUrl: hook.uri },
+    })
+  }
+
+  return results
 }

@@ -1,39 +1,39 @@
 export default defineNuxtConfig({
-    modules: [
-        '../../src/module',
-    ],
+  modules: [
+    '../../src/module',
+  ],
 
-    runtimeConfig: {
-        shopify: {
-            name: '',
+  runtimeConfig: {
+    shopify: {
+      name: '',
 
-            clients: {
-                storefront: {
-                    apiVersion: '',
-                    publicAccessToken: '',
-                },
-
-                admin: {
-                    apiVersion: '',
-                    accessToken: '',
-
-                    autoImport: false,
-                },
-            },
+      clients: {
+        storefront: {
+          apiVersion: '',
+          publicAccessToken: '',
         },
-    },
 
-    srcDir: 'app/',
+        admin: {
+          apiVersion: '',
+          accessToken: '',
 
-    serverDir: 'server/',
-
-    compatibilityDate: '2025-11-01',
-
-    hooks: {
-        // Fix monorepo-specific tsconfig issue when running `nuxt prepare`
-        'prepare:types': (opts) => {
-            opts.sharedTsConfig ||= {}
-            opts.sharedTsConfig.compilerOptions ||= {}
+          autoImport: false,
         },
+      },
     },
+  },
+
+  srcDir: 'app/',
+
+  serverDir: 'server/',
+
+  compatibilityDate: '2025-11-01',
+
+  hooks: {
+    // Fix monorepo-specific tsconfig issue when running `nuxt prepare`
+    'prepare:types': (opts) => {
+      opts.sharedTsConfig ||= {}
+      opts.sharedTsConfig.compilerOptions ||= {}
+    },
+  },
 })

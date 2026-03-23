@@ -1,86 +1,86 @@
 export default defineNuxtConfig({
-    extends: ['docus'],
+  extends: ['docus'],
 
-    modules: [
-        '../src/module',
-        '@nuxt/ui',
-        '@nuxtjs/critters',
-        'motion-v/nuxt',
+  modules: [
+    '../src/module',
+    '@nuxt/ui',
+    '@nuxtjs/critters',
+    'motion-v/nuxt',
+  ],
+
+  components: {
+    dirs: [
+      {
+        path: '~/components',
+        pathPrefix: false,
+      },
     ],
+  },
 
-    components: {
-        dirs: [
-            {
-                path: '~/components',
-                pathPrefix: false,
-            },
-        ],
-    },
-
-    app: {
-        head: {
-            link: [
-                {
-                    rel: 'icon',
-                    type: 'image/png',
-                    href: '/icon.png',
-                },
-            ],
+  app: {
+    head: {
+      link: [
+        {
+          rel: 'icon',
+          type: 'image/png',
+          href: '/icon.png',
         },
+      ],
     },
+  },
 
-    css: ['~/assets/css/main.css'],
+  css: ['~/assets/css/main.css'],
 
-    site: {
-        name: 'Nuxt Shopify',
-        url: 'https://shopify.nuxtjs.org',
-    },
+  site: {
+    name: 'Nuxt Shopify',
+    url: 'https://shopify.nuxtjs.org',
+  },
 
-    runtimeConfig: {
-        shopify: {
-            name: 'nuxt-shopify-docs',
+  runtimeConfig: {
+    shopify: {
+      name: 'nuxt-shopify-docs',
 
-            clients: {
-                storefront: {
-                    apiVersion: '',
-                    proxy: false,
-                    mock: true,
-                },
-            },
+      clients: {
+        storefront: {
+          apiVersion: '',
+          proxy: false,
+          mock: true,
         },
+      },
     },
+  },
 
-    vite: {
-        build: {
-            rollupOptions: {
-                output: {
-                    manualChunks: (id) => {
-                        if (id.includes('vaul-vue')) return 'vaul-vue'
-                        if (id.includes('reka-ui')) return 'reka-ui'
-                    },
-                },
-            },
+  vite: {
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: (id) => {
+            if (id.includes('vaul-vue')) return 'vaul-vue'
+            if (id.includes('reka-ui')) return 'reka-ui'
+          },
         },
-        optimizeDeps: {
-            include: ['vaul-vue', 'reka-ui'],
-        },
+      },
     },
-
-    image: {
-        format: ['avif', 'webp'],
-
-        provider: 'shopify',
-
-        domains: ['cdn.shopify.com'],
+    optimizeDeps: {
+      include: ['vaul-vue', 'reka-ui'],
     },
+  },
 
-    llms: {
-        domain: 'shopify.nuxtjs.org',
-    },
+  image: {
+    format: ['avif', 'webp'],
 
-    ogImage: {
-        defaults: {
-            url: '/logo-readme.jpg',
-        },
+    provider: 'shopify',
+
+    domains: ['cdn.shopify.com'],
+  },
+
+  llms: {
+    domain: 'shopify.nuxtjs.org',
+  },
+
+  ogImage: {
+    defaults: {
+      url: '/logo-readme.jpg',
     },
+  },
 })

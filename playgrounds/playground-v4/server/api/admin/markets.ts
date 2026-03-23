@@ -1,7 +1,7 @@
 export default defineEventHandler(async () => {
-    const admin = useAdmin()
+  const admin = useAdmin()
 
-    const { data } = await admin.request(`#graphql
+  const { data } = await admin.request(`#graphql
         query FetchMarkets {
             markets(first: 3) {
                 nodes {
@@ -12,5 +12,5 @@ export default defineEventHandler(async () => {
         ${MARKET_FRAGMENT}
     `)
 
-    return flattenConnection(data?.markets)
+  return flattenConnection(data?.markets)
 })

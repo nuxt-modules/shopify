@@ -9,7 +9,7 @@
 [![License][license-src]][license-href]
 
 Fully typed fetch client for the [Shopify Storefront API](https://shopify.dev/docs/api/storefront) and
-the [Shopify Admin API](https://shopify.dev/docs/api/admin-graphql). 
+the [Shopify Admin API](https://shopify.dev/docs/api/admin-graphql).
 You can use it on the server and client side, with built-in support for [mock.shop](https://mock.shop) and automatic,
 hot-reloaded type generation from your GraphQL queries.
 
@@ -42,7 +42,6 @@ Upcoming features and developments for the 1.0.0 release:
 
 - 👤 Customer Account API support
 - 🔍 Shopify Analytics support
-- 🛍️ Store template with Nuxt UI
 
 ## 📦 Setup
 
@@ -65,9 +64,9 @@ npx nuxi@latest module add shopify
 
    ```ts
    export default defineNuxtConfig({
-       modules: [
-           '@nuxtjs/shopify',
-       ],
+     modules: [
+       '@nuxtjs/shopify',
+     ],
    })
    ```
 </details>
@@ -76,20 +75,20 @@ Add your Shopify configuration to the `nuxt.config.ts`:
 
 ```ts
 export default defineNuxtConfig({
-    shopify: {
-        name: 'quickstart-abcd1234',
-        clients: {
-            storefront: {
-                apiVersion: '2026-01',
-                publicAccessToken: 'YOUR_ACCESS_TOKEN',
-            },
+  shopify: {
+    name: "quickstart-abcd1234",
+    clients: {
+      storefront: {
+        apiVersion: "2026-01",
+        publicAccessToken: "YOUR_ACCESS_TOKEN",
+      },
 
-            admin: {
-                apiVersion: '2026-01',
-                accessToken: 'YOUR_ACCESS_TOKEN',
-            },
-        },
+      admin: {
+        apiVersion: "2026-01",
+        accessToken: "YOUR_ACCESS_TOKEN",
+      },
     },
+  },
 })
 ```
 
@@ -110,24 +109,24 @@ The easiest way is with the `useStorefront` composable, directly inside of your 
 const storefront = useStorefront()
 
 const { data } = await storefront.request(`#graphql
-    query FetchProducts($first: Int) {
-        products(first: $first) {
-            nodes {
-                id
-                title
-                description
-            }
-        }
+  query FetchProducts($first: Int) {
+    products(first: $first) {
+      nodes {
+        id
+        title
+        description
+      }
     }
+  }
 `, {
-    variables: {
-        first: 3,
-    },
+  variables: {
+    first: 3,
+  },
 })
 </script>
 
 <template>
-    <pre>{{ data?.products }}</pre>
+  <pre>{{ data?.products }}</pre>
 </template>
 ```
 
@@ -145,28 +144,28 @@ You can also use the `useStorefrontData` composable to fetch data from the Store
 <!-- ~/pages/your-page.vue -->
 
 <script setup lang="ts">
-const { data: products, error } = await useStorefrontData('products', `#graphql
-    query FetchProducts($first: Int) {
-        products(first: $first) {
-            nodes {
-                id
-                title
-                description
-            }
-        }
+const { data: products, error } = await useStorefrontData("products", `#graphql
+  query FetchProducts($first: Int) {
+    products(first: $first) {
+      nodes {
+        id
+        title
+        description
+      }
     }
+  }
 `, {
-    variables: {
-        first: 3,
-    },
-
-    // Use features from useAsyncData, e.g. transform, pick, etc.
-    transform: (data) => flattenConnection(data.products),
+  variables: {
+    first: 3,
+  },
+ 
+  // Use features from useAsyncData, e.g. transform, pick, etc.
+  transform: (data) => flattenConnection(data.products),
 })
 </script>
 
 <template>
-    <pre>{{ products }}</pre>
+  <pre>{{ products }}</pre>
 </template>
 ```
 
@@ -186,23 +185,23 @@ You can use the `useStorefront` utility to access the storefront API:
 // ~/server/api/products.ts
 
 export default defineEventHandler(async () => {
-    const storefront = useStorefront()
+  const storefront = useStorefront();
 
-    return await storefront.request(`#graphql
-        query FetchProducts($first: Int) {
-            products(first: $first) {
-                nodes {
-                    id
-                    title
-                    description
-                }
-            }
+  return await storefront.request(`#graphql
+    query FetchProducts($first: Int) {
+      products(first: $first) {
+        nodes {
+          id
+          title
+          description
         }
-    `, {
-        variables: {
-            first: 3,
-        },
-    })
+      }
+    }
+  `, {
+    variables: {
+      first: 3,
+    },
+  })
 })
 ```
 
@@ -217,11 +216,11 @@ Now we can call the API at `/api/products` to obtain the first three products:
 <!-- ~/pages/your-page.vue -->
 
 <script setup lang="ts">
-const { data } = await useFetch('/api/products')
+const { data } = await useFetch("/api/products");
 </script>
 
 <template>
-    <pre>{{ data }}</pre>
+  <pre>{{ data }}</pre>
 </template>
 ```
 
@@ -237,9 +236,9 @@ We can use the `useAdmin` utility to access the admin API in a nitro event handl
 // ~/server/api/your-admin-api-handler.ts
 
 export default defineEventHandler(async () => {
-    const admin = useAdmin()
+  const admin = useAdmin()
 
-    return await admin.request(...)
+  return await admin.request(...)
 })
 ```
 
@@ -251,17 +250,17 @@ To mock the Storefront API, you can use the `mock` option in the module config:
 
 ```ts
 export default defineNuxtConfig({
-    shopify: {
-        name: 'my-mocked-shopify-store',
+  shopify: {
+    name: "my-mocked-shopify-store",
 
-        clients: {
-            storefront: {
-                mock: true,
+    clients: {
+      storefront: {
+        mock: true,
 
-                apiVersion: '2026-01',
-            },
-        },
+        apiVersion: "2026-01",
+      },
     },
+  },
 })
 ```
 
@@ -275,19 +274,20 @@ Proxying is only available in SSR mode.
 
 ```ts
 export default defineNuxtConfig({
-    shopify: {
-        clients: {
-            storefront: {
-                proxy: true,
-            },
-        },
+  shopify: {
+    clients: {
+      storefront: {
+        proxy: true,
+      },
     },
+  },
 })
 ```
 
 ### Type generation
 
 Once installed, the module automatically generates your GraphQL types and saves them in:
+
 - .nuxt/types — Type definitions
 - .nuxt/schema — GraphQL schema files
 
@@ -310,17 +310,17 @@ Here's an example of how to define and use a fragment:
 ```graphql
 #graphql
 fragment ProductFields on Product {
-    id
-    title
-    description
+  id
+  title
+  description
 }
 
 query FetchProducts($first: Int) {
-    products(first: $first) {
-        nodes {
-            ...ProductFields
-        }
+  products(first: $first) {
+    nodes {
+      ...ProductFields
     }
+  }
 }
 ```
 
@@ -337,11 +337,11 @@ You can customize this behavior by setting the `errors.throw` option in the modu
 
 ```ts
 export default defineNuxtConfig({
-    shopify: {
-        errors: {
-            throw: false,
-        },
+  shopify: {
+    errors: {
+      throw: false,
     },
+  },
 })
 ```
 
@@ -351,11 +351,12 @@ The module also provides hooks to handle errors.
 
 ```ts
 // ~/server/plugins/your-plugin.ts
+
 export default defineNitroPlugin((nitroApp) => {
-    nitroApp.hooks.hook('storefront:client:errors', ({ errors }) => {
-        // Do something with the errors
-        console.log('Storefront client errors:', errors)
-    })
+  nitroApp.hooks.hook("storefront:client:errors", ({ errors }) => {
+    // Do something with the errors
+    console.log("Storefront client errors:", errors);
+  });
 })
 ```
 
@@ -369,30 +370,30 @@ For each client side request, caching is opt-in by setting the `cache` option in
 
 ```html
 <script setup lang="ts">
-const storefront = useStorefront()
+const storefront = useStorefront();
 
 const { data } = await storefront.request(`#graphql
-    query FetchProducts($first: Int) {
-        products(first: $first) {
-            nodes {
-                ...ProductFields
-            }
-        }
+  query FetchProducts($first: Int) {
+    products(first: $first) {
+      nodes {
+        ...ProductFields
+      }
     }
-    ${PRODUCT_FRAGMENT}
+  }
+  ${PRODUCT_FRAGMENT}
 `, {
-    variables: {
-        first: 5,
-    },
+  variables: {
+    first: 5,
+  },
 
-    // Cache settings for this request, client and server side (proxy)
-    cache: 'short',
+  // Cache settings for this request, client and server side (proxy)
+  cache: "short",
 
-    // Or set client and server side cache separately
-    cache: {
-        client: 'short',
-        proxy: 'long',
-    },
+  // Or set client and server side cache separately
+  cache: {
+    client: "short",
+    proxy: "long",
+  },
 })
 </script>
 ```
@@ -413,18 +414,18 @@ First, configure your webhooks:
 
 ```ts
 export default defineNuxtConfig({
-    modules: ['@nuxtjs/shopify'],
+  modules: ["@nuxtjs/shopify"],
 
-    shopify: {
-        webhooks: {
-            secret: 'my-shopify-app-client-secret',
-    
-            hooks: {
-                topic: 'ORDERS_CREATE',
-                uri: 'https://shopify.nuxtjs.org/api/webhooks/orders-create',
-            },
-        },
+  shopify: {
+    webhooks: {
+      secret: "my-shopify-app-client-secret",
+
+      hooks: {
+        topic: "ORDERS_CREATE",
+        uri: "https://shopify.nuxtjs.org/api/webhooks/orders-create",
+      },
     },
+  },
 })
 ```
 
@@ -441,22 +442,22 @@ Read more about webhooks in our [webhooks documentation](https://shopify.nuxtjs.
 
 ## 👥 Maintainers
 
-* Frederik Bußmann ([@freb97](https://github.com/freb97))
-* Zoltan Lukacs ([@konkonam](https://github.com/konkonam))
+- Frederik Bußmann ([@freb97](https://github.com/freb97))
+- Zoltan Lukacs ([@konkonam](https://github.com/konkonam))
 
 ## 🤝 Contributing
 
 1. Clone this repository
 2. Create a `.env` file (see [`.env.example`](https://github.com/nuxt-modules/shopify/tree/main/.env.example))
 3. Install dependencies using:
-    ```bash
-    bun install
-    ```
+   ```bash
+   bun install
+   ```
 4. Run `bun run prepare:dev` to generate type stubs.
 5. Start the default [playground](https://github.com/nuxt-modules/shopify/tree/main/playgrounds/playground) with:
-    ```bash
-    bun run dev
-    ```
+   ```bash
+   bun run dev
+   ```
 
 ## 📜 License
 
@@ -464,15 +465,11 @@ Published under the [MIT License](https://github.com/nuxt-modules/shopify/tree/m
 
 [github-actions-src]: https://github.com/nuxt-modules/shopify/actions/workflows/test.yml/badge.svg
 [github-actions-href]: https://github.com/nuxt-modules/shopify/actions
-
 [npm-version-src]: https://img.shields.io/npm/v/@nuxtjs/shopify/latest.svg?style=flat&colorA=18181B&colorB=31C553
 [npm-version-href]: https://npmx.dev/package/@nuxtjs/shopify
-
 [nuxt-health-src]: https://img.shields.io/endpoint?url=https://nuxt.care/api/v1/badge?module=shopify
 [nuxt-health-href]: https://nuxt.care/?search=shopify
-
 [npm-last-update-src]: https://img.shields.io/npm/last-update/%40nuxtjs%2Fshopify.svg?style=flat&colorA=18181B&colorB=31C553
 [npm-last-update-href]: https://npmx.dev/package/@nuxtjs/shopify
-
 [license-src]: https://img.shields.io/github/license/nuxt-modules/shopify.svg?style=flat&colorA=18181B&colorB=31C553
 [license-href]: https://github.com/nuxt-modules/shopify/tree/main/LICENSE

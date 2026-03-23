@@ -11,12 +11,12 @@ import { validate } from './validation'
  * @returns A new event handler with validation applied.
  */
 export const defineWebhookEventHandler = <
-    Req extends EventHandlerRequest = EventHandlerRequest,
-    Res = EventHandlerResponse,
+  Req extends EventHandlerRequest = EventHandlerRequest,
+  Res = EventHandlerResponse,
 >(handler: EventHandler<Req, Res>): EventHandler => {
-    return defineEventHandler(async (event) => {
-        await validate(event)
+  return defineEventHandler(async (event) => {
+    await validate(event)
 
-        return handler(event)
-    })
+    return handler(event)
+  })
 }

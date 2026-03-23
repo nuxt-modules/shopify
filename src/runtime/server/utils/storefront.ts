@@ -7,31 +7,31 @@ import { createStorefrontConfig } from '../../utils/clients/storefront'
 import useErrors from '../../utils/errors'
 
 export function useStorefront(): StorefrontApiClient {
-    const { _shopify } = useRuntimeConfig()
+  const { _shopify } = useRuntimeConfig()
 
-    const config = createStorefrontConfig(_shopify)
+  const config = createStorefrontConfig(_shopify)
 
-    const nitroApp = useNitroApp()
+  const nitroApp = useNitroApp()
 
-    nitroApp.hooks.callHook('storefront:client:configure', { config })
+  nitroApp.hooks.callHook('storefront:client:configure', { config })
 
-    const originalClient = createClient<StorefrontOperations>(config)
+  const originalClient = createClient<StorefrontOperations>(config)
 
-    const request: StorefrontApiClient['request'] = async (operation, options) => {
-        nitroApp.hooks.callHook('storefront:client:request', { operation, options })
+  const request: StorefrontApiClient['request'] = async (operation, options) => {
+    nitroApp.hooks.callHook('storefront:client:request', { operation, options })
 
-        const response = await originalClient.request(operation, options)
+    const response = await originalClient.request(operation, options)
 
-        if (response.errors) useErrors(nitroApp.hooks, 'storefront:client:errors', response.errors, _shopify?.errors?.throw ?? false)
+    if (response.errors) useErrors(nitroApp.hooks, 'storefront:client:errors', response.errors, _shopify?.errors?.throw ?? false)
 
-        nitroApp.hooks.callHook('storefront:client:response', { response, operation, options })
+    nitroApp.hooks.callHook('storefront:client:response', { response, operation, options })
 
-        return response
-    }
+    return response
+  }
 
-    const client = { ...originalClient, request } satisfies StorefrontApiClient
+  const client = { ...originalClient, request } satisfies StorefrontApiClient
 
-    nitroApp.hooks.callHook('storefront:client:create', { client })
+  nitroApp.hooks.callHook('storefront:client:create', { client })
 
-    return client
+  return client
 }

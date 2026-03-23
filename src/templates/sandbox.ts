@@ -6,7 +6,7 @@ import type { ShopifyClientType } from '../types'
  * https://github.com/graphql/graphiql/blob/main/examples/graphiql-cdn/index.html.
  */
 export default function getSandboxTemplate(clientType: ShopifyClientType) {
-    return `
+  return `
         <!--
          *  Copyright (c) 2025 GraphQL Contributors
          *  All rights reserved.

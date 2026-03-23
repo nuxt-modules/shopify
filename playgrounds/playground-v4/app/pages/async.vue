@@ -26,30 +26,30 @@ const { data: products } = await useStorefrontData('async-data-test', `#graphql
         }
     }
 `, {
-    variables: {
-        handle: 'shirts',
-        first: 5,
-    },
+  variables: {
+    handle: 'shirts',
+    first: 5,
+  },
 
-    cache: 'short',
+  cache: 'short',
 
-    transform: response => flattenConnection(response.collection?.products),
+  transform: response => flattenConnection(response.collection?.products),
 })
 </script>
 
 <template>
-    <div>
-        <div
-            v-for="product in products"
-            :key="product.id"
-        >
-            <h2>{{ product.title }}</h2>
-            <p>{{ product.description }}</p>
-            <br>
-        </div>
-
-        <p>Product count: {{ products?.length }}</p>
-
-        <NuxtLink to="/client">Client</NuxtLink>
+  <div>
+    <div
+      v-for="product in products"
+      :key="product.id"
+    >
+      <h2>{{ product.title }}</h2>
+      <p>{{ product.description }}</p>
+      <br>
     </div>
+
+    <p>Product count: {{ products?.length }}</p>
+
+    <NuxtLink to="/client">Client</NuxtLink>
+  </div>
 </template>

@@ -11,17 +11,17 @@ const { data } = await storefront.request(`#graphql
     }
     ${PRODUCT_FRAGMENT}
 `, {
-    variables: {
-        first: 5,
-        after: 'invalid_cursor',
-    },
+  variables: {
+    first: 5,
+    after: 'invalid_cursor',
+  },
 })
 
 const products = flattenConnection(data?.products)
 </script>
 
 <template>
-    <div>
-        <p>Product count: {{ products?.length }}</p>
-    </div>
+  <div>
+    <p>Product count: {{ products?.length }}</p>
+  </div>
 </template>

@@ -7,21 +7,21 @@ import { getConfiguredClients } from '../utils/clients'
 import { registerTemplates } from '../utils/templates'
 
 export default async function setupCodegen(nuxt: Nuxt, config: ShopifyConfig) {
-    const logger = useLogger(config)
-    const clients = getConfiguredClients(config)
+  const logger = useLogger(config)
+  const clients = getConfiguredClients(config)
 
-    for (const clientType of clients) {
-        const clientConfig = config.clients[clientType]
+  for (const clientType of clients) {
+    const clientConfig = config.clients[clientType]
 
-        if (!clientConfig) continue
+    if (!clientConfig) continue
 
-        if (clientConfig.codegen?.skip) {
-            logger.info(`Skipping type generation for ${clientType}`)
-            continue
-        }
-
-        logger.debug(`Setting up code generation for ${clientType}`)
-
-        registerTemplates(nuxt, config, clientType)
+    if (clientConfig.codegen?.skip) {
+      logger.info(`Skipping type generation for ${clientType}`)
+      continue
     }
+
+    logger.debug(`Setting up code generation for ${clientType}`)
+
+    registerTemplates(nuxt, config, clientType)
+  }
 }

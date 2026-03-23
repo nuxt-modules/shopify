@@ -17,33 +17,33 @@ const unauthorized = () => createError({ statusCode: 401, statusMessage: 'Unauth
  * @throws Will throw an unauthorized error if validation fails.
  */
 export const validate = async (event: H3Event) => {
-    const runtimeConfig = useRuntimeConfig()
+  const runtimeConfig = useRuntimeConfig()
 
-    if (import.meta.dev) return
+  if (import.meta.dev) return
 
-    const { _shopify } = runtimeConfig
+  const { _shopify } = runtimeConfig
 
-    if (!_shopify?.webhooks?.secret) throw unauthorized()
+  if (!_shopify?.webhooks?.secret) throw unauthorized()
 
-    const shopifyHmac = getWebhookHmac(event)
+  const shopifyHmac = getWebhookHmac(event)
 
-    if (!shopifyHmac?.length) throw unauthorized()
+  if (!shopifyHmac?.length) throw unauthorized()
 
-    const body = await readRawBody(event, false)
+  const body = await readRawBody(event, false)
 
-    if (!body?.length) throw unauthorized()
+  if (!body?.length) throw unauthorized()
 
-    try {
-        const calculatedHmacDigest = createHmac('sha256', _shopify.webhooks.secret).update(body).digest('base64')
-        const isValid = timingSafeEqual(Buffer.from(calculatedHmacDigest), Buffer.from(shopifyHmac))
+  try {
+    const calculatedHmacDigest = createHmac('sha256', _shopify.webhooks.secret).update(body).digest('base64')
+    const isValid = timingSafeEqual(Buffer.from(calculatedHmacDigest), Buffer.from(shopifyHmac))
 
-        if (!isValid) throw unauthorized()
-    }
-    catch (error) {
-        createConsola()
-            .withTag('shopify')
-            .error('Error validating Shopify webhook HMAC signature', error)
+    if (!isValid) throw unauthorized()
+  }
+  catch (error) {
+    createConsola()
+      .withTag('shopify')
+      .error('Error validating Shopify webhook HMAC signature', error)
 
-        throw unauthorized()
-    }
+    throw unauthorized()
+  }
 }

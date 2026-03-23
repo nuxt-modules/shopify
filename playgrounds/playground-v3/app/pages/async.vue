@@ -26,25 +26,25 @@ const { data: products } = await useStorefrontData('async-data-test', `#graphql
         }
     }
 `, {
-    variables: {
-        handle: 'shirts',
-        first: 5,
-    },
-    transform: response => flattenConnection(response.collection?.products),
+  variables: {
+    handle: 'shirts',
+    first: 5,
+  },
+  transform: response => flattenConnection(response.collection?.products),
 })
 </script>
 
 <template>
-    <div>
-        <div
-            v-for="product in products"
-            :key="product.id"
-        >
-            <h2>{{ product.title }}</h2>
-            <p>{{ product.description }}</p>
-            <br>
-        </div>
-
-        <p>Product count: {{ products?.length }}</p>
+  <div>
+    <div
+      v-for="product in products"
+      :key="product.id"
+    >
+      <h2>{{ product.title }}</h2>
+      <p>{{ product.description }}</p>
+      <br>
     </div>
+
+    <p>Product count: {{ products?.length }}</p>
+  </div>
 </template>

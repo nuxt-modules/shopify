@@ -1,15 +1,15 @@
 import { z } from 'zod'
 
 export const schema = z.object({
-    first: z.preprocess(v => Number(v), z.number().min(1)),
+  first: z.preprocess(v => Number(v), z.number().min(1)),
 })
 
 export default defineEventHandler(async (event) => {
-    const query = await getValidatedQuery(event, schema.parse)
+  const query = await getValidatedQuery(event, schema.parse)
 
-    const storefront = useStorefront()
+  const storefront = useStorefront()
 
-    return storefront.request(`#graphql
+  return storefront.request(`#graphql
         query FetchProducts($first: Int) {
             products(first: $first) {
                 nodes {
@@ -21,6 +21,6 @@ export default defineEventHandler(async (event) => {
             }
         }
     `, {
-        variables: query,
-    })
+    variables: query,
+  })
 })

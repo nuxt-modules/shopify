@@ -8,7 +8,7 @@ const { data: _test1 } = await useStorefrontData('test1', `#graphql
         }
     }
 `, {
-    variables: { handle: 'test' },
+  variables: { handle: 'test' },
 })
 
 // has variables and transform
@@ -20,8 +20,8 @@ const { data: _test2 } = await useStorefrontData('test2', `#graphql
         }
     }
 `, {
-    variables: { handle: 'test' },
-    transform: data => data?.collection,
+  variables: { handle: 'test' },
+  transform: data => data?.collection,
 })
 
 // has variables as ref and transform
@@ -33,8 +33,8 @@ const { data: _test3 } = await useStorefrontData('test3', `#graphql
         }
     }
 `, {
-    variables: ref({ handle: 'test' }),
-    transform: data => data?.collection,
+  variables: ref({ handle: 'test' }),
+  transform: data => data?.collection,
 })
 
 // has single variable as ref and headers as ref and transform
@@ -46,11 +46,11 @@ const { data: _test4 } = await useStorefrontData('test4', `#graphql
         }
     }
 `, {
-    variables: { handle: ref('test') },
-    headers: ref({
-        'X-Test-Header': 'test-value',
-    }),
-    transform: data => data?.collection,
+  variables: { handle: ref('test') },
+  headers: ref({
+    'X-Test-Header': 'test-value',
+  }),
+  transform: data => data?.collection,
 })
 
 // no variables, no transform
@@ -70,10 +70,10 @@ const { data: _test6 } = await useStorefrontData('test6', `#graphql
         }
     }
 `, {
-    transform: data => data?.shop?.name,
-    headers: {
-        'X-Test-Header': 'test-value',
-    },
+  transform: data => data?.shop?.name,
+  headers: {
+    'X-Test-Header': 'test-value',
+  },
 })
 
 // variables, has pick
@@ -91,8 +91,8 @@ const { data: _test7 } = await useStorefrontData('test7', `#graphql
         }
     }
 `, {
-    pick: ['shop'],
-    variables: { first: 10 },
+  pick: ['shop'],
+  variables: { first: 10 },
 })
 
 // no variables, has pick
@@ -110,7 +110,7 @@ const { data: _test8 } = await useStorefrontData('test8', `#graphql
         }
     }
 `, {
-    pick: ['shop'],
+  pick: ['shop'],
 })
 
 // no key, no variables, has pick
@@ -128,7 +128,7 @@ const { data: _test9 } = await useStorefrontData(`#graphql
         }
     }
 `, {
-    pick: ['shop'],
+  pick: ['shop'],
 })
 
 // no key, no variables, has transform
@@ -139,10 +139,10 @@ const { data: _test10 } = await useStorefrontData(`#graphql
         }
     }
 `, {
-    transform: data => data?.shop?.name,
-    headers: {
-        'X-Test-Header': 'test-value',
-    },
+  transform: data => data?.shop?.name,
+  headers: {
+    'X-Test-Header': 'test-value',
+  },
 })
 
 // no key, has single variable as ref and headers as ref and transform
@@ -154,14 +154,14 @@ const { data: _test11 } = await useStorefrontData(`#graphql
         }
     }
 `, {
-    variables: { handle: ref('test') },
-    headers: ref({
-        'X-Test-Header': 'test-value',
-    }),
-    transform: data => data?.collection,
+  variables: { handle: ref('test') },
+  headers: ref({
+    'X-Test-Header': 'test-value',
+  }),
+  transform: data => data?.collection,
 })
 </script>
 
 <template>
-    <div>Debug Types</div>
+  <div>Debug Types</div>
 </template>

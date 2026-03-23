@@ -4,23 +4,23 @@ import type { ShopifyConfig } from '../types'
 
 import { useLogger } from '../utils/log'
 import {
-    getConfiguredClients,
-    isPublicClient,
-    registerClientServerImports,
-    registerClientImports,
+  getConfiguredClients,
+  isPublicClient,
+  registerClientServerImports,
+  registerClientImports,
 } from '../utils/clients'
 
 export default async function setupClients(config: ShopifyConfig, resolver: Resolver) {
-    const logger = useLogger(config)
-    const clients = getConfiguredClients(config)
+  const logger = useLogger(config)
+  const clients = getConfiguredClients(config)
 
-    for (const clientType of clients) {
-        logger.debug(`Setting up ${clientType} client`)
+  for (const clientType of clients) {
+    logger.debug(`Setting up ${clientType} client`)
 
-        registerClientServerImports(clientType, resolver)
+    registerClientServerImports(clientType, resolver)
 
-        if (isPublicClient(config.clients[clientType])) {
-            registerClientImports(clientType, resolver)
-        }
+    if (isPublicClient(config.clients[clientType])) {
+      registerClientImports(clientType, resolver)
     }
+  }
 }

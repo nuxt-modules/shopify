@@ -1,12 +1,12 @@
 import type {
-    AllOperations,
-    RequestParams,
+  AllOperations,
+  RequestParams,
 } from '@shopify/graphql-client'
 
 import type {
-    ShopifyApiClient,
-    ShopifyApiClientConfig,
-    ShopifyApiClientRequestOptions,
+  ShopifyApiClient,
+  ShopifyApiClientConfig,
+  ShopifyApiClientRequestOptions,
 } from '../../module'
 
 import { createGraphQLClient } from '@shopify/graphql-client'
@@ -18,99 +18,99 @@ import pkg from '../../../package.json'
 export const createStoreDomain = (name: string) => `https://${name}.myshopify.com`
 
 export const createApiUrl = (storeDomain: string, apiVersion: string, apiPrefix?: string) => joinURL(
-    storeDomain,
-    apiPrefix ? `${apiPrefix}/api` : 'api',
-    apiVersion,
-    'graphql.json',
+  storeDomain,
+  apiPrefix ? `${apiPrefix}/api` : 'api',
+  apiVersion,
+  'graphql.json',
 )
 
 export const createClient = <Operations extends AllOperations = AllOperations, Cache extends boolean | undefined = undefined>(
-    config: ShopifyApiClientConfig,
+  config: ShopifyApiClientConfig,
 ): ShopifyApiClient<Operations, Cache> => {
-    const {
-        storeDomain,
-        apiUrl,
+  const {
+    storeDomain,
+    apiUrl,
+    apiVersion,
+    headers,
+    logger,
+    retries,
+  } = config
+
+  if (!apiVersion) {
+    throw new Error('Missing API version')
+  }
+
+  const getStoreUrl = (apiVersion: string) => joinURL(
+    storeDomain,
+    'api',
+    apiVersion,
+    'graphql.json',
+  )
+
+  const clientConfig = {
+    storeDomain,
+    apiUrl,
+    apiVersion: apiVersion,
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'X-SDK-Variant': 'nuxt-shopify',
+      'X-SDK-Version': pkg?.version ?? 'unknown',
+      ...headers,
+    },
+  } satisfies ShopifyApiClientConfig
+
+  const graphqlClient = createGraphQLClient({
+    url: apiUrl,
+    headers: clientConfig.headers,
+    retries,
+    logger: logger ? createConsola(logger).withTag('shopify').trace : undefined,
+  })
+
+  const getHeaders: ShopifyApiClient<Operations>['getHeaders'] = customHeaders =>
+    ({ ...(customHeaders ?? {}), ...headers })
+
+  const getApiUrl: ShopifyApiClient<Operations>['getApiUrl'] = (propApiVersion?: string) =>
+    propApiVersion ? getStoreUrl(propApiVersion) : apiUrl
+
+  const getGQLClientParams = <
+    Operation extends keyof Operations,
+    Cache extends boolean | undefined = undefined,
+  >(
+    operation: Operation,
+    options?: ShopifyApiClientRequestOptions<Operation, Operations, Cache>,
+  ): RequestParams => {
+    const props: RequestParams = [operation as string]
+
+    if (options && Object.keys(options).length > 0) {
+      const {
+        variables,
         apiVersion,
         headers,
-        logger,
         retries,
-    } = config
+        signal,
+        cache,
+      } = options
 
-    if (!apiVersion) {
-        throw new Error('Missing API version')
+      props.push({
+        ...(variables ? { variables } : {}),
+        ...(apiVersion ? { url: getApiUrl(apiVersion) } : {}),
+        ...(headers ? { headers: getHeaders(headers as unknown as Record<string, string[]>) } : {}),
+        ...(retries ? { retries } : {}),
+        ...(signal ? { signal } : {}),
+        ...(cache ? { cache } : {}),
+      })
     }
 
-    const getStoreUrl = (apiVersion: string) => joinURL(
-        storeDomain,
-        'api',
-        apiVersion,
-        'graphql.json',
-    )
+    return props
+  }
 
-    const clientConfig = {
-        storeDomain,
-        apiUrl,
-        apiVersion: apiVersion,
-        headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'X-SDK-Variant': 'nuxt-shopify',
-            'X-SDK-Version': pkg?.version ?? 'unknown',
-            ...headers,
-        },
-    } satisfies ShopifyApiClientConfig
-
-    const graphqlClient = createGraphQLClient({
-        url: apiUrl,
-        headers: clientConfig.headers,
-        retries,
-        logger: logger ? createConsola(logger).withTag('shopify').trace : undefined,
-    })
-
-    const getHeaders: ShopifyApiClient<Operations>['getHeaders'] = customHeaders =>
-        ({ ...(customHeaders ?? {}), ...headers })
-
-    const getApiUrl: ShopifyApiClient<Operations>['getApiUrl'] = (propApiVersion?: string) =>
-        propApiVersion ? getStoreUrl(propApiVersion) : apiUrl
-
-    const getGQLClientParams = <
-        Operation extends keyof Operations,
-        Cache extends boolean | undefined = undefined,
-    >(
-        operation: Operation,
-        options?: ShopifyApiClientRequestOptions<Operation, Operations, Cache>,
-    ): RequestParams => {
-        const props: RequestParams = [operation as string]
-
-        if (options && Object.keys(options).length > 0) {
-            const {
-                variables,
-                apiVersion,
-                headers,
-                retries,
-                signal,
-                cache,
-            } = options
-
-            props.push({
-                ...(variables ? { variables } : {}),
-                ...(apiVersion ? { url: getApiUrl(apiVersion) } : {}),
-                ...(headers ? { headers: getHeaders(headers as unknown as Record<string, string[]>) } : {}),
-                ...(retries ? { retries } : {}),
-                ...(signal ? { signal } : {}),
-                ...(cache ? { cache } : {}),
-            })
-        }
-
-        return props
-    }
-
-    return {
-        config: clientConfig,
-        getHeaders,
-        getApiUrl,
-        fetch: (...props) => graphqlClient.fetch(...getGQLClientParams(...props)),
-        request: (...props) => graphqlClient.request(...getGQLClientParams(...props)),
-        requestStream: (...props) => graphqlClient.requestStream(...getGQLClientParams(...props)),
-    } as ShopifyApiClient<Operations, Cache>
+  return {
+    config: clientConfig,
+    getHeaders,
+    getApiUrl,
+    fetch: (...props) => graphqlClient.fetch(...getGQLClientParams(...props)),
+    request: (...props) => graphqlClient.request(...getGQLClientParams(...props)),
+    requestStream: (...props) => graphqlClient.requestStream(...getGQLClientParams(...props)),
+  } as ShopifyApiClient<Operations, Cache>
 }
