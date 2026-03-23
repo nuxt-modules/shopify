@@ -14,10 +14,10 @@
         "@nuxtjs/shopify": "latest",
         "better-sqlite3": "^12.8.0",
         "docus": "^5.8.1",
-        "motion-v": "^2.0.1",
+        "motion-v": "^2.2.0",
         "nuxt": "^4.4.2",
         "reka-ui": "^2.9.2",
-        "tailwindcss": "^4.2.1",
+        "tailwindcss": "^4.2.2",
         "vaul-vue": "^0.4.1",
         "zod": "^4.3.6"
     }
