@@ -12,7 +12,7 @@ const { data } = await customerAccount.request(`#graphql
 </script>
 
 <template>
-    <div>
-        <pre>{{ data?.customer.firstName }}</pre>
-    </div>
+  <div>
+    <pre>{{ data?.customer.firstName }}</pre>
+  </div>
 </template>
