@@ -1,10 +1,10 @@
-declare module '@nuxt/schema' {
-    interface AppConfigInput {
-        shopify?: {
-            shopName?: string
+declare module 'nuxt/schema' {
+    interface AppConfig {
+        shopify: {
+            shopName: string
 
-            collection?: {
-                perPage?: number
+            collection: {
+                perPage: number
             }
         }
     }
