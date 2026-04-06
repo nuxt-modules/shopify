@@ -13,7 +13,7 @@ const MOCK_STORE_DOMAIN = 'https://mock.shop'
 
 export const createStorefrontConfig = (config?: ShopifyConfig | PublicShopifyConfig): ShopifyApiClientConfig => {
   if (!config?.clients?.storefront) {
-    throw new Error('[shopify] Could not create storefront client config: missing configuration')
+    throw new Error('[shopify] Failed to create storefront client config: missing configuration')
   }
 
   const {
@@ -34,7 +34,7 @@ export const createStorefrontConfig = (config?: ShopifyConfig | PublicShopifyCon
   const privateAccessToken = (config as ShopifyConfig)?.clients?.storefront?.privateAccessToken
 
   if (!name || ((!publicAccessToken && !privateAccessToken) && !mock)) {
-    throw new Error('[shopify] Could not create storefront client config: missing shop name or access token')
+    throw new Error('[shopify] Failed to create storefront client config: missing shop name or access token')
   }
 
   const apiUrl = mock

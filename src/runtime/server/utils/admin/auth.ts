@@ -44,7 +44,7 @@ async function fetchAccessToken(
   if (!response.ok) {
     const errorBody = await response.text().catch(() => '')
 
-    throw new Error(`[shopify] Failed to obtain admin access token: ${errorBody}`)
+    throw new Error(`[shopify] Failed to obtain admin API access token: ${errorBody}`)
   }
 
   const data = await response.json() as {
@@ -71,7 +71,7 @@ export async function getAdminAccessToken(shopName: string, config: AdminConfig,
   }
 
   if (!clientId || !clientSecret) {
-    throw new Error('[shopify] Either an access token or both client ID and client secret must be provided for the admin client')
+    throw new Error('[shopify] Failed to obtain admin API access token: Client ID and secret must be provided')
   }
 
   let storedToken = store ? await getTokenStorage(config).then(storage => storage.getItem('token')) : undefined

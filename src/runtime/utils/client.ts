@@ -37,7 +37,7 @@ export const createClient = <Operations extends AllOperations = AllOperations, C
   } = config
 
   if (!apiVersion) {
-    throw new Error('[shopify] Could not create client: API version is required')
+    throw new Error('[shopify] Failed to create client: API version is required')
   }
 
   const getStoreUrl = (apiVersion: string) => joinURL(
