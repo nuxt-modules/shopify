@@ -1,3 +1,8 @@
+# 0.4.5
+- Added client credentials grant support for admin API access tokens
+- Updated documentation for admin API authentication
+- Bumped dependencies
+
 # 0.4.4
 - Bumped dependencies
 
