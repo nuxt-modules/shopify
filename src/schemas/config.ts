@@ -42,7 +42,11 @@ export const storefrontClientSchema = clientSchema.extend({
 })
 
 export const adminClientSchema = clientSchema.extend({
-  accessToken: z.string(),
+  accessToken: z.string().optional(),
+  clientId: z.string().optional(),
+  clientSecret: z.string().optional(),
+  refreshToken: z.string().optional(),
+  tokenStorage: z.any().transform(v => v as StorageMounts[string]).or(z.string()).or(z.boolean()).optional(),
 })
 
 export const moduleOptionsSchema = z.object({

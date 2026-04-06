@@ -15,7 +15,8 @@ export default defineNuxtConfig({
 
         admin: {
           apiVersion: '',
-          accessToken: '',
+          clientId: '',
+          clientSecret: '',
 
           autoImport: false,
         },

@@ -3,10 +3,10 @@ import type { StorefrontApiClient, StorefrontOperations } from '@nuxtjs/shopify/
 import { joinURL } from 'ufo'
 
 import { useRuntimeConfig, useNuxtApp, useRequestURL } from '#imports'
-import { createClient } from '../utils/client'
-import { createStorefrontConfig } from '../utils/clients/storefront'
-import useErrors from '../utils/errors'
-import useCache from '../utils/cache'
+import { createClient } from '../../utils/client'
+import { createStorefrontConfig } from '../../utils/clients/storefront'
+import useErrors from '../../utils/errors'
+import useCache from '../../utils/cache'
 
 export function useStorefront(): StorefrontApiClient<true> {
   const { _shopify } = useRuntimeConfig().public

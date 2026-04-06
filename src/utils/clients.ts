@@ -9,7 +9,7 @@ import { ShopifyClientType } from '../schemas'
 
 export function registerClientServerImports(clientType: ShopifyClientType, resolver: Resolver) {
   addServerImports([{
-    from: resolver.resolve(`./runtime/server/utils/${clientType}`),
+    from: resolver.resolve(`./runtime/server/utils/${clientType}/client`),
     name: `use${upperFirst(clientType)}`,
   }])
 }
@@ -17,11 +17,11 @@ export function registerClientServerImports(clientType: ShopifyClientType, resol
 export function registerClientImports(clientType: ShopifyClientType, resolver: Resolver) {
   addImports([
     {
-      from: resolver.resolve(`./runtime/composables/${clientType}`),
+      from: resolver.resolve(`./runtime/composables/${clientType}/client`),
       name: `use${upperFirst(clientType)}`,
     },
     {
-      from: resolver.resolve(`./runtime/composables/async/${clientType}`),
+      from: resolver.resolve(`./runtime/composables/${clientType}/async`),
       name: `use${upperFirst(clientType)}Data`,
     },
   ])

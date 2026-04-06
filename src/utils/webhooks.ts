@@ -16,30 +16,30 @@ const createAdminClient = (config: ShopifyConfig): AdminApiClient => {
 
 const fetchSubscriptions = async (client: AdminApiClient) => {
   const { data, errors } = await client.request(`#graphql
-        query GetWebhookSubscriptions($first: Int!) {
-            webhookSubscriptions(first: $first) {
-                edges {
-                    node {
-                        id
-                        topic
-                        endpoint {
-                            __typename
-                            ... on WebhookHttpEndpoint {
-                                callbackUrl
-                            }
-                        }
-                    }
-                }
+    query GetWebhookSubscriptions($first: Int!) {
+      webhookSubscriptions(first: $first) {
+        edges {
+          node {
+            id
+            topic
+            endpoint {
+              __typename
+              ... on WebhookHttpEndpoint {
+                callbackUrl
+              }
             }
+          }
         }
-    `, {
+      }
+    }
+  `, {
     variables: {
       first: 250,
     },
   })
 
   if (errors) {
-    throw new Error(`Failed to fetch webhook subscriptions: ${JSON.stringify(errors)}`)
+    throw new Error(`Failed to fetch webhook subscriptions: ${JSON.stringify(errors, null, 2)}`)
   }
 
   return flattenConnection(data?.webhookSubscriptions)
@@ -47,31 +47,31 @@ const fetchSubscriptions = async (client: AdminApiClient) => {
 
 const createSubscription = async (client: AdminApiClient, hook: NonNullable<NonNullable<ShopifyConfig['webhooks']>['hooks']>[number]) => {
   const { data, errors } = await client.request(`#graphql
-        mutation WebhookSubscriptionCreate(
-            $topic: WebhookSubscriptionTopic!,
-            $webhookSubscription: WebhookSubscriptionInput!
-        ) {
-            webhookSubscriptionCreate(
-                topic: $topic,
-                webhookSubscription: $webhookSubscription
-            ) {
-                webhookSubscription {
-                    id
-                    topic
-                    endpoint {
-                        __typename
-                        ... on WebhookHttpEndpoint {
-                            callbackUrl
-                        }
-                    }
-                }
-                userErrors {
-                    field
-                    message
-                }
+    mutation WebhookSubscriptionCreate(
+      $topic: WebhookSubscriptionTopic!,
+      $webhookSubscription: WebhookSubscriptionInput!
+    ) {
+      webhookSubscriptionCreate(
+        topic: $topic,
+        webhookSubscription: $webhookSubscription
+      ) {
+        webhookSubscription {
+          id
+          topic
+          endpoint {
+            __typename
+            ... on WebhookHttpEndpoint {
+              callbackUrl
             }
+          }
         }
-    `, {
+        userErrors {
+          field
+          message
+        }
+      }
+    }
+  `, {
     variables: {
       topic: hook.topic,
       webhookSubscription: {
@@ -86,7 +86,7 @@ const createSubscription = async (client: AdminApiClient, hook: NonNullable<NonN
   })
 
   if (errors) {
-    throw new Error(`Failed to create webhook subscription: ${JSON.stringify(errors), null, 2}`)
+    throw new Error(`Failed to create webhook subscription: ${JSON.stringify(errors, null, 2)}`)
   }
 
   if (data?.webhookSubscriptionCreate.userErrors.length) {
@@ -98,23 +98,23 @@ const createSubscription = async (client: AdminApiClient, hook: NonNullable<NonN
 
 const deleteSubscription = async (client: AdminApiClient, id: string) => {
   const { data, errors } = await client.request(`#graphql
-        mutation webhookSubscriptionDelete($id: ID!) {
-            webhookSubscriptionDelete(id: $id) {
-                deletedWebhookSubscriptionId
-                userErrors {
-                    field
-                    message
-                }
-            }
+    mutation webhookSubscriptionDelete($id: ID!) {
+      webhookSubscriptionDelete(id: $id) {
+        deletedWebhookSubscriptionId
+        userErrors {
+          field
+          message
         }
-    `, {
+      }
+    }
+  `, {
     variables: {
       id,
     },
   })
 
   if (errors) {
-    throw new Error(`Failed to delete webhook subscription: ${JSON.stringify(errors), null, 2}`)
+    throw new Error(`Failed to delete webhook subscription: ${JSON.stringify(errors, null, 2)}`)
   }
 
   if (data?.webhookSubscriptionDelete.userErrors.length) {

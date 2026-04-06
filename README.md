@@ -185,7 +185,7 @@ You can use the `useStorefront` utility to access the storefront API:
 // ~/server/api/products.ts
 
 export default defineEventHandler(async () => {
-  const storefront = useStorefront();
+  const storefront = useStorefront()
 
   return await storefront.request(`#graphql
     query FetchProducts($first: Int) {
@@ -216,7 +216,7 @@ Now we can call the API at `/api/products` to obtain the first three products:
 <!-- ~/pages/your-page.vue -->
 
 <script setup lang="ts">
-const { data } = await useFetch("/api/products");
+const { data } = await useFetch("/api/products")
 </script>
 
 <template>
@@ -355,8 +355,8 @@ The module also provides hooks to handle errors.
 export default defineNitroPlugin((nitroApp) => {
   nitroApp.hooks.hook("storefront:client:errors", ({ errors }) => {
     // Do something with the errors
-    console.log("Storefront client errors:", errors);
-  });
+    console.log("Storefront client errors:", errors)
+  })
 })
 ```
 
@@ -370,7 +370,7 @@ For each client side request, caching is opt-in by setting the `cache` option in
 
 ```html
 <script setup lang="ts">
-const storefront = useStorefront();
+const storefront = useStorefront()
 
 const { data } = await storefront.request(`#graphql
   query FetchProducts($first: Int) {

@@ -13,6 +13,7 @@ import defu from 'defu'
 
 import { ShopifyClientType } from '../schemas'
 import { useLogger } from './log'
+import { getAdminAccessToken } from '../runtime/server/utils/admin/auth'
 
 type ShopifyTemplateOptions = {
   filename: string
@@ -47,7 +48,7 @@ declare module '@nuxtjs/shopify/${kebabCase(clientType)}' {
 `
 }
 
-function getIntrospection(options: ShopifyTemplateOptions, _config: ShopifyConfig) {
+async function getIntrospection(options: ShopifyTemplateOptions) {
   const { shopName, clientType, clientConfig, introspection } = options
 
   if (introspection && existsSync(introspection)) {
@@ -62,7 +63,7 @@ function getIntrospection(options: ShopifyTemplateOptions, _config: ShopifyConfi
   if (clientType === ShopifyClientType.Admin) {
     const adminConfig = clientConfig as NonNullable<ShopifyConfig['clients']['admin']>
     apiUrl = `https://${shopName}.myshopify.com/admin/api/${apiVersion}/graphql.json`
-    headers['X-Shopify-Access-Token'] = adminConfig.accessToken
+    headers['X-Shopify-Access-Token'] = await getAdminAccessToken(shopName, adminConfig)
   }
   else {
     const storefrontConfig = clientConfig as NonNullable<ShopifyConfig['clients']['storefront']>
@@ -113,7 +114,7 @@ function getTypescriptPluginConfig(config: ShopifyConfig['clients'][ShopifyClien
 export function createIntrospectionGenerator(config: ShopifyConfig): NuxtTemplate<ShopifyTemplateOptions>['getContents'] {
   return async (data) => {
     const generatorConfig = {
-      schema: getIntrospection(data.options, config),
+      schema: await getIntrospection(data.options),
       plugins: [{
         introspection: {
           minify: true,
@@ -140,7 +141,7 @@ export function createIntrospectionGenerator(config: ShopifyConfig): NuxtTemplat
 export function createTypesGenerator(config: ShopifyConfig): NuxtTemplate<ShopifyTemplateOptions>['getContents'] {
   return async (data) => {
     const generatorConfig = {
-      schema: getIntrospection(data.options, config),
+      schema: await getIntrospection(data.options),
       plugins: [getTypescriptPluginConfig(data.options.clientConfig)],
     } satisfies Types.ConfiguredOutput
 
@@ -163,7 +164,7 @@ export function createTypesGenerator(config: ShopifyConfig): NuxtTemplate<Shopif
 export function createOperationsGenerator(config: ShopifyConfig): NuxtTemplate<ShopifyTemplateOptions>['getContents'] {
   return async (data) => {
     const generatorConfig = {
-      schema: getIntrospection(data.options, config),
+      schema: await getIntrospection(data.options),
       preset,
       documents: data.options.clientConfig?.documents?.map((d) => {
         if (d.startsWith('!')) {

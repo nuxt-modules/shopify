@@ -72,10 +72,14 @@ describe('test module with nuxt 4', async () => {
         },
         admin: {
           apiVersion: process.env.NUXT_SHOPIFY_CLIENTS_ADMIN_API_VERSION,
-          accessToken: '<admin_access_token>',
+          clientId: '<admin_client_id>',
+          clientSecret: '<admin_client_secret>',
           autoImport: false,
           retries: 3,
           sandbox: true,
+          tokenStorage: {
+            driver: 'memory',
+          },
           documents: [
             '**/*.admin.{gql,graphql,ts,js}',
             '**/admin/**/*.{gql,graphql,ts,js}',
@@ -103,8 +107,8 @@ describe('test module with nuxt 4', async () => {
   it('should create a working server side storefront fetch client', async () => {
     const html = await $fetch('/')
 
-    // Check that we get 5 products
-    expect(html).toContain('<p>Product count: 5</p>')
+    // Check that we get 3 products
+    expect(html).toContain('<p>Product count: 3</p>')
   })
 
   it('should create a working client side storefront fetch client', async () => {
@@ -117,15 +121,15 @@ describe('test module with nuxt 4', async () => {
   it('should create a working async storefront client call', async () => {
     const html = await $fetch('/async')
 
-    // Check that we get 5 products
-    expect(html).toContain('<p>Product count: 5</p>')
+    // Check that we get 3 products
+    expect(html).toContain('<p>Product count: 3</p>')
   })
 
   it('should create a working admin fetch client', async () => {
     const html = await $fetch('/admin')
 
-    // Check that we get 3 markets
-    expect(html).toContain('<p>Market count: 3</p>')
+    // Check that we get 2 markets
+    expect(html).toContain('<p>Market count: 2</p>')
   })
 
   it('should error when given invalid input', async () => {

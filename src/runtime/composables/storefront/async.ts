@@ -7,8 +7,8 @@ import type { AsyncDataOptions, AsyncData, NuxtError } from '#app'
 import type { ShopifyApiClientRequestOptions } from '../../../module'
 
 import { unref } from 'vue'
-import { useAsyncData } from '#app'
-import { useStorefront } from '../storefront'
+import { createError, useAsyncData } from '#app'
+import { useStorefront } from './client'
 
 type PickFrom<T, K extends Array<string>> = T extends Array<any> ? T : T extends Record<string, any> ? keyof T extends K[number] ? T : K[number] extends never ? T : Pick<T, K[number]> : T
 type KeysOf<T> = Array<T extends T ? keyof T extends string ? keyof T : never : never>
@@ -79,7 +79,10 @@ export function useStorefrontData<
   ResT = ReturnData<Operation, StorefrontOperations>,
 >(...args: any[]) {
   if (args.length < 1 || args.length > 3) {
-    throw new Error('[shopify] [useStorefrontData] Invalid number of arguments')
+    throw createError({
+      statusCode: 500,
+      message: '[shopify] [useStorefrontData] Invalid number of arguments',
+    })
   }
 
   const key = typeof args[1] === 'string' ? args[0] as MaybeRefOrGetter<string> : undefined

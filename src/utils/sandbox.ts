@@ -4,7 +4,7 @@ import type { H3Event } from 'h3'
 import type { ShopifyClientType, ShopifyConfig } from '../types'
 
 import { addDevServerHandler } from '@nuxt/kit'
-import { createError, defineEventHandler, readValidatedBody } from 'h3'
+import { defineEventHandler, readValidatedBody } from 'h3'
 import { z } from 'zod'
 
 import { createClient } from '../runtime/utils/client'
@@ -30,10 +30,7 @@ function createSandboxProxyHandler(nuxt: Nuxt, clientType: ShopifyClientType) {
   return defineEventHandler(async (event: H3Event) => {
     const config = nuxt.options.runtimeConfig._shopify
 
-    if (!config) throw createError({
-      status: 500,
-      message: 'Shopify configuration is missing',
-    })
+    if (!config) throw new Error('[shopify] Sandbox setup error: Module configuration is missing')
 
     const schema = z.object({
       query: z.string(),
@@ -52,7 +49,7 @@ function createSandboxProxyHandler(nuxt: Nuxt, clientType: ShopifyClientType) {
         client = createClient(createAdminConfig(config))
         break
       default:
-        throw new Error('The requested client is not supported')
+        throw new Error('[shopify] Sandbox error: The requested client is not supported')
     }
 
     return client.request(body.query, {
