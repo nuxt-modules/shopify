@@ -187,8 +187,9 @@ Markets.vue
 
       clients: {
         admin: {
-          accessToken: 'access-token',
           apiVersion: '2026-01',
+          clientId: 'your-app-client-id',
+          clientSecret: 'your-app-client-secret',
         },
       },
     },
