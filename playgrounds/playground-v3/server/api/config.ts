@@ -6,7 +6,8 @@ export default defineEventHandler((event) => {
   return defu({
     clients: {
       admin: {
-        accessToken: '<admin_access_token>',
+        clientId: '<admin_client_id>',
+        clientSecret: '<admin_client_secret>',
       },
     },
   }, _shopify)

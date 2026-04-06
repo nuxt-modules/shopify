@@ -27,7 +27,7 @@ const { data: products } = await useStorefrontData('async-data-test', `#graphql
     }
 `, {
   variables: {
-    handle: 'shirts',
+    handle: 'hydrogen',
     first: 5,
   },
   transform: response => flattenConnection(response.collection?.products),
