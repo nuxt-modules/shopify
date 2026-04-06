@@ -2,14 +2,28 @@ import type { AdminApiClient, AdminOperations } from '@nuxtjs/shopify/admin'
 
 import { useNitroApp } from 'nitropack/runtime'
 import { useRuntimeConfig } from '#imports'
-import { createClient } from '../../utils/client'
-import { createAdminConfig } from '../../utils/clients/admin'
-import useErrors from '../../utils/errors'
+import { createClient } from '../../../utils/client'
+import { createAdminConfig } from '../../../utils/clients/admin'
+import { getAdminAccessToken } from './auth'
+import useErrors from '../../../utils/errors'
+import { createError } from 'h3'
 
-export function useAdmin(): AdminApiClient {
+export async function useAdmin(): Promise<AdminApiClient> {
   const { _shopify } = useRuntimeConfig()
 
-  const config = createAdminConfig(_shopify)
+  const adminClientConfig = _shopify?.clients?.admin
+  const shopName = _shopify?.name
+
+  if (!shopName || !adminClientConfig) {
+    throw createError({
+      statusCode: 500,
+      message: '[shopify] Could not create admin client: missing shop name or admin config',
+    })
+  }
+
+  const accessToken = await getAdminAccessToken(shopName, adminClientConfig, adminClientConfig.tokenStorage !== false)
+
+  const config = createAdminConfig(_shopify, accessToken)
 
   const nitroApp = useNitroApp()
 

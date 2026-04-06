@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const { data: products } = await useFetch('/api/products', {
   query: {
-    handle: 'shirts',
+    handle: 'hydrogen',
     first: 5,
   },
 })

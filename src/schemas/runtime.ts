@@ -44,6 +44,7 @@ const defaultCacheOptions = {
 
 const defaultClientCacheOptions = { ttl: 10 * 1000 } as LRUDriverOptions
 const defaultProxyCacheOptions = { driver: 'lru-cache' } as StorageMounts[string]
+const defaultTokenStorageOptions = { driver: 'memory' } as StorageMounts[string]
 
 const defaultCacheConfig = { client: defaultClientCacheOptions, proxy: defaultProxyCacheOptions, options: defaultCacheOptions }
 
@@ -89,12 +90,12 @@ const adminClientSchemaWithDefaults = clientSchemaWithDefaults.omit({
   documents: true,
 }).extend({
   documents: adminClientSchema.shape.documents.transform(v => v ? v : defaultAdminDocuments),
+  tokenStorage: adminClientSchema.shape.tokenStorage.default(defaultTokenStorageOptions).transform(v => v === true ? defaultTokenStorageOptions : v),
 
-  autoImport: adminClientSchema.shape.autoImport,
-
-  accessToken: z.string({
-    error: 'Access token is required for the admin client',
-  }),
+  accessToken: z.string().optional(),
+  clientId: z.string().optional(),
+  clientSecret: z.string().optional(),
+  refreshToken: z.string().optional(),
 })
 
 export const moduleOptionsSchemaWithDefaults = moduleOptionsSchema.omit({
@@ -110,7 +111,11 @@ export const moduleOptionsSchemaWithDefaults = moduleOptionsSchema.omit({
       error: 'Either a public or private access token must be provided for the storefront client',
     }).optional(),
 
-    [ShopifyClientType.Admin]: adminClientSchemaWithDefaults.optional(),
+    [ShopifyClientType.Admin]: adminClientSchemaWithDefaults.refine(
+      client => client.accessToken || (client.clientId && client.clientSecret), {
+        message: 'Either an access token or both client ID and client secret must be provided for the admin client',
+      },
+    ).optional(),
   }),
 
   errors: z.object({

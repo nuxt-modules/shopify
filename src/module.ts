@@ -8,6 +8,7 @@ import {
 } from '@nuxt/kit'
 import { defu } from 'defu'
 
+import setupAuth from './setup/auth'
 import setupCache from './setup/cache'
 import setupClients from './setup/clients'
 import setupCodegen from './setup/codegen'
@@ -68,6 +69,7 @@ export default defineNuxtModule<ModuleOptions>({
       await setupWebhooks(nuxt, config, resolver)
       await setupCache(nuxt, config, resolver)
 
+      await setupAuth(nuxt, config)
       await setupCodegen(nuxt, config)
       await setupSandbox(nuxt, config)
 

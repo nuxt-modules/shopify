@@ -1,5 +1,5 @@
 export default defineEventHandler(async () => {
-  const admin = useAdmin()
+  const admin = await useAdmin()
 
   const { data } = await admin.request(`#graphql
         query FetchMarkets {

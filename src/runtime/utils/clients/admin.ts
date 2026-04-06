@@ -8,9 +8,14 @@ import {
   createStoreDomain,
 } from '../client'
 
-export const createAdminConfig = (config?: Partial<ShopifyConfig>): ShopifyApiClientConfig => {
-  if (!config?.name || !config.clients?.admin || !config.clients.admin?.accessToken) {
-    throw new Error('Could not create admin client')
+export const createAdminConfig = (config?: Partial<ShopifyConfig>, accessToken?: string): ShopifyApiClientConfig => {
+  if (!config?.name || !config.clients?.admin) {
+    throw new Error('[shopify] Could not create admin client config: missing shop name or admin client config')
+  }
+
+  const resolvedToken = accessToken ?? config.clients.admin.accessToken
+  if (!resolvedToken) {
+    throw new Error('[shopify] Could not create admin client config: missing access token')
   }
 
   const {
@@ -21,8 +26,6 @@ export const createAdminConfig = (config?: Partial<ShopifyConfig>): ShopifyApiCl
       admin: {
         apiVersion,
         headers,
-
-        accessToken,
       },
     },
   } = config
@@ -33,7 +36,7 @@ export const createAdminConfig = (config?: Partial<ShopifyConfig>): ShopifyApiCl
     apiVersion,
     logger,
     headers: {
-      'X-Shopify-Access-Token': accessToken,
+      'X-Shopify-Access-Token': resolvedToken,
       ...headers,
     },
   } satisfies ShopifyApiClientConfig
