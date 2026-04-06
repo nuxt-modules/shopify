@@ -1,4 +1,4 @@
-import type { AdminOperations } from '@nuxtjs/shopify/admin'
+import type { AdminOperations } from '../../../clients/admin'
 import type {
   ShopifyApiClient,
   ShopifyApiClientConfig,
@@ -42,7 +42,7 @@ export const createAdminConfig = (config?: Partial<ShopifyConfig>): ShopifyApiCl
   } satisfies ShopifyApiClientConfig
 }
 
-export const withAdminAccessToken = async (client: ShopifyApiClient<AdminOperations, undefined>, config?: Partial<ShopifyConfig>) => {
+export const withAdminAccessToken = async <T extends AdminOperations>(client: ShopifyApiClient<T, undefined>, config?: Partial<ShopifyConfig>) => {
   const shopName = config?.name
   const adminClientConfig = config?.clients?.admin
 
