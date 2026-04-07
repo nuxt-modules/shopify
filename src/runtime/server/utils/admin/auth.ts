@@ -54,6 +54,10 @@ async function fetchAccessToken(
     scope?: string
   }
 
+  if (!data.access_token) {
+    throw new Error('[shopify] Failed to obtain admin API access token: Missing access_token in response')
+  }
+
   return {
     accessToken: data.access_token,
     refreshToken: data.refresh_token,

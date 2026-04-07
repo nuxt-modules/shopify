@@ -1,9 +1,9 @@
 import type { CustomerAccountApiClient, CustomerAccountOperations } from '@nuxtjs/shopify/customer-account'
 
 import { useRuntimeConfig, useNuxtApp } from '#imports'
-import { createClient } from '../utils/client'
-import { createCustomerAccountConfig } from '../utils/clients/customer-account'
-import useErrors from '../utils/errors'
+import { createClient } from '../../utils/client'
+import { createCustomerAccountConfig, withCustomerAccountCredentials } from '../../utils/clients/customer-account'
+import useErrors from '../../utils/errors'
 
 export function useCustomerAccount(): CustomerAccountApiClient {
   const { _shopify } = useRuntimeConfig().public
@@ -19,7 +19,7 @@ export function useCustomerAccount(): CustomerAccountApiClient {
   const request: CustomerAccountApiClient['request'] = async (operation, options) => {
     nuxtApp.hooks.callHook('customer-account:client:request', { operation, options })
 
-    const response = await originalClient.request(operation, options)
+    const response = await withCustomerAccountCredentials(originalClient).then(client => client.request(operation, options))
 
     if (response.errors) useErrors(nuxtApp.hooks, 'customer-account:client:errors', response.errors, _shopify?.errors?.throw ?? false)
 

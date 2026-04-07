@@ -2,12 +2,12 @@
 const customerAccount = useCustomerAccount()
 
 const { data } = await customerAccount.request(`#graphql
-    query CustomerDetails {
-        customer {
-            ...CustomerFields
-        }
+  query CustomerDetails {
+    customer {
+      ...CustomerFields
     }
-    ${CUSTOMER_FRAGMENT}
+  }
+  ${CUSTOMER_FRAGMENT}
 `)
 </script>
 

@@ -1,7 +1,9 @@
+import type { CustomerAccountOperations } from '../../../clients/customer-account'
 import type {
   ShopifyApiClientConfig,
   ShopifyConfig,
   PublicShopifyConfig,
+  ShopifyApiClient,
 } from '../../../module'
 
 import {
@@ -11,7 +13,7 @@ import {
 
 export const createCustomerAccountConfig = (config?: ShopifyConfig | PublicShopifyConfig): ShopifyApiClientConfig => {
   if (!config?.clients?.customerAccount) {
-    throw new Error('Could not create customer account client')
+    throw new Error('[shopify] Failed to create customer account client config: missing configuration')
   }
 
   const {
@@ -30,7 +32,7 @@ export const createCustomerAccountConfig = (config?: ShopifyConfig | PublicShopi
   } = config
 
   if (!name || !clientId) {
-    throw new Error('Could not create customer account client')
+    throw new Error('[shopify] Failed to create customer account client config: missing configuration')
   }
 
   const apiUrl = createApiUrl(createStoreDomain(name), apiVersion)
@@ -41,9 +43,30 @@ export const createCustomerAccountConfig = (config?: ShopifyConfig | PublicShopi
     apiVersion,
     logger,
     headers: {
+      // TODO: Use actual auth method instead of headers here
       ...(clientId ? { 'Shopify-Storefront-Public-Token': clientId } : {}),
       ...(clientSecret ? { 'Shopify-Storefront-Private-Token': clientSecret } : {}),
       ...headers,
     },
   } satisfies ShopifyApiClientConfig
+}
+
+export const withCustomerAccountCredentials = async <T extends CustomerAccountOperations>(client: ShopifyApiClient<T, undefined>, config?: ShopifyConfig | PublicShopifyConfig) => {
+  const shopName = config?.name
+  const customerAccountConfig = config?.clients?.customerAccount
+
+  if (!shopName || !customerAccountConfig) {
+    throw new Error('[shopify] Failed to create customer account client: missing shop name or customer account config')
+  }
+
+  const accessToken = customerAccountConfig.clientSecret
+
+  if (!accessToken) {
+    throw new Error('[shopify] Failed to create customer account client: missing client secret for access token')
+  }
+
+  // TODO: Use actual auth method instead of header here
+  client.config.headers['Shopify-Storefront-Private-Token'] = accessToken
+
+  return client
 }

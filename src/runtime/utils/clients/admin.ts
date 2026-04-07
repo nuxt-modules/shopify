@@ -25,6 +25,7 @@ export const createAdminConfig = (config?: Partial<ShopifyConfig>): ShopifyApiCl
     clients: {
       admin: {
         apiVersion,
+        accessToken,
         headers,
       },
     },
@@ -36,13 +37,13 @@ export const createAdminConfig = (config?: Partial<ShopifyConfig>): ShopifyApiCl
     apiVersion,
     logger,
     headers: {
-      ...(config.clients.admin.accessToken ? { 'X-Shopify-Access-Token': config.clients.admin.accessToken } : {}),
+      ...(accessToken ? { 'X-Shopify-Access-Token': accessToken } : {}),
       ...headers,
     },
   } satisfies ShopifyApiClientConfig
 }
 
-export const withAdminAccessToken = async <T extends AdminOperations>(client: ShopifyApiClient<T, undefined>, config?: Partial<ShopifyConfig>) => {
+export const withAdminCredentials = async <T extends AdminOperations>(client: ShopifyApiClient<T, undefined>, config?: Partial<ShopifyConfig>) => {
   const shopName = config?.name
   const adminClientConfig = config?.clients?.admin
 

@@ -2,9 +2,9 @@ import type { CustomerAccountApiClient, CustomerAccountOperations } from '@nuxtj
 
 import { useNitroApp } from 'nitropack/runtime'
 import { useRuntimeConfig } from '#imports'
-import { createClient } from '../../utils/client'
-import { createCustomerAccountConfig } from '../../utils/clients/customer-account'
-import useErrors from '../../utils/errors'
+import { createClient } from '../../../utils/client'
+import { createCustomerAccountConfig } from '../../../utils/clients/customer-account'
+import useErrors from '../../../utils/errors'
 
 export function useCustomerAccount(): CustomerAccountApiClient {
   const { _shopify } = useRuntimeConfig()

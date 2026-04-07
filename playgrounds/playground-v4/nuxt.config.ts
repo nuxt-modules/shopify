@@ -20,6 +20,13 @@ export default defineNuxtConfig({
 
           autoImport: false,
         },
+
+        customerAccount: {
+          apiVersion: '',
+          clientId: '',
+
+          autoImport: false,
+        },
       },
 
       webhooks: {
