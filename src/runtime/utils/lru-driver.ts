@@ -38,10 +38,10 @@ export default defineDriver((opts: LRUDriverOptions = {}) => {
       return cache.get(key) ?? null
     },
     setItem(key, value, opts) {
-      cache.set(key, value, opts?.ttl)
+      cache.set(key, value, opts?.ttl ? { ttl: opts.ttl } : undefined)
     },
     setItemRaw(key, value, opts) {
-      cache.set(key, value, opts?.ttl)
+      cache.set(key, value, opts?.ttl ? { ttl: opts.ttl } : undefined)
     },
     removeItem(key) {
       cache.delete(key)

@@ -7,8 +7,10 @@ export default defineConfig({
         'src/**',
       ],
       exclude: [
+        'src/clients',
         'src/commands',
         'src/types',
+        'src/cli.ts',
       ],
     },
   },
