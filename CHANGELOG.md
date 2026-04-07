@@ -1,3 +1,6 @@
+# 0.4.6
+- Fixed client side caching ttl option not being passed to the driver
+
 # 0.4.5
 - Added client credentials grant support for admin API access tokens
 - Updated documentation for admin API authentication
