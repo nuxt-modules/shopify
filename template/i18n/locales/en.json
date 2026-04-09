@@ -35,6 +35,10 @@
         "collections": "Collections",
         "articles": "Articles"
     },
+    "account": {
+        "label": "Account",
+        "description": "Manage your account and orders"
+    },
     "pagination": {
         "previous": "Load previous",
         "next": "Load next"

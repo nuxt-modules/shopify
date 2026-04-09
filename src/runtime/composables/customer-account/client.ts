@@ -1,16 +1,27 @@
 import type { CustomerAccountApiClient, CustomerAccountOperations } from '@nuxtjs/shopify/customer-account'
 
-import { useRuntimeConfig, useNuxtApp } from '#imports'
+import { joinURL } from 'ufo'
+
+import { useRuntimeConfig, useNuxtApp, useRequestURL } from '#imports'
+import { useCookie } from '#app'
 import { createClient } from '../../utils/client'
-import { createCustomerAccountConfig, withCustomerAccountCredentials } from '../../utils/clients/customer-account'
+import { createCustomerAccountConfig } from '../../utils/clients/customer-account'
 import useErrors from '../../utils/errors'
 
 export function useCustomerAccount(): CustomerAccountApiClient {
   const { _shopify } = useRuntimeConfig().public
 
-  const config = createCustomerAccountConfig(_shopify)
+  const sessionCookie = useCookie('nuxt-session')
+
+  const config = createCustomerAccountConfig(_shopify, {
+    ...(sessionCookie.value ? { Cookie: `nuxt-session=${sessionCookie.value}` } : {}),
+  })
 
   const nuxtApp = useNuxtApp()
+
+  if (_shopify?.clients.customerAccount?.proxy && !nuxtApp.payload.prerenderedAt) {
+    config.apiUrl = joinURL(useRequestURL().origin, _shopify.clients.customerAccount.proxy.path)
+  }
 
   nuxtApp.hooks.callHook('customer-account:client:configure', { config })
 
@@ -19,7 +30,7 @@ export function useCustomerAccount(): CustomerAccountApiClient {
   const request: CustomerAccountApiClient['request'] = async (operation, options) => {
     nuxtApp.hooks.callHook('customer-account:client:request', { operation, options })
 
-    const response = await withCustomerAccountCredentials(originalClient).then(client => client.request(operation, options))
+    const response = await originalClient.request(operation, options)
 
     if (response.errors) useErrors(nuxtApp.hooks, 'customer-account:client:errors', response.errors, _shopify?.errors?.throw ?? false)
 

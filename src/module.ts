@@ -30,6 +30,12 @@ export default defineNuxtModule<ModuleOptions>({
     },
   },
 
+  moduleDependencies: {
+    'nuxt-auth-utils': {
+      optional: true,
+    },
+  },
+
   async setup(options, nuxt) {
     const runtimeConfig = useRuntimeConfig()
 
@@ -62,8 +68,7 @@ export default defineNuxtModule<ModuleOptions>({
         },
       })
 
-      await setupClients(config, resolver)
-
+      await setupClients(nuxt, config, resolver)
       await setupImports(nuxt, config, resolver)
       await setupProxy(nuxt, config, resolver)
       await setupWebhooks(nuxt, config, resolver)

@@ -6,6 +6,7 @@ export default defineNuxtConfig({
         '@nuxtjs/i18n',
         '@nuxt/image',
         '@nuxt/ui',
+        'nuxt-auth-utils',
     ],
 
     css: ['~/assets/main.css'],
@@ -14,9 +15,29 @@ export default defineNuxtConfig({
         colorMode: false,
     },
 
+    runtimeConfig: {
+        shopify: {
+            name: 'nuxt-shopify-demo-store',
+
+            clients: {
+                storefront: {
+                    mock: true,
+                    apiVersion: '2026-01',
+                },
+
+                customerAccount: {
+                    clientId: '',
+                    clientSecret: '',
+
+                    autoImport: false,
+                },
+            },
+        },
+    },
+
     routeRules: {
-        '/': { prerender: true },
-        '/blog/**': { isr: 3600 },
+        // '/': { prerender: true },
+        // '/blog/**': { isr: 3600 },
     },
 
     compatibilityDate: '2026-03-15',
@@ -25,6 +46,8 @@ export default defineNuxtConfig({
         server: {
             allowedHosts: [
                 '.vercel.app',
+                '.ngrok-free.app',
+                '.zrok.io',
             ],
         },
     },
@@ -64,16 +87,5 @@ export default defineNuxtConfig({
 
     image: {
         provider: 'shopify',
-    },
-
-    shopify: {
-        name: 'nuxt-shopify-demo-store',
-
-        clients: {
-            storefront: {
-                mock: true,
-                apiVersion: '2026-01',
-            },
-        },
     },
 })

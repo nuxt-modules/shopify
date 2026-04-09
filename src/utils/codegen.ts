@@ -14,6 +14,8 @@ import defu from 'defu'
 import { ShopifyClientType } from '../schemas'
 import { useLogger } from './log'
 import { getAdminAccessToken } from '../runtime/server/utils/admin/auth'
+import { joinURL } from 'ufo'
+import { createStoreDomain } from '../runtime/utils/client'
 
 type ShopifyTemplateOptions = {
   filename: string
@@ -67,7 +69,7 @@ async function getIntrospection(options: ShopifyTemplateOptions, config?: Shopif
       apiUrl = `https://mock.shop/api`
     }
     else {
-      apiUrl = `https://${shopName}.myshopify.com/api/${apiVersion}/graphql.json`
+      apiUrl = joinURL(createStoreDomain(shopName), `api/${apiVersion}/graphql.json`)
 
       if (storefrontConfig.privateAccessToken) {
         headers['Shopify-Storefront-Private-Token'] = storefrontConfig.privateAccessToken
@@ -89,7 +91,7 @@ async function getIntrospection(options: ShopifyTemplateOptions, config?: Shopif
   }
   else if (clientType === ShopifyClientType.Admin) {
     const adminConfig = clientConfig as NonNullable<ShopifyConfig['clients']['admin']>
-    apiUrl = `https://${shopName}.myshopify.com/admin/api/${apiVersion}/graphql.json`
+    apiUrl = joinURL(createStoreDomain(shopName), `admin/api/${apiVersion}/graphql.json`)
     headers['X-Shopify-Access-Token'] = await getAdminAccessToken(shopName, adminConfig)
   }
   else {

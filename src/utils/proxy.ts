@@ -10,7 +10,7 @@ import { addServerHandler } from '@nuxt/kit'
 import { joinURL, withLeadingSlash } from 'ufo'
 
 import { useLogger } from './log'
-import { upperFirst } from 'scule'
+import { kebabCase, upperFirst } from 'scule'
 
 export function registerProxy(nuxt: Nuxt, config: ShopifyConfig, clientType: ShopifyClientType, resolver: Resolver): string | false {
   const clientConfig = config.clients[clientType]
@@ -30,7 +30,7 @@ export function registerProxy(nuxt: Nuxt, config: ShopifyConfig, clientType: Sho
   }
 
   addServerHandler({
-    handler: resolver.resolve(`./runtime/server/api/proxy/${clientType}`),
+    handler: resolver.resolve(`./runtime/server/api/proxy/${kebabCase(clientType)}`),
     route: withLeadingSlash(url),
   })
 

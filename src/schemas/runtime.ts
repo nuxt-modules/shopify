@@ -52,6 +52,7 @@ const defaultStorefrontDocuments = [
 const defaultCustomerAccountDocuments = [
   ...getDefaultDocuments(ShopifyClientType.CustomerAccount),
   ...getDefaultDocuments('customer'),
+  ...getDefaultDocuments('account'),
   ...ignores,
 ]
 
@@ -118,6 +119,9 @@ const customerAccountClientSchemaWithDefaults = clientSchemaWithDefaults.omit({
   redirectURL: customerAccountClientSchema.shape.redirectURL,
 
   documents: customerAccountClientSchema.shape.documents.transform(v => v ? v : defaultCustomerAccountDocuments),
+  proxy: customerAccountClientSchema.shape.proxy.default({ path: '_proxy/customer-account' }).transform(v => typeof v === 'undefined' ? { path: '_proxy/customer-account' } : v),
+
+  apiUrl: z.string().optional(),
 })
 
 const adminClientSchemaWithDefaults = clientSchemaWithDefaults.omit({
@@ -145,7 +149,11 @@ export const moduleOptionsSchemaWithDefaults = moduleOptionsSchema.omit({
       error: 'Either a public or private access token must be provided for the storefront client',
     }).optional(),
 
-    [ShopifyClientType.CustomerAccount]: customerAccountClientSchemaWithDefaults.optional(),
+    [ShopifyClientType.CustomerAccount]: customerAccountClientSchemaWithDefaults.refine(
+      client => client.clientId, {
+        message: 'Client ID is required for the customer account client',
+      },
+    ).optional(),
 
     [ShopifyClientType.Admin]: adminClientSchemaWithDefaults.refine(
       client => client.accessToken || (client.clientId && client.clientSecret), {
@@ -200,7 +208,11 @@ export const publicModuleOptionsSchemaWithDefaults = publicModuleOptionsSchema.o
       documents: true,
       codegen: true,
       autoImport: true,
-    }).optional(),
+    }).and(z.object({
+      proxy: z.object({
+        path: z.string().optional().default('_proxy/customer-account'),
+      }).optional().default({ path: '_proxy/customer-account' }).transform(v => typeof v === 'undefined' ? { path: '_proxy/customer-account' } : v),
+    })).optional(),
   }),
 
   errors: moduleOptionsSchemaWithDefaults.shape.errors,

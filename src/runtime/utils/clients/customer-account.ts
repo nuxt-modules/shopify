@@ -1,17 +1,14 @@
-import type { CustomerAccountOperations } from '../../../clients/customer-account'
 import type {
   ShopifyApiClientConfig,
   ShopifyConfig,
   PublicShopifyConfig,
-  ShopifyApiClient,
 } from '../../../module'
 
 import {
-  createApiUrl,
   createStoreDomain,
 } from '../client'
 
-export const createCustomerAccountConfig = (config?: ShopifyConfig | PublicShopifyConfig): ShopifyApiClientConfig => {
+export const createCustomerAccountConfig = (config?: ShopifyConfig | PublicShopifyConfig, headers?: Record<string, string>): ShopifyApiClientConfig => {
   if (!config?.clients?.customerAccount) {
     throw new Error('[shopify] Failed to create customer account client config: missing configuration')
   }
@@ -22,11 +19,11 @@ export const createCustomerAccountConfig = (config?: ShopifyConfig | PublicShopi
 
     clients: {
       customerAccount: {
+        apiUrl,
         apiVersion,
-        headers,
+        headers: customHeaders,
 
         clientId,
-        clientSecret,
       },
     },
   } = config
@@ -35,38 +32,14 @@ export const createCustomerAccountConfig = (config?: ShopifyConfig | PublicShopi
     throw new Error('[shopify] Failed to create customer account client config: missing configuration')
   }
 
-  const apiUrl = createApiUrl(createStoreDomain(name), apiVersion)
-
   return {
     storeDomain: createStoreDomain(name),
-    apiUrl,
+    apiUrl: apiUrl ?? '',
     apiVersion,
     logger,
     headers: {
-      // TODO: Use actual auth method instead of headers here
-      ...(clientId ? { 'Shopify-Storefront-Public-Token': clientId } : {}),
-      ...(clientSecret ? { 'Shopify-Storefront-Private-Token': clientSecret } : {}),
       ...headers,
+      ...customHeaders,
     },
   } satisfies ShopifyApiClientConfig
-}
-
-export const withCustomerAccountCredentials = async <T extends CustomerAccountOperations>(client: ShopifyApiClient<T, undefined>, config?: ShopifyConfig | PublicShopifyConfig) => {
-  const shopName = config?.name
-  const customerAccountConfig = config?.clients?.customerAccount
-
-  if (!shopName || !customerAccountConfig) {
-    throw new Error('[shopify] Failed to create customer account client: missing shop name or customer account config')
-  }
-
-  const accessToken = customerAccountConfig.clientSecret
-
-  if (!accessToken) {
-    throw new Error('[shopify] Failed to create customer account client: missing client secret for access token')
-  }
-
-  // TODO: Use actual auth method instead of header here
-  client.config.headers['Shopify-Storefront-Private-Token'] = accessToken
-
-  return client
 }

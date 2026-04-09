@@ -47,6 +47,9 @@ export const customerAccountClientSchema = clientSchema.extend({
   clientSecret: z.string().optional(),
   scope: z.array(z.string()).optional(),
   redirectURL: z.string().optional(),
+  proxy: z.object({
+    path: z.string().optional(),
+  }).optional(),
 })
 
 export const adminClientSchema = clientSchema.extend({

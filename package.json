@@ -129,6 +129,9 @@
     "vitest": "^4.1.2",
     "vue-tsc": "^3.2.6"
   },
+  "optionalDependencies": {
+    "nuxt-auth-utils": "^0.5.29"
+  },
   "overrides": {
     "@nuxtjs/shopify": "file:."
   },
