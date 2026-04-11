@@ -1,3 +1,6 @@
+# 0.5.0
+- Added customer account API support
+
 # 0.4.6
 - Fixed client side caching ttl option not being passed to the driver
 
