@@ -3,7 +3,7 @@ import type { Nuxt } from '@nuxt/schema'
 
 import type { ShopifyConfig } from '../types'
 
-import { addServerHandler, hasNuxtModule } from '@nuxt/kit'
+import { addServerHandler, addTypeTemplate, hasNuxtModule } from '@nuxt/kit'
 import defu from 'defu'
 import { withoutProtocol } from 'ufo'
 
@@ -14,10 +14,10 @@ import {
   registerClientImports,
   registerClientServerImports,
   registerClientAsyncImports,
-  isPublicAsyncClient,
 } from '../utils/clients'
 import { ShopifyClientType } from '../schemas'
 import { createStoreDomain } from '../runtime/utils/client'
+import { nuxtAuthUtilsTemplate } from '../templates/auth-utils'
 
 export default async function setupClients(nuxt: Nuxt, config: ShopifyConfig, resolver: Resolver) {
   const logger = useLogger(config)
@@ -28,11 +28,8 @@ export default async function setupClients(nuxt: Nuxt, config: ShopifyConfig, re
 
     registerClientServerImports(clientType, resolver)
 
-    if (isPublicClient(config.clients[clientType])) {
+    if (clientType !== ShopifyClientType.Admin && isPublicClient(config.clients[clientType])) {
       registerClientImports(clientType, resolver)
-    }
-
-    if (isPublicAsyncClient(config.clients[clientType])) {
       registerClientAsyncImports(clientType, resolver)
     }
 
@@ -45,7 +42,6 @@ export default async function setupClients(nuxt: Nuxt, config: ShopifyConfig, re
       const nuxtAuthUtilsConfig = {
         shopDomain: withoutProtocol(createStoreDomain(config.name)),
         clientId: config.clients[clientType]?.clientId,
-        clientSecret: config.clients[clientType]?.clientSecret,
         scope: config.clients[clientType]?.scope,
         redirectURL: config.clients[clientType]?.redirectURL,
       }
@@ -54,12 +50,16 @@ export default async function setupClients(nuxt: Nuxt, config: ShopifyConfig, re
         shopifyCustomer: nuxtAuthUtilsConfig,
       }, nuxt.options.runtimeConfig.oauth || {})
 
-      if (nuxt.options.runtimeConfig._shopify?.clients.customerAccount) {
+      if (
+        nuxt.options.runtimeConfig._shopify?.clients.customerAccount
+        && nuxt.options.runtimeConfig.public._shopify?.clients.customerAccount
+      ) {
         const apiUrl = await fetch(createStoreDomain(config.name) + '/.well-known/customer-account-api')
           .then(async res => (await res.json() as { graphql_api: string }).graphql_api)
           .catch(() => undefined)
 
         nuxt.options.runtimeConfig._shopify.clients.customerAccount.apiUrl = apiUrl
+        nuxt.options.runtimeConfig.public._shopify.clients.customerAccount.apiUrl = apiUrl
       }
 
       addServerHandler({
@@ -72,6 +72,14 @@ export default async function setupClients(nuxt: Nuxt, config: ShopifyConfig, re
         method: 'get',
         route: '/_auth/customer-account/logout',
         handler: resolver.resolve('./runtime/server/api/auth/customer-account/logout'),
+      })
+
+      addTypeTemplate({
+        filename: 'shopify/auth-utils.d.ts',
+        getContents: () => nuxtAuthUtilsTemplate,
+      }, {
+        nuxt: true,
+        nitro: true,
       })
     }
   }

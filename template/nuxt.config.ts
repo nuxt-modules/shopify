@@ -27,9 +27,6 @@ export default defineNuxtConfig({
 
                 customerAccount: {
                     clientId: '',
-                    clientSecret: '',
-
-                    autoImport: false,
                 },
             },
         },

@@ -50,6 +50,10 @@ export default defineNuxtConfig({
     },
   },
 
+  routeRules: {
+    '/essentials/webhooks': { redirect: '/going-further/webhooks' },
+  },
+
   vite: {
     build: {
       rollupOptions: {

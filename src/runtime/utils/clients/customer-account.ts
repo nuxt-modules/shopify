@@ -8,7 +8,7 @@ import {
   createStoreDomain,
 } from '../client'
 
-export const createCustomerAccountConfig = (config?: ShopifyConfig | PublicShopifyConfig, headers?: Record<string, string>): ShopifyApiClientConfig => {
+export const createCustomerAccountConfig = (config?: ShopifyConfig | PublicShopifyConfig): ShopifyApiClientConfig => {
   if (!config?.clients?.customerAccount) {
     throw new Error('[shopify] Failed to create customer account client config: missing configuration')
   }
@@ -21,25 +21,24 @@ export const createCustomerAccountConfig = (config?: ShopifyConfig | PublicShopi
       customerAccount: {
         apiUrl,
         apiVersion,
-        headers: customHeaders,
+        headers,
 
         clientId,
       },
     },
   } = config
 
-  if (!name || !clientId) {
+  if (!name || !apiUrl || !clientId) {
     throw new Error('[shopify] Failed to create customer account client config: missing configuration')
   }
 
   return {
     storeDomain: createStoreDomain(name),
-    apiUrl: apiUrl ?? '',
+    apiUrl,
     apiVersion,
     logger,
     headers: {
       ...headers,
-      ...customHeaders,
     },
   } satisfies ShopifyApiClientConfig
 }

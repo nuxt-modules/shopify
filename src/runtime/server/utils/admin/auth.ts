@@ -1,4 +1,10 @@
+import type { AdminOperations } from '../../../../clients/admin'
+
 import type { ShopifyConfig } from '../../../../schemas'
+import type { ShopifyApiClient } from '../../../../types'
+
+import { createError } from 'h3'
+
 import { createStoreDomain } from '../../../utils/client'
 
 type AdminConfig = NonNullable<ShopifyConfig['clients']['admin']>
@@ -125,4 +131,22 @@ export async function getAdminAccessToken(shopName: string, config: AdminConfig,
   const token = await pendingAccessTokenRequest
 
   return token.accessToken
+}
+
+export const withAdminCredentials = async <Operations extends AdminOperations, Cache extends undefined>(client: ShopifyApiClient<Operations, Cache>, config?: Partial<ShopifyConfig>): Promise<ShopifyApiClient<Operations, Cache>> => {
+  const shopName = config?.name
+  const adminClientConfig = config?.clients?.admin
+
+  if (!shopName || !adminClientConfig) {
+    throw createError({
+      statusCode: 500,
+      message: '[shopify] Failed to create admin client: missing shop name or admin config',
+    })
+  }
+
+  const accessToken = await getAdminAccessToken(shopName, adminClientConfig, adminClientConfig.tokenStorage !== false)
+
+  client.config.headers['X-Shopify-Access-Token'] = accessToken
+
+  return client
 }

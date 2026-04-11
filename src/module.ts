@@ -31,9 +31,7 @@ export default defineNuxtModule<ModuleOptions>({
   },
 
   moduleDependencies: {
-    'nuxt-auth-utils': {
-      optional: true,
-    },
+    'nuxt-auth-utils': {},
   },
 
   async setup(options, nuxt) {
@@ -73,10 +71,10 @@ export default defineNuxtModule<ModuleOptions>({
       await setupProxy(nuxt, config, resolver)
       await setupWebhooks(nuxt, config, resolver)
       await setupCache(nuxt, config, resolver)
+      await setupSandbox(nuxt, config, resolver)
 
       await setupAuth(nuxt, config)
       await setupCodegen(nuxt, config)
-      await setupSandbox(nuxt, config)
 
       await nuxt.callHook('shopify:setup', { nuxt, config })
 

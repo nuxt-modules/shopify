@@ -3,16 +3,11 @@ import type { H3Event } from 'h3'
 
 import type { ShopifyConfig } from '../types'
 
-import { ShopifyClientType } from '../schemas'
-import { addDevServerHandler } from '@nuxt/kit'
-import { defineEventHandler, readValidatedBody } from 'h3'
+import type { ShopifyClientType } from '../schemas'
+import { addDevServerHandler, addServerHandler, type Resolver } from '@nuxt/kit'
+import { defineEventHandler } from 'h3'
 import { kebabCase } from 'scule'
-import { z } from 'zod'
 
-import { createClient } from '../runtime/utils/client'
-import { createStorefrontConfig } from '../runtime/utils/clients/storefront'
-import { createCustomerAccountConfig } from '../runtime/utils/clients/customer-account'
-import { createAdminConfig } from '../runtime/utils/clients/admin'
 import getSandboxTemplate from '../templates/sandbox'
 
 function getSandboxUrl(nuxt: Nuxt, clientType: ShopifyClientType): string {
@@ -29,49 +24,14 @@ function createSandboxHandler(clientType: ShopifyClientType) {
   })
 }
 
-function createSandboxProxyHandler(nuxt: Nuxt, clientType: ShopifyClientType) {
-  return defineEventHandler(async (event: H3Event) => {
-    const config = nuxt.options.runtimeConfig._shopify
-
-    if (!config) throw new Error('[shopify] Sandbox setup error: Module configuration is missing')
-
-    const schema = z.object({
-      query: z.string(),
-      variables: z.record(z.string(), z.unknown()).optional(),
-    })
-
-    const body = await readValidatedBody(event, schema.parse)
-
-    let client: ReturnType<typeof createClient>
-
-    switch (clientType) {
-      case ShopifyClientType.Storefront:
-        client = createClient(createStorefrontConfig(config))
-        break
-      case ShopifyClientType.CustomerAccount:
-        client = createClient(createCustomerAccountConfig(config))
-        break
-      case ShopifyClientType.Admin:
-        client = createClient(createAdminConfig(config))
-        break
-      default:
-        throw new Error('[shopify] Sandbox error: The requested client is not supported')
-    }
-
-    return client.request(body.query, {
-      variables: body.variables,
-    })
-  })
-}
-
-export function registerSandbox(nuxt: Nuxt, clientType: ShopifyClientType): string {
+export function registerSandbox(nuxt: Nuxt, resolver: Resolver, clientType: ShopifyClientType): string {
   addDevServerHandler({
     handler: createSandboxHandler(clientType),
     route: `/_sandbox/${kebabCase(clientType)}`,
   })
 
-  addDevServerHandler({
-    handler: createSandboxProxyHandler(nuxt, clientType),
+  addServerHandler({
+    handler: resolver.resolve('./runtime/server/utils/sandbox/proxy'),
     route: `/_sandbox/proxy/${kebabCase(clientType)}`,
   })
 

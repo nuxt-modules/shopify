@@ -13,14 +13,13 @@ export function useCustomerAccount(): CustomerAccountApiClient {
 
   const sessionCookie = useCookie('nuxt-session')
 
-  const config = createCustomerAccountConfig(_shopify, {
-    ...(sessionCookie.value ? { Cookie: `nuxt-session=${sessionCookie.value}` } : {}),
-  })
+  const config = createCustomerAccountConfig(_shopify)
 
   const nuxtApp = useNuxtApp()
 
   if (_shopify?.clients.customerAccount?.proxy && !nuxtApp.payload.prerenderedAt) {
     config.apiUrl = joinURL(useRequestURL().origin, _shopify.clients.customerAccount.proxy.path)
+    config.headers['Cookie'] = `nuxt-session=${sessionCookie.value}`
   }
 
   nuxtApp.hooks.callHook('customer-account:client:configure', { config })

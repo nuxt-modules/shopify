@@ -1,19 +1,20 @@
 <script setup lang="ts">
-const customerAccount = useCustomerAccount()
-
-const { data, errors } = await customerAccount.request(`#graphql
+const { data, error } = await useCustomerAccountData(`#graphql
   query GetCustomerData {
-    shop {
-      id
+    customer {
+      firstName
+      lastName
     }
   }
 `)
 
-console.log(data, errors)
+console.log(data.value, error.value)
 </script>
 
 <template>
     <div>
         <h1>Account</h1>
+
+        {{ data?.customer?.firstName }} {{ data?.customer?.lastName }}
     </div>
 </template>

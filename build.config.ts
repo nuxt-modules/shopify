@@ -17,4 +17,9 @@ export default defineBuildConfig({
   replace: {
     'await setupDevMode(nuxt, logger)': '',
   },
+
+  externals: [
+    '@shopify/hydrogen',
+    'nuxt-auth-utils',
+  ],
 })

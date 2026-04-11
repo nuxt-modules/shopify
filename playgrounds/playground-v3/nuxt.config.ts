@@ -17,8 +17,6 @@ export default defineNuxtConfig({
           apiVersion: '',
           clientId: '',
           clientSecret: '',
-
-          autoImport: false,
         },
       },
     },

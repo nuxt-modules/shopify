@@ -5,8 +5,6 @@ import { useRuntimeConfig, getUserSession } from '#imports'
 import { createCustomerAccountConfig } from '../../../utils/clients/customer-account'
 
 export default defineEventHandler(async (event) => {
-  console.log('Received request to /_proxy/customer-account')
-
   const schema = z.object({
     query: z.string(),
     variables: z.record(z.string(), z.unknown()).optional(),

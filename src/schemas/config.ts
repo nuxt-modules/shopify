@@ -44,12 +44,11 @@ export const storefrontClientSchema = clientSchema.extend({
 
 export const customerAccountClientSchema = clientSchema.extend({
   clientId: z.string(),
-  clientSecret: z.string().optional(),
   scope: z.array(z.string()).optional(),
   redirectURL: z.string().optional(),
   proxy: z.object({
     path: z.string().optional(),
-  }).optional(),
+  }).or(z.boolean()).optional(),
 })
 
 export const adminClientSchema = clientSchema.extend({
@@ -117,5 +116,12 @@ export const publicModuleOptionsSchema = moduleOptionsSchema.omit({
         proxy: true,
       }).or(z.boolean()).optional(),
     })).optional().optional(),
+
+    [ShopifyClientType.CustomerAccount]: customerAccountClientSchema.omit({
+      sandbox: true,
+      documents: true,
+      codegen: true,
+      autoImport: true,
+    }).optional().optional(),
   }),
 })

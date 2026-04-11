@@ -46,6 +46,7 @@ const defaultStorefrontDocuments = [
   ...getDefaultDocuments(ShopifyClientType.Admin, { exclude: true }),
   ...getDefaultDocuments(ShopifyClientType.CustomerAccount, { exclude: true }),
   ...getDefaultDocuments('customer', { exclude: true }),
+  ...getDefaultDocuments('account', { exclude: true }),
   ...ignores,
 ]
 
@@ -76,7 +77,6 @@ const clientSchemaWithDefaults = clientSchema.omit({
   apiVersion: true,
   retries: true,
   sandbox: true,
-  autoImport: true,
 }).extend({
   apiVersion: z.string().refine(v => getCurrentSupportedApiVersions().includes(v), {
     error: v => `Unsupported API version "${v}". Supported versions are: ${getCurrentSupportedApiVersions().join(', ')}`,
@@ -85,7 +85,6 @@ const clientSchemaWithDefaults = clientSchema.omit({
   retries: z.number().optional().default(3),
 
   sandbox: z.boolean().optional().default(true),
-  autoImport: z.boolean().optional().default(true),
 })
 
 const clientCacheSchemaWithDefaults = clientCacheSchema.omit({
@@ -100,6 +99,7 @@ const clientCacheSchemaWithDefaults = clientCacheSchema.omit({
 
 const storefrontClientSchemaWithDefaults = clientSchemaWithDefaults.omit({
   documents: true,
+  autoImport: true,
 }).extend({
   publicAccessToken: storefrontClientSchema.shape.publicAccessToken,
   privateAccessToken: storefrontClientSchema.shape.privateAccessToken,
@@ -108,20 +108,20 @@ const storefrontClientSchemaWithDefaults = clientSchemaWithDefaults.omit({
   documents: storefrontClientSchema.shape.documents.transform(v => v ? v : defaultStorefrontDocuments),
   proxy: storefrontClientSchema.shape.proxy.default({ path: '_proxy/storefront' }).transform(v => typeof v === 'undefined' || v === true ? { path: '_proxy/storefront' } : v),
   cache: clientCacheSchemaWithDefaults.or(z.boolean()).optional().default(defaultCacheConfig).transform(v => v === true ? defaultCacheConfig : v),
+  autoImport: storefrontClientSchema.shape.autoImport.default(true),
 })
 
 const customerAccountClientSchemaWithDefaults = clientSchemaWithDefaults.omit({
   documents: true,
 }).extend({
+  apiUrl: z.string().optional(),
+
   clientId: customerAccountClientSchema.shape.clientId,
-  clientSecret: customerAccountClientSchema.shape.clientSecret,
   scope: customerAccountClientSchema.shape.scope,
   redirectURL: customerAccountClientSchema.shape.redirectURL,
 
   documents: customerAccountClientSchema.shape.documents.transform(v => v ? v : defaultCustomerAccountDocuments),
-  proxy: customerAccountClientSchema.shape.proxy.default({ path: '_proxy/customer-account' }).transform(v => typeof v === 'undefined' ? { path: '_proxy/customer-account' } : v),
-
-  apiUrl: z.string().optional(),
+  proxy: customerAccountClientSchema.shape.proxy.default({ path: '_proxy/customer-account' }).transform(v => typeof v === 'undefined' || v === true ? { path: '_proxy/customer-account' } : v),
 })
 
 const adminClientSchemaWithDefaults = clientSchemaWithDefaults.omit({
@@ -208,10 +208,11 @@ export const publicModuleOptionsSchemaWithDefaults = publicModuleOptionsSchema.o
       documents: true,
       codegen: true,
       autoImport: true,
+      proxy: true,
     }).and(z.object({
       proxy: z.object({
         path: z.string().optional().default('_proxy/customer-account'),
-      }).optional().default({ path: '_proxy/customer-account' }).transform(v => typeof v === 'undefined' ? { path: '_proxy/customer-account' } : v),
+      }).or(z.boolean()).optional().optional().default({ path: '_proxy/customer-account' }).transform(v => typeof v === 'undefined' || v === true ? { path: '_proxy/customer-account' } : v),
     })).optional(),
   }),
 

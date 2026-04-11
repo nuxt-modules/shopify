@@ -10,8 +10,9 @@ import {
   registerSandbox,
   shouldEnableSandbox,
 } from '../utils/sandbox'
+import type { Resolver } from '@nuxt/kit'
 
-export default async function setupSandbox(nuxt: Nuxt, config: ShopifyConfig) {
+export default async function setupSandbox(nuxt: Nuxt, config: ShopifyConfig, resolver: Resolver) {
   const logger = useLogger(config)
   const clients = getConfiguredClients(config)
 
@@ -19,7 +20,7 @@ export default async function setupSandbox(nuxt: Nuxt, config: ShopifyConfig) {
     const clientConfig = config.clients[clientType]
 
     if (shouldEnableSandbox(nuxt, clientConfig)) {
-      const url = registerSandbox(nuxt, clientType)
+      const url = registerSandbox(nuxt, resolver, clientType)
 
       logger.info(`${upperFirst(clientType)} sandbox available at: ${url}`)
     }

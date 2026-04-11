@@ -7,7 +7,7 @@ import { useRuntimeConfig } from '#imports'
 import { createClient } from '../../../utils/client'
 import { createCustomerAccountConfig } from '../../../utils/clients/customer-account'
 import useErrors from '../../../utils/errors'
-import { getCustomerAccountAccessToken } from './auth'
+import { withCustomerAccountCredentials } from './auth'
 
 export function useCustomerAccount(event: H3Event): CustomerAccountApiClient {
   const { _shopify } = useRuntimeConfig()
@@ -24,11 +24,7 @@ export function useCustomerAccount(event: H3Event): CustomerAccountApiClient {
   const request: CustomerAccountApiClient['request'] = async (operation, options) => {
     nitroApp.hooks.callHook('customer-account:client:request', { operation, options })
 
-    const accessToken = await getCustomerAccountAccessToken(event)
-
-    client.config.headers['Authorization'] = accessToken
-
-    const response = await originalClient.request(operation, options)
+    const response = await withCustomerAccountCredentials(originalClient, event).then(client => client.request(operation, options))
 
     if (response.errors) useErrors(nitroApp.hooks, 'customer-account:client:errors', response.errors, _shopify?.errors?.throw ?? false)
 

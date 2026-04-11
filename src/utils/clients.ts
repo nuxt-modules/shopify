@@ -35,12 +35,6 @@ export function isPublicClient(config: ShopifyConfig['clients'][ShopifyClientTyp
   )
 }
 
-export function isPublicAsyncClient(config: ShopifyConfig['clients'][ShopifyClientType]): boolean {
-  return !!((config as { publicAccessToken?: string })?.publicAccessToken
-    || (config as { mock?: boolean })?.mock
-  )
-}
-
 export function hasPublicClient(config: ShopifyConfig): boolean {
   const storefrontConfig = config.clients[ShopifyClientType.Storefront]
   const customerAccountConfig = config.clients[ShopifyClientType.CustomerAccount]
