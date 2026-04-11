@@ -6,7 +6,6 @@ export default defineNuxtConfig({
         '@nuxtjs/i18n',
         '@nuxt/image',
         '@nuxt/ui',
-        'nuxt-auth-utils',
     ],
 
     css: ['~/assets/main.css'],
@@ -24,17 +23,13 @@ export default defineNuxtConfig({
                     mock: true,
                     apiVersion: '2026-01',
                 },
-
-                customerAccount: {
-                    clientId: '',
-                },
             },
         },
     },
 
     routeRules: {
-        // '/': { prerender: true },
-        // '/blog/**': { isr: 3600 },
+        '/': { prerender: true },
+        '/blog/**': { isr: 3600 },
     },
 
     compatibilityDate: '2026-03-15',
@@ -43,8 +38,6 @@ export default defineNuxtConfig({
         server: {
             allowedHosts: [
                 '.vercel.app',
-                '.ngrok-free.app',
-                '.zrok.io',
             ],
         },
     },

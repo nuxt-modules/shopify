@@ -49,8 +49,6 @@ const { data: items } = await useStorefrontData('main-menu', `#graphql
         <template #right>
             <SearchModal />
 
-            <AccountModal />
-
             <CartModal />
         </template>
     </UHeader>
