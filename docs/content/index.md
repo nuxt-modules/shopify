@@ -119,6 +119,113 @@ ProductImage.vue
 
 ::component-hero
 ---
+title: Customer Account API without the hassle
+---
+
+#component
+::customer-account
+::
+
+#component-title
+CustomerAccount.vue
+
+#default
+  :::code-tree{default-value="app/components/CustomerAccount.vue"}
+  ```vue [app/components/CustomerAccount.vue]
+  <script setup lang="ts">
+  const { isLoggedIn } = useUserSession()
+
+  if (!isLoggedIn.value) {
+    navigateTo('/_auth/customer-account/callback')
+  }
+
+  const { data: customer } = await useCustomerAccountData(`#graphql
+    query GetCustomer {
+      customer {
+        firstName
+        lastName
+      }
+    }
+  `, {
+    transform: data => data?.customer,
+  })
+  </script>
+
+  <template>
+    <div v-if="customer">
+      <h1>
+        Welcome, {{ customer.firstName }} {{ customer.lastName }}!
+      </h1>
+
+      <UButton
+        to="/account/orders"
+        icon="i-lucide-package-2"
+      >
+        View Orders
+      </UButton>
+
+      <UButton
+        to="/account/settings/address"
+        variant="soft"
+        icon="i-lucide-map-pin-house"
+      >
+        Edit Address
+      </UButton>
+
+      <UButton 
+        to="/_auth/customer-account/logout" 
+        variant="outline" 
+        icon="i-lucide-log-out"
+      >
+        Log out
+      </UButton>
+    </div>
+  </template>
+  ```
+
+  ```ts [nuxt.config.ts]
+  export default defineNuxtConfig({
+    modules: ['@nuxtjs/shopify'],
+
+    shopify: {
+      name: 'store-name',
+
+      clients: {
+        customerAccount: {
+          apiVersion: '2026-01',
+          clientId: 'your-client-id',
+        },
+      },
+    },
+  })
+  ```
+
+  ```json [package.json]
+  {
+    "name": "nuxt-shopify-store",
+    "private": true,
+    "type": "module",
+    "scripts": {
+      "dev": "nuxt dev",
+      "build": "nuxt build",
+      "generate": "nuxt generate",
+      "preview": "nuxt preview"
+    },
+    "dependencies": {
+      "@nuxtjs/shopify": "latest",
+      "nuxt": "latest",
+      "nuxt-auth-utils": "latest"
+    },
+    "devDependencies": {
+      "@shopify/hydrogen": "2026.4.0"
+    }
+  }
+  ```
+  :::
+::
+
+::component-hero
+---
 title: Easy integration with the Admin API
 ---
 
@@ -210,7 +317,7 @@ Markets.vue
     "dependencies": {
       "@nuxtjs/shopify": "latest",
       "nuxt": "latest"
-    }
+    },
   }
   ```
   :::
@@ -248,6 +355,18 @@ Build your Shopify store with Nuxt
 
   :::u-page-feature
   ---
+  icon: i-lucide-user
+  to: /essentials/customer-account
+  ---
+  #title
+  Easy [Customer Account API]{.text-primary} Integration
+
+  #description
+  Built-in authentication flow and access management for the Shopify Customer Account API. Zero-boilerplate customer data and sessions.
+  :::
+
+  :::u-page-feature
+  ---
   icon: i-lucide-shield
   to: /essentials/admin
   ---
@@ -267,7 +386,7 @@ Build your Shopify store with Nuxt
   Zero-config [Code Generation]{.text-primary}
 
   #description
-  Generates and hot-reloads TypeScript types from your GraphQL operations, for reliable typing and autocompletion.
+  Generates and hot-reloads TypeScript types from your GraphQL operations, for reliable typing and autocompletion. No setup required.
   :::
 
   :::u-page-feature
