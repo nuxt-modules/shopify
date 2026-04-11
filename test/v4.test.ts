@@ -6,9 +6,15 @@ import { join } from 'node:path'
 
 import { ShopifyClientType } from '../src/schemas'
 import { getInterfaceExtensionFunction } from '../src/utils/codegen'
+import {
+  expectedAdminDocuments,
+  expectedCustomerAccountDocuments,
+  expectedStorefrontDocuments,
+} from './helpers'
 
 const playgroundDir = fileURLToPath(new URL('../playgrounds/playground-v4', import.meta.url))
 const playgroundStorefrontTypesDir = fileURLToPath(new URL('../playgrounds/playground-v4/.nuxt/types/storefront', import.meta.url))
+const playgroundCustomerAccountTypesDir = fileURLToPath(new URL('../playgrounds/playground-v4/.nuxt/types/customer-account', import.meta.url))
 const playgroundAdminTypesDir = fileURLToPath(new URL('../playgrounds/playground-v4/.nuxt/types/admin', import.meta.url))
 
 describe('test module with nuxt 4', async () => {
@@ -20,7 +26,7 @@ describe('test module with nuxt 4', async () => {
   it('should correctly validate the module configuration', async () => {
     const json = await $fetch('/api/config')
 
-    expect(json).toStrictEqual({
+    expect(json).toMatchObject({
       name: process.env.NUXT_SHOPIFY_NAME,
       errors: {
         throw: true,
@@ -39,16 +45,7 @@ describe('test module with nuxt 4', async () => {
           publicAccessToken: process.env.NUXT_SHOPIFY_CLIENTS_STOREFRONT_PUBLIC_ACCESS_TOKEN,
           retries: 3,
           sandbox: true,
-          documents: [
-            '**/*.vue',
-            '**/*.{gql,graphql,ts,js}',
-            '!**/*.admin.{gql,graphql,ts,js}',
-            '!**/admin/**/*.{gql,graphql,ts,js}',
-            '!node_modules',
-            '!dist',
-            '!.nuxt',
-            '!.output',
-          ],
+          documents: expectedStorefrontDocuments,
           cache: {
             client: {
               ttl: 10000,
@@ -74,20 +71,22 @@ describe('test module with nuxt 4', async () => {
           apiVersion: process.env.NUXT_SHOPIFY_CLIENTS_ADMIN_API_VERSION,
           clientId: '<admin_client_id>',
           clientSecret: '<admin_client_secret>',
-          autoImport: false,
           retries: 3,
           sandbox: true,
           tokenStorage: {
             driver: 'memory',
           },
-          documents: [
-            '**/*.admin.{gql,graphql,ts,js}',
-            '**/admin/**/*.{gql,graphql,ts,js}',
-            '!node_modules',
-            '!dist',
-            '!.nuxt',
-            '!.output',
-          ],
+          documents: expectedAdminDocuments,
+        },
+        customerAccount: {
+          apiVersion: process.env.NUXT_SHOPIFY_CLIENTS_CUSTOMER_ACCOUNT_API_VERSION,
+          clientId: process.env.NUXT_SHOPIFY_CLIENTS_CUSTOMER_ACCOUNT_CLIENT_ID,
+          documents: expectedCustomerAccountDocuments,
+          proxy: {
+            path: '_proxy/customer-account',
+          },
+          retries: 3,
+          sandbox: true,
         },
       },
       webhooks: {
@@ -102,6 +101,14 @@ describe('test module with nuxt 4', async () => {
         secret: '<webhooks_secret>',
       },
     })
+
+    expect((json as {
+      clients: {
+        customerAccount: {
+          apiUrl: string
+        }
+      }
+    }).clients.customerAccount.apiUrl).toContain('/account/customer/api/')
   })
 
   it('should create a working server side storefront fetch client', async () => {
@@ -164,6 +171,17 @@ describe('test module with nuxt 4', async () => {
     expect(typesContent.length).toBeGreaterThan(0)
   })
 
+  it('should generate customer account api types', async () => {
+    const path = join(playgroundCustomerAccountTypesDir, 'customer-account.types.d.ts')
+
+    expect(await access(path).then(() => true).catch(() => false)).toBe(true)
+
+    const typesContent = await readFile(path, 'utf-8')
+
+    expect(typesContent).toBeDefined()
+    expect(typesContent.length).toBeGreaterThan(0)
+  })
+
   it('should generate storefront api operations', async () => {
     const path = join(playgroundStorefrontTypesDir, 'storefront.operations.d.ts')
 
@@ -207,6 +225,24 @@ describe('test module with nuxt 4', async () => {
     // Check that it performs the necessary module type augmentation
     const interfaceExtension = getInterfaceExtensionFunction(
       ShopifyClientType.Admin,
+      'GeneratedQueryTypes',
+      'GeneratedMutationTypes',
+    )
+    expect(operationsContent).toContain(interfaceExtension)
+  })
+
+  it('should generate customer account api operations', async () => {
+    const path = join(playgroundCustomerAccountTypesDir, 'customer-account.operations.d.ts')
+
+    expect(await access(path).then(() => true).catch(() => false)).toBe(true)
+
+    const operationsContent = await readFile(path, 'utf-8')
+
+    expect(operationsContent).toContain('CustomerDetailsQuery')
+    expect(operationsContent).toContain('CustomerFieldsFragment')
+
+    const interfaceExtension = getInterfaceExtensionFunction(
+      ShopifyClientType.CustomerAccount,
       'GeneratedQueryTypes',
       'GeneratedMutationTypes',
     )

@@ -3,41 +3,45 @@ import type { Resolver } from '@nuxt/kit'
 import type { ShopifyConfig } from '../types'
 
 import { addServerImports, addImports } from '@nuxt/kit'
-import { upperFirst } from 'scule'
+import { kebabCase, pascalCase } from 'scule'
 
 import { ShopifyClientType } from '../schemas'
 
 export function registerClientServerImports(clientType: ShopifyClientType, resolver: Resolver) {
   addServerImports([{
-    from: resolver.resolve(`./runtime/server/utils/${clientType}/client`),
-    name: `use${upperFirst(clientType)}`,
+    from: resolver.resolve(`./runtime/server/utils/${kebabCase(clientType)}/client`),
+    name: `use${pascalCase(clientType)}`,
   }])
 }
 
 export function registerClientImports(clientType: ShopifyClientType, resolver: Resolver) {
-  addImports([
-    {
-      from: resolver.resolve(`./runtime/composables/${clientType}/client`),
-      name: `use${upperFirst(clientType)}`,
-    },
-    {
-      from: resolver.resolve(`./runtime/composables/${clientType}/async`),
-      name: `use${upperFirst(clientType)}Data`,
-    },
-  ])
+  addImports([{
+    from: resolver.resolve(`./runtime/composables/${kebabCase(clientType)}/client`),
+    name: `use${pascalCase(clientType)}`,
+  }])
+}
+
+export function registerClientAsyncImports(clientType: ShopifyClientType, resolver: Resolver) {
+  addImports([{
+    from: resolver.resolve(`./runtime/composables/${kebabCase(clientType)}/async`),
+    name: `use${pascalCase(clientType)}Data`,
+  }])
 }
 
 export function isPublicClient(config: ShopifyConfig['clients'][ShopifyClientType]): boolean {
-  return !!(
-    (config as { publicAccessToken?: string })?.publicAccessToken
+  return !!((config as { publicAccessToken?: string })?.publicAccessToken
     || (config as { mock?: boolean })?.mock
+    || (config as { clientId?: string })?.clientId
   )
 }
 
 export function hasPublicClient(config: ShopifyConfig): boolean {
   const storefrontConfig = config.clients[ShopifyClientType.Storefront]
+  const customerAccountConfig = config.clients[ShopifyClientType.CustomerAccount]
 
-  return !!(storefrontConfig?.publicAccessToken || storefrontConfig?.mock)
+  return !!(storefrontConfig?.publicAccessToken
+    || storefrontConfig?.mock
+    || customerAccountConfig?.clientId)
 }
 
 export function getConfiguredClients(config: ShopifyConfig): ShopifyClientType[] {

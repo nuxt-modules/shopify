@@ -5,12 +5,14 @@ import {
   getCurrentApiVersion,
   getCurrentSupportedApiVersions,
 } from '@shopify/graphql-client'
+import { kebabCase } from 'scule'
 import { z } from 'zod'
 
 import {
   ShopifyClientType,
   clientSchema,
   storefrontClientSchema,
+  customerAccountClientSchema,
   adminClientSchema,
   moduleOptionsSchema,
   publicModuleOptionsSchema,
@@ -24,16 +26,39 @@ const ignores = [
   '!.output',
 ]
 
+const getDefaultDocuments = (clientType: string, { exclude }: { exclude?: boolean } = {}) => {
+  const clientName = kebabCase(clientType)
+  const fileEndings = ['gql', 'graphql', 'ts', 'js', ...(clientType !== ShopifyClientType.Admin ? ['vue'] : [])].join(',')
+
+  return [
+    `${exclude ? '!' : ''}**/*.${clientName}.{${fileEndings}}`,
+    `${exclude ? '!' : ''}**/${clientName}.{${fileEndings}}`,
+    `${exclude ? '!' : ''}**/${clientName}/**/*.{${fileEndings}}`,
+    `${exclude ? '!' : ''}**/${clientName}/*.{${fileEndings}}`,
+    `${exclude ? '!' : ''}**/(${clientName})/**/*.{${fileEndings}}`,
+    `${exclude ? '!' : ''}**/(${clientName})/*.{${fileEndings}}`,
+  ]
+}
+
 const defaultStorefrontDocuments = [
-  '**/*.{gql,graphql,ts,js}',
-  '!**/*.admin.{gql,graphql,ts,js}',
-  '!**/admin/**/*.{gql,graphql,ts,js}',
+  '**/*.{gql,graphql,ts,js,vue}',
+
+  ...getDefaultDocuments(ShopifyClientType.Admin, { exclude: true }),
+  ...getDefaultDocuments(ShopifyClientType.CustomerAccount, { exclude: true }),
+  ...getDefaultDocuments('customer', { exclude: true }),
+  ...getDefaultDocuments('account', { exclude: true }),
+  ...ignores,
+]
+
+const defaultCustomerAccountDocuments = [
+  ...getDefaultDocuments(ShopifyClientType.CustomerAccount),
+  ...getDefaultDocuments('customer'),
+  ...getDefaultDocuments('account'),
   ...ignores,
 ]
 
 const defaultAdminDocuments = [
-  '**/*.admin.{gql,graphql,ts,js}',
-  '**/admin/**/*.{gql,graphql,ts,js}',
+  ...getDefaultDocuments(ShopifyClientType.Admin),
   ...ignores,
 ]
 
@@ -52,7 +77,6 @@ const clientSchemaWithDefaults = clientSchema.omit({
   apiVersion: true,
   retries: true,
   sandbox: true,
-  autoImport: true,
 }).extend({
   apiVersion: z.string().refine(v => getCurrentSupportedApiVersions().includes(v), {
     error: v => `Unsupported API version "${v}". Supported versions are: ${getCurrentSupportedApiVersions().join(', ')}`,
@@ -61,7 +85,6 @@ const clientSchemaWithDefaults = clientSchema.omit({
   retries: z.number().optional().default(3),
 
   sandbox: z.boolean().optional().default(true),
-  autoImport: z.boolean().optional().default(true),
 })
 
 const clientCacheSchemaWithDefaults = clientCacheSchema.omit({
@@ -76,6 +99,7 @@ const clientCacheSchemaWithDefaults = clientCacheSchema.omit({
 
 const storefrontClientSchemaWithDefaults = clientSchemaWithDefaults.omit({
   documents: true,
+  autoImport: true,
 }).extend({
   publicAccessToken: storefrontClientSchema.shape.publicAccessToken,
   privateAccessToken: storefrontClientSchema.shape.privateAccessToken,
@@ -84,6 +108,20 @@ const storefrontClientSchemaWithDefaults = clientSchemaWithDefaults.omit({
   documents: storefrontClientSchema.shape.documents.transform(v => v ? v : defaultStorefrontDocuments),
   proxy: storefrontClientSchema.shape.proxy.default({ path: '_proxy/storefront' }).transform(v => typeof v === 'undefined' || v === true ? { path: '_proxy/storefront' } : v),
   cache: clientCacheSchemaWithDefaults.or(z.boolean()).optional().default(defaultCacheConfig).transform(v => v === true ? defaultCacheConfig : v),
+  autoImport: storefrontClientSchema.shape.autoImport.default(true),
+})
+
+const customerAccountClientSchemaWithDefaults = clientSchemaWithDefaults.omit({
+  documents: true,
+}).extend({
+  apiUrl: z.string().optional(),
+
+  clientId: customerAccountClientSchema.shape.clientId,
+  scope: customerAccountClientSchema.shape.scope,
+  redirectURL: customerAccountClientSchema.shape.redirectURL,
+
+  documents: customerAccountClientSchema.shape.documents.transform(v => v ? v : defaultCustomerAccountDocuments),
+  proxy: customerAccountClientSchema.shape.proxy.default({ path: '_proxy/customer-account' }).transform(v => typeof v === 'undefined' || v === true ? { path: '_proxy/customer-account' } : v),
 })
 
 const adminClientSchemaWithDefaults = clientSchemaWithDefaults.omit({
@@ -110,6 +148,12 @@ export const moduleOptionsSchemaWithDefaults = moduleOptionsSchema.omit({
     })).refine(client => client?.mock || client?.privateAccessToken || client?.publicAccessToken, {
       error: 'Either a public or private access token must be provided for the storefront client',
     }).optional(),
+
+    [ShopifyClientType.CustomerAccount]: customerAccountClientSchemaWithDefaults.refine(
+      client => client.clientId, {
+        message: 'Client ID is required for the customer account client',
+      },
+    ).optional(),
 
     [ShopifyClientType.Admin]: adminClientSchemaWithDefaults.refine(
       client => client.accessToken || (client.clientId && client.clientSecret), {
@@ -157,6 +201,18 @@ export const publicModuleOptionsSchemaWithDefaults = publicModuleOptionsSchema.o
         client: defaultClientCacheOptions,
         options: defaultCacheOptions,
       }).transform(v => typeof v === 'undefined' || v === true ? { client: defaultClientCacheOptions, options: defaultCacheOptions } : v),
+    })).optional(),
+
+    [ShopifyClientType.CustomerAccount]: customerAccountClientSchemaWithDefaults.omit({
+      sandbox: true,
+      documents: true,
+      codegen: true,
+      autoImport: true,
+      proxy: true,
+    }).and(z.object({
+      proxy: z.object({
+        path: z.string().optional().default('_proxy/customer-account'),
+      }).or(z.boolean()).optional().optional().default({ path: '_proxy/customer-account' }).transform(v => typeof v === 'undefined' || v === true ? { path: '_proxy/customer-account' } : v),
     })).optional(),
   }),
 

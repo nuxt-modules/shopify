@@ -14,6 +14,8 @@ import defu from 'defu'
 import { ShopifyClientType } from '../schemas'
 import { useLogger } from './log'
 import { getAdminAccessToken } from '../runtime/server/utils/admin/auth'
+import { joinURL } from 'ufo'
+import { createStoreDomain } from '../runtime/utils/client'
 
 type ShopifyTemplateOptions = {
   filename: string
@@ -48,7 +50,7 @@ declare module '@nuxtjs/shopify/${kebabCase(clientType)}' {
 `
 }
 
-async function getIntrospection(options: ShopifyTemplateOptions) {
+async function getIntrospection(options: ShopifyTemplateOptions, config?: ShopifyConfig) {
   const { shopName, clientType, clientConfig, introspection } = options
 
   if (introspection && existsSync(introspection)) {
@@ -60,19 +62,14 @@ async function getIntrospection(options: ShopifyTemplateOptions) {
 
   let apiUrl: string
 
-  if (clientType === ShopifyClientType.Admin) {
-    const adminConfig = clientConfig as NonNullable<ShopifyConfig['clients']['admin']>
-    apiUrl = `https://${shopName}.myshopify.com/admin/api/${apiVersion}/graphql.json`
-    headers['X-Shopify-Access-Token'] = await getAdminAccessToken(shopName, adminConfig)
-  }
-  else {
+  if (clientType === ShopifyClientType.Storefront) {
     const storefrontConfig = clientConfig as NonNullable<ShopifyConfig['clients']['storefront']>
 
     if (storefrontConfig.mock) {
       apiUrl = `https://mock.shop/api`
     }
     else {
-      apiUrl = `https://${shopName}.myshopify.com/api/${apiVersion}/graphql.json`
+      apiUrl = joinURL(createStoreDomain(shopName), `api/${apiVersion}/graphql.json`)
 
       if (storefrontConfig.privateAccessToken) {
         headers['Shopify-Storefront-Private-Token'] = storefrontConfig.privateAccessToken
@@ -81,6 +78,24 @@ async function getIntrospection(options: ShopifyTemplateOptions) {
         headers['X-Shopify-Storefront-Access-Token'] = storefrontConfig.publicAccessToken
       }
     }
+  }
+  else if (clientType === ShopifyClientType.CustomerAccount) {
+    try {
+      return [import.meta.resolve('@shopify/hydrogen/customer-account.schema.json')]
+    }
+    catch (error) {
+      useLogger(config).error('Failed to load customer account schema. Please ensure @shopify/hydrogen is installed.', error)
+    }
+
+    return []
+  }
+  else if (clientType === ShopifyClientType.Admin) {
+    const adminConfig = clientConfig as NonNullable<ShopifyConfig['clients']['admin']>
+    apiUrl = joinURL(createStoreDomain(shopName), `admin/api/${apiVersion}/graphql.json`)
+    headers['X-Shopify-Access-Token'] = await getAdminAccessToken(shopName, adminConfig)
+  }
+  else {
+    throw new Error(`Unsupported client type: ${clientType}`)
   }
 
   return [

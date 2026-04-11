@@ -14,12 +14,25 @@ export default defineNuxtConfig({
         colorMode: false,
     },
 
+    runtimeConfig: {
+        shopify: {
+            name: 'nuxt-shopify-demo-store',
+
+            clients: {
+                storefront: {
+                    mock: true,
+                    apiVersion: '2026-01',
+                },
+            },
+        },
+    },
+
     routeRules: {
         '/': { prerender: true },
         '/blog/**': { isr: 3600 },
     },
 
-    compatibilityDate: '2026-03-10',
+    compatibilityDate: '2026-03-15',
 
     vite: {
         server: {
@@ -64,16 +77,5 @@ export default defineNuxtConfig({
 
     image: {
         provider: 'shopify',
-    },
-
-    shopify: {
-        name: 'nuxt-shopify-demo-store',
-
-        clients: {
-            storefront: {
-                mock: true,
-                apiVersion: '2026-01',
-            },
-        },
     },
 })

@@ -8,21 +8,20 @@
 [![NPM last update][npm-last-update-src]][npm-last-update-href]
 [![License][license-src]][license-href]
 
-Fully typed fetch client for the [Shopify Storefront API](https://shopify.dev/docs/api/storefront) and
-the [Shopify Admin API](https://shopify.dev/docs/api/admin-graphql).
+Fully typed fetch client for the [Shopify Storefront API](https://shopify.dev/docs/api/storefront), [Shopify Admin API](https://shopify.dev/docs/api/admin-graphql) and [Shopify Customer Account API](https://shopify.dev/docs/api/customer).
 You can use it on the server and client side, with built-in support for [mock.shop](https://mock.shop) and automatic,
 hot-reloaded type generation from your GraphQL queries.
 
-- 🛍️ [Store Template](https://github.com/nuxt-modules/shopify/tree/main/template)
 - 📚 [Documentation](https://shopify.nuxtjs.org)
+- 🛍️ [Store Template](https://github.com/nuxt-modules/shopify/tree/main/template)
 - ✨ [Release Notes](https://github.com/nuxt-modules/shopify/tree/main/CHANGELOG.md)
 
-## ⚡️ Features
+## Features
 
 - 🔗 Fully typed fetch client from GraphQL schemas
 - 🔥 Hot-reloads types automatically when your GraphQL changes
 - 🔐 Secure access token handling
-- 🛒 Storefront and Admin API support
+- 🛒 Storefront, Customer Account and Admin API support
 - 🌐 Server & client side support
 - 🛠️ Automatic mock.shop integration
 - 🚩 Error handling optimized for Nuxt
@@ -40,10 +39,11 @@ hot-reloaded type generation from your GraphQL queries.
 
 Upcoming features and developments for the 1.0.0 release:
 
-- 👤 Customer Account API support
 - 🔍 Shopify Analytics support
 
 ## 📦 Setup
+
+> To get started immediately, you can use the [store template](https://github.com/nuxt-modules/shopify/tree/main/template) with a pre-configured Shopify store and module setup.
 
 Run the following command to install the module in your project:
 
@@ -76,7 +76,8 @@ Add your Shopify configuration to the `nuxt.config.ts`:
 ```ts
 export default defineNuxtConfig({
   shopify: {
-    name: "quickstart-abcd1234",
+    name: "my-shopify-store",
+
     clients: {
       storefront: {
         apiVersion: "2026-01",
@@ -88,20 +89,26 @@ export default defineNuxtConfig({
         clientId: "YOUR_APP_CLIENT_ID",
         clientSecret: "YOUR_APP_CLIENT_SECRET",
       },
+
+      customerAccount: {
+        apiVersion: "2026-01",
+        clientId: "YOUR_CLIENT_ID",
+      },
     },
   },
 })
 ```
 
-## 🛠️ Usage
+> To find the configuration values for your store, check out the [setup guide](https://shopify.nuxtjs.org/essentials/setup-shopify).
+
+## Usage
 
 ### Access Storefront API on the client side
 
 There are multiple ways of communicating with the Shopify APIs.
 The easiest way is with the `useStorefront` composable, directly inside of your vue component or page.
 
-> To access the `useStorefront` composable on the client side, make sure you have added a public access token.
-> You can add it in the module config: `clients > storefront > publicAccessToken`
+> To access the `useStorefront` composable on the client side, make sure you have added a public access token. You can add it in the module config: `clients > storefront > publicAccessToken`
 
 ```html
 <!-- ~/pages/your-page.vue -->
@@ -439,14 +446,14 @@ npx @nuxtjs/shopify@latest webhooks subscribe
 To receive webhooks with Shopify's HMAC validation the module introduces `defineWebhookEventHandler`, which automatically
 validates any incoming request against the app client secret.
 
-Read more about webhooks in our [webhooks documentation](https://shopify.nuxtjs.org/essentials/webhooks).
+Read more about webhooks in our [webhooks documentation](https://shopify.nuxtjs.org/going-further/webhooks).
 
-## 👥 Maintainers
+## Maintainers
 
 - Frederik Bußmann ([@freb97](https://github.com/freb97))
 - Zoltan Lukacs ([@konkonam](https://github.com/konkonam))
 
-## 🤝 Contributing
+## Contributing
 
 1. Clone this repository
 2. Create a `.env` file (see [`.env.example`](https://github.com/nuxt-modules/shopify/tree/main/.env.example))
@@ -460,7 +467,7 @@ Read more about webhooks in our [webhooks documentation](https://shopify.nuxtjs.
    bun run dev
    ```
 
-## 📜 License
+## License
 
 Published under the [MIT License](https://github.com/nuxt-modules/shopify/tree/main/LICENSE).
 

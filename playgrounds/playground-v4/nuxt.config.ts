@@ -1,6 +1,7 @@
 export default defineNuxtConfig({
   modules: [
     '../../src/module',
+    'nuxt-auth-utils',
   ],
 
   runtimeConfig: {
@@ -17,8 +18,11 @@ export default defineNuxtConfig({
           apiVersion: '',
           clientId: '',
           clientSecret: '',
+        },
 
-          autoImport: false,
+        customerAccount: {
+          apiVersion: '',
+          clientId: '',
         },
       },
 
@@ -35,5 +39,5 @@ export default defineNuxtConfig({
     },
   },
 
-  compatibilityDate: '2025-11-01',
+  compatibilityDate: '2026-03-15',
 })

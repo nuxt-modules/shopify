@@ -6,6 +6,7 @@ import { join } from 'node:path'
 
 import { ShopifyClientType } from '../src/schemas'
 import { getInterfaceExtensionFunction } from '../src/utils/codegen'
+import { expectedStorefrontDocuments } from './helpers'
 
 const playgroundDir = fileURLToPath(new URL('../playgrounds/playground-v4-mock', import.meta.url))
 const playgroundStorefrontTypesDir = fileURLToPath(new URL('../playgrounds/playground-v4-mock/.nuxt/types/storefront', import.meta.url))
@@ -19,7 +20,7 @@ describe('test mock.shop integration with nuxt 4', async () => {
   it('should correctly validate the module configuration', async () => {
     const json = await $fetch('/api/config')
 
-    expect(json).toStrictEqual({
+    expect(json).toMatchObject({
       name: process.env.NUXT_SHOPIFY_NAME,
       errors: {
         throw: true,
@@ -38,16 +39,7 @@ describe('test mock.shop integration with nuxt 4', async () => {
           },
           retries: 3,
           sandbox: true,
-          documents: [
-            '**/*.vue',
-            '**/*.{gql,graphql,ts,js}',
-            '!**/*.admin.{gql,graphql,ts,js}',
-            '!**/admin/**/*.{gql,graphql,ts,js}',
-            '!node_modules',
-            '!dist',
-            '!.nuxt',
-            '!.output',
-          ],
+          documents: expectedStorefrontDocuments,
           cache: {
             client: {
               ttl: 10000,

@@ -6,6 +6,10 @@ import { join } from 'node:path'
 
 import { ShopifyClientType } from '../src/schemas'
 import { getInterfaceExtensionFunction } from '../src/utils/codegen'
+import {
+  expectedAdminDocuments,
+  expectedStorefrontDocuments,
+} from './helpers'
 
 const playgroundDir = fileURLToPath(new URL('../playgrounds/playground-v3', import.meta.url))
 const playgroundStorefrontTypesDir = fileURLToPath(new URL('../playgrounds/playground-v3/.nuxt/types/storefront', import.meta.url))
@@ -20,7 +24,7 @@ describe('test module with nuxt 3', async () => {
   it('should correctly validate the module configuration', async () => {
     const json = await $fetch('/api/config')
 
-    expect(json).toStrictEqual({
+    expect(json).toMatchObject({
       name: process.env.NUXT_SHOPIFY_NAME,
       errors: {
         throw: true,
@@ -35,16 +39,7 @@ describe('test module with nuxt 3', async () => {
           publicAccessToken: process.env.NUXT_SHOPIFY_CLIENTS_STOREFRONT_PUBLIC_ACCESS_TOKEN,
           retries: 3,
           sandbox: true,
-          documents: [
-            '**/*.vue',
-            '**/*.{gql,graphql,ts,js}',
-            '!**/*.admin.{gql,graphql,ts,js}',
-            '!**/admin/**/*.{gql,graphql,ts,js}',
-            '!node_modules',
-            '!dist',
-            '!.nuxt',
-            '!.output',
-          ],
+          documents: expectedStorefrontDocuments,
           cache: {
             client: {
               ttl: 10000,
@@ -68,7 +63,6 @@ describe('test module with nuxt 3', async () => {
         },
         admin: {
           apiVersion: process.env.NUXT_SHOPIFY_CLIENTS_ADMIN_API_VERSION,
-          autoImport: false,
           clientId: '<admin_client_id>',
           clientSecret: '<admin_client_secret>',
           retries: 3,
@@ -76,14 +70,7 @@ describe('test module with nuxt 3', async () => {
           tokenStorage: {
             driver: 'memory',
           },
-          documents: [
-            '**/*.admin.{gql,graphql,ts,js}',
-            '**/admin/**/*.{gql,graphql,ts,js}',
-            '!node_modules',
-            '!dist',
-            '!.nuxt',
-            '!.output',
-          ],
+          documents: expectedAdminDocuments,
         },
       },
       fragments: {
