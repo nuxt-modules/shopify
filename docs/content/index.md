@@ -139,7 +139,7 @@ CustomerAccount.vue
     navigateTo('/_auth/customer-account/callback')
   }
 
-  const { data: customer } = await useCustomerAccountData(`#graphql
+  const { data } = await useCustomerAccountData(`#graphql
     query GetCustomer {
       customer {
         firstName
@@ -152,9 +152,9 @@ CustomerAccount.vue
   </script>
 
   <template>
-    <div v-if="customer">
+    <div v-if="data">
       <h1>
-        Welcome, {{ customer.firstName }} {{ customer.lastName }}!
+        Welcome, {{ data.firstName }} {{ data.lastName }}!
       </h1>
 
       <UButton
@@ -185,7 +185,10 @@ CustomerAccount.vue
 
   ```ts [nuxt.config.ts]
   export default defineNuxtConfig({
-    modules: ['@nuxtjs/shopify'],
+    modules: [
+      '@nuxtjs/shopify',
+      'nuxt-auth-utils',
+    ],
 
     shopify: {
       name: 'store-name',
@@ -217,7 +220,7 @@ CustomerAccount.vue
       "nuxt-auth-utils": "latest"
     },
     "devDependencies": {
-      "@shopify/hydrogen": "2026.4.0"
+      "@shopify/hydrogen": "2026.1.4"
     }
   }
   ```

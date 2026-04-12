@@ -7,6 +7,9 @@ const markets = ['United States', 'Germany', 'Austria', 'Spain']
     <UCard
       v-for="market in markets"
       :key="market"
+      :ui="{
+        root: 'transition-all hover:ring-primary',
+      }"
     >
       {{ market }}
     </UCard>
