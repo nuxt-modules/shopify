@@ -31,7 +31,9 @@ export default defineNuxtModule<ModuleOptions>({
   },
 
   moduleDependencies: {
-    'nuxt-auth-utils': {},
+    'nuxt-auth-utils': {
+      optional: true,
+    },
   },
 
   async setup(options, nuxt) {

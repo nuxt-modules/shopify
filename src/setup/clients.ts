@@ -3,7 +3,7 @@ import type { Nuxt } from '@nuxt/schema'
 
 import type { ShopifyConfig } from '../types'
 
-import { addServerHandler, addTypeTemplate, hasNuxtModule } from '@nuxt/kit'
+import { addServerHandler, addServerImports, addTemplate, addTypeTemplate, hasNuxtModule } from '@nuxt/kit'
 import defu from 'defu'
 import { withoutProtocol } from 'ufo'
 
@@ -17,7 +17,7 @@ import {
 } from '../utils/clients'
 import { ShopifyClientType } from '../schemas'
 import { createStoreDomain } from '../runtime/utils/client'
-import { nuxtAuthUtilsTemplate } from '../templates/auth-utils'
+import { nuxtAuthUtilsDevTemplate, nuxtAuthUtilsTemplate } from '../templates/auth-utils'
 
 export default async function setupClients(nuxt: Nuxt, config: ShopifyConfig, resolver: Resolver) {
   const logger = useLogger(config)
@@ -82,5 +82,22 @@ export default async function setupClients(nuxt: Nuxt, config: ShopifyConfig, re
         nitro: true,
       })
     }
+  }
+
+  if (!hasNuxtModule('nuxt-auth-utils', nuxt)) {
+    addTypeTemplate({
+      filename: 'shopify/auth-utils.dev.d.ts',
+      getContents: () => nuxtAuthUtilsDevTemplate,
+    }, {
+      nitro: true,
+    })
+
+    const { dst } = addTemplate({
+      filename: 'shopify/auth-utils.mjs',
+      getContents: () => 'export const getUserSession = async () => {}',
+      write: true,
+    })
+
+    addServerImports([{ from: resolver.resolve(dst), name: 'getUserSession' }])
   }
 }
