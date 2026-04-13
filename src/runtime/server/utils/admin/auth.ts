@@ -1,7 +1,6 @@
 import type { AdminOperations } from '../../../../clients/admin'
 
-import type { ShopifyConfig } from '../../../../schemas'
-import type { ShopifyApiClient } from '../../../../types'
+import type { ShopifyApiClient, ShopifyConfig } from '../../../../types'
 
 import { createError } from 'h3'
 
