@@ -181,6 +181,34 @@ Note that `useStorefrontData` automatically extracts the `data` property from th
 stringify.
 When using it together with the setting `errors: { throw: false }` you will need to check for errors manually within the response instead of using the `error` object returned by the `useStorefrontData` composable.
 
+### Access Customer Account API on the client side
+
+First check out the [Customer Account API documentation](https://shopify.nuxtjs.org/essentials/customer-account) to set up dependencies and add credentials.
+
+Then you can access the Customer Account API on the client side with the `useCustomerAccount` composable:
+
+```html
+<!-- ~/pages/your-page.vue -->
+
+<script setup lang="ts">
+const customerAccount = useCustomerAccount()
+
+const { data } = await customerAccount.request(`#graphql
+  query {
+    customer {
+      id
+      firstName
+      lastName
+    }
+  }
+`)
+</script>
+
+<template>
+  <pre>{{ data?.customer }}</pre>
+</template>
+```
+
 ### Access APIs via Nitro endpoints
 
 The module exposes utilities to access each API via Nitro endpoints.
@@ -234,6 +262,28 @@ const { data } = await useFetch("/api/products")
 
 The `data` variable will be typed as `Ref<ClientResponse<FetchProductsQuery>>`, which enables autocompletion and full
 type checking.
+
+#### Customer Account API example
+
+You can use the `useCustomerAccount` utility to access the customer account API in a nitro event handler:
+
+```ts
+// ~/server/api/customer.ts
+
+export default defineEventHandler(async () => {
+  const customerAccount = useCustomerAccount()
+
+  return await customerAccount.request(`#graphql
+    query {
+      customer {
+        id
+        firstName
+        lastName
+      }
+    }
+  `)
+})
+```
 
 #### Admin API example
 
