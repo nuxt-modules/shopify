@@ -1,3 +1,6 @@
+# 0.5.1
+- Fixed nuxt-auth-utils stubs for customer account API
+
 # 0.5.0
 - Added customer account API support
 
