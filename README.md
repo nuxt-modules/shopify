@@ -41,7 +41,7 @@ Upcoming features and developments for the 1.0.0 release:
 
 - 🔍 Shopify Analytics support
 
-## 📦 Setup
+## Setup
 
 > To get started immediately, you can use the [store template](https://github.com/nuxt-modules/shopify/tree/main/template) with a pre-configured Shopify store and module setup.
 
@@ -194,9 +194,8 @@ Then you can access the Customer Account API on the client side with the `useCus
 const customerAccount = useCustomerAccount()
 
 const { data } = await customerAccount.request(`#graphql
-  query {
+  query FetchCustomer {
     customer {
-      id
       firstName
       lastName
     }
@@ -274,9 +273,8 @@ export default defineEventHandler(async () => {
   const customerAccount = useCustomerAccount()
 
   return await customerAccount.request(`#graphql
-    query {
+    query FetchCustomer {
       customer {
-        id
         firstName
         lastName
       }
