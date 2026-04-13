@@ -1,3 +1,6 @@
+# 0.5.2
+- Fixed unresolved import paths
+
 # 0.5.1
 - Fixed nuxt-auth-utils stubs for customer account API
 
