@@ -125,7 +125,7 @@
     "knip": "^6.4.1",
     "nuxt": "^4.4.2",
     "nuxt-auth-utils": "^0.5.29",
-    "typescript": "^5.9.3",
+    "typescript": "^6.0.2",
     "unbuild": "^3.6.1",
     "vite": "^7.3.2",
     "vitest": "^4.1.4",
