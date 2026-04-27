@@ -13,9 +13,9 @@
     },
     "dependencies": {
         "@nuxt/image": "^2.0.0",
-        "@nuxt/ui": "^4.6.1",
+        "@nuxt/ui": "^4.7.0",
         "@nuxtjs/critters": "^0.9.0",
-        "@nuxtjs/i18n": "^10.2.4",
+        "@nuxtjs/i18n": "^10.3.0",
         "@nuxtjs/shopify": "latest",
         "@tailwindcss/typography": "^0.5.19",
         "nuxt": "^4.4.2",
