@@ -120,6 +120,9 @@ const customerAccountClientSchemaWithDefaults = clientSchemaWithDefaults.omit({
   scope: customerAccountClientSchema.shape.scope,
   redirectURL: customerAccountClientSchema.shape.redirectURL,
 
+  loginURL: customerAccountClientSchema.shape.loginURL.default('_auth/customer-account/callback'),
+  logoutURL: customerAccountClientSchema.shape.logoutURL.default('_auth/customer-account/logout'),
+
   documents: customerAccountClientSchema.shape.documents.transform(v => v ? v : defaultCustomerAccountDocuments),
   proxy: customerAccountClientSchema.shape.proxy.default({ path: '_proxy/customer-account' }).transform(v => typeof v === 'undefined' || v === true ? { path: '_proxy/customer-account' } : v),
 })

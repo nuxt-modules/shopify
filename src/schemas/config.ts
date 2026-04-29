@@ -46,6 +46,8 @@ export const customerAccountClientSchema = clientSchema.extend({
   clientId: z.string(),
   scope: z.array(z.string()).optional(),
   redirectURL: z.string().optional(),
+  loginURL: z.string().optional(),
+  logoutURL: z.string().optional(),
   proxy: z.object({
     path: z.string().optional(),
   }).or(z.boolean()).optional(),

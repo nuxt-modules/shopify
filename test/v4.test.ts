@@ -82,6 +82,8 @@ describe('test module with nuxt 4', async () => {
           apiVersion: process.env.NUXT_SHOPIFY_CLIENTS_CUSTOMER_ACCOUNT_API_VERSION,
           clientId: process.env.NUXT_SHOPIFY_CLIENTS_CUSTOMER_ACCOUNT_CLIENT_ID,
           documents: expectedCustomerAccountDocuments,
+          loginURL: '_auth/customer-account/callback',
+          logoutURL: '_auth/customer-account/logout',
           proxy: {
             path: '_proxy/customer-account',
           },

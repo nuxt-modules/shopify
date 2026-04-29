@@ -5,7 +5,7 @@ import type { ShopifyConfig } from '../types'
 
 import { addServerHandler, addServerImports, addTemplate, addTypeTemplate, hasNuxtModule } from '@nuxt/kit'
 import defu from 'defu'
-import { withoutProtocol } from 'ufo'
+import { withLeadingSlash, withoutProtocol } from 'ufo'
 
 import { useLogger } from '../utils/log'
 import {
@@ -64,13 +64,13 @@ export default async function setupClients(nuxt: Nuxt, config: ShopifyConfig, re
 
       addServerHandler({
         method: 'get',
-        route: '/_auth/customer-account/callback',
+        route: withLeadingSlash(config.clients[clientType]?.loginURL),
         handler: resolver.resolve('./runtime/server/api/auth/customer-account/callback'),
       })
 
       addServerHandler({
         method: 'get',
-        route: '/_auth/customer-account/logout',
+        route: withLeadingSlash(config.clients[clientType]?.logoutURL),
         handler: resolver.resolve('./runtime/server/api/auth/customer-account/logout'),
       })
 
