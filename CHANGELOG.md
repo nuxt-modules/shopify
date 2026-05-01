@@ -1,3 +1,6 @@
+# 0.5.3
+- Updated customer account API configuration options
+
 # 0.5.2
 - Fixed unresolved import paths
 
