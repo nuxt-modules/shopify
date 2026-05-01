@@ -1,3 +1,6 @@
+# 0.5.4
+- Added customer account API development authentication support
+
 # 0.5.3
 - Updated customer account API configuration options
 
