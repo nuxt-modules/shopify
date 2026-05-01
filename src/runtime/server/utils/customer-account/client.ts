@@ -19,7 +19,6 @@ export function useCustomerAccount(event: H3Event): CustomerAccountApiClient {
   nitroApp.hooks.callHook('customer-account:client:configure', { config })
 
   const originalClient = createClient<CustomerAccountOperations>(config)
-  console.log('Customer Account API URL (client):', config.apiUrl)
 
   const request: CustomerAccountApiClient['request'] = async (operation, options) => {
     nitroApp.hooks.callHook('customer-account:client:request', { operation, options })

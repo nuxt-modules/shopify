@@ -113,6 +113,7 @@
       },
       "devDependencies": {
         "@nuxt/eslint-config": "^1.15.2",
+        "@shopify/hydrogen": "^2026.4.2",
         "eslint": "^10.2.1",
         "typescript": "^6.0.3",
         "vue-tsc": "^3.2.7",

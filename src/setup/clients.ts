@@ -5,7 +5,7 @@ import type { ShopifyConfig } from '../types'
 
 import { addServerHandler, addServerImports, addTemplate, addTypeTemplate, hasNuxtModule } from '@nuxt/kit'
 import defu from 'defu'
-import { withLeadingSlash, withoutProtocol } from 'ufo'
+import { withLeadingSlash, withoutHost, withoutProtocol } from 'ufo'
 
 import { useLogger } from '../utils/log'
 import {
@@ -33,7 +33,7 @@ export default async function setupClients(nuxt: Nuxt, config: ShopifyConfig, re
       registerClientAsyncImports(clientType, resolver)
     }
 
-    if (clientType === ShopifyClientType.CustomerAccount) {
+    if (clientType === ShopifyClientType.CustomerAccount && config.clients[clientType]) {
       if (!hasNuxtModule('nuxt-auth-utils', nuxt)) {
         logger.warn('nuxt-auth-utils is required to use the Customer Account API client.')
         continue
@@ -43,7 +43,6 @@ export default async function setupClients(nuxt: Nuxt, config: ShopifyConfig, re
         shopDomain: withoutProtocol(createStoreDomain(config.name)),
         clientId: config.clients[clientType]?.clientId,
         scope: config.clients[clientType]?.scope,
-        redirectURL: config.clients[clientType]?.redirectURL,
       }
 
       nuxt.options.runtimeConfig.oauth = defu({
@@ -64,15 +63,23 @@ export default async function setupClients(nuxt: Nuxt, config: ShopifyConfig, re
 
       addServerHandler({
         method: 'get',
-        route: withLeadingSlash(config.clients[clientType]?.loginURL),
+        route: withLeadingSlash(config.clients[clientType].loginURL),
         handler: resolver.resolve('./runtime/server/api/auth/customer-account/callback'),
       })
 
       addServerHandler({
         method: 'get',
-        route: withLeadingSlash(config.clients[clientType]?.logoutURL),
+        route: withLeadingSlash(config.clients[clientType].logoutURL),
         handler: resolver.resolve('./runtime/server/api/auth/customer-account/logout'),
       })
+
+      if (nuxt.options.dev && config.clients[clientType].dev?.tunnelURL && config.clients[clientType].dev?.bridgeURL) {
+        addServerHandler({
+          method: 'get',
+          route: withLeadingSlash(withoutHost(config.clients[clientType].dev.bridgeURL)),
+          handler: resolver.resolve('./runtime/server/api/auth/customer-account/bridge'),
+        })
+      }
 
       addTypeTemplate({
         filename: 'shopify/auth-utils.d.ts',
