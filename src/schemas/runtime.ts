@@ -125,6 +125,8 @@ const customerAccountClientSchemaWithDefaults = clientSchemaWithDefaults.omit({
 
   documents: customerAccountClientSchema.shape.documents.transform(v => v ? v : defaultCustomerAccountDocuments),
   proxy: customerAccountClientSchema.shape.proxy.default({ path: '_proxy/customer-account' }).transform(v => typeof v === 'undefined' || v === true ? { path: '_proxy/customer-account' } : v),
+
+  dev: customerAccountClientSchema.shape.dev.default({ bridgeURL: '_auth/customer-account/bridge' }).transform(v => v ? { tunnelURL: v.tunnelURL, bridgeURL: v.bridgeURL || '_auth/customer-account/bridge' } : v),
 })
 
 const adminClientSchemaWithDefaults = clientSchemaWithDefaults.omit({

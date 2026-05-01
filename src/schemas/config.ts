@@ -48,6 +48,10 @@ export const customerAccountClientSchema = clientSchema.extend({
   redirectURL: z.string().optional(),
   loginURL: z.string().optional(),
   logoutURL: z.string().optional(),
+  dev: z.object({
+    tunnelURL: z.string().optional(),
+    bridgeURL: z.string().optional(),
+  }).optional(),
   proxy: z.object({
     path: z.string().optional(),
   }).or(z.boolean()).optional(),
