@@ -11,6 +11,6 @@
         "typecheck": "nuxt typecheck"
     },
     "dependencies": {
-        "nuxt": "^4.4.2"
+        "nuxt": "^4.4.4"
     }
 }
