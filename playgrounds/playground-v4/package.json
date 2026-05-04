@@ -12,7 +12,7 @@
         "typecheck": "nuxt typecheck"
     },
     "dependencies": {
-        "nuxt": "^4.4.2"
+        "nuxt": "^4.4.4"
     },
     "devDependencies": {
         "@shopify/hydrogen": "^2026.4.2",
