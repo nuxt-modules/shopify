@@ -88,7 +88,7 @@
   "dependencies": {
     "@graphql-codegen/cli": "^7.0.0",
     "@graphql-codegen/import-types-preset": "^4.0.1",
-    "@graphql-codegen/introspection": "^5.0.2",
+    "@graphql-codegen/introspection": "^6.0.0",
     "@graphql-codegen/plugin-helpers": "^6.3.0",
     "@graphql-codegen/typescript": "^5.0.10",
     "@nuxt/kit": "^4.4.4",
