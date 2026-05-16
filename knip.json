@@ -4,7 +4,8 @@
     "-lintignore"
   ],
   "ignoreWorkspaces": [
-    "docs"
+    "docs",
+    "template"
   ],
   "workspaces": {
     ".": {
@@ -25,23 +26,6 @@
         "@graphql-tools/graphql-tag-pluck",
         "@shopify/hydrogen",
         "nuxt-auth-utils"
-      ]
-    },
-    "template": {
-      "entry": [
-        "app/**/*.{ts,vue,css}",
-        "graphql/**/*.ts",
-        "shared/**/*.ts",
-        "i18n/locales/**"
-      ],
-      "project": [
-        "**/*.{ts,vue,css,md,json}"
-      ],
-      "ignoreDependencies": [
-        "@nuxtjs/shopify",
-        "@tailwindcss/typography",
-        "vue-router",
-        "vue-tsc"
       ]
     },
     "playgrounds/playground-v3": {
