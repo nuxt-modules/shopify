@@ -18,14 +18,14 @@
         "@nuxtjs/i18n": "^10.3.0",
         "@nuxtjs/shopify": "latest",
         "@tailwindcss/typography": "^0.5.19",
-        "nuxt": "^4.4.4",
+        "nuxt": "^4.4.5",
         "nuxt-auth-utils": "^0.5.29",
-        "zod": "^4.4.2"
+        "zod": "^4.4.3"
     },
     "devDependencies": {
         "@nuxt/eslint-config": "^1.15.2",
-        "eslint": "^10.3.0",
+        "eslint": "^10.4.0",
         "typescript": "^6.0.3",
-        "vue-tsc": "^3.2.7"
+        "vue-tsc": "^3.2.9"
     }
 }
