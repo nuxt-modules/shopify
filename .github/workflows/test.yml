@@ -46,7 +46,7 @@ jobs:
         run: bun run prepare && bun run typecheck
 
       - name: Typecheck All Playgrounds
-        run: bun run typecheck:playgrounds
+        run: bun run prepare:playgrounds && bun run typecheck:playgrounds
 
   knip:
     runs-on: ubuntu-latest
@@ -58,7 +58,7 @@ jobs:
         run: bun install --ignore-scripts
 
       - name: Run Knip
-        run: bun run prepare:all && bun run knip
+        run: bun run prepare && bun run prepare:playgrounds && bun run knip
 
   test:
     runs-on: ubuntu-latest

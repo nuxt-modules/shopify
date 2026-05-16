@@ -3,6 +3,9 @@
   "tags": [
     "-lintignore"
   ],
+  "ignoreWorkspaces": [
+    "docs"
+  ],
   "workspaces": {
     ".": {
       "entry": [
@@ -22,22 +25,6 @@
         "@graphql-tools/graphql-tag-pluck",
         "@shopify/hydrogen",
         "nuxt-auth-utils"
-      ]
-    },
-    "docs": {
-      "entry": [
-        "app/**/*.{vue,ts,css}",
-        "graphql/**/*.ts",
-        "content/**/*.md"
-      ],
-      "project": [
-        "**/*.{ts,vue,css,md}"
-      ],
-      "ignoreDependencies": [
-        "@nuxt/kit",
-        "@nuxtjs/shopify",
-        "reka-ui",
-        "vaul-vue"
       ]
     },
     "template": {
