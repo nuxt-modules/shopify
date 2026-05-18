@@ -90,7 +90,7 @@
     "@graphql-codegen/import-types-preset": "^4.0.1",
     "@graphql-codegen/introspection": "^6.0.0",
     "@graphql-codegen/plugin-helpers": "^7.0.1",
-    "@graphql-codegen/typescript": "^5.0.10",
+    "@graphql-codegen/typescript": "^6.0.1",
     "@nuxt/kit": "^4.4.5",
     "@shopify/api-codegen-preset": "^2.0.0",
     "@shopify/graphql-client": "^1.4.2",
