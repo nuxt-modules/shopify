@@ -5,12 +5,12 @@
     "": {
       "name": "@nuxtjs/shopify",
       "dependencies": {
-        "@graphql-codegen/cli": "^7.0.0",
+        "@graphql-codegen/cli": "^7.1.2",
         "@graphql-codegen/import-types-preset": "^4.0.1",
-        "@graphql-codegen/introspection": "^6.0.0",
+        "@graphql-codegen/introspection": "^6.0.1",
         "@graphql-codegen/plugin-helpers": "^7.0.1",
-        "@graphql-codegen/typescript": "^6.0.1",
-        "@nuxt/kit": "^4.4.6",
+        "@graphql-codegen/typescript": "^6.0.2",
+        "@nuxt/kit": "^4.4.7",
         "@shopify/api-codegen-preset": "^2.0.0",
         "@shopify/graphql-client": "^1.4.2",
         "@shopify/graphql-codegen": "^0.1.0",
@@ -19,36 +19,36 @@
         "defu": "^6.1.7",
         "giget": "^3.2.0",
         "h3": "^1.15.11",
-        "lru-cache": "^11.5.0",
+        "lru-cache": "^11.5.1",
         "minimatch": "^10.2.5",
         "nitropack": "^2.13.4",
         "ohash": "^2.0.11",
         "scule": "^1.3.0",
         "ufo": "^1.6.4",
         "unstorage": "^1.17.5",
-        "vue": "^3.5.34",
+        "vue": "^3.5.35",
         "zod": "^4.4.3",
       },
       "devDependencies": {
         "@graphql-tools/graphql-tag-pluck": "^8.3.31",
         "@nuxt/eslint-config": "^1.15.2",
         "@nuxt/module-builder": "^1.0.2",
-        "@nuxt/schema": "^4.4.6",
+        "@nuxt/schema": "^4.4.7",
         "@nuxt/test-utils": "^4.0.3",
         "@shopify/hydrogen": "^2026.4.2",
         "@types/bun": "^1.3.14",
-        "@types/node": "^25.9.1",
-        "@vitest/coverage-v8": "^4.1.7",
-        "eslint": "^10.4.0",
-        "happy-dom": "^20.9.0",
-        "knip": "^6.14.2",
-        "nuxt": "^4.4.6",
+        "@types/node": "^25.9.2",
+        "@vitest/coverage-v8": "^4.1.8",
+        "eslint": "^10.4.1",
+        "happy-dom": "^20.10.2",
+        "knip": "^6.16.1",
+        "nuxt": "^4.4.7",
         "nuxt-auth-utils": "^0.5.29",
         "typescript": "^6.0.3",
         "unbuild": "^3.6.1",
-        "vite": "^8.0.14",
-        "vitest": "^4.1.7",
-        "vue-tsc": "^3.3.1",
+        "vite": "^8.0.16",
+        "vitest": "^4.1.8",
+        "vue-tsc": "^3.3.4",
       },
       "peerDependencies": {
         "@shopify/hydrogen": "*",
@@ -62,15 +62,15 @@
     "docs": {
       "name": "nuxt-shopify-docs",
       "dependencies": {
-        "@nuxt/kit": "^4.4.6",
-        "@nuxt/ui": "^4.8.0",
+        "@nuxt/kit": "^4.4.7",
+        "@nuxt/ui": "^4.8.2",
         "@nuxtjs/critters": "^0.9.0",
         "@nuxtjs/shopify": "latest",
         "better-sqlite3": "^12.10.0",
-        "docus": "^5.11.0",
+        "docus": "^5.12.0",
         "motion-v": "^2.2.1",
-        "nuxt": "^4.4.6",
-        "reka-ui": "^2.9.8",
+        "nuxt": "^4.4.7",
+        "reka-ui": "^2.9.9",
         "tailwindcss": "^4.3.0",
         "vaul-vue": "^0.4.1",
         "zod": "^4.4.3",
@@ -79,13 +79,13 @@
     "playgrounds/playground-v3": {
       "name": "playground-v3",
       "dependencies": {
-        "nuxt": "^3.21.6",
+        "nuxt": "^3.21.7",
       },
     },
     "playgrounds/playground-v4": {
       "name": "playground-v4",
       "dependencies": {
-        "nuxt": "^4.4.6",
+        "nuxt": "^4.4.7",
       },
       "devDependencies": {
         "@shopify/hydrogen": "^2026.4.2",
@@ -95,27 +95,27 @@
     "playgrounds/playground-v4-mock": {
       "name": "playground-v4-mock",
       "dependencies": {
-        "nuxt": "^4.4.6",
+        "nuxt": "^4.4.7",
       },
     },
     "template": {
       "name": "nuxt-shopify-template",
       "dependencies": {
         "@nuxt/image": "^2.0.0",
-        "@nuxt/ui": "^4.8.0",
+        "@nuxt/ui": "^4.8.2",
         "@nuxtjs/critters": "^0.9.0",
         "@nuxtjs/i18n": "^10.4.0",
         "@nuxtjs/shopify": "latest",
         "@tailwindcss/typography": "^0.5.19",
-        "nuxt": "^4.4.6",
+        "nuxt": "^4.4.7",
         "nuxt-auth-utils": "^0.5.29",
         "zod": "^4.4.3",
       },
       "devDependencies": {
         "@nuxt/eslint-config": "^1.15.2",
-        "eslint": "^10.4.0",
+        "eslint": "^10.4.1",
         "typescript": "^6.0.3",
-        "vue-tsc": "^3.3.1",
+        "vue-tsc": "^3.3.4",
       },
     },
   },
@@ -630,7 +630,7 @@
 
     "@nuxtjs/robots": ["@nuxtjs/robots@6.0.9", "", { "dependencies": { "@fingerprintjs/botd": "^2.0.0", "@nuxt/kit": "^4.4.6", "consola": "^3.4.2", "defu": "^6.1.7", "h3": "^1.15.11", "nuxt-site-config": "^4.0.8", "nuxtseo-shared": "^5.1.3", "pathe": "^2.0.3", "pkg-types": "^2.3.1", "ufo": "^1.6.4" }, "peerDependencies": { "zod": ">=3" }, "optionalPeers": ["zod"] }, "sha512-dYvv33zl0WEgua/kIrRPh55B6A2iSS6mzNOSZ4E6EX0USXCQic774jE7aEovCssiWFYa2HD/XTHZIvtrxKyNvQ=="],
 
-    "@nuxtjs/shopify": ["@nuxtjs/shopify@root:", { "bin": { "init": "dist/cli.mjs" } }],
+    "@nuxtjs/shopify": ["@nuxtjs/shopify@root:", {}],
 
     "@oxc-minify/binding-android-arm-eabi": ["@oxc-minify/binding-android-arm-eabi@0.133.0", "", { "os": "android", "cpu": "arm" }, "sha512-D8M1+nqwLaACHZsld/t6f+cE4N97XOu5iQ88f1ZaYH4ptFzFrXo5N7wUKACTI4xmNUD+6W0Y4Apk5U2r8HLdBQ=="],
 
@@ -1308,7 +1308,7 @@
 
     "@vue/devtools-shared": ["@vue/devtools-shared@8.1.2", "", {}, "sha512-X9RyVFYAdkBe4IUf5v48TxBF/6QPmF8CmWrDAjXzfUHrgQ/HGfTC1A6TqgXqZ03ye66l3AD51BAGD69IvKM9sw=="],
 
-    "@vue/language-core": ["@vue/language-core@3.3.3", "", { "dependencies": { "@volar/language-core": "2.4.28", "@vue/compiler-dom": "^3.5.0", "@vue/shared": "^3.5.0", "alien-signals": "^3.2.0", "muggle-string": "^0.4.1", "path-browserify": "^1.0.1", "picomatch": "^4.0.4" } }, "sha512-X6p+7nfY7vVT6dQwUJ+v0Jfq/lwIfhL2jMi91dQ3ln4hnlGXlxsDu/FNkeyHYgvYtyQy18ZX76IZy7X4diDbiQ=="],
+    "@vue/language-core": ["@vue/language-core@3.3.4", "", { "dependencies": { "@volar/language-core": "2.4.28", "@vue/compiler-dom": "^3.5.0", "@vue/shared": "^3.5.0", "alien-signals": "^3.2.0", "muggle-string": "^0.4.1", "path-browserify": "^1.0.1", "picomatch": "^4.0.4" } }, "sha512-IuHqQ5zGGOE7CXP72VX6A42IVeIzYv4WAhO6arej11TRNqtdZfGyH8Yr2FOCaDX0dSQG+JwULLoFHGY1igYVjQ=="],
 
     "@vue/reactivity": ["@vue/reactivity@3.5.35", "", { "dependencies": { "@vue/shared": "3.5.35" } }, "sha512-tVc+SsHConvh/Lz64qq1pP3rYArBmK42xonovEcxY74SQtvctZodG/zhq54P5dr38cVuw25d27cPNRdlMidpGQ=="],
 
@@ -3284,7 +3284,7 @@
 
     "vue-sfc-transformer": ["vue-sfc-transformer@0.1.17", "", { "dependencies": { "@babel/parser": "^7.27.0" }, "peerDependencies": { "@vue/compiler-core": "^3.5.13", "esbuild": "*", "vue": "^3.5.13" } }, "sha512-0mpkDTWm1ybtp/Mp3vhrXP4r8yxcGF+quxGyJfrHDl2tl5naQjK3xkIGaVR5BtR5KG1LWJbdCrqn7I6f460j9A=="],
 
-    "vue-tsc": ["vue-tsc@3.3.3", "", { "dependencies": { "@volar/typescript": "2.4.28", "@vue/language-core": "3.3.3" }, "peerDependencies": { "typescript": ">=5.0.0" }, "bin": { "vue-tsc": "bin/vue-tsc.js" } }, "sha512-SWUEG7YRUeDJHT7Xsuhf02elYX2gxPzzAII7OxDAh4KNOr4QHQ0Lls0YfnaO5GNd560CwVa2HTfdqmA5MqvRqQ=="],
+    "vue-tsc": ["vue-tsc@3.3.4", "", { "dependencies": { "@volar/typescript": "2.4.28", "@vue/language-core": "3.3.4" }, "peerDependencies": { "typescript": ">=5.0.0" }, "bin": { "vue-tsc": "bin/vue-tsc.js" } }, "sha512-XA/JqmQwS2GZmfgpjOEGdrKwaTSEuPwxpHa7/t6f4yiGrJb3gVHTPb9wBfByMNZwQ+xDXs41b8gaS2DKsOozUw=="],
 
     "w3c-keyname": ["w3c-keyname@2.2.8", "", {}, "sha512-dpojBhNsCNN7T82Tm7k26A6G9ML3NkhDsnw9n/eoxSRlVBB4CEtIQ/KTCLI2Fwf3ataSXRhYFkQi3SlnFwPvPQ=="],
 
@@ -3750,6 +3750,8 @@
 
     "unplugin-auto-import/unplugin": ["unplugin@2.3.11", "", { "dependencies": { "@jridgewell/remapping": "^2.3.5", "acorn": "^8.15.0", "picomatch": "^4.0.3", "webpack-virtual-modules": "^0.6.2" } }, "sha512-5uKD0nqiYVzlmCRs01Fhs2BdkEgBS3SAVP6ndrBsuK42iC2+JHyxM05Rm9G8+5mkmRtzMZGY8Ct5+mliZxU/Ww=="],
 
+    "unplugin-vue-router/@vue/language-core": ["@vue/language-core@3.3.3", "", { "dependencies": { "@volar/language-core": "2.4.28", "@vue/compiler-dom": "^3.5.0", "@vue/shared": "^3.5.0", "alien-signals": "^3.2.0", "muggle-string": "^0.4.1", "path-browserify": "^1.0.1", "picomatch": "^4.0.4" } }, "sha512-X6p+7nfY7vVT6dQwUJ+v0Jfq/lwIfhL2jMi91dQ3ln4hnlGXlxsDu/FNkeyHYgvYtyQy18ZX76IZy7X4diDbiQ=="],
+
     "unplugin-vue-router/ast-walker-scope": ["ast-walker-scope@0.8.3", "", { "dependencies": { "@babel/parser": "^7.28.4", "ast-kit": "^2.1.3" } }, "sha512-cbdCP0PGOBq0ASG+sjnKIoYkWMKhhz+F/h9pRexUdX2Hd38+WOlBkRKlqkGOSm0YQpcFMQBJeK4WspUAkwsEdg=="],
 
     "unplugin-vue-router/unplugin": ["unplugin@2.3.11", "", { "dependencies": { "@jridgewell/remapping": "^2.3.5", "acorn": "^8.15.0", "picomatch": "^4.0.3", "webpack-virtual-modules": "^0.6.2" } }, "sha512-5uKD0nqiYVzlmCRs01Fhs2BdkEgBS3SAVP6ndrBsuK42iC2+JHyxM05Rm9G8+5mkmRtzMZGY8Ct5+mliZxU/Ww=="],
@@ -3769,6 +3771,8 @@
     "vite-node/vite": ["vite@7.3.5", "", { "dependencies": { "esbuild": "^0.27.0", "fdir": "^6.5.0", "picomatch": "^4.0.3", "postcss": "^8.5.6", "rollup": "^4.43.0", "tinyglobby": "^0.2.15" }, "optionalDependencies": { "fsevents": "~2.3.3" }, "peerDependencies": { "@types/node": "^20.19.0 || >=22.12.0", "jiti": ">=1.21.0", "less": "^4.0.0", "lightningcss": "^1.21.0", "sass": "^1.70.0", "sass-embedded": "^1.70.0", "stylus": ">=0.54.8", "sugarss": "^5.0.0", "terser": "^5.16.0", "tsx": "^4.8.1", "yaml": "^2.4.2" }, "optionalPeers": ["@types/node", "jiti", "less", "lightningcss", "sass", "sass-embedded", "stylus", "sugarss", "terser", "tsx", "yaml"], "bin": { "vite": "bin/vite.js" } }, "sha512-KuOaNhcnGFN2zIPGA7wRmzF+lJA1sea7rHq17aiJ++9lzY1WWG6Jpwqwe1KNbRVPIqHmr8GLYx7jbrQcN/7/ww=="],
 
     "vite-plugin-checker/npm-run-path": ["npm-run-path@6.0.0", "", { "dependencies": { "path-key": "^4.0.0", "unicorn-magic": "^0.3.0" } }, "sha512-9qny7Z9DsQU8Ou39ERsPU4OZQlSTP47ShQzuKZ6PRXpYLtIFgl/DEBYEXKlvcEa+9tHVcK8CF81Y2V72qaZhWA=="],
+
+    "vue-component-meta/@vue/language-core": ["@vue/language-core@3.3.3", "", { "dependencies": { "@volar/language-core": "2.4.28", "@vue/compiler-dom": "^3.5.0", "@vue/shared": "^3.5.0", "alien-signals": "^3.2.0", "muggle-string": "^0.4.1", "path-browserify": "^1.0.1", "picomatch": "^4.0.4" } }, "sha512-X6p+7nfY7vVT6dQwUJ+v0Jfq/lwIfhL2jMi91dQ3ln4hnlGXlxsDu/FNkeyHYgvYtyQy18ZX76IZy7X4diDbiQ=="],
 
     "vue-i18n/@vue/devtools-api": ["@vue/devtools-api@6.6.4", "", {}, "sha512-sGhTPMuXqZ1rVOk32RylztWkfXTRhuS7vgAKv0zjqk8gbsHkJ7xfFf+jbySxt7tWObEJwyKaHMikV/WGDiQm8g=="],
 
