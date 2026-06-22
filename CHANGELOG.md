@@ -1,3 +1,8 @@
+# 0.6.0
+- Added confidential client support for customer account API
+- Added auth hooks for customer account and admin API
+- Refactored customer account API implementation
+
 # 0.5.4
 - Added customer account API development authentication support
 
