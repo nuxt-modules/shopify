@@ -5,6 +5,7 @@ import type { ShopifyApiClient } from '../../../../types'
 import type { CustomerAccountSessionData, CustomerAccountTokenSet } from './session'
 
 import { createError, getSession } from 'h3'
+import { useNitroApp } from 'nitropack/runtime'
 import { useRuntimeConfig } from '#imports'
 
 import { createStoreDomain } from '../../../utils/client'
@@ -71,6 +72,8 @@ export async function getValidCustomerAccessToken(event: H3Event): Promise<strin
         }
 
         await storage.setItem(id, next)
+
+        await useNitroApp().hooks.callHook('customer-account:auth:refresh', { tokens: next })
 
         return next
       })

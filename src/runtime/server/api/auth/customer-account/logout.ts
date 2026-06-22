@@ -1,9 +1,10 @@
 import { createError, defineEventHandler, getRequestHeader, getRequestURL, sendRedirect } from 'h3'
+import { useNitroApp } from 'nitropack/runtime'
 import { useRuntimeConfig } from '#imports'
 import { joinURL } from 'ufo'
 
 import { createStoreDomain } from '../../../../utils/client'
-import { clearCustomerAccountSession, getCustomerAccountTokens } from '../../../utils/customer-account/session'
+import { clearCustomerAccountSession, getCustomerAccountSession, getCustomerAccountTokens } from '../../../utils/customer-account/session'
 import { buildLogoutURL, getOpenIdConfiguration } from '../../../utils/customer-account/oauth'
 
 export default defineEventHandler(async (event) => {
@@ -21,8 +22,11 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 403, statusMessage: '[shopify] Cross-site logout is not allowed' })
   }
 
+  const { user } = await getCustomerAccountSession(event)
   const tokens = await getCustomerAccountTokens(event)
   const idToken = tokens?.idToken
+
+  await useNitroApp().hooks.callHook('customer-account:auth:logout', { user, idToken })
 
   await clearCustomerAccountSession(event)
 

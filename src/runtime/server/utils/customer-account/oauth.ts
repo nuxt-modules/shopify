@@ -56,14 +56,14 @@ function getBasicAuthHeader(clientId: string, clientSecret: string): string {
   return `Basic ${btoa(`${clientId}:${clientSecret}`)}`
 }
 
-export function buildAuthorizationURL(configuration: OpenIdConfiguration, params: {
+export function buildAuthorizationParams(params: {
   clientId: string
   redirectUri: string
   scope: string[]
   state: string
   codeChallenge?: string
-}): string {
-  return withQuery(configuration.authorization_endpoint, {
+}): Record<string, string> {
+  return {
     response_type: 'code',
     client_id: params.clientId,
     redirect_uri: params.redirectUri,
@@ -75,7 +75,11 @@ export function buildAuthorizationURL(configuration: OpenIdConfiguration, params
           code_challenge_method: 'S256',
         }
       : {}),
-  })
+  }
+}
+
+export function buildAuthorizationURL(configuration: OpenIdConfiguration, params: Record<string, string>): string {
+  return withQuery(configuration.authorization_endpoint, params)
 }
 
 async function requestTokens(tokenEndpoint: string, body: Record<string, string>, basicAuth?: string): Promise<CustomerAccountTokens> {

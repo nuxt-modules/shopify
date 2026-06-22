@@ -1,4 +1,5 @@
 import { createError, defineEventHandler, deleteCookie, getCookie, getQuery, getRequestURL, sendRedirect, setCookie } from 'h3'
+import { useNitroApp } from 'nitropack/runtime'
 import { useRuntimeConfig } from '#imports'
 import { joinURL, withQuery } from 'ufo'
 
@@ -6,6 +7,7 @@ import { createStoreDomain } from '../../../../utils/client'
 import { createBridgeNonce } from '../../../utils/customer-account/bridge'
 import { setCustomerAccountSession } from '../../../utils/customer-account/session'
 import {
+  buildAuthorizationParams,
   buildAuthorizationURL,
   exchangeAuthorizationCode,
   fetchCustomerIdentity,
@@ -51,6 +53,8 @@ export default defineEventHandler(async (event) => {
 
   const configuration = await getOpenIdConfiguration(createStoreDomain(_shopify.name))
 
+  const nitroApp = useNitroApp()
+
   const query = getQuery(event)
 
   // First leg: no authorization code yet, so we start the OAuth flow.
@@ -69,13 +73,17 @@ export default defineEventHandler(async (event) => {
       codeChallenge = await generateCodeChallenge(codeVerifier)
     }
 
-    return sendRedirect(event, buildAuthorizationURL(configuration, {
+    const params = buildAuthorizationParams({
       clientId: customerAccount.clientId,
       redirectUri,
       scope: customerAccount.scope,
       state,
       codeChallenge,
-    }))
+    })
+
+    await nitroApp.hooks.callHook('customer-account:auth:authorize', { params })
+
+    return sendRedirect(event, buildAuthorizationURL(configuration, params))
   }
 
   // Second leg: Shopify redirected back with an authorization code.
@@ -111,6 +119,8 @@ export default defineEventHandler(async (event) => {
       expiresAt: Date.now() + (tokens.expires_in ?? 7200) * 1000,
     }
 
+    await nitroApp.hooks.callHook('customer-account:auth:success', { user, tokens: tokenSet })
+
     const tunnelURL = customerAccount.dev?.tunnelURL
     const bridgeURL = customerAccount.dev?.bridgeURL
     const isTunnelHost = import.meta.dev && tunnelURL?.length && bridgeURL?.length && requestURL.toString().includes(tunnelURL)
@@ -132,6 +142,8 @@ export default defineEventHandler(async (event) => {
   }
   catch (error) {
     console.error('[shopify] Customer account OAuth error:', error)
+
+    await nitroApp.hooks.callHook('customer-account:auth:error', { error })
 
     return sendRedirect(event, withQuery(customerAccount.redirectURL, { customer_account_error: '1' }))
   }
