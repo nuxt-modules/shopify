@@ -1,11 +1,8 @@
+import type { CustomerAccountTokenSet, CustomerAccountUser } from './session'
+
 type BridgePayload = {
-  accessToken: string
-  refreshToken: string
-  user: {
-    firstName: string | null
-    lastName: string | null
-    email: string
-  }
+  user: CustomerAccountUser
+  tokens: CustomerAccountTokenSet
   expiresAt: number
 }
 

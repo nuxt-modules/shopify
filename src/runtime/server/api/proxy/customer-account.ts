@@ -1,8 +1,9 @@
 import { defineEventHandler, readValidatedBody } from 'h3'
 import { z } from 'zod'
 
-import { useRuntimeConfig, getUserSession } from '#imports'
+import { useRuntimeConfig } from '#imports'
 import { createCustomerAccountConfig } from '../../../utils/clients/customer-account'
+import { getValidCustomerAccessToken } from '../../utils/customer-account/auth'
 
 export default defineEventHandler(async (event) => {
   const schema = z.object({
@@ -16,15 +17,13 @@ export default defineEventHandler(async (event) => {
 
   const { apiUrl } = createCustomerAccountConfig(_shopify)
 
-  const session = await getUserSession(event)
-
-  const accessToken = session?.secure?.accessToken
+  const accessToken = await getValidCustomerAccessToken(event)
 
   return await $fetch(apiUrl, {
     method: event.method,
     headers: {
       'Content-Type': 'application/json',
-      ...(accessToken ? { Authorization: accessToken } : {}),
+      'Authorization': accessToken,
     },
     body,
   })

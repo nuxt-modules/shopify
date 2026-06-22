@@ -17,6 +17,7 @@ import {
   moduleOptionsSchema,
   publicModuleOptionsSchema,
   clientCacheSchema,
+  customerAccountSessionSchema,
 } from './config'
 
 const ignores = [
@@ -111,17 +112,35 @@ const storefrontClientSchemaWithDefaults = clientSchemaWithDefaults.omit({
   autoImport: storefrontClientSchema.shape.autoImport.default(true),
 })
 
+const defaultCustomerAccountSessionOptions = { name: 'shopify-customer-account', maxAge: 60 * 60 * 24 * 7 }
+const defaultCustomerAccountScope = ['openid', 'email', 'customer-account-api:full']
+
+const customerAccountSessionSchemaWithDefaults = customerAccountSessionSchema.omit({
+  name: true,
+  maxAge: true,
+}).extend({
+  name: customerAccountSessionSchema.shape.name.default(defaultCustomerAccountSessionOptions.name),
+  maxAge: customerAccountSessionSchema.shape.maxAge.default(defaultCustomerAccountSessionOptions.maxAge),
+})
+
 const customerAccountClientSchemaWithDefaults = clientSchemaWithDefaults.omit({
   documents: true,
 }).extend({
   apiUrl: z.string().optional(),
 
   clientId: customerAccountClientSchema.shape.clientId,
-  scope: customerAccountClientSchema.shape.scope,
-  redirectURL: customerAccountClientSchema.shape.redirectURL,
+  clientSecret: customerAccountClientSchema.shape.clientSecret,
+  scope: customerAccountClientSchema.shape.scope.default(defaultCustomerAccountScope).transform(v => v?.length ? v : defaultCustomerAccountScope),
+  redirectURL: customerAccountClientSchema.shape.redirectURL.default('/'),
+  logoutRedirectURL: customerAccountClientSchema.shape.logoutRedirectURL,
 
   loginURL: customerAccountClientSchema.shape.loginURL.default('_auth/customer-account/callback'),
   logoutURL: customerAccountClientSchema.shape.logoutURL.default('_auth/customer-account/logout'),
+  sessionURL: customerAccountClientSchema.shape.sessionURL.default('_auth/customer-account/session'),
+
+  session: customerAccountSessionSchemaWithDefaults.optional().transform(v => ({ ...defaultCustomerAccountSessionOptions, ...(v ?? {}) })),
+
+  tokenStorage: customerAccountClientSchema.shape.tokenStorage.default(defaultTokenStorageOptions).transform(v => v === true ? defaultTokenStorageOptions : v),
 
   documents: customerAccountClientSchema.shape.documents.transform(v => v ? v : defaultCustomerAccountDocuments),
   proxy: customerAccountClientSchema.shape.proxy.default({ path: '_proxy/customer-account' }).transform(v => typeof v === 'undefined' || v === true ? { path: '_proxy/customer-account' } : v),
@@ -154,7 +173,10 @@ export const moduleOptionsSchemaWithDefaults = moduleOptionsSchema.omit({
       error: 'Either a public or private access token must be provided for the storefront client',
     }).optional(),
 
-    [ShopifyClientType.CustomerAccount]: customerAccountClientSchemaWithDefaults.refine(
+    [ShopifyClientType.CustomerAccount]: customerAccountClientSchemaWithDefaults.transform(client => ({
+      ...client,
+      logoutRedirectURL: client.logoutRedirectURL ?? client.redirectURL,
+    })).refine(
       client => client.clientId, {
         message: 'Client ID is required for the customer account client',
       },
@@ -214,6 +236,10 @@ export const publicModuleOptionsSchemaWithDefaults = publicModuleOptionsSchema.o
       codegen: true,
       autoImport: true,
       proxy: true,
+      clientSecret: true,
+      session: true,
+      tokenStorage: true,
+      logoutRedirectURL: true,
     }).and(z.object({
       proxy: z.object({
         path: z.string().optional().default('_proxy/customer-account'),

@@ -42,12 +42,29 @@ export const storefrontClientSchema = clientSchema.extend({
   cache: clientCacheSchema.or(z.boolean()).optional(),
 })
 
+export const customerAccountSessionSchema = z.object({
+  name: z.string().optional(),
+  password: z.string().optional(),
+  maxAge: z.number().optional(),
+  cookie: z.object({
+    domain: z.string().optional(),
+    path: z.string().optional(),
+    sameSite: z.enum(['lax', 'strict', 'none']).optional(),
+    secure: z.boolean().optional(),
+  }).optional(),
+})
+
 export const customerAccountClientSchema = clientSchema.extend({
   clientId: z.string(),
+  clientSecret: z.string().optional(),
   scope: z.array(z.string()).optional(),
   redirectURL: z.string().optional(),
   loginURL: z.string().optional(),
   logoutURL: z.string().optional(),
+  logoutRedirectURL: z.string().optional(),
+  sessionURL: z.string().optional(),
+  session: customerAccountSessionSchema.optional(),
+  tokenStorage: z.any().transform(v => v as StorageMounts[string]).or(z.string()).or(z.boolean()).optional(),
   dev: z.object({
     tunnelURL: z.string().optional(),
     bridgeURL: z.string().optional(),
@@ -128,6 +145,10 @@ export const publicModuleOptionsSchema = moduleOptionsSchema.omit({
       documents: true,
       codegen: true,
       autoImport: true,
+      clientSecret: true,
+      session: true,
+      tokenStorage: true,
+      logoutRedirectURL: true,
     }).optional().optional(),
   }),
 })

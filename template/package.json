@@ -19,7 +19,6 @@
         "@nuxtjs/shopify": "latest",
         "@tailwindcss/typography": "^0.5.20",
         "nuxt": "^4.4.8",
-        "nuxt-auth-utils": "^0.5.29",
         "zod": "^4.4.3"
     },
     "devDependencies": {

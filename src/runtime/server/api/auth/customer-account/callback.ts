@@ -1,9 +1,29 @@
-import { createError, getRequestURL, sendRedirect } from 'h3'
-import { useRuntimeConfig } from 'nitropack/runtime'
-import { joinURL } from 'ufo'
+import { createError, defineEventHandler, deleteCookie, getCookie, getQuery, getRequestURL, sendRedirect, setCookie } from 'h3'
+import { useRuntimeConfig } from '#imports'
+import { joinURL, withQuery } from 'ufo'
 
-import { defineOAuthShopifyCustomerEventHandler, setUserSession } from '#imports'
+import { createStoreDomain } from '../../../../utils/client'
 import { createBridgeNonce } from '../../../utils/customer-account/bridge'
+import { setCustomerAccountSession } from '../../../utils/customer-account/session'
+import {
+  buildAuthorizationURL,
+  exchangeAuthorizationCode,
+  fetchCustomerIdentity,
+  generateCodeChallenge,
+  generateRandomToken,
+  getOpenIdConfiguration,
+} from '../../../utils/customer-account/oauth'
+
+const STATE_COOKIE = 'shopify-customer-account-state'
+const VERIFIER_COOKIE = 'shopify-customer-account-verifier'
+
+const transientCookieOptions: Parameters<typeof setCookie>[3] = {
+  httpOnly: true,
+  secure: !import.meta.dev,
+  sameSite: 'lax',
+  path: '/',
+  maxAge: 60 * 10,
+}
 
 function localConsumeUrl(bridgeURL: string, nonce: string) {
   const url = new URL(bridgeURL.includes('://') ? bridgeURL : joinURL('http://localhost:3000', bridgeURL))
@@ -17,55 +37,102 @@ function localConsumeUrl(bridgeURL: string, nonce: string) {
   return url.toString()
 }
 
-export default defineOAuthShopifyCustomerEventHandler({
-  async onSuccess(event, { user, tokens }) {
-    const { _shopify } = useRuntimeConfig(event)
-    const requestURL = getRequestURL(event)
+export default defineEventHandler(async (event) => {
+  const { _shopify } = useRuntimeConfig(event)
 
-    const isDev = import.meta.dev
-    const tunnelURL = _shopify?.clients.customerAccount?.dev.tunnelURL
-    const bridgeURL = _shopify?.clients.customerAccount?.dev.bridgeURL
-    const isTunnelHost = tunnelURL?.length && bridgeURL?.length && requestURL.toString().includes(tunnelURL)
+  const customerAccount = _shopify?.clients?.customerAccount
 
-    if (!user || !tokens?.access_token || !tokens?.refresh_token) {
-      console.error('[shopify] OAuth success handler called but user or tokens are missing')
+  if (!_shopify || !customerAccount?.clientId || !customerAccount.apiUrl) {
+    throw createError({ statusCode: 500, statusMessage: '[shopify] Customer account client is not configured' })
+  }
 
-      return sendRedirect(event, '/')
+  const requestURL = getRequestURL(event)
+  const redirectUri = requestURL.origin + requestURL.pathname
+
+  const configuration = await getOpenIdConfiguration(createStoreDomain(_shopify.name))
+
+  const query = getQuery(event)
+
+  // First leg: no authorization code yet, so we start the OAuth flow.
+  if (!query.code) {
+    const state = generateRandomToken(16)
+
+    setCookie(event, STATE_COOKIE, state, transientCookieOptions)
+
+    let codeChallenge: string | undefined
+
+    if (!customerAccount.clientSecret) {
+      const codeVerifier = generateRandomToken(32)
+
+      setCookie(event, VERIFIER_COOKIE, codeVerifier, transientCookieOptions)
+
+      codeChallenge = await generateCodeChallenge(codeVerifier)
     }
 
-    if (isDev && isTunnelHost) {
-      const nonce = createBridgeNonce({
-        accessToken: tokens.access_token,
-        refreshToken: tokens.refresh_token,
-        user: {
-          firstName: user.firstName,
-          lastName: user.lastName,
-          email: user.emailAddress?.emailAddress,
-        },
-      })
+    return sendRedirect(event, buildAuthorizationURL(configuration, {
+      clientId: customerAccount.clientId,
+      redirectUri,
+      scope: customerAccount.scope,
+      state,
+      codeChallenge,
+    }))
+  }
+
+  // Second leg: Shopify redirected back with an authorization code.
+  const expectedState = getCookie(event, STATE_COOKIE)
+  const codeVerifier = getCookie(event, VERIFIER_COOKIE)
+
+  deleteCookie(event, STATE_COOKIE)
+  deleteCookie(event, VERIFIER_COOKIE)
+
+  if (!expectedState || query.state !== expectedState) {
+    throw createError({ statusCode: 403, statusMessage: '[shopify] Invalid OAuth state' })
+  }
+
+  if (!customerAccount.clientSecret && !codeVerifier) {
+    throw createError({ statusCode: 400, statusMessage: '[shopify] Missing PKCE verifier' })
+  }
+
+  try {
+    const tokens = await exchangeAuthorizationCode(configuration, {
+      clientId: customerAccount.clientId,
+      clientSecret: customerAccount.clientSecret,
+      redirectUri,
+      code: String(query.code),
+      codeVerifier,
+    })
+
+    const user = await fetchCustomerIdentity(customerAccount.apiUrl, tokens.access_token)
+
+    const tokenSet = {
+      accessToken: tokens.access_token,
+      refreshToken: tokens.refresh_token,
+      idToken: tokens.id_token,
+      expiresAt: Date.now() + (tokens.expires_in ?? 7200) * 1000,
+    }
+
+    const tunnelURL = customerAccount.dev?.tunnelURL
+    const bridgeURL = customerAccount.dev?.bridgeURL
+    const isTunnelHost = import.meta.dev && tunnelURL?.length && bridgeURL?.length && requestURL.toString().includes(tunnelURL)
+
+    // Dev bridge: hand the session off to localhost instead of persisting it on the tunnel host.
+    if (isTunnelHost) {
+      const nonce = createBridgeNonce({ user, tokens: tokenSet })
 
       return sendRedirect(event, localConsumeUrl(bridgeURL, nonce))
     }
 
-    await setUserSession(event, {
-      user: {
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.emailAddress.emailAddress,
-      },
-      secure: {
-        accessToken: tokens.access_token,
-        refreshToken: tokens.refresh_token,
-      },
-      loggedInAt: new Date(),
+    await setCustomerAccountSession(event, {
+      user,
+      tokens: tokenSet,
+      loggedInAt: Date.now(),
     })
 
-    return sendRedirect(event, _shopify?.clients.customerAccount?.redirectURL || '/')
-  },
+    return sendRedirect(event, customerAccount.redirectURL)
+  }
+  catch (error) {
+    console.error('[shopify] Customer account OAuth error:', error)
 
-  onError(event, error) {
-    console.error('[shopify] OAuth error:', error)
-
-    return sendRedirect(event, '/')
-  },
+    return sendRedirect(event, withQuery(customerAccount.redirectURL, { customer_account_error: '1' }))
+  }
 })

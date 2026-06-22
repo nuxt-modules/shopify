@@ -2,8 +2,7 @@ import type { CustomerAccountApiClient, CustomerAccountOperations } from '@nuxtj
 
 import { joinURL } from 'ufo'
 
-import { useRuntimeConfig, useNuxtApp, useRequestURL } from '#imports'
-import { useCookie } from '#app'
+import { useRuntimeConfig, useNuxtApp, useRequestURL, useRequestHeaders } from '#imports'
 import { createClient } from '../../utils/client'
 import { createCustomerAccountConfig } from '../../utils/clients/customer-account'
 import useErrors from '../../utils/errors'
@@ -11,15 +10,18 @@ import useErrors from '../../utils/errors'
 export function useCustomerAccount(): CustomerAccountApiClient {
   const { _shopify } = useRuntimeConfig().public
 
-  const sessionCookie = useCookie('nuxt-session')
-
   const config = createCustomerAccountConfig(_shopify)
 
   const nuxtApp = useNuxtApp()
 
   if (_shopify?.clients.customerAccount?.proxy && !nuxtApp.payload.prerenderedAt) {
     config.apiUrl = joinURL(useRequestURL().origin, _shopify.clients.customerAccount.proxy.path)
-    config.headers['Cookie'] = `nuxt-session=${sessionCookie.value}`
+
+    if (import.meta.server) {
+      const cookie = useRequestHeaders(['cookie']).cookie
+
+      if (cookie) config.headers['Cookie'] = cookie
+    }
   }
 
   nuxtApp.hooks.callHook('customer-account:client:configure', { config })
