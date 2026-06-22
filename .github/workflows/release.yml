@@ -95,4 +95,4 @@ jobs:
         run: bun run prepare && bun run build
 
       - name: Release module
-        run: npm publish
+        run: npm publish --provenance
