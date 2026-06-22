@@ -133,10 +133,10 @@ CustomerAccount.vue
   :::code-tree{default-value="app/components/CustomerAccount.vue"}
   ```vue [app/components/CustomerAccount.vue]
   <script setup lang="ts">
-  const { isLoggedIn } = useUserSession()
+  const { isLoggedIn, login } = useCustomerAccountSession()
 
   if (!isLoggedIn.value) {
-    navigateTo('/_auth/customer-account/callback')
+    login()
   }
 
   const { data } = await useCustomerAccountData(`#graphql
@@ -187,7 +187,6 @@ CustomerAccount.vue
   export default defineNuxtConfig({
     modules: [
       '@nuxtjs/shopify',
-      'nuxt-auth-utils',
     ],
 
     shopify: {
@@ -216,8 +215,7 @@ CustomerAccount.vue
     },
     "dependencies": {
       "@nuxtjs/shopify": "latest",
-      "nuxt": "latest",
-      "nuxt-auth-utils": "latest"
+      "nuxt": "latest"
     },
     "devDependencies": {
       "@shopify/hydrogen": "2026.1.4"

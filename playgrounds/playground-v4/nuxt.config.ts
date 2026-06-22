@@ -1,7 +1,6 @@
 export default defineNuxtConfig({
   modules: [
     '../../src/module',
-    'nuxt-auth-utils',
   ],
 
   runtimeConfig: {

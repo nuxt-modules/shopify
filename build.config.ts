@@ -20,6 +20,5 @@ export default defineBuildConfig({
 
   externals: [
     '@shopify/hydrogen',
-    'nuxt-auth-utils',
   ],
 })

@@ -11,4 +11,13 @@ export default async function setupAuth(nuxt: Nuxt, config: ShopifyConfig) {
     nuxt.options.nitro.storage ??= {}
     nuxt.options.nitro.storage['admin-token'] = adminTokenStorageMount
   }
+
+  const customerAccountTokenStorageMount = typeof config.clients.customerAccount?.tokenStorage === 'object'
+    ? config.clients.customerAccount.tokenStorage
+    : undefined
+
+  if (customerAccountTokenStorageMount) {
+    nuxt.options.nitro.storage ??= {}
+    nuxt.options.nitro.storage['customer-account-token'] = customerAccountTokenStorageMount
+  }
 }

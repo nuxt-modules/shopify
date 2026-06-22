@@ -124,7 +124,6 @@
     "happy-dom": "^20.10.6",
     "knip": "^6.17.1",
     "nuxt": "^4.4.8",
-    "nuxt-auth-utils": "^0.5.29",
     "typescript": "^6.0.3",
     "unbuild": "^3.6.1",
     "vite": "^8.0.16",
@@ -132,14 +131,10 @@
     "vue-tsc": "^3.3.5"
   },
   "peerDependencies": {
-    "@shopify/hydrogen": "*",
-    "nuxt-auth-utils": "*"
+    "@shopify/hydrogen": "*"
   },
   "peerDependenciesMeta": {
     "@shopify/hydrogen": {
-      "optional": true
-    },
-    "nuxt-auth-utils": {
       "optional": true
     }
   },

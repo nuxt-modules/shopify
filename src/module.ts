@@ -30,12 +30,6 @@ export default defineNuxtModule<ModuleOptions>({
     },
   },
 
-  moduleDependencies: {
-    'nuxt-auth-utils': {
-      optional: true,
-    },
-  },
-
   async setup(options, nuxt) {
     const runtimeConfig = useRuntimeConfig()
 

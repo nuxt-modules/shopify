@@ -23,6 +23,25 @@ import type {
   ShopifyApiClientRequestOptions,
 } from './client'
 
+type CustomerAccountUser = {
+  firstName: string | null
+  lastName: string | null
+  email: string
+}
+
+type CustomerAccountTokenSet = {
+  accessToken: string
+  refreshToken?: string
+  idToken?: string
+  expiresAt: number
+}
+
+type AdminTokenSet = {
+  accessToken: string
+  refreshToken?: string
+  expiresAt: number
+}
+
 type ShopifyConfigHookParams = {
   nuxt: Nuxt
   config: ShopifyConfig
@@ -54,6 +73,40 @@ type ShopifyErrorHookParams = {
 type ShopifyTemplateHookParams = {
   nuxt: Nuxt
   config: Record<string, unknown>
+}
+
+type ShopifyCustomerAccountAuthorizeHookParams = {
+  params: Record<string, string>
+}
+
+type ShopifyCustomerAccountAuthSuccessHookParams = {
+  user: CustomerAccountUser
+  tokens: CustomerAccountTokenSet
+}
+
+type ShopifyCustomerAccountAuthRefreshHookParams = {
+  tokens: CustomerAccountTokenSet
+}
+
+type ShopifyCustomerAccountAuthLogoutHookParams = {
+  user: CustomerAccountUser | null
+  idToken?: string
+}
+
+type ShopifyCustomerAccountAuthErrorHookParams = {
+  error: unknown
+}
+
+type ShopifyAdminAuthRequestHookParams = {
+  params: Record<string, string>
+}
+
+type ShopifyAdminAuthTokenHookParams = {
+  token: AdminTokenSet
+}
+
+type ShopifyAdminAuthErrorHookParams = {
+  error: unknown
 }
 
 declare module '@nuxt/schema' {
@@ -240,6 +293,53 @@ declare module 'nitropack/types' {
     'customer-account:client:errors': ({ errors }: ShopifyErrorHookParams) => HookResult
 
     /**
+     * Called before redirecting the user to Shopify to start the customer account OAuth flow.
+     * The `params` object is the authorization request query and may be mutated (e.g. to add a `locale`).
+     */
+    'customer-account:auth:authorize': ({ params }: ShopifyCustomerAccountAuthorizeHookParams) => HookResult
+
+    /**
+     * Called after a successful customer account login, before the session is persisted.
+     */
+    'customer-account:auth:success': ({ user, tokens }: ShopifyCustomerAccountAuthSuccessHookParams) => HookResult
+
+    /**
+     * Called after the customer account access token has been refreshed.
+     */
+    'customer-account:auth:refresh': ({ tokens }: ShopifyCustomerAccountAuthRefreshHookParams) => HookResult
+
+    /**
+     * Called before the customer account session is cleared on logout.
+     */
+    'customer-account:auth:logout': ({ user, idToken }: ShopifyCustomerAccountAuthLogoutHookParams) => HookResult
+
+    /**
+     * Called when the customer account OAuth flow fails.
+     */
+    'customer-account:auth:error': ({ error }: ShopifyCustomerAccountAuthErrorHookParams) => HookResult
+
+    /**
+     * Called before the admin API access token request is sent.
+     * The `params` object is the token request body and may be mutated (e.g. to add a `scope`).
+     */
+    'admin:auth:request': ({ params }: ShopifyAdminAuthRequestHookParams) => HookResult
+
+    /**
+     * Called after a new admin API access token is obtained via the client credentials grant.
+     */
+    'admin:auth:success': ({ token }: ShopifyAdminAuthTokenHookParams) => HookResult
+
+    /**
+     * Called after the admin API access token has been refreshed via the refresh token grant.
+     */
+    'admin:auth:refresh': ({ token }: ShopifyAdminAuthTokenHookParams) => HookResult
+
+    /**
+     * Called when the admin API access token request fails.
+     */
+    'admin:auth:error': ({ error }: ShopifyAdminAuthErrorHookParams) => HookResult
+
+    /**
      * Called before the admin client is created within nitro
      */
     'admin:client:configure': ({ config }: ShopifyClientOptionHookParams) => HookResult
@@ -272,6 +372,9 @@ export type {
   PublicModuleOptions,
   ShopifyConfig,
   PublicShopifyConfig,
+  CustomerAccountUser,
+  CustomerAccountTokenSet,
+  AdminTokenSet,
 }
 
 export type {

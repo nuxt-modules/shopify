@@ -2,10 +2,8 @@ import type { Nuxt } from '@nuxt/schema'
 import type { ConsolaInstance } from 'consola'
 
 import { stat } from 'node:fs/promises'
-import { addTypeTemplate, createResolver } from '@nuxt/kit'
+import { createResolver } from '@nuxt/kit'
 import defu from 'defu'
-
-import { nuxtAuthUtilsDevTemplate, nuxtAuthUtilsTemplate } from '../templates/auth-utils'
 
 export default async function setupDevMode(nuxt: Nuxt, logger: ConsolaInstance) {
   const resolver = createResolver(import.meta.url)
@@ -52,19 +50,6 @@ export default async function setupDevMode(nuxt: Nuxt, logger: ConsolaInstance) 
           },
         },
       },
-    })
-
-    addTypeTemplate({
-      filename: 'shopify/auth-utils.d.ts',
-      getContents: () => nuxtAuthUtilsTemplate,
-    }, {
-      nuxt: true,
-      nitro: true,
-    })
-
-    addTypeTemplate({
-      filename: 'shopify/auth-utils.dev.d.ts',
-      getContents: () => nuxtAuthUtilsDevTemplate,
     })
   }
 }

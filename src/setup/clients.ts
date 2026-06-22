@@ -3,9 +3,8 @@ import type { Nuxt } from '@nuxt/schema'
 
 import type { ShopifyConfig } from '../types'
 
-import { addServerHandler, addServerImports, addTemplate, addTypeTemplate, hasNuxtModule } from '@nuxt/kit'
-import defu from 'defu'
-import { withLeadingSlash, withoutHost, withoutProtocol } from 'ufo'
+import { addImports, addPlugin, addServerHandler, addServerImports } from '@nuxt/kit'
+import { joinURL, withLeadingSlash, withoutHost } from 'ufo'
 
 import { useLogger } from '../utils/log'
 import {
@@ -17,7 +16,7 @@ import {
 } from '../utils/clients'
 import { ShopifyClientType } from '../schemas'
 import { createStoreDomain } from '../runtime/utils/client'
-import { nuxtAuthUtilsDevTemplate, nuxtAuthUtilsTemplate } from '../templates/auth-utils'
+import { SESSION_PASSWORD_ENV, generateSessionPassword, persistSessionPassword } from '../utils/session'
 
 export default async function setupClients(nuxt: Nuxt, config: ShopifyConfig, resolver: Resolver) {
   const logger = useLogger(config)
@@ -34,20 +33,7 @@ export default async function setupClients(nuxt: Nuxt, config: ShopifyConfig, re
     }
 
     if (clientType === ShopifyClientType.CustomerAccount && config.clients[clientType]) {
-      if (!hasNuxtModule('nuxt-auth-utils', nuxt)) {
-        logger.warn('nuxt-auth-utils is required to use the Customer Account API client.')
-        continue
-      }
-
-      const nuxtAuthUtilsConfig = {
-        shopDomain: withoutProtocol(createStoreDomain(config.name)),
-        clientId: config.clients[clientType]?.clientId,
-        scope: config.clients[clientType]?.scope,
-      }
-
-      nuxt.options.runtimeConfig.oauth = defu({
-        shopifyCustomer: nuxtAuthUtilsConfig,
-      }, nuxt.options.runtimeConfig.oauth || {})
+      const customerAccount = config.clients[clientType]
 
       if (
         nuxt.options.runtimeConfig._shopify?.clients.customerAccount
@@ -61,50 +47,78 @@ export default async function setupClients(nuxt: Nuxt, config: ShopifyConfig, re
         nuxt.options.runtimeConfig.public._shopify.clients.customerAccount.apiUrl = apiUrl
       }
 
+      const session = nuxt.options.runtimeConfig._shopify?.clients.customerAccount?.session
+
+      if (session && !session.password) {
+        const envPassword = process.env[SESSION_PASSWORD_ENV]
+
+        if (envPassword) {
+          session.password = envPassword
+        }
+        else if (nuxt.options.dev) {
+          const password = generateSessionPassword()
+
+          session.password = password
+
+          await persistSessionPassword(nuxt.options.rootDir, password)
+
+          logger.info('Generated a customer account session password and stored it in `.env`.')
+        }
+        else {
+          logger.warn(`No customer account session password set. Set the \`${SESSION_PASSWORD_ENV}\` environment variable.`)
+        }
+      }
+
       addServerHandler({
         method: 'get',
-        route: withLeadingSlash(config.clients[clientType].loginURL),
+        route: withLeadingSlash(customerAccount.loginURL),
         handler: resolver.resolve('./runtime/server/api/auth/customer-account/callback'),
       })
 
       addServerHandler({
         method: 'get',
-        route: withLeadingSlash(config.clients[clientType].logoutURL),
+        route: withLeadingSlash(customerAccount.logoutURL),
         handler: resolver.resolve('./runtime/server/api/auth/customer-account/logout'),
       })
 
-      if (nuxt.options.dev && config.clients[clientType].dev?.tunnelURL && config.clients[clientType].dev?.bridgeURL) {
+      addServerHandler({
+        method: 'get',
+        route: withLeadingSlash(customerAccount.sessionURL),
+        handler: resolver.resolve('./runtime/server/api/auth/customer-account/session'),
+      })
+
+      if (nuxt.options.dev && customerAccount.dev?.tunnelURL && customerAccount.dev?.bridgeURL) {
+        const bridgePath = withLeadingSlash(withoutHost(customerAccount.dev.bridgeURL))
+
         addServerHandler({
           method: 'get',
-          route: withLeadingSlash(withoutHost(config.clients[clientType].dev.bridgeURL)),
+          route: bridgePath,
           handler: resolver.resolve('./runtime/server/api/auth/customer-account/bridge'),
         })
+
+        // Resolve the bridge URL to an absolute dev-server URL so the handoff targets the real port.
+        const bridgeURL = joinURL(nuxt.options.devServer.url, bridgePath)
+
+        if (nuxt.options.runtimeConfig._shopify?.clients.customerAccount?.dev) {
+          nuxt.options.runtimeConfig._shopify.clients.customerAccount.dev.bridgeURL = bridgeURL
+        }
       }
 
-      addTypeTemplate({
-        filename: 'shopify/auth-utils.d.ts',
-        getContents: () => nuxtAuthUtilsTemplate,
-      }, {
-        nuxt: true,
-        nitro: true,
-      })
+      addImports([{
+        from: resolver.resolve('./runtime/composables/customer-account/session'),
+        name: 'useCustomerAccountSession',
+      }])
+
+      addServerImports([
+        'getCustomerAccountSession',
+        'requireCustomerAccountSession',
+        'clearCustomerAccountSession',
+      ].map(name => ({
+        from: resolver.resolve('./runtime/server/utils/customer-account/session'),
+        name,
+      })))
+
+      addPlugin(resolver.resolve('./runtime/plugins/customer-account/session'))
     }
-  }
-
-  if (!hasNuxtModule('nuxt-auth-utils', nuxt)) {
-    addTypeTemplate({
-      filename: 'shopify/auth-utils.dev.d.ts',
-      getContents: () => nuxtAuthUtilsDevTemplate,
-    }, {
-      nitro: true,
-    })
-
-    const { dst } = addTemplate({
-      filename: 'shopify/auth-utils.mjs',
-      getContents: () => 'export const getUserSession = async () => {}',
-      write: true,
-    })
-
-    addServerImports([{ from: resolver.resolve(dst), name: 'getUserSession' }])
   }
 }

@@ -1,14 +1,20 @@
-import { sendRedirect, getQuery, createError, defineEventHandler } from 'h3'
-import { useRuntimeConfig } from 'nitropack/runtime'
+import { createError, defineEventHandler, getQuery, sendRedirect } from 'h3'
+import { useRuntimeConfig } from '#imports'
 
-import { setUserSession } from '#imports'
 import { consumeBridgeNonce } from '../../../utils/customer-account/bridge'
+import { setCustomerAccountSession } from '../../../utils/customer-account/session'
 
 export default defineEventHandler(async (event) => {
   const { _shopify } = useRuntimeConfig(event)
 
   if (!import.meta.dev) {
     throw createError({ statusCode: 404, statusMessage: 'Not found' })
+  }
+
+  const customerAccount = _shopify?.clients?.customerAccount
+
+  if (!customerAccount) {
+    throw createError({ statusCode: 500, statusMessage: '[shopify] Customer account client is not configured' })
   }
 
   const nonce = getQuery(event).nonce
@@ -23,14 +29,11 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 401, statusMessage: '[shopify] Dev bridge invalid or expired nonce' })
   }
 
-  await setUserSession(event, {
+  await setCustomerAccountSession(event, {
     user: payload.user,
-    secure: {
-      accessToken: payload.accessToken,
-      refreshToken: payload.refreshToken,
-    },
-    loggedInAt: new Date(),
+    tokens: payload.tokens,
+    loggedInAt: Date.now(),
   })
 
-  return sendRedirect(event, _shopify?.clients.customerAccount?.redirectURL || '/')
+  return sendRedirect(event, customerAccount.redirectURL)
 })

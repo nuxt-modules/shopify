@@ -1,14 +1,9 @@
 <script setup lang="ts">
-import type { CustomerDetailsQuery } from '#shopify/customer-account'
+const { isLoggedIn, user, login, logout } = useCustomerAccountSession()
 
-const session = useUserSession()
+const customer = ref()
 
-let customer: CustomerDetailsQuery['customer'] | undefined = undefined
-
-if (!session.loggedIn) {
-  navigateTo('/_auth/customer-account/callback')
-}
-else {
+if (isLoggedIn.value) {
   const customerAccount = useCustomerAccount()
 
   const { data } = await customerAccount.request(`#graphql
@@ -20,13 +15,26 @@ else {
     ${CUSTOMER_FRAGMENT}
   `)
 
-  customer = data?.customer
+  customer.value = data?.customer
 }
 </script>
 
 <template>
   <div>
-    <h1>Welcome, {{ customer?.firstName && customer?.lastName ? `${customer.firstName} ${customer.lastName}` : 'Nuxt User' }}!</h1>
-    <p>E-Mail: {{ customer?.emailAddress?.emailAddress }}</p>
+    <div v-if="isLoggedIn">
+      <h1>Welcome, {{ customer?.firstName && customer?.lastName ? `${customer.firstName} ${customer.lastName}` : 'Nuxt User' }}!</h1>
+
+      <p>E-Mail: {{ user?.email ?? customer?.emailAddress?.emailAddress }}</p>
+
+      <button @click="logout()">
+        Log out
+      </button>
+    </div>
+
+    <div v-else>
+      <button @click="login()">
+        Log in
+      </button>
+    </div>
   </div>
 </template>

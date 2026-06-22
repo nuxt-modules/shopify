@@ -24,8 +24,7 @@
         "@graphql-codegen/introspection",
         "@shopify/api-codegen-preset",
         "@graphql-tools/graphql-tag-pluck",
-        "@shopify/hydrogen",
-        "nuxt-auth-utils"
+        "@shopify/hydrogen"
       ]
     },
     "playgrounds/playground-v3": {
