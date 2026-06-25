@@ -25,9 +25,9 @@ function autoImportDirectory(path: string, includeClient: boolean) {
   }
 }
 
-function autoImportUtil(name: string, includeClient: boolean, resolver: Resolver) {
+function autoImportFunction(name: string, includeClient: boolean, resolver: Resolver) {
   const imports = [{
-    from: resolver.resolve(`./runtime/utils/${name}`),
+    from: resolver.resolve(`./runtime/utils/functions/${name}`),
     name,
   }]
 
@@ -64,8 +64,15 @@ export function registerClientTypeImports(nuxt: Nuxt, config: ShopifyConfig, cli
   autoImportDirectory(typesPath, includeClient)
 }
 
-export function registerUtilImports(config: ShopifyConfig, resolver: Resolver) {
+export function registerFunctionImports(config: ShopifyConfig, resolver: Resolver) {
   const includeClient = hasPublicClient(config)
 
-  autoImportUtil('flattenConnection', includeClient, resolver)
+  const functionNames = [
+    'flattenConnection',
+    'parseGid',
+  ]
+
+  for (const name of functionNames) {
+    autoImportFunction(name, includeClient, resolver)
+  }
 }

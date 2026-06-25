@@ -133,11 +133,7 @@ CustomerAccount.vue
   :::code-tree{default-value="app/components/CustomerAccount.vue"}
   ```vue [app/components/CustomerAccount.vue]
   <script setup lang="ts">
-  const { isLoggedIn, login } = useCustomerAccountSession()
-
-  if (!isLoggedIn.value) {
-    login()
-  }
+  const { isLoggedIn, logout } = useCustomerAccountSession()
 
   const { data } = await useCustomerAccountData(`#graphql
     query GetCustomer {
@@ -146,15 +142,13 @@ CustomerAccount.vue
         lastName
       }
     }
-  `, {
-    transform: data => data?.customer,
-  })
+  `)
   </script>
 
   <template>
     <div v-if="data">
       <h1>
-        Welcome, {{ data.firstName }} {{ data.lastName }}!
+        Welcome, {{ data.customer.firstName }} {{ data.customer.lastName }}!
       </h1>
 
       <UButton
@@ -172,8 +166,8 @@ CustomerAccount.vue
         Edit Address
       </UButton>
 
-      <UButton 
-        to="/_auth/customer-account/logout" 
+      <UButton
+        :to="logout" 
         variant="outline" 
         icon="i-lucide-log-out"
       >

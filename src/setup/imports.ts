@@ -8,7 +8,7 @@ import { getConfiguredClients } from '../utils/clients'
 import {
   registerFragmentImports,
   registerClientTypeImports,
-  registerUtilImports,
+  registerFunctionImports,
 } from '../utils/imports'
 
 export default async function setupImports(nuxt: Nuxt, config: ShopifyConfig, resolver: Resolver) {
@@ -30,5 +30,5 @@ export default async function setupImports(nuxt: Nuxt, config: ShopifyConfig, re
     }
   }
 
-  registerUtilImports(config, resolver)
+  registerFunctionImports(config, resolver)
 }
