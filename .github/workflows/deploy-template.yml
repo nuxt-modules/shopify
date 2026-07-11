@@ -28,6 +28,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: oven-sh/setup-bun@v2
 
       - name: Install dependencies
@@ -41,6 +43,8 @@ jobs:
     needs: [typecheck]
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: oven-sh/setup-bun@v2
 
       - name: Install Vercel CLI
