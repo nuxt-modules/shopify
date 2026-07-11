@@ -5,7 +5,7 @@ import { joinURL } from 'ufo'
 
 import { createStoreDomain } from '../../../../utils/client'
 import { clearCustomerAccountSession, getCustomerAccountSession, getCustomerAccountTokens } from '../../../utils/customer-account/session'
-import { buildLogoutURL, getOpenIdConfiguration } from '../../../utils/customer-account/oauth'
+import { buildLogoutURL, getOpenIdConfiguration } from '../../../../utils/customer-account/oauth'
 
 export default defineEventHandler(async (event) => {
   const { _shopify } = useRuntimeConfig(event)

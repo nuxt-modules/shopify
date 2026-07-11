@@ -29,7 +29,7 @@ export function useCustomerAccount(): CustomerAccountApiClient {
   const originalClient = createClient<CustomerAccountOperations>(config)
 
   const request: CustomerAccountApiClient['request'] = async (operation, options) => {
-    nuxtApp.hooks.callHook('customer-account:client:request', { operation, options })
+    await nuxtApp.hooks.callHook('customer-account:client:request', { operation, options, config: originalClient.config })
 
     const response = await originalClient.request(operation, options)
 

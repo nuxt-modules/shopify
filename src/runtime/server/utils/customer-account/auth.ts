@@ -10,7 +10,7 @@ import { useRuntimeConfig } from '#imports'
 
 import { createStoreDomain } from '../../../utils/client'
 import { getCustomerAccountTokenStorage, getSessionConfig } from './session'
-import { getOpenIdConfiguration, refreshAccessToken } from './oauth'
+import { getOpenIdConfiguration, refreshAccessToken } from '../../../utils/customer-account/oauth'
 
 const EXPIRY_THRESHOLD_MS = 5 * 60 * 1000
 

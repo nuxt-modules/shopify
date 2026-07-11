@@ -14,7 +14,7 @@ import {
   generateCodeChallenge,
   generateRandomToken,
   getOpenIdConfiguration,
-} from '../../../utils/customer-account/oauth'
+} from '../../../../utils/customer-account/oauth'
 
 const STATE_COOKIE = 'shopify-customer-account-state'
 const VERIFIER_COOKIE = 'shopify-customer-account-verifier'
