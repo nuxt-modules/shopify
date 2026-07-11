@@ -9,39 +9,39 @@ Here are some guidelines to get you started.
 1. Clone this repository
 2. Install dependencies using:
     ```bash
-    bun install
+    pnpm install
     ```
-3. Run `bun run prepare:dev` to generate type stubs.
+3. Run `pnpm run prepare:dev` to generate type stubs.
 
 ## Development
 
 Start the default [playground](https://github.com/nuxt-modules/shopify/tree/main/playgrounds/playground):
 ```bash
-bun run dev
+pnpm run dev
 ```
 
 ### Linting
 
 ```bash
-bun run lint
+pnpm run lint
 ```
 
 ### Type checking
 
 ```bash
-bun run typecheck
+pnpm run typecheck
 ```
 
 ### Testing
 
 ```bash
-bun run test
+pnpm run test
 ```
     
 ### Building
 
 ```bash
-bun run build
+pnpm run build
 ```
 
 ## Pull Requests

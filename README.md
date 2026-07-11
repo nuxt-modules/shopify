@@ -507,12 +507,12 @@ Read more about webhooks in our [webhooks documentation](https://shopify.nuxtjs.
 2. Create a `.env` file (see [`.env.example`](https://github.com/nuxt-modules/shopify/tree/main/.env.example))
 3. Install dependencies using:
    ```bash
-   bun install
+   pnpm install
    ```
-4. Run `bun run prepare:dev` to generate type stubs.
+4. Run `pnpm run prepare:dev` to generate type stubs.
 5. Start the default [playground](https://github.com/nuxt-modules/shopify/tree/main/playgrounds/playground) with:
    ```bash
-   bun run dev
+   pnpm run dev
    ```
 
 ## License
