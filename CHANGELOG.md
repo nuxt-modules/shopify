@@ -1,4 +1,9 @@
 # 0.6.0
+- Added auto-generated graphql config
+- Added parseGid function utility
+- Switched package manager to PNPM
+
+# 0.6.0
 - Added confidential client support for customer account API
 - Added auth hooks for customer account and admin API
 - Refactored customer account API implementation
