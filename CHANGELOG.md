@@ -1,4 +1,4 @@
-# 0.6.0
+# 0.6.1
 - Added auto-generated graphql config
 - Added parseGid function utility
 - Switched package manager to PNPM
