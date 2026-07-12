@@ -231,7 +231,7 @@ export const configSchema = z.object({
   logger: z.any().transform(v => v as Partial<ConsolaOptions>).optional(),
 })
 
-export const publicConfigSchema = configSchema.omit({ clients: true, fragments: true }).extend({
+export const publicConfigSchema = configSchema.omit({ clients: true, fragments: true, webhooks: true }).extend({
   clients: z.object({
     [ShopifyClientType.Storefront]: storefrontClientSchema.omit({
       privateAccessToken: true,
