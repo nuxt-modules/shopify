@@ -1,4 +1,4 @@
-name: "Release Module"
+name: "Release"
 
 env:
   NUXT_SHOPIFY_NAME: ${{ secrets.NUXT_SHOPIFY_NAME }}
