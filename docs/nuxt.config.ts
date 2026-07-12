@@ -36,6 +36,16 @@ export default defineNuxtConfig({
     url: 'https://shopify.nuxtjs.org',
   },
 
+  content: {
+    build: {
+      markdown: {
+        highlight: {
+          langs: ['bash', 'diff', 'json', 'js', 'ts', 'html', 'css', 'vue', 'shell', 'mdc', 'md', 'yaml', 'graphql'],
+        },
+      },
+    },
+  },
+
   runtimeConfig: {
     shopify: {
       name: 'nuxt-shopify-docs',

@@ -6,14 +6,14 @@ const props = defineProps<{
 const key = computed(() => `menu-${props.handle}`)
 
 const { data: items } = await useStorefrontData(key, `#graphql
-    query GetNavigation($handle: String!, $language: LanguageCode, $country: CountryCode)
-    @inContext(language: $language, country: $country) {
-        menu(handle: $handle) {
-            ...MenuFields
-        }
+  query GetNavigation($handle: String!, $language: LanguageCode, $country: CountryCode)
+  @inContext(language: $language, country: $country) {
+    menu(handle: $handle) {
+      ...MenuFields
     }
-    ${MENU_FRAGMENT}
-    ${MENU_ITEM_FRAGMENT}
+  }
+  ${MENU_FRAGMENT}
+  ${MENU_ITEM_FRAGMENT}
 `, {
   variables: {
     handle: props.handle,

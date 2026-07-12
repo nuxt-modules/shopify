@@ -9,26 +9,26 @@ const route = useRoute()
 const key = `collection-${props.handle}`
 
 const { data: collection, refresh } = await useStorefrontData(key, `#graphql
-    query GetCollection(
-        $handle: String!, 
-        $first: Int, 
-        $last: Int, 
-        $after: String, 
-        $before: String, 
-        $language: LanguageCode, 
-        $country: CountryCode
-    )
-    @inContext(language: $language, country: $country) {
-        collection(handle: $handle) {
-            ...CollectionFields
+  query GetCollection(
+    $handle: String!, 
+    $first: Int, 
+    $last: Int, 
+    $after: String, 
+    $before: String, 
+    $language: LanguageCode, 
+    $country: CountryCode
+  )
+  @inContext(language: $language, country: $country) {
+    collection(handle: $handle) {
+      ...CollectionFields
 
-            products(first: $first, last: $last, after: $after, before: $before) {
-                ...ProductConnectionFields
-            }
-        }
+      products(first: $first, last: $last, after: $after, before: $before) {
+        ...ProductConnectionFields
+      }
     }
-    ${COLLECTION_FRAGMENT}
-    ${PRODUCT_CONNECTION_FRAGMENT}
+  }
+  ${COLLECTION_FRAGMENT}
+  ${PRODUCT_CONNECTION_FRAGMENT}
 `, {
   variables: computed(() => ({
     handle: props.handle,
