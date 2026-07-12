@@ -1,17 +1,19 @@
 import { describe, expect, it } from 'vitest'
 import { setup, $fetch } from '@nuxt/test-utils'
 import { access, readFile } from 'node:fs/promises'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import { join } from 'node:path'
 
 import { ShopifyClientType } from '../src/schemas'
 import { getInterfaceExtensionFunction } from '../src/utils/codegen'
 import {
   expectedAdminDocuments,
+  expectedGraphqlProject,
   expectedStorefrontDocuments,
 } from './helpers'
 
 const playgroundDir = fileURLToPath(new URL('../playgrounds/playground-v3', import.meta.url))
+const playgroundBuildDir = fileURLToPath(new URL('../playgrounds/playground-v3/.nuxt', import.meta.url))
 const playgroundStorefrontTypesDir = fileURLToPath(new URL('../playgrounds/playground-v3/.nuxt/types/storefront', import.meta.url))
 const playgroundAdminTypesDir = fileURLToPath(new URL('../playgrounds/playground-v3/.nuxt/types/admin', import.meta.url))
 
@@ -76,6 +78,9 @@ describe('test module with nuxt 3', async () => {
       fragments: {
         autoImport: true,
         paths: ['/graphql'],
+      },
+      graphql: {
+        generateConfig: true,
       },
     })
   })
@@ -180,5 +185,22 @@ describe('test module with nuxt 3', async () => {
       'GeneratedMutationTypes',
     )
     expect(operationsContent).toContain(interfaceExtension)
+  })
+
+  it('should generate a graphql config for IDE support', async () => {
+    const path = join(playgroundBuildDir, 'graphql.config.mjs')
+
+    expect(await access(path).then(() => true).catch(() => false)).toBe(true)
+
+    const { projects, default: defaultExport } = await import(/* @vite-ignore */ pathToFileURL(path).href)
+
+    expect(Object.keys(projects)).toEqual(['admin', 'default'])
+
+    expect(projects).toStrictEqual({
+      admin: expectedGraphqlProject('.nuxt/schema/admin.schema.json', expectedAdminDocuments),
+      default: expectedGraphqlProject('.nuxt/schema/storefront.schema.json', expectedStorefrontDocuments),
+    })
+
+    expect(defaultExport).toEqual({ projects })
   })
 })

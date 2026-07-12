@@ -13,6 +13,7 @@ import setupCache from './setup/cache'
 import setupClients from './setup/clients'
 import setupCodegen from './setup/codegen'
 import setupDevMode from './setup/dev'
+import setupGraphqlConfig from './setup/graphql-config'
 import setupImports from './setup/imports'
 import setupProxy from './setup/proxy'
 import setupSandbox from './setup/sandbox'
@@ -71,6 +72,7 @@ export default defineNuxtModule<ModuleOptions>({
 
       await setupAuth(nuxt, config)
       await setupCodegen(nuxt, config)
+      await setupGraphqlConfig(nuxt, config)
 
       await nuxt.callHook('shopify:setup', { nuxt, config })
 

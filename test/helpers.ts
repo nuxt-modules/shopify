@@ -44,3 +44,31 @@ export const expectedCustomerAccountDocuments = [
   ...getExpectedDocuments('account'),
   ...ignores,
 ]
+
+const dirIgnores = ['node_modules', 'dist', '.nuxt', '.output']
+
+export const expectedGraphqlProject = (schema: string, documents: string[]) => {
+  const include: string[] = []
+  const exclude: string[] = []
+
+  for (const entry of documents) {
+    if (!entry.startsWith('!')) {
+      include.push(entry)
+      continue
+    }
+
+    const glob = entry.slice(1)
+    exclude.push(dirIgnores.includes(glob) ? `**/${glob}/**` : glob)
+  }
+
+  for (const dir of dirIgnores) {
+    exclude.push(`**/${dir}/**`)
+  }
+  exclude.push('**/*.d.ts')
+
+  return {
+    schema,
+    documents: [...new Set(include)],
+    exclude: [...new Set(exclude)],
+  }
+}

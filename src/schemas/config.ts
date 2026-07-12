@@ -222,6 +222,10 @@ export const configSchema = z.object({
     autoImport: z.boolean().optional().default(true),
   }).optional().default({ paths: ['/graphql'], autoImport: true }),
 
+  graphql: z.object({
+    generateConfig: z.boolean().optional().default(true),
+  }).optional().default({ generateConfig: true }),
+
   webhooks: webhooksSchema.optional(),
 
   logger: z.any().transform(v => v as Partial<ConsolaOptions>).optional(),

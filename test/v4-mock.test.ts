@@ -1,14 +1,15 @@
 import { describe, expect, it } from 'vitest'
 import { setup, $fetch } from '@nuxt/test-utils'
 import { access, readFile } from 'node:fs/promises'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import { join } from 'node:path'
 
 import { ShopifyClientType } from '../src/schemas'
 import { getInterfaceExtensionFunction } from '../src/utils/codegen'
-import { expectedStorefrontDocuments } from './helpers'
+import { expectedGraphqlProject, expectedStorefrontDocuments } from './helpers'
 
 const playgroundDir = fileURLToPath(new URL('../playgrounds/playground-v4-mock', import.meta.url))
+const playgroundBuildDir = fileURLToPath(new URL('../playgrounds/playground-v4-mock/.nuxt', import.meta.url))
 const playgroundStorefrontTypesDir = fileURLToPath(new URL('../playgrounds/playground-v4-mock/.nuxt/types/storefront', import.meta.url))
 
 describe('test mock.shop integration with nuxt 4', async () => {
@@ -28,6 +29,9 @@ describe('test mock.shop integration with nuxt 4', async () => {
       fragments: {
         autoImport: true,
         paths: ['/graphql'],
+      },
+      graphql: {
+        generateConfig: true,
       },
       clients: {
         storefront: {
@@ -107,5 +111,21 @@ describe('test mock.shop integration with nuxt 4', async () => {
       'GeneratedMutationTypes',
     )
     expect(operationsContent).toContain(interfaceExtension)
+  })
+
+  it('should generate a graphql config for IDE support', async () => {
+    const path = join(playgroundBuildDir, 'graphql.config.mjs')
+
+    expect(await access(path).then(() => true).catch(() => false)).toBe(true)
+
+    const { projects, default: defaultExport } = await import(/* @vite-ignore */ pathToFileURL(path).href)
+
+    expect(Object.keys(projects)).toEqual(['default'])
+
+    expect(projects).toStrictEqual({
+      default: expectedGraphqlProject('.nuxt/schema/storefront.schema.json', expectedStorefrontDocuments),
+    })
+
+    expect(defaultExport).toEqual({ projects })
   })
 })
