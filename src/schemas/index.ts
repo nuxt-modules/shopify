@@ -1,21 +1,16 @@
 import type { z } from 'zod'
 
-import type {
-  moduleOptionsSchema,
-  publicModuleOptionsSchema,
+import {
+  ShopifyClientType,
+  configSchema,
+  publicConfigSchema,
 } from './config'
 
-import { ShopifyClientType } from './config'
-import {
-  moduleOptionsSchemaWithDefaults as configSchema,
-  publicModuleOptionsSchemaWithDefaults as publicConfigSchema,
-} from './runtime'
+export type ModuleOptions = z.input<typeof configSchema>
+export type PublicModuleOptions = z.input<typeof publicConfigSchema>
 
-export type ModuleOptions = z.infer<typeof moduleOptionsSchema>
-export type PublicModuleOptions = z.infer<typeof publicModuleOptionsSchema>
-
-export type ShopifyConfig = z.infer<typeof configSchema>
-export type PublicShopifyConfig = z.infer<typeof publicConfigSchema>
+export type ShopifyConfig = z.output<typeof configSchema>
+export type PublicShopifyConfig = z.output<typeof publicConfigSchema>
 
 export {
   ShopifyClientType,
