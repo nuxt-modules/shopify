@@ -77,7 +77,7 @@ watch(state, state => update(props.line.id, state.quantity))
             icon="i-lucide-x"
             size="sm"
             class="absolute top-0 right-0 p-2 rounded-none rounded-bl-md"
-            @click="remove(props.line.id)"
+            @click="() => { remove(props.line.id) }"
         />
     </UCard>
 </template>

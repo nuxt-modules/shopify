@@ -175,7 +175,7 @@ watch(() => collection.value?.products.pageInfo, async () => await nextTick().th
                     color="primary"
                     class="mt-4"
                     :label="$t('filters.clear')"
-                    @click="router.push({ query: {} })"
+                    @click="() => { router.push({ query: {} }) }"
                 />
             </div>
         </div>
