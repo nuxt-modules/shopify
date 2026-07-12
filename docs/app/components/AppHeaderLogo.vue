@@ -5,7 +5,7 @@
       class="size-5.5 text-primary"
     />
 
-    <p>
+    <p class="font-bold">
       <span class="text-primary">Nuxt</span> Shopify
     </p>
   </div>
