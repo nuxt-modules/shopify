@@ -111,15 +111,15 @@ jobs:
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v6
         with:
-          node-version: 24.17.0
+          node-version: 24.18.0
           registry-url: "https://registry.npmjs.org"
           cache: pnpm
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
 
-      - name: Build
+      - name: Build module
         run: pnpm run prepare && pnpm run build
 
-      - name: Release module
-        run: npm publish --provenance
+      - name: Stage module release
+        run: npm stage publish --provenance
