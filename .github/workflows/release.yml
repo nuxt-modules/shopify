@@ -15,38 +15,16 @@ env:
   NUXT_SHOPIFY_CLIENTS_CUSTOMER_ACCOUNT_CLIENT_SECRET: ${{ secrets.NUXT_SHOPIFY_CLIENTS_CUSTOMER_ACCOUNT_CLIENT_SECRET }}
 
 on:
-  push:
-    branches:
-      - main
+  release:
+    types: [published]
 
-permissions: {}
-
-concurrency:
-  group: release-${{ github.ref }}
-  cancel-in-progress: false
+permissions:
+  id-token: write
+  contents: read
 
 jobs:
-  release-please:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
-    outputs:
-      releases_created: ${{ steps.release.outputs.releases_created }}
-      tag_name: ${{ steps.release.outputs.tag_name }}
-    steps:
-      - uses: googleapis/release-please-action@v4
-        id: release
-        with:
-          config-file: .github/release-please-config.json
-          manifest-file: .github/.release-please-manifest.json
-
   lint:
-    needs: release-please
-    if: needs.release-please.outputs.releases_created == 'true'
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
     steps:
       - uses: actions/checkout@v7
         with:
@@ -64,11 +42,7 @@ jobs:
         run: pnpm run lint
 
   typecheck:
-    needs: release-please
-    if: needs.release-please.outputs.releases_created == 'true'
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
     steps:
       - uses: actions/checkout@v7
         with:
@@ -86,14 +60,10 @@ jobs:
         run: pnpm run prepare && pnpm run typecheck
 
       - name: Typecheck All Playgrounds
-        run: pnpm run prepare:playgrounds && pnpm run typecheck:playgrounds
+        run: pnpm run typecheck:playgrounds
 
   knip:
-    needs: release-please
-    if: needs.release-please.outputs.releases_created == 'true'
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
     steps:
       - uses: actions/checkout@v7
         with:
@@ -108,14 +78,10 @@ jobs:
         run: pnpm install --frozen-lockfile --ignore-scripts
 
       - name: Run Knip
-        run: pnpm run prepare && pnpm run prepare:playgrounds && pnpm run knip
+        run: pnpm run prepare:all && pnpm run knip
 
   test:
-    needs: release-please
-    if: needs.release-please.outputs.releases_created == 'true'
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
     steps:
       - uses: actions/checkout@v7
         with:
@@ -132,10 +98,9 @@ jobs:
       - name: Run tests
         run: pnpm run prepare && pnpm run prepare:playgrounds && pnpm run test:coverage
 
-  publish:
-    needs: [release-please, lint, typecheck, knip, test]
-    if: needs.release-please.outputs.releases_created == 'true'
+  release:
     runs-on: ubuntu-latest
+    needs: [lint, typecheck, knip, test]
     permissions:
       contents: read
       id-token: write
@@ -146,7 +111,7 @@ jobs:
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v6
         with:
-          node-version: 24
+          node-version: 24.17.0
           registry-url: "https://registry.npmjs.org"
           cache: pnpm
 
@@ -156,5 +121,5 @@ jobs:
       - name: Build
         run: pnpm run prepare && pnpm run build
 
-      - name: Publish to npm
+      - name: Release module
         run: npm publish --provenance
