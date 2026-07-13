@@ -1,3 +1,6 @@
+# 0.6.2
+- Added staged publishing
+
 # 0.6.1
 - Added auto-generated graphql config
 - Added parseGid function utility
