@@ -1,20 +1,11 @@
 import { createConfigForNuxt } from '@nuxt/eslint-config/flat'
 
 export default createConfigForNuxt({
-    features: {
-        tooling: true,
-        typescript: {
-            strict: true,
-        },
-        stylistic: {
-            indent: 4,
-            semi: false,
-            quotes: 'single',
-        },
+  features: {
+    tooling: true,
+    typescript: {
+      strict: true,
     },
-}).override('nuxt/vue/rules', {
-    rules: {
-        'vue/multi-word-component-names': 'off',
-        'vue/no-v-html': 'off',
-    },
+    stylistic: true,
+  },
 })

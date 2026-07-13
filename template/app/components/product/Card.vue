@@ -2,9 +2,9 @@
 import type { ProductFieldsFragment } from '#shopify/storefront'
 
 const props = defineProps<{
-    product: ProductFieldsFragment
-    carousel?: boolean
-    loading?: 'eager' | 'lazy'
+  product: ProductFieldsFragment
+  carousel?: boolean
+  loading?: 'eager' | 'lazy'
 }>()
 
 const localePath = useLocalePath()
@@ -17,83 +17,83 @@ const variant = ref(variants.value[0])
 </script>
 
 <template>
-    <UCard
-        class="flex flex-col max-w-full h-full"
-        variant="soft"
+  <UCard
+    class="flex flex-col max-w-full h-full"
+    variant="soft"
+    :ui="{
+      body: 'h-full !p-0',
+      root: 'rounded-none !bg-transparent',
+    }"
+  >
+    <div class="group relative rounded-md overflow-hidden mb-4">
+      <UCarousel
+        v-if="carousel && images.length > 1"
+        v-slot="{ item, index }"
+        :items="images"
         :ui="{
-            body: 'h-full !p-0',
-            root: 'rounded-none !bg-transparent',
+          prev: 'left-3! transition-opacity duration-150 lg:opacity-0 lg:group-hover:opacity-100',
+          next: 'right-3! transition-opacity duration-150 lg:opacity-0 lg:group-hover:opacity-100',
         }"
-    >
-        <div class="group relative rounded-md overflow-hidden mb-4">
-            <UCarousel
-                v-if="carousel && images.length > 1"
-                v-slot="{ item, index }"
-                :items="images"
-                :ui="{
-                    prev: 'left-3! transition-opacity duration-150 lg:opacity-0 lg:group-hover:opacity-100',
-                    next: 'right-3! transition-opacity duration-150 lg:opacity-0 lg:group-hover:opacity-100',
-                }"
-                arrows
-                loop
-            >
-                <NuxtLink
-                    :to="url"
-                    :aria-label="`${$t('product.view')}: '${props.product.title}'`"
-                >
-                    <ProductImage
-                        :image="item"
-                        :loading="index === 0 ? props.loading : 'lazy'"
-                        :title="`${props.product.title}${index !== 0 ? ` (${index})` : ''}`"
-                    />
-                </NuxtLink>
-            </UCarousel>
+        arrows
+        loop
+      >
+        <NuxtLink
+          :to="url"
+          :aria-label="`${$t('product.view')}: '${props.product.title}'`"
+        >
+          <ProductImage
+            :image="item"
+            :loading="index === 0 ? props.loading : 'lazy'"
+            :title="`${props.product.title}${index !== 0 ? ` (${index})` : ''}`"
+          />
+        </NuxtLink>
+      </UCarousel>
 
-            <NuxtLink
-                v-else
-                :to="url"
-                :aria-label="`${$t('product.view')}: '${props.product.title}'`"
-            >
-                <ProductImage
-                    :image="images?.[0] ?? undefined"
-                    :loading="props.loading"
-                    :title="props.product.title"
-                />
+      <NuxtLink
+        v-else
+        :to="url"
+        :aria-label="`${$t('product.view')}: '${props.product.title}'`"
+      >
+        <ProductImage
+          :image="images?.[0] ?? undefined"
+          :loading="props.loading"
+          :title="props.product.title"
+        />
 
-                <ProductImage
-                    v-if="images?.[1]"
-                    :image="images[1]"
-                    :title="`${props.product.title} (1)`"
-                    class="hidden absolute inset-0 bg-default group-hover:block"
-                />
-            </NuxtLink>
-        </div>
+        <ProductImage
+          v-if="images?.[1]"
+          :image="images[1]"
+          :title="`${props.product.title} (1)`"
+          class="hidden absolute inset-0 bg-default group-hover:block"
+        />
+      </NuxtLink>
+    </div>
 
-        <div class="flex justify-end flex-wrap items-center relative">
-            <NuxtLink
-                :to="url"
-                class="grow"
-            >
-                <p class="font-headings text-xl me-12">
-                    {{ props.product.title }}
-                </p>
+    <div class="flex justify-end flex-wrap items-center relative">
+      <NuxtLink
+        :to="url"
+        class="grow"
+      >
+        <p class="font-headings text-xl me-12">
+          {{ props.product.title }}
+        </p>
 
-                <ProductPrice
-                    v-if="variant"
-                    :price="variant.price"
-                    class="grow text-right"
-                />
-            </NuxtLink>
+        <ProductPrice
+          v-if="variant"
+          :price="variant.price"
+          class="grow text-right"
+        />
+      </NuxtLink>
 
-            <CartChoose
-                v-if="variants.length > 1"
-                :product="props.product"
-            />
+      <CartChoose
+        v-if="variants.length > 1"
+        :product="props.product"
+      />
 
-            <CartAdd
-                v-else
-                :product="props.product"
-            />
-        </div>
-    </UCard>
+      <CartAdd
+        v-else
+        :product="props.product"
+      />
+    </div>
+  </UCard>
 </template>

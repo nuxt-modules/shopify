@@ -5,21 +5,21 @@ type Product = {
 }
 
 const { data: products } = await useStorefrontData('products', `#graphql
-    query GetProducts($first: Int!) {
-        products(first: $first) {
-            edges {
-                node {
-                    title
-                    images(first: 10) {
-                        nodes {
-                            url
-                            altText
-                        }
-                    }
-                }
+  query GetProducts($first: Int!) {
+    products(first: $first) {
+      edges {
+        node {
+          title
+          images(first: 10) {
+            nodes {
+              url
+              altText
             }
+          }
         }
+      }
     }
+  }
 `, {
   variables: {
     first: 100,

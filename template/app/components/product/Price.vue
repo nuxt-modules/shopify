@@ -2,29 +2,29 @@
 import type { PriceFieldsFragment } from '#shopify/storefront'
 
 const props = defineProps<{
-    price: PriceFieldsFragment
+  price: PriceFieldsFragment
 }>()
 
 const { locale } = useI18n()
 
 const price = computed(() => {
-    const currencyCode = props.price?.currencyCode
+  const currencyCode = props.price?.currencyCode
 
-    if (!currencyCode) return ''
+  if (!currencyCode) return ''
 
-    const rawPrice = Number(props.price.amount)
+  const rawPrice = Number(props.price.amount)
 
-    const formatter = new Intl.NumberFormat(locale.value, {
-        style: 'currency',
-        currency: currencyCode,
-    })
+  const formatter = new Intl.NumberFormat(locale.value, {
+    style: 'currency',
+    currency: currencyCode,
+  })
 
-    return formatter.format(rawPrice)
+  return formatter.format(rawPrice)
 })
 </script>
 
 <template>
-    <span class="font-bold">
-        {{ price }}
-    </span>
+  <span class="font-bold">
+    {{ price }}
+  </span>
 </template>

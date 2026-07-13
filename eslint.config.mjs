@@ -6,15 +6,10 @@ export default createConfigForNuxt({
     typescript: {
       strict: true,
     },
-    stylistic: {
-      indent: 2,
-      semi: false,
-      quotes: 'single',
-    },
+    stylistic: true,
   },
 }).override('nuxt/vue/rules', {
   rules: {
     'vue/multi-word-component-names': 'off',
-    'vue/no-v-html': 'off',
   },
 })

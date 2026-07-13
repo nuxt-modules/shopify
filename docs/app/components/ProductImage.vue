@@ -4,16 +4,16 @@ const props = defineProps<{
 }>()
 
 const { data } = await useStorefrontData('product', `#graphql
-    query GetProduct($handle: String!) {
-        product(handle: $handle) {
-            featuredImage {
-                url
-                altText
-                width
-                height
-            }
-        }
+  query GetProduct($handle: String!) {
+    product(handle: $handle) {
+      featuredImage {
+        url
+        altText
+        width
+        height
+      }
     }
+  }
 `, {
   variables: props,
 })

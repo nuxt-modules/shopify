@@ -1,13 +1,13 @@
 declare module 'nuxt/schema' {
-    interface AppConfig {
-        shopify: {
-            shopName: string
+  interface AppConfig {
+    shopify: {
+      shopName: string
 
-            collection: {
-                perPage: number
-            }
-        }
+      collection: {
+        perPage: number
+      }
     }
+  }
 }
 
 export {}

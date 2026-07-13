@@ -1,62 +1,62 @@
 export const CART_LINE_FRAGMENT = `#graphql
-    fragment CartLineFields on CartLine {
-        id
-        quantity
-        merchandise {
-            ... on ProductVariant {
-                ...ProductVariantFields
+  fragment CartLineFields on CartLine {
+    id
+    quantity
+    merchandise {
+      ... on ProductVariant {
+        ...ProductVariantFields
 
-                product {
-                    handle
-                    title
-                }
-            }
+        product {
+          handle
+          title
         }
-        attributes {
-            key
-            value
-        }
-        cost {
-            amountPerQuantity {
-                ...PriceFields
-            }
-        }
+      }
     }
+    attributes {
+      key
+      value
+    }
+    cost {
+      amountPerQuantity {
+        ...PriceFields
+      }
+    }
+  }
 `
 
 export const CART_LINE_CONNECTION_FRAGMENT = `#graphql
-    fragment CartLineConnectionFields on BaseCartLineConnection {
-        edges {
-            cursor
-            node {
-                ...CartLineFields
-            }
-        }
+  fragment CartLineConnectionFields on BaseCartLineConnection {
+    edges {
+      cursor
+      node {
+        ...CartLineFields
+      }
     }
-    ${CART_LINE_FRAGMENT}
+  }
+  ${CART_LINE_FRAGMENT}
 `
 
 export const CART_FRAGMENT = `#graphql
-    fragment CartFields on Cart {
-        id
-        checkoutUrl
-        totalQuantity
-        lines(first: 250) {
-            ...CartLineConnectionFields
-        }
-        cost {
-            totalAmount {
-                ...PriceFields
-            }
-        }
+  fragment CartFields on Cart {
+    id
+    checkoutUrl
+    totalQuantity
+    lines(first: 250) {
+      ...CartLineConnectionFields
     }
-    ${CART_LINE_CONNECTION_FRAGMENT}
+    cost {
+      totalAmount {
+        ...PriceFields
+      }
+    }
+  }
+  ${CART_LINE_CONNECTION_FRAGMENT}
 `
 
 export const CART_USER_ERRORS_FRAGMENT = `#graphql
-    fragment CartUserErrorFields on CartUserError {
-        code
-        field
-        message
-    }
+  fragment CartUserErrorFields on CartUserError {
+    code
+    field
+    message
+  }
 `

@@ -1,15 +1,15 @@
 export default defineAppConfig({
-    shopify: {
-        shopName: 'Nuxt Shopify Demo Store',
+  shopify: {
+    shopName: 'Nuxt Shopify Demo Store',
 
-        collection: {
-            perPage: 12,
-        },
+    collection: {
+      perPage: 12,
     },
+  },
 
-    ui: {
-        colors: {
-            primary: 'green',
-        },
+  ui: {
+    colors: {
+      primary: 'green',
     },
+  },
 })

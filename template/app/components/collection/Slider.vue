@@ -4,15 +4,15 @@ import type { ProductFilter } from '#shopify/storefront'
 import { z } from 'zod'
 
 const props = defineProps<{
-    handle: string
-    first?: number
-    last?: number
-    after?: string
-    before?: string
-    sortKey?: string
-    reverse?: boolean
-    filters?: ProductFilter[]
-    loading?: 'eager' | 'lazy'
+  handle: string
+  first?: number
+  last?: number
+  after?: string
+  before?: string
+  sortKey?: string
+  reverse?: boolean
+  filters?: ProductFilter[]
+  loading?: 'eager' | 'lazy'
 }>()
 
 const { language, country } = useLocalization()
@@ -30,62 +30,62 @@ const reverse = computed(() => props.reverse ? Boolean(props.reverse) : undefine
 const filters = computed(() => props.filters ? props.filters : undefined)
 
 const { data: products } = await useStorefrontData(key, `#graphql
-    query FetchSliderCollection(
-        $handle: String,
-        $after: String,
-        $before: String,
-        $first: Int,
-        $last: Int,
-        $language: LanguageCode,
-        $country: CountryCode
-    )
-    @inContext(language: $language, country: $country) {
-        collection(handle: $handle) {
-            products(
-                after: $after,
-                before: $before,
-                first: $first,
-                last: $last,
-            ) {
-                ...ProductConnectionFields
-            }
-        }
+  query FetchSliderCollection(
+    $handle: String,
+    $after: String,
+    $before: String,
+    $first: Int,
+    $last: Int,
+    $language: LanguageCode,
+    $country: CountryCode
+  )
+  @inContext(language: $language, country: $country) {
+    collection(handle: $handle) {
+      products(
+        after: $after,
+        before: $before,
+        first: $first,
+        last: $last,
+      ) {
+        ...ProductConnectionFields
+      }
     }
-    ${IMAGE_FRAGMENT}
-    ${PRICE_FRAGMENT}
-    ${PRODUCT_CONNECTION_FRAGMENT}
+  }
+  ${IMAGE_FRAGMENT}
+  ${PRICE_FRAGMENT}
+  ${PRODUCT_CONNECTION_FRAGMENT}
 `, {
-    variables: z.object({
-        handle: z.string(),
-    }).extend(productConnectionParamsSchema.shape).extend(localizationParamsSchema.shape).parse({
-        handle: props.handle,
-        first: first.value,
-        last: last.value,
-        after: after.value,
-        before: before.value,
-        sortKey: sortKey.value,
-        reverse: reverse.value,
-        filters: filters.value,
-        language: language.value,
-        country: country.value,
-    }),
-    transform: data => flattenConnection(data?.collection?.products),
-    cache: 'long',
+  variables: z.object({
+    handle: z.string(),
+  }).extend(productConnectionParamsSchema.shape).extend(localizationParamsSchema.shape).parse({
+    handle: props.handle,
+    first: first.value,
+    last: last.value,
+    after: after.value,
+    before: before.value,
+    sortKey: sortKey.value,
+    reverse: reverse.value,
+    filters: filters.value,
+    language: language.value,
+    country: country.value,
+  }),
+  transform: data => flattenConnection(data?.collection?.products),
+  cache: 'long',
 })
 </script>
 
 <template>
-    <UCarousel
-        v-slot="{ item: product, index }"
-        :items="products"
-        class="w-full mb-6"
-        :ui="{ item: 'md:basis-1/2 lg:basis-1/3' }"
-        arrows
-        loop
-    >
-        <ProductCard
-            :product="product"
-            :loading="index < 3 ? props.loading : 'lazy'"
-        />
-    </UCarousel>
+  <UCarousel
+    v-slot="{ item: product, index }"
+    :items="products"
+    class="w-full mb-6"
+    :ui="{ item: 'md:basis-1/2 lg:basis-1/3' }"
+    arrows
+    loop
+  >
+    <ProductCard
+      :product="product"
+      :loading="index < 3 ? props.loading : 'lazy'"
+    />
+  </UCarousel>
 </template>
