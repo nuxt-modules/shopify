@@ -33,7 +33,7 @@ watch(applied, (filters) => {
 <template>
   <div>
     <p class="mb-2 text-sm font-semibold text-muted">
-      {{ facet.label }}
+      {{ props.facet.label }}
     </p>
 
     <div class="flex items-center gap-2">

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { FilterFieldsFragment, ProductFilter } from '#shopify/storefront'
 
-defineProps<{
+const props = defineProps<{
   facet: FilterFieldsFragment
 }>()
 
@@ -23,12 +23,12 @@ const toggle = (input: string) => {
 <template>
   <div>
     <p class="mb-2 text-sm font-semibold text-muted">
-      {{ facet.label }}
+      {{ props.facet.label }}
     </p>
 
     <div class="space-y-1">
       <UCheckbox
-        v-for="value in facet.values"
+        v-for="value in props.facet.values"
         :key="value.id"
         :model-value="isActive(value.input)"
         :label="`${value.label} (${value.count})`"

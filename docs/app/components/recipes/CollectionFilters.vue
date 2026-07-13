@@ -5,9 +5,15 @@ const props = defineProps<{
   handle: string
 }>()
 
-const applied = ref<ProductFilter[]>([])
+const route = useRoute()
+const router = useRouter()
 
-const { data: collection } = await useStorefrontData(`filters-${props.handle}`, `#graphql
+const applied = computed<ProductFilter[]>({
+  get: () => route.query.filters ? JSON.parse(route.query.filters as string) : [],
+  set: filters => router.push({ query: filters.length ? { filters: JSON.stringify(filters) } : {} }),
+})
+
+const { data: collection, refresh } = await useStorefrontData(`filters-${props.handle}`, `#graphql
   query GetCollectionFilters($handle: String!, $first: Int, $filters: [ProductFilter!]) {
     collection(handle: $handle) {
       title
@@ -31,11 +37,15 @@ const { data: collection } = await useStorefrontData(`filters-${props.handle}`, 
     filters: applied.value,
   })),
   transform: data => data.collection,
-  watch: [applied],
+  watch: [() => route.query.filters],
 })
 
 const facets = computed(() => collection.value?.products.filters ?? [])
 const products = computed(() => collection.value?.products.nodes ?? [])
+
+onMounted(() => {
+  if (route.query.filters) refresh()
+})
 </script>
 
 <template>

@@ -52,6 +52,10 @@ const hasNextPage = computed(() => collection.value?.products.pageInfo.hasNextPa
 const pushToQuery = async (query: Record<string, string | undefined | null>) => {
   await router.push({ query }).then(async () => await refresh())
 }
+
+onMounted(() => {
+  if (route.query.after || route.query.before) refresh()
+})
 </script>
 
 <template>
