@@ -2,14 +2,14 @@
 const storefront = useStorefront()
 
 const { data } = await storefront.request(`#graphql
-    query FetchFirstThreeProducts($first: Int) {
-        products(first: $first) {
-            nodes {
-                ...ProductFields
-            }
-        }
+  query FetchFirstThreeProducts($first: Int) {
+    products(first: $first) {
+      nodes {
+        ...ProductFields
+      }
     }
-    ${PRODUCT_FRAGMENT}
+  }
+  ${PRODUCT_FRAGMENT}
 `, {
   variables: {
     first: 5,

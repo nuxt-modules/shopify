@@ -1,30 +1,30 @@
 <script setup lang="ts">
 const { data: products } = await useStorefrontData('async-data-test', `#graphql
-    query FetchAsyncProducts(
-        $handle: String,
-        $after: String,
-        $before: String,
-        $first: Int,
-        $last: Int,
-    ) {
-        collection(handle: $handle) {
-            products(
-                after: $after,
-                before: $before,
-                first: $first,
-                last: $last,
-            ) {
-                edges {
-                    cursor
-                    node {
-                        id
-                        title
-                        description
-                    }
-                }
-            }
+  query FetchAsyncProducts(
+      $handle: String,
+      $after: String,
+      $before: String,
+      $first: Int,
+      $last: Int,
+  ) {
+    collection(handle: $handle) {
+      products(
+        after: $after,
+        before: $before,
+        first: $first,
+        last: $last,
+      ) {
+        edges {
+          cursor
+          node {
+            id
+            title
+            description
+          }
         }
+      }
     }
+  }
 `, {
   variables: {
     handle: 'hydrogen',

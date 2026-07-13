@@ -1,7 +1,7 @@
 export const PRODUCT_FRAGMENT = `#graphql
-    fragment ProductFields on Product {
-        id
-        title
-        description
-    }
+  fragment ProductFields on Product {
+    id
+    title
+    description
+  }
 `

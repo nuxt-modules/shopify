@@ -81,7 +81,7 @@
     "prepare:playgrounds": "pnpm --filter \"./playgrounds/*\" prepare",
     "prepare:template": "pnpm --filter ./template prepare",
     "prepare:docs": "pnpm --filter ./docs prepare",
-    "prepare:all": "nuxt-module-build prepare && pnpm --filter \"./playgrounds/*\" --filter ./template --filter ./docs prepare",
+    "prepare:all": "nuxt-module-build prepare && dotenv -e .env -- pnpm --filter \"./playgrounds/*\" --filter ./template --filter ./docs prepare",
     "cleanup": "pnpm --filter \"./playgrounds/*\" --filter ./template cleanup && nuxt cleanup",
     "cleanup:all": "pnpm --filter \"./playgrounds/*\" --filter ./template --filter ./docs cleanup && nuxt cleanup && rm -rf node_modules && rm -rf template/node_modules && rm -rf docs/node_modules && rm -rf playgrounds/playground/node_modules && rm -rf playgrounds/playground-mock/node_modules && rm -rf playgrounds/playground-v4/node_modules",
     "qa:all": "dotenv -e .env -- pnpm run lint && dotenv -e .env -- pnpm run typecheck:all && dotenv -e .env -- pnpm run test"

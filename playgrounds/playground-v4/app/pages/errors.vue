@@ -2,14 +2,14 @@
 const storefront = useStorefront()
 
 const { data } = await storefront.request(`#graphql
-    query FetchProductsWithError($first: Int, $after: String) {
-        products(first: $first, after: $after) {
-            nodes {
-                ...ProductFields
-            }
-        }
+  query FetchProductsWithError($first: Int, $after: String) {
+    products(first: $first, after: $after) {
+      nodes {
+        ...ProductFields
+      }
     }
-    ${PRODUCT_FRAGMENT}
+  }
+  ${PRODUCT_FRAGMENT}
 `, {
   variables: {
     first: 5,
