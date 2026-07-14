@@ -2,7 +2,7 @@ import type { AdminOperations } from '@nuxtjs/shopify/admin'
 import type { CustomerAccountOperations } from '@nuxtjs/shopify/customer-account'
 import type { H3Event } from 'h3'
 
-import type { ShopifyApiClient, ShopifyClientType } from '../../../../types'
+import type { ShopifyApiClient, ShopifyClientType } from '../../../../module'
 
 import { defineEventHandler, readValidatedBody } from 'h3'
 import { useRuntimeConfig } from '#imports'

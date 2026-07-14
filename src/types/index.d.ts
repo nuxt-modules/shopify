@@ -1,13 +1,7 @@
-import type { HookResult, Nuxt } from '@nuxt/schema'
+import type { HookResult } from '@nuxt/schema'
 import type { StorefrontOperations } from '@nuxtjs/shopify/storefront'
 import type { CustomerAccountOperations } from '@nuxtjs/shopify/customer-account'
 import type { AdminOperations } from '@nuxtjs/shopify/admin'
-import type {
-  AllOperations,
-  ClientResponse,
-  ResponseErrors,
-  ReturnData,
-} from '@shopify/graphql-client'
 import type { Storage, StorageValue } from 'unstorage'
 
 import type {
@@ -18,97 +12,22 @@ import type {
   PublicShopifyConfig,
 } from '../schemas'
 import type {
-  ShopifyApiClient,
-  ShopifyApiClientConfig,
-  ShopifyApiClientRequestOptions,
-} from './client'
-
-type CustomerAccountUser = {
-  firstName: string | null
-  lastName: string | null
-  email: string
-}
-
-type CustomerAccountTokenSet = {
-  accessToken: string
-  refreshToken?: string
-  idToken?: string
-  expiresAt: number
-}
-
-type AdminTokenSet = {
-  accessToken: string
-  refreshToken?: string
-  expiresAt: number
-}
-
-type ShopifyConfigHookParams = {
-  nuxt: Nuxt
-  config: ShopifyConfig
-}
-
-type ShopifyClientOptionHookParams = {
-  config: ShopifyApiClientConfig
-}
-
-type ShopifyClientHookParams<Operations extends AllOperations, Cache extends boolean | undefined = undefined> = {
-  client: ShopifyApiClient<Operations, Cache>
-}
-
-type ShopifyClientRequestHookParams<Operation extends keyof Operations, Operations extends AllOperations, Cache extends boolean | undefined = undefined> = {
-  operation: Operation
-  options?: ShopifyApiClientRequestOptions<Operation, Operations, Cache>
-  config?: ShopifyApiClientConfig
-}
-
-type ShopifyClientResponseHookParams<Operation extends keyof Operations, Operations extends AllOperations, Cache extends boolean | undefined = undefined> = {
-  response: ClientResponse<ReturnData<Operation, Operations>>
-  operation: Operation
-  options?: ShopifyApiClientRequestOptions<Operation, Operations, Cache>
-}
-
-type ShopifyErrorHookParams = {
-  errors: ResponseErrors
-}
-
-type ShopifyTemplateHookParams = {
-  nuxt: Nuxt
-  config: Record<string, unknown>
-}
-
-type ShopifyCustomerAccountAuthorizeHookParams = {
-  params: Record<string, string>
-}
-
-type ShopifyCustomerAccountAuthSuccessHookParams = {
-  user: CustomerAccountUser
-  tokens: CustomerAccountTokenSet
-}
-
-type ShopifyCustomerAccountAuthRefreshHookParams = {
-  tokens: CustomerAccountTokenSet
-}
-
-type ShopifyCustomerAccountAuthLogoutHookParams = {
-  user: CustomerAccountUser | null
-  idToken?: string
-}
-
-type ShopifyCustomerAccountAuthErrorHookParams = {
-  error: unknown
-}
-
-type ShopifyAdminAuthRequestHookParams = {
-  params: Record<string, string>
-}
-
-type ShopifyAdminAuthTokenHookParams = {
-  token: AdminTokenSet
-}
-
-type ShopifyAdminAuthErrorHookParams = {
-  error: unknown
-}
+  ShopifyAdminAuthErrorHookParams,
+  ShopifyAdminAuthRequestHookParams,
+  ShopifyAdminAuthTokenHookParams,
+  ShopifyClientHookParams,
+  ShopifyClientOptionHookParams,
+  ShopifyClientRequestHookParams,
+  ShopifyClientResponseHookParams,
+  ShopifyConfigHookParams,
+  ShopifyCustomerAccountAuthErrorHookParams,
+  ShopifyCustomerAccountAuthLogoutHookParams,
+  ShopifyCustomerAccountAuthorizeHookParams,
+  ShopifyCustomerAccountAuthRefreshHookParams,
+  ShopifyCustomerAccountAuthSuccessHookParams,
+  ShopifyErrorHookParams,
+  ShopifyTemplateHookParams,
+} from './hooks'
 
 declare module '@nuxt/schema' {
   interface RuntimeConfig {
@@ -399,13 +318,21 @@ export type {
   PublicModuleOptions,
   ShopifyConfig,
   PublicShopifyConfig,
-  CustomerAccountUser,
-  CustomerAccountTokenSet,
-  AdminTokenSet,
 }
+
+export type {
+  AdminTokenSet,
+  CustomerAccountSession,
+  CustomerAccountSessionData,
+  CustomerAccountTokenSet,
+  CustomerAccountTokens,
+  CustomerAccountUser,
+  OpenIdConfiguration,
+} from './auth'
 
 export type {
   ShopifyApiClient,
   ShopifyApiClientConfig,
+  ShopifyApiClientRequest,
   ShopifyApiClientRequestOptions,
 } from './client'

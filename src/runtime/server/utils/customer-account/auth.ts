@@ -1,7 +1,7 @@
 import type { H3Event } from 'h3'
 
-import type { CustomerAccountOperations } from '../../../../clients/customer-account'
-import type { ShopifyApiClient } from '../../../../types'
+import type { CustomerAccountOperations } from '@nuxtjs/shopify/customer-account'
+import type { ShopifyApiClient } from '../../../../module'
 import type { CustomerAccountSessionData, CustomerAccountTokenSet } from './session'
 
 import { createError, getSession } from 'h3'

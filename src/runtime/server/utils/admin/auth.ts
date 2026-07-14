@@ -1,7 +1,6 @@
 import type { AdminOperations } from '../../../../clients/admin'
 
-import type { ShopifyApiClient, ShopifyConfig } from '../../../../types'
-import type { AdminTokenSet } from './types'
+import type { AdminTokenSet, ShopifyApiClient, ShopifyConfig } from '../../../../module'
 
 import { createError } from 'h3'
 

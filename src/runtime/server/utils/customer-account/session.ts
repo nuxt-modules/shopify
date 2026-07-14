@@ -1,14 +1,13 @@
 import type { H3Event, SessionConfig } from 'h3'
 import type { Storage } from 'unstorage'
 
-import type { ShopifyConfig } from '../../../../types'
-import type { CustomerAccountSession, CustomerAccountSessionData, CustomerAccountTokenSet, CustomerAccountUser } from './types'
+import type { CustomerAccountSession, CustomerAccountSessionData, CustomerAccountTokenSet, CustomerAccountUser, ShopifyConfig } from '../../../../module'
 
 import { createError, getSession, useSession } from 'h3'
 import { useStorage } from 'nitropack/runtime'
 import { useRuntimeConfig } from '#imports'
 
-export type { CustomerAccountSession, CustomerAccountSessionData, CustomerAccountTokenSet, CustomerAccountUser } from './types'
+export type { CustomerAccountSession, CustomerAccountSessionData, CustomerAccountTokenSet, CustomerAccountUser } from '../../../../module'
 
 export function getSessionConfig(config?: ShopifyConfig): SessionConfig {
   const session = config?.clients?.customerAccount?.session

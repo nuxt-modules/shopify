@@ -1,19 +1,6 @@
+import type { CustomerAccountTokens, OpenIdConfiguration } from '../../../module'
+
 import { withQuery } from 'ufo'
-
-export type OpenIdConfiguration = {
-  issuer: string
-  authorization_endpoint: string
-  token_endpoint: string
-  end_session_endpoint: string
-}
-
-export type CustomerAccountTokens = {
-  access_token: string
-  refresh_token?: string
-  id_token?: string
-  expires_in?: number
-  token_type?: string
-}
 
 const openIdConfigurationCache = new Map<string, Promise<OpenIdConfiguration>>()
 

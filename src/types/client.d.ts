@@ -3,6 +3,7 @@ import type {
   ApiClientConfig,
   AllOperations,
   ClientResponse,
+  ClientStreamIterator,
   FetchResponseBody,
   ReturnData,
   ResponseWithType,

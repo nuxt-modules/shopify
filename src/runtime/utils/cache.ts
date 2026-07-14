@@ -5,7 +5,7 @@ import type { CacheOptions } from 'nitropack'
 import type {
   ShopifyApiClientRequest,
   ShopifyApiClientRequestOptions,
-} from '../../types/client'
+} from '../../module'
 
 import { hash } from 'ohash'
 
