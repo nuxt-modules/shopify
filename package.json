@@ -76,6 +76,7 @@
     "test:watch": "dotenv -e .env -- vitest watch",
     "test:coverage": "vitest run --coverage",
     "analyze": "pnpm --filter playground-v4 analyze",
+    "prepack": "nuxt-module-build prepare && nuxt-module-build build",
     "prepare": "nuxt-module-build prepare",
     "prepare:dev": "nuxt-module-build --filter={./playgrounds/*,./template} prepare",
     "prepare:playgrounds": "pnpm --filter \"./playgrounds/*\" prepare",
