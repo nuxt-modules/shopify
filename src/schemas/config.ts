@@ -16,11 +16,11 @@ export enum ShopifyClientType {
   Admin = 'admin',
 }
 
-function enableable<S extends z.ZodTypeAny>(schema: S, fallback: z.output<S>) {
+function enableable<S extends z.ZodTypeAny>(schema: S, fallback: z.output<S>, enabledByDefault = true) {
   return schema
     .or(z.boolean())
     .optional()
-    .default(fallback as never)
+    .default((enabledByDefault ? fallback : false) as never)
     .transform((v): z.output<S> | false => (v === true || v == null ? fallback : v as z.output<S> | false))
 }
 
@@ -186,6 +186,23 @@ const webhooksSchema = z.object({
   })).optional(),
 })
 
+const analyticsSchema = z.object({
+  domain: z.string().optional(),
+  shopId: z.union([z.string(), z.number()]).transform(v => String(v)).optional(),
+  storefrontId: z.union([z.string(), z.number()]).transform(v => String(v)).optional(),
+
+  language: z.string().optional(),
+  currency: z.string().optional(),
+
+  consent: z.object({
+    checkoutDomain: z.string().optional(),
+    storefrontAccessToken: z.string().optional(),
+    withPrivacyBanner: z.boolean().optional().default(false),
+    country: z.string().optional(),
+    language: z.string().optional(),
+  }).optional(),
+})
+
 const storefrontClient = storefrontClientSchema
   .transform(client => ({
     ...client,
@@ -227,6 +244,8 @@ export const configSchema = z.object({
   }).optional().default({ generateConfig: true }),
 
   webhooks: webhooksSchema.optional(),
+
+  analytics: enableable(analyticsSchema, {}, false),
 
   logger: z.any().transform(v => v as Partial<ConsolaOptions>).optional(),
 })

@@ -35,6 +35,8 @@ export default defineNuxtConfig({
 
         secret: '',
       },
+
+      analytics: true,
     },
   },
 

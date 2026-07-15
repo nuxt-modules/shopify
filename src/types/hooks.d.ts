@@ -13,6 +13,10 @@ import type {
   ShopifyApiClientRequestOptions,
 } from './client'
 import type {
+  AnalyticsEventName,
+  ShopAnalytics,
+} from './analytics'
+import type {
   AdminTokenSet,
   CustomerAccountTokenSet,
   CustomerAccountUser,
@@ -41,6 +45,15 @@ export type ShopifyClientResponseHookParams<Operation extends keyof Operations, 
   response: ClientResponse<ReturnData<Operation, Operations>>
   operation: Operation
   options?: ShopifyApiClientRequestOptions<Operation, Operations, Cache>
+}
+
+export type ShopifyAnalyticsReadyHookParams = {
+  shop: ShopAnalytics | null
+}
+
+export type ShopifyAnalyticsPublishHookParams = {
+  event: AnalyticsEventName
+  payload: unknown
 }
 
 export type ShopifyErrorHookParams = {

@@ -15,6 +15,8 @@ import type {
   ShopifyAdminAuthErrorHookParams,
   ShopifyAdminAuthRequestHookParams,
   ShopifyAdminAuthTokenHookParams,
+  ShopifyAnalyticsPublishHookParams,
+  ShopifyAnalyticsReadyHookParams,
   ShopifyClientHookParams,
   ShopifyClientOptionHookParams,
   ShopifyClientRequestHookParams,
@@ -28,8 +30,19 @@ import type {
   ShopifyErrorHookParams,
   ShopifyTemplateHookParams,
 } from './hooks'
+import type {
+  ShopifyAnalyticsContext,
+} from './analytics'
 
 declare module '@nuxt/schema' {
+  interface NuxtConfig {
+    shopify?: ModuleOptions
+  }
+
+  interface NuxtOptions {
+    shopify?: ModuleOptions
+  }
+
   interface RuntimeConfig {
     shopify?: ModuleOptions
     _shopify?: ShopifyConfig
@@ -104,10 +117,22 @@ declare module '#app' {
       cache?: {
         storefront?: Storage<StorageValue>
       }
+
+      analytics?: ShopifyAnalyticsContext
     }
   }
 
   interface RuntimeNuxtHooks {
+    /**
+     * Called once analytics is ready (shop identity resolved and the Customer Privacy API loaded)
+     */
+    'analytics:ready': ({ shop }: ShopifyAnalyticsReadyHookParams) => HookResult
+
+    /**
+     * Called whenever an analytics event is published, before it is dispatched to subscribers
+     */
+    'analytics:publish': ({ event, payload }: ShopifyAnalyticsPublishHookParams) => HookResult
+
     /**
      * Called before the storefront client is created within nuxt
      */
@@ -336,3 +361,23 @@ export type {
   ShopifyApiClientRequest,
   ShopifyApiClientRequestOptions,
 } from './client'
+
+export type {
+  AnalyticsEmitter,
+  AnalyticsEventName,
+  AnalyticsEventPayload,
+  AnalyticsProductInput,
+  AnalyticsSubscriber,
+  CartViewPayload,
+  CartUpdatePayload,
+  CollectionViewPayload,
+  CustomerPrivacyApi,
+  PrivacyBanner,
+  ProductViewPayload,
+  SearchViewPayload,
+  ShopAnalytics,
+  ShopifyAnalyticsCart,
+  ShopifyAnalyticsCartLine,
+  ShopifyAnalyticsContext,
+  TrackingConsent,
+} from './analytics'

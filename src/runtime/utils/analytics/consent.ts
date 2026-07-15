@@ -1,0 +1,87 @@
+import type { CustomerPrivacyApi, PrivacyBanner, TrackingConsent } from '../../../module'
+
+import { useHead } from '#imports'
+
+import { waitFor, windowRef } from './helpers'
+
+const CONSENT_API = 'https://cdn.shopify.com/shopifycloud/consent-tracking-api/v0.2/consent-tracking-api.js'
+const CONSENT_API_WITH_BANNER = 'https://cdn.shopify.com/shopifycloud/privacy-banner/storefront-banner.js'
+const SCRIPT_ID = 'customer-privacy-api'
+
+function getPrivacyWindow() {
+  return windowRef<{ Shopify?: { customerPrivacy?: CustomerPrivacyApi }, privacyBanner?: PrivacyBanner }>()
+}
+
+function parseStoreDomain(checkoutDomain: string): string | undefined {
+  if (typeof window === 'undefined') return undefined
+
+  const current = window.location.host.split('.').reverse()
+  const checkout = checkoutDomain.split('.').reverse()
+  const shared: string[] = []
+
+  checkout.forEach((part, index) => {
+    if (part === current[index]) shared.push(part)
+  })
+
+  return shared.reverse().join('.') || undefined
+}
+
+function getCustomerPrivacy(): CustomerPrivacyApi | null {
+  try {
+    const api = getPrivacyWindow().Shopify?.customerPrivacy
+
+    return api && 'setTrackingConsent' in api ? api : null
+  }
+  catch {
+    return null
+  }
+}
+
+export function setupCustomerPrivacy(config: {
+  checkoutDomain: string
+  storefrontAccessToken: string
+  withPrivacyBanner?: boolean
+  country?: string
+  locale?: string
+}) {
+  const ancestorDomain = parseStoreDomain(config.checkoutDomain)
+
+  const consentConfig = {
+    checkoutRootDomain: config.checkoutDomain,
+    storefrontRootDomain: ancestorDomain ? `.${ancestorDomain}` : undefined,
+    storefrontAccessToken: config.storefrontAccessToken,
+    headlessStorefront: true,
+  }
+
+  const bannerConfig = {
+    ...consentConfig,
+    country: config.country,
+    locale: config.locale,
+  }
+
+  useHead({
+    script: [{
+      key: SCRIPT_ID,
+      src: config.withPrivacyBanner ? CONSENT_API_WITH_BANNER : CONSENT_API,
+      async: true,
+    }],
+  })
+
+  const ready = waitFor(getCustomerPrivacy).then((api) => {
+    if (api && config.withPrivacyBanner) {
+      void waitFor(() => getPrivacyWindow().privacyBanner ?? null).then((banner) => {
+        banner?.loadBanner(bannerConfig)
+      })
+    }
+  })
+
+  return {
+    ready,
+
+    canTrack: () => getCustomerPrivacy()?.analyticsProcessingAllowed() ?? false,
+
+    setTrackingConsent: (consent: TrackingConsent, callback?: (result: { error?: string }) => void) => {
+      getCustomerPrivacy()?.setTrackingConsent({ ...consentConfig, ...consent }, callback)
+    },
+  }
+}
