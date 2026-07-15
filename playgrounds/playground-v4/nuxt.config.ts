@@ -36,7 +36,11 @@ export default defineNuxtConfig({
         secret: '',
       },
 
-      analytics: true,
+      analytics: {
+        consent: {
+          withPrivacyBanner: true,
+        },
+      },
     },
   },
 

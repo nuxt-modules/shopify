@@ -11,7 +11,7 @@ export default function setupRequirements(config: ShopifyConfig, publicConfig: P
   const logger = useLogger(config)
 
   if (config.clients[ShopifyClientType.CustomerAccount] && !isInstalled(HYDROGEN)) {
-    logger.error(`The customer account client is configured but \`${HYDROGEN}\` is not installed. Install it (e.g. \`npm i ${HYDROGEN}\`) or remove \`shopify.clients.customerAccount\`. Disabling the customer account client.`)
+    logger.error(`The customer account client is configured but \`${HYDROGEN}\` is not installed. Install it (e.g. \`npm i ${HYDROGEN}\`) or remove \`shopify.clients.customerAccount\`. Disabling customer account client.`)
 
     config.clients[ShopifyClientType.CustomerAccount] = undefined
     publicConfig.clients[ShopifyClientType.CustomerAccount] = undefined

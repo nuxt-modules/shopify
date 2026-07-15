@@ -17,13 +17,6 @@ onMounted(() => {
   onBeforeUnmount(() => clearInterval(interval))
 })
 
-const consent = (granted: boolean) => {
-  analytics.setTrackingConsent(
-    { analytics: granted, marketing: granted, preferences: granted, sale_of_data: granted },
-    () => refresh(),
-  )
-}
-
 analytics.subscribe('product_added_to_cart', (payload) => {
   log.value.unshift(`added ${payload.currentLine.merchandise.product.title}`)
 })
@@ -63,14 +56,6 @@ const addToCart = () => {
     <p>Consent API loaded: {{ apiLoaded }}</p>
     <p>Can track: {{ canTrack }}</p>
     <p>Shop identity: {{ analytics.shop.value }}</p>
-
-    <button @click="consent(true)">
-      Accept tracking
-    </button>
-
-    <button @click="consent(false)">
-      Decline tracking
-    </button>
 
     <button @click="addToCart">
       Add to cart

@@ -47,8 +47,6 @@ export async function resolveShopAnalytics(options: {
     shopId,
     currency,
     acceptedLanguage,
-    // Same fallback as hydrogen's getShopAnalytics: without a storefront id,
-    // events are attributed to the default storefront "0" instead of dropped
     hydrogenSubchannelId: options.storefrontId || '0',
   }
 }
