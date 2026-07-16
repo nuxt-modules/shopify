@@ -33,13 +33,8 @@ hot-reloaded type generation from your GraphQL queries.
 - 🪝 Webhook subscription support
 - 🏖️ Sandbox integrated with GraphiQL Explorer
 - 🔄 Hooks for customizing the module behavior
+- 🔍 Full Analytics support
 - 🧪 Tested with Nuxt 3 & 4
-
-### Roadmap
-
-Upcoming features and developments for the 1.0.0 release:
-
-- 🔍 Shopify Analytics support
 
 ## Setup
 

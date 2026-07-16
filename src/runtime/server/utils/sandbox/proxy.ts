@@ -5,6 +5,7 @@ import type { H3Event } from 'h3'
 import type { ShopifyApiClient, ShopifyClientType } from '../../../../module'
 
 import { defineEventHandler, readValidatedBody } from 'h3'
+import { kebabCase } from 'scule'
 import { useRuntimeConfig } from '#imports'
 import { z } from 'zod'
 
@@ -33,12 +34,12 @@ export default defineEventHandler(async (event: H3Event) => {
 
   let client: ReturnType<typeof createClient>
 
-  switch (clientType) {
+  switch (kebabCase(clientType)) {
     case 'storefront':
       client = createClient(createStorefrontConfig(_shopify))
 
       return await client.request(body.query, { variables: body.variables })
-    case 'customerAccount':
+    case 'customer-account':
       client = createClient(createCustomerAccountConfig(_shopify))
 
       return await withCustomerAccountCredentials(client as unknown as ShopifyApiClient<CustomerAccountOperations, undefined>, event)
