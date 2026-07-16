@@ -1,10 +1,10 @@
 import type { H3Event } from 'h3'
 
 import { createHmac, timingSafeEqual } from 'node:crypto'
-import { createConsola } from 'consola'
 import { readRawBody, createError } from 'h3'
 import { useRuntimeConfig } from '#imports'
 
+import { createLogger } from '../log'
 import { getWebhookHmac } from './functions'
 
 const unauthorized = () => createError({ statusCode: 401, statusMessage: 'Unauthorized' })
@@ -19,7 +19,10 @@ const unauthorized = () => createError({ statusCode: 401, statusMessage: 'Unauth
 export const validate = async (event: H3Event) => {
   const runtimeConfig = useRuntimeConfig()
 
-  if (import.meta.dev) return
+  if (import.meta.dev) {
+    createLogger().debug('Skipping webhook HMAC validation in dev mode')
+    return
+  }
 
   const { _shopify } = runtimeConfig
 
@@ -40,9 +43,7 @@ export const validate = async (event: H3Event) => {
     if (!isValid) throw unauthorized()
   }
   catch (error) {
-    createConsola()
-      .withTag('shopify')
-      .error('Error validating Shopify webhook HMAC signature', error)
+    createLogger().error('Failed to validate the webhook HMAC signature:', error)
 
     throw unauthorized()
   }

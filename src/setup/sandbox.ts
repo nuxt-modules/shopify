@@ -13,7 +13,7 @@ import {
 import type { Resolver } from '@nuxt/kit'
 
 export default async function setupSandbox(nuxt: Nuxt, config: ShopifyConfig, resolver: Resolver) {
-  const logger = useLogger(config)
+  const logger = useLogger()
   const clients = getConfiguredClients(config)
 
   for (const clientType of clients) {

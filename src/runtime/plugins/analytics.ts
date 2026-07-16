@@ -10,6 +10,7 @@ import {
   useRuntimeConfig,
 } from '#imports'
 
+import { createLogger } from '../utils/log'
 import { createEmitter } from '../utils/analytics/emitter'
 import { setupCustomerPrivacy } from '../utils/analytics/consent'
 import { resolveShopAnalytics } from '../utils/analytics/shop'
@@ -31,7 +32,11 @@ export default defineNuxtPlugin({
     const storefrontAccessToken = analytics.consent?.storefrontAccessToken
       || _shopify.clients.storefront?.publicAccessToken
 
-    if (!storefrontAccessToken) return
+    if (!storefrontAccessToken) {
+      createLogger().warn('Analytics is enabled but no public storefront access token is available at runtime. Analytics will not be initialized')
+
+      return
+    }
 
     const emitter = createEmitter()
     const shop = ref<ShopAnalytics | null>(null)
@@ -68,6 +73,8 @@ export default defineNuxtPlugin({
     })
 
     void ready.then(() => {
+      createLogger().debug('Analytics initialized:', shop.value)
+
       void nuxtApp.callHook('analytics:ready', { shop: shop.value })
     })
 

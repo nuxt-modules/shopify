@@ -14,6 +14,7 @@ import {
   sendShopifyAnalytics,
 } from '@shopify/hydrogen-react'
 
+import { createLogger } from '../log'
 import { ensureShopifyCookies } from './cookies'
 import { version } from '../../../../package.json'
 
@@ -46,7 +47,12 @@ function lineToProduct(line: ShopifyAnalyticsCartLine): AnalyticsProductInput {
 }
 
 function send(eventName: string, payload: Record<string, unknown>, domain?: string) {
-  void sendShopifyAnalytics({ eventName, payload } as unknown as ShopifyAnalytics, domain)
+  const logger = createLogger()
+
+  logger.debug(`Sending analytics event \`${eventName}\``)
+
+  sendShopifyAnalytics({ eventName, payload } as unknown as ShopifyAnalytics, domain)
+    .catch(error => logger.debug(`Failed to send analytics event \`${eventName}\`:`, error))
 }
 
 export function createShopifySubscriber(emitter: AnalyticsEmitter, options: {

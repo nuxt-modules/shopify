@@ -9,6 +9,7 @@ import { useNitroApp } from 'nitropack/runtime'
 import { useRuntimeConfig } from '#imports'
 
 import { createStoreDomain } from '../../../utils/client'
+import { createLogger } from '../log'
 import { getCustomerAccountTokenStorage, getSessionConfig } from './session'
 import { getOpenIdConfiguration, refreshAccessToken } from '../../../utils/customer-account/oauth'
 
@@ -55,6 +56,8 @@ export async function getValidCustomerAccessToken(event: H3Event): Promise<strin
   }
 
   if (!pendingRefreshRequests.has(id)) {
+    createLogger().debug('Refreshing expired customer account access token')
+
     const refreshToken = tokens.refreshToken
 
     const request = getOpenIdConfiguration(createStoreDomain(_shopify.name))
@@ -83,9 +86,9 @@ export async function getValidCustomerAccessToken(event: H3Event): Promise<strin
   }
 
   const refreshed = await pendingRefreshRequests.get(id)!.catch((error) => {
-    console.error('[shopify] Failed to refresh the customer account session:', error)
+    createLogger().error('Failed to refresh the customer account session:', error)
 
-    throw createError({ statusCode: 401, statusMessage: '[shopify] Customer account session expired' })
+    throw createError({ statusCode: 401, message: '[shopify] Customer account session expired' })
   })
 
   return refreshed.accessToken

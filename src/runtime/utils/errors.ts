@@ -19,7 +19,7 @@ export default function useErrors(
     throw createError({
       statusCode: errors.networkStatusCode ?? 500,
       statusMessage: errors.graphQLErrors.map(error =>
-        `${tag} GraphQL Error: ${error.message}: ${error.path?.join('.')}`,
+        `${tag} GraphQL error: ${error.message}${error.path?.length ? ` (at \`${error.path.join('.')}\`)` : ''}`,
       ).join(', '),
     })
   }
@@ -27,7 +27,7 @@ export default function useErrors(
   if (shouldThrow && errors?.message) {
     throw createError({
       statusCode: errors.networkStatusCode ?? 500,
-      statusMessage: `${tag} Error: ${errors.message}`,
+      statusMessage: `${tag} Request failed: ${errors.message}`,
     })
   }
 }

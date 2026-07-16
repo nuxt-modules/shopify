@@ -4,6 +4,7 @@ import { useRuntimeConfig } from '#imports'
 import { joinURL, withQuery } from 'ufo'
 
 import { createStoreDomain } from '../../../../utils/client'
+import { createLogger } from '../../../utils/log'
 import { createBridgeNonce } from '../../../utils/customer-account/bridge'
 import { setCustomerAccountSession } from '../../../utils/customer-account/session'
 import {
@@ -59,6 +60,8 @@ export default defineEventHandler(async (event) => {
 
   // First leg: no authorization code yet, so we start the OAuth flow.
   if (!query.code) {
+    createLogger().debug('Starting customer account OAuth flow')
+
     const state = generateRandomToken(16)
 
     setCookie(event, STATE_COOKIE, state, transientCookieOptions)
@@ -102,6 +105,8 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
+    createLogger().debug('Exchanging customer account authorization code for tokens')
+
     const tokens = await exchangeAuthorizationCode(configuration, {
       clientId: customerAccount.clientId,
       clientSecret: customerAccount.clientSecret,
@@ -141,7 +146,7 @@ export default defineEventHandler(async (event) => {
     return sendRedirect(event, customerAccount.redirectURL)
   }
   catch (error) {
-    console.error('[shopify] Customer account OAuth error:', error)
+    createLogger().error('Customer account OAuth flow failed:', error)
 
     await nitroApp.hooks.callHook('customer-account:auth:error', { error })
 

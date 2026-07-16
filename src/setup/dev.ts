@@ -1,11 +1,13 @@
 import type { Nuxt } from '@nuxt/schema'
-import type { ConsolaInstance } from 'consola'
 
 import { stat } from 'node:fs/promises'
 import { createResolver } from '@nuxt/kit'
 import defu from 'defu'
 
-export default async function setupDevMode(nuxt: Nuxt, logger: ConsolaInstance) {
+import { useLogger } from '../utils/log'
+
+export default async function setupDevMode(nuxt: Nuxt) {
+  const logger = useLogger()
   const resolver = createResolver(import.meta.url)
 
   const sourceFiles = {
@@ -22,7 +24,7 @@ export default async function setupDevMode(nuxt: Nuxt, logger: ConsolaInstance) 
   ]).then(results => results.every(result => result !== false))
 
   if (sourceFilesExist) {
-    logger.info('Source files detected, enabling module aliases for development mode.')
+    logger.info('Source files detected, enabling module aliases for development mode')
 
     nuxt.options = defu(nuxt.options, {
       alias: {

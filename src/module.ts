@@ -7,6 +7,7 @@ import {
   createResolver,
 } from '@nuxt/kit'
 import { defu } from 'defu'
+import { z } from 'zod'
 
 import setupAnalytics from './setup/analytics'
 import setupAuth from './setup/auth'
@@ -22,7 +23,8 @@ import setupSandbox from './setup/sandbox'
 import setupWebhooks from './setup/webhooks'
 
 import { configSchema, publicConfigSchema } from './schemas'
-import { useLogger } from './utils/log'
+import { getConfiguredClients } from './utils/clients'
+import { initLogger } from './utils/log'
 
 export default defineNuxtModule<ModuleOptions>({
   meta: {
@@ -44,7 +46,7 @@ export default defineNuxtModule<ModuleOptions>({
       options,
     )
 
-    const logger = useLogger(rawConfig)
+    const logger = initLogger(rawConfig?.logger)
 
     const moduleOptions = configSchema.safeParse(rawConfig)
     const publicModuleOptions = publicConfigSchema.safeParse(rawConfig)
@@ -54,6 +56,8 @@ export default defineNuxtModule<ModuleOptions>({
 
       const config = moduleOptions.data
       const publicConfig = publicModuleOptions.data
+
+      logger.debug(`Configured clients: ${getConfiguredClients(config).join(', ') || 'none'}`)
 
       await nuxt.callHook('shopify:config', { nuxt, config })
 
@@ -83,15 +87,21 @@ export default defineNuxtModule<ModuleOptions>({
 
       logger.success('Finished setup')
     }
-    else {
-      const error = `${moduleOptions.error ? moduleOptions.error : ''}${publicModuleOptions.error ? publicModuleOptions.error : ''}`
+    else if (Object.keys(rawConfig ?? {}).length) {
+      const issues = [...new Set(
+        [moduleOptions.error, publicModuleOptions.error]
+          .flatMap(error => error ? [z.prettifyError(error)] : []),
+      )].join('\n')
 
-      logger.info('Skipping setup: config not provided or invalid')
-      logger.info('See module configuration reference: https://shopify.nuxtjs.org/essentials/configuration')
-      logger.debug(`Error while parsing module options:\n${error}`)
+      logger.error(`Skipping setup: invalid module configuration\n${issues}`)
+      logger.info('See the module configuration reference: https://shopify.nuxtjs.org/essentials/configuration')
+    }
+    else {
+      logger.info('Skipping setup: no module configuration provided')
+      logger.info('See the module configuration reference: https://shopify.nuxtjs.org/essentials/configuration')
     }
 
-    await setupDevMode(nuxt, logger)
+    await setupDevMode(nuxt)
   },
 })
 

@@ -14,5 +14,5 @@ export function parseGid(gid: string): string {
     return matches[1]
   }
 
-  throw new Error(`[shopify] invalid global ID: ${gid}`)
+  throw new Error(`[shopify] Failed to parse global ID: invalid format \`${gid}\``)
 }

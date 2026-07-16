@@ -19,7 +19,7 @@ import { createStoreDomain } from '../runtime/utils/client'
 import { SESSION_PASSWORD_ENV, generateSessionPassword, persistSessionPassword } from '../utils/session'
 
 export default async function setupClients(nuxt: Nuxt, config: ShopifyConfig, resolver: Resolver) {
-  const logger = useLogger(config)
+  const logger = useLogger()
   const clients = getConfiguredClients(config)
 
   for (const clientType of clients) {
@@ -39,9 +39,21 @@ export default async function setupClients(nuxt: Nuxt, config: ShopifyConfig, re
         nuxt.options.runtimeConfig._shopify?.clients.customerAccount
         && nuxt.options.runtimeConfig.public._shopify?.clients.customerAccount
       ) {
-        const apiUrl = await fetch(createStoreDomain(config.name) + '/.well-known/customer-account-api')
+        const wellKnownURL = createStoreDomain(config.name) + '/.well-known/customer-account-api'
+
+        const apiUrl = await fetch(wellKnownURL)
           .then(async res => (await res.json() as { graphql_api: string }).graphql_api)
           .catch(() => undefined)
+
+        if (apiUrl) {
+          logger.debug(`Resolved customer account API URL: ${apiUrl}`)
+        }
+        else {
+          logger.warn(
+            `Could not resolve the customer account API URL from \`${wellKnownURL}\` - `
+            + 'customer account requests will fail (is the Customer Account API enabled for your store?)',
+          )
+        }
 
         nuxt.options.runtimeConfig._shopify.clients.customerAccount.apiUrl = apiUrl
         nuxt.options.runtimeConfig.public._shopify.clients.customerAccount.apiUrl = apiUrl
@@ -62,10 +74,10 @@ export default async function setupClients(nuxt: Nuxt, config: ShopifyConfig, re
 
           await persistSessionPassword(nuxt.options.rootDir, password)
 
-          logger.info('Generated a customer account session password and stored it in `.env`.')
+          logger.info('Generated a customer account session password in `.env`')
         }
         else {
-          logger.warn(`No customer account session password set. Set the \`${SESSION_PASSWORD_ENV}\` environment variable.`)
+          logger.warn(`No customer account session password set - customer account sessions will fail until the \`${SESSION_PASSWORD_ENV}\` environment variable is set`)
         }
       }
 
@@ -87,6 +99,13 @@ export default async function setupClients(nuxt: Nuxt, config: ShopifyConfig, re
         handler: resolver.resolve('./runtime/server/api/auth/customer-account/session'),
       })
 
+      logger.debug(
+        'Registered customer account auth routes: '
+        + `\`${withLeadingSlash(customerAccount.loginURL)}\`, `
+        + `\`${withLeadingSlash(customerAccount.logoutURL)}\`, `
+        + `\`${withLeadingSlash(customerAccount.sessionURL)}\``,
+      )
+
       if (nuxt.options.dev && customerAccount.dev?.tunnelURL && customerAccount.dev?.bridgeURL) {
         const bridgePath = withLeadingSlash(withoutHost(customerAccount.dev.bridgeURL))
 
@@ -102,6 +121,8 @@ export default async function setupClients(nuxt: Nuxt, config: ShopifyConfig, re
         if (nuxt.options.runtimeConfig._shopify?.clients.customerAccount?.dev) {
           nuxt.options.runtimeConfig._shopify.clients.customerAccount.dev.bridgeURL = bridgeURL
         }
+
+        logger.debug(`Registered customer account dev bridge at \`${bridgePath}\``)
       }
 
       addImports([{

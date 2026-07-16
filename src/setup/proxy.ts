@@ -9,7 +9,7 @@ import { ShopifyClientType } from '../schemas'
 import { upperFirst } from 'scule'
 
 export default async function setupProxy(nuxt: Nuxt, config: ShopifyConfig, resolver: Resolver) {
-  const logger = useLogger(config)
+  const logger = useLogger()
 
   for (const clientType of Object.values(ShopifyClientType)) {
     const url = registerProxy(nuxt, config, clientType, resolver)

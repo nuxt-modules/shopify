@@ -4,7 +4,7 @@ import type { H3Event } from 'h3'
 
 import type { ShopifyApiClient, ShopifyClientType } from '../../../../module'
 
-import { defineEventHandler, readValidatedBody } from 'h3'
+import { createError, defineEventHandler, readValidatedBody } from 'h3'
 import { kebabCase } from 'scule'
 import { useRuntimeConfig } from '#imports'
 import { z } from 'zod'
@@ -23,7 +23,12 @@ export default defineEventHandler(async (event: H3Event) => {
 
   const clientType = event.path.split('/').pop() as ShopifyClientType
 
-  if (!_shopify) throw new Error('[shopify] Sandbox setup error: Module configuration is missing')
+  if (!_shopify) {
+    throw createError({
+      statusCode: 500,
+      statusMessage: '[shopify] Failed to handle sandbox request: module configuration is missing',
+    })
+  }
 
   const schema = z.object({
     query: z.string(),
@@ -50,6 +55,9 @@ export default defineEventHandler(async (event: H3Event) => {
       return await withAdminCredentials(client as unknown as ShopifyApiClient<AdminOperations, undefined>, _shopify)
         .then(client => client.request(body.query, { variables: body.variables }))
     default:
-      throw new Error('[shopify] Sandbox error: The requested client is not supported')
+      throw createError({
+        statusCode: 400,
+        statusMessage: `[shopify] Failed to handle sandbox request: unsupported client type \`${clientType}\``,
+      })
   }
 })

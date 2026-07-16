@@ -63,7 +63,7 @@ export function registerTemplates(
 
   const introspection = addTemplate<ShopifyTemplateOptions>({
     filename: introspectionFilename,
-    getContents: createIntrospectionGenerator(config),
+    getContents: createIntrospectionGenerator(),
     options: {
       filename: introspectionFilename,
       shopName: config.name,
@@ -77,7 +77,7 @@ export function registerTemplates(
   const typesFilename = `types/${kebabCase(clientType)}/${kebabCase(clientType)}.types`
   const types = addTypeTemplate<ShopifyTemplateOptions>({
     filename: `${typesFilename}.d.ts`,
-    getContents: createTypesGenerator(config),
+    getContents: createTypesGenerator(),
     options: {
       filename: `${typesFilename}.d.ts`,
       shopName: config.name,
@@ -90,7 +90,7 @@ export function registerTemplates(
   const operationsFilename = `types/${kebabCase(clientType)}/${kebabCase(clientType)}.operations`
   const operations = addTypeTemplate<ShopifyTemplateOptions>({
     filename: `${operationsFilename}.d.ts`,
-    getContents: createOperationsGenerator(config),
+    getContents: createOperationsGenerator(),
     options: {
       filename: `${operationsFilename}.d.ts`,
       shopName: config.name,

@@ -1,6 +1,7 @@
 import type { ShopAnalytics } from '../../../module'
 
 import { useStorefront } from '../../composables/storefront/client'
+import { createLogger } from '../log'
 
 const SHOP_QUERY = `query ShopifyAnalyticsShop {
   shop { id }
@@ -36,12 +37,16 @@ export async function resolveShopAnalytics(options: {
       currency ||= data?.localization?.country?.currency?.isoCode
       acceptedLanguage ||= data?.localization?.language?.isoCode
     }
-    catch {
-      // ignore
+    catch (error) {
+      createLogger().debug('Shop analytics query failed:', error)
     }
   }
 
-  if (!shopId || !currency || !acceptedLanguage) return null
+  if (!shopId || !currency || !acceptedLanguage) {
+    createLogger().warn('Could not resolve shop analytics (missing shop ID, currency, or language). Analytics events will not be sent')
+
+    return null
+  }
 
   return {
     shopId,

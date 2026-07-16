@@ -148,7 +148,7 @@ describe('test module with nuxt 4', async () => {
 
   it('should error when given invalid input', async () => {
     await expect($fetch('/errors')).resolves.toMatchObject({
-      statusMessage: '[shopify] GraphQL Error: Malformed cursor: products',
+      statusMessage: '[shopify] GraphQL error: Malformed cursor (at `products`)',
     })
   })
 

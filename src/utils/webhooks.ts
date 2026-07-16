@@ -39,7 +39,7 @@ const fetchSubscriptions = async (client: AdminApiClient) => {
   })
 
   if (errors) {
-    throw new Error(`Failed to fetch webhook subscriptions: ${JSON.stringify(errors, null, 2)}`)
+    throw new Error(`[shopify] Failed to fetch webhook subscriptions: ${JSON.stringify(errors, null, 2)}`)
   }
 
   return flattenConnection(data?.webhookSubscriptions)
@@ -86,11 +86,11 @@ const createSubscription = async (client: AdminApiClient, hook: NonNullable<NonN
   })
 
   if (errors) {
-    throw new Error(`Failed to create webhook subscription: ${JSON.stringify(errors, null, 2)}`)
+    throw new Error(`[shopify] Failed to create webhook subscription: ${JSON.stringify(errors, null, 2)}`)
   }
 
   if (data?.webhookSubscriptionCreate.userErrors.length) {
-    throw new Error(`Failed to create webhook subscription: ${JSON.stringify(data.webhookSubscriptionCreate.userErrors, null, 2)}`)
+    throw new Error(`[shopify] Failed to create webhook subscription: ${JSON.stringify(data.webhookSubscriptionCreate.userErrors, null, 2)}`)
   }
 
   return data?.webhookSubscriptionCreate
@@ -114,11 +114,11 @@ const deleteSubscription = async (client: AdminApiClient, id: string) => {
   })
 
   if (errors) {
-    throw new Error(`Failed to delete webhook subscription: ${JSON.stringify(errors, null, 2)}`)
+    throw new Error(`[shopify] Failed to delete webhook subscription: ${JSON.stringify(errors, null, 2)}`)
   }
 
   if (data?.webhookSubscriptionDelete.userErrors.length) {
-    throw new Error(`Failed to delete webhook subscription: ${JSON.stringify(data.webhookSubscriptionDelete.userErrors, null, 2)}`)
+    throw new Error(`[shopify] Failed to delete webhook subscription: ${JSON.stringify(data.webhookSubscriptionDelete.userErrors, null, 2)}`)
   }
 
   return data?.webhookSubscriptionDelete
@@ -130,7 +130,7 @@ export const getShopifyConfig = async () => {
   })
 
   if (!config?.options?.runtimeConfig?._shopify) {
-    throw new Error('Nuxt Shopify module ist not configured.')
+    throw new Error('[shopify] Failed to load the Shopify configuration: module is not configured')
   }
 
   return config.options.runtimeConfig._shopify

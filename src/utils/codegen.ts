@@ -30,12 +30,12 @@ type InterfaceExtensionsParams = {
   mutationType: string
 }
 
-async function extractResult(input: Promise<Types.FileOutput[]>, config: ShopifyConfig) {
+async function extractResult(input: Promise<Types.FileOutput[]>, filename: string) {
   try {
     return (await input)?.at(0)?.content ?? ''
   }
   catch (error) {
-    useLogger(config).error((error as Error).message)
+    useLogger().error(`Failed to generate \`${filename}\`: ${(error as Error).message}`)
     return ''
   }
 }
@@ -88,7 +88,7 @@ async function getIntrospection(options: ShopifyTemplateOptions) {
     headers['X-Shopify-Access-Token'] = await getAdminAccessToken(shopName, adminConfig)
   }
   else {
-    throw new Error(`Unsupported client type: ${clientType}`)
+    throw new Error(`[shopify] Failed to generate introspection: unsupported client type \`${clientType}\``)
   }
 
   return [
@@ -119,7 +119,7 @@ function getTypescriptPluginConfig(config: ShopifyConfig['clients'][ShopifyClien
   })
 }
 
-export function createIntrospectionGenerator(config: ShopifyConfig): NuxtTemplate<ShopifyTemplateOptions>['getContents'] {
+export function createIntrospectionGenerator(): NuxtTemplate<ShopifyTemplateOptions>['getContents'] {
   return async (data) => {
     const generatorConfig = {
       schema: await getIntrospection(data.options),
@@ -138,15 +138,15 @@ export function createIntrospectionGenerator(config: ShopifyConfig): NuxtTemplat
     return extractResult(generate({
       overwrite: true,
       ignoreNoDocuments: true,
-      silent: useLogger(config).level < LogLevels.debug,
+      silent: useLogger().level < LogLevels.debug,
       generates: {
         [data.options.filename]: generatorConfig,
       },
-    }, false), config)
+    }, false), data.options.filename)
   }
 }
 
-export function createTypesGenerator(config: ShopifyConfig): NuxtTemplate<ShopifyTemplateOptions>['getContents'] {
+export function createTypesGenerator(): NuxtTemplate<ShopifyTemplateOptions>['getContents'] {
   return async (data) => {
     const generatorConfig = {
       schema: await getIntrospection(data.options),
@@ -161,15 +161,15 @@ export function createTypesGenerator(config: ShopifyConfig): NuxtTemplate<Shopif
     return extractResult(generate({
       overwrite: true,
       ignoreNoDocuments: true,
-      silent: useLogger(config).level < LogLevels.debug,
+      silent: useLogger().level < LogLevels.debug,
       generates: {
         [data.options.filename]: generatorConfig,
       },
-    }, false), config)
+    }, false), data.options.filename)
   }
 }
 
-export function createOperationsGenerator(config: ShopifyConfig): NuxtTemplate<ShopifyTemplateOptions>['getContents'] {
+export function createOperationsGenerator(): NuxtTemplate<ShopifyTemplateOptions>['getContents'] {
   return async (data) => {
     const generatorConfig = {
       schema: await getIntrospection(data.options),
@@ -204,13 +204,13 @@ export function createOperationsGenerator(config: ShopifyConfig): NuxtTemplate<S
 
     return extractResult(generate({
       overwrite: true,
-      silent: useLogger(config).level < LogLevels.debug,
+      silent: useLogger().level < LogLevels.debug,
       generates: {
         [data.options.filename]: generatorConfig,
       },
       // @ts-expect-error weird behavior
       pluckConfig,
-    }, false), config)
+    }, false), data.options.filename)
   }
 }
 

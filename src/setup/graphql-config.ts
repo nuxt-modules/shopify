@@ -9,6 +9,7 @@ import { kebabCase } from 'scule'
 
 import { ShopifyClientType } from '../schemas'
 import { getConfiguredClients } from '../utils/clients'
+import { useLogger } from '../utils/log'
 
 const PROJECT_ORDER = [
   ShopifyClientType.Admin,
@@ -52,7 +53,12 @@ function splitDocuments(documents: string[]): Pick<GraphqlProject, 'documents' |
 }
 
 export default async function setupGraphqlConfig(nuxt: Nuxt, config: ShopifyConfig) {
-  if (!config.graphql.generateConfig) return
+  const logger = useLogger()
+
+  if (!config.graphql.generateConfig) {
+    logger.debug('Skipping `graphql.config.mjs` generation: `graphql.generateConfig` is disabled')
+    return
+  }
 
   const configured = getConfiguredClients(config)
   const buildDir = toPosix(relative(nuxt.options.rootDir, nuxt.options.buildDir)) || '.nuxt'
@@ -74,7 +80,12 @@ export default async function setupGraphqlConfig(nuxt: Nuxt, config: ShopifyConf
     }
   }
 
-  if (!Object.keys(projects).length) return
+  if (!Object.keys(projects).length) {
+    logger.debug('Skipping `graphql.config.mjs` generation: no clients with code generation enabled')
+    return
+  }
+
+  logger.debug(`Generating \`graphql.config.mjs\` with projects: ${Object.keys(projects).join(', ')}`)
 
   addTemplate({
     filename: 'graphql.config.mjs',

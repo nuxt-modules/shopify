@@ -1,5 +1,7 @@
 import type { AnalyticsEmitter } from '../../../module'
 
+import { createLogger } from '../log'
+
 export function createEmitter(): AnalyticsEmitter {
   const listeners = new Map<string, Set<(payload: unknown) => void>>()
 
@@ -21,8 +23,8 @@ export function createEmitter(): AnalyticsEmitter {
         try {
           listener(payload)
         }
-        catch {
-          // ignore
+        catch (error) {
+          createLogger().error(`Analytics subscriber for \`${event}\` threw an error:`, error)
         }
       })
     },
