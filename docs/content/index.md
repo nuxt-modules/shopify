@@ -76,7 +76,7 @@ ProductImage.vue
   </script>
 
   <template>
-    <NuxtImg :src="data?.product?.featuredImage?.url" />
+    <NuxtImg :src="data?.product?.featuredImage?.url" provider="shopify" />
   </template>
   ```
 

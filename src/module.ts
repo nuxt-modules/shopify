@@ -8,6 +8,7 @@ import {
 } from '@nuxt/kit'
 import { defu } from 'defu'
 
+import setupAnalytics from './setup/analytics'
 import setupAuth from './setup/auth'
 import setupCache from './setup/cache'
 import setupClients from './setup/clients'
@@ -16,6 +17,7 @@ import setupDevMode from './setup/dev'
 import setupGraphqlConfig from './setup/graphql-config'
 import setupImports from './setup/imports'
 import setupProxy from './setup/proxy'
+import setupRequirements from './setup/requirements'
 import setupSandbox from './setup/sandbox'
 import setupWebhooks from './setup/webhooks'
 
@@ -55,6 +57,8 @@ export default defineNuxtModule<ModuleOptions>({
 
       await nuxt.callHook('shopify:config', { nuxt, config })
 
+      setupRequirements(config, publicConfig)
+
       updateRuntimeConfig({
         _shopify: config,
 
@@ -64,6 +68,7 @@ export default defineNuxtModule<ModuleOptions>({
       })
 
       await setupClients(nuxt, config, resolver)
+      await setupAnalytics(nuxt, config, resolver)
       await setupImports(nuxt, config, resolver)
       await setupProxy(nuxt, config, resolver)
       await setupWebhooks(nuxt, config, resolver)

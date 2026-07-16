@@ -50,7 +50,7 @@ declare module '@nuxtjs/shopify/${kebabCase(clientType)}' {
 `
 }
 
-async function getIntrospection(options: ShopifyTemplateOptions, config?: ShopifyConfig) {
+async function getIntrospection(options: ShopifyTemplateOptions) {
   const { shopName, clientType, clientConfig, introspection } = options
 
   if (introspection && existsSync(introspection)) {
@@ -80,14 +80,7 @@ async function getIntrospection(options: ShopifyTemplateOptions, config?: Shopif
     }
   }
   else if (clientType === ShopifyClientType.CustomerAccount) {
-    try {
-      return [import.meta.resolve('@shopify/hydrogen/customer-account.schema.json')]
-    }
-    catch (error) {
-      useLogger(config).error('Failed to load customer account schema. Please ensure @shopify/hydrogen is installed.', error)
-    }
-
-    return []
+    return [import.meta.resolve('@shopify/hydrogen/customer-account.schema.json')]
   }
   else if (clientType === ShopifyClientType.Admin) {
     const adminConfig = clientConfig as NonNullable<ShopifyConfig['clients']['admin']>
