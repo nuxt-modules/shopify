@@ -456,6 +456,40 @@ to both the storefront and admin API.
 
 See the [caching documentation](https://shopify.nuxtjs.org/essentials/caching) for more details and examples.
 
+### Using Analytics
+
+The module can send Shopify headless analytics, powering the reports and live view in your admin.
+Install `@shopify/hydrogen-react` and enable the `analytics` option, then report views with the drop-in components
+or publish events manually with the `useShopifyAnalytics` composable:
+
+```html
+<template>
+  <ShopifyProductView
+    :data="{
+      products: [{
+        id: product.id,
+        title: product.title,
+        price: variant.price.amount,
+        variantId: variant.id,
+      }],
+    }"
+  />
+</template>
+```
+
+```ts
+const analytics = useShopifyAnalytics()
+
+analytics.publish("product_added_to_cart", { cart, currentLine: line })
+analytics.subscribe("product_added_to_cart", (payload) => {
+  // e.g. forward to GA4 or Meta
+})
+```
+
+All events are gated on Shopify's Customer Privacy API, so nothing is sent without the visitor's consent where consent is required.
+
+See the [analytics documentation](https://shopify.nuxtjs.org/essentials/analytics) for view components, custom events, and consent configuration.
+
 ### Subscribing / Unsubscribing webhooks
 
 To subscribe or unsubscribe a webhook, you can either do so manually within the Shopify Admin UI or via Shopify's CLI.
