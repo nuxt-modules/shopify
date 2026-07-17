@@ -312,7 +312,7 @@ Markets.vue
     "dependencies": {
       "@nuxtjs/shopify": "latest",
       "nuxt": "latest"
-    },
+    }
   }
   ```
   :::
@@ -406,5 +406,53 @@ Build your Shopify store with Nuxt
 
   #description
   Customize and extend the module's behavior with lifecycle hooks. Add custom logic at various stages of API interaction.
+  :::
+
+  :::u-page-feature
+  ---
+  icon: i-lucide-chart-line
+  to: /essentials/analytics
+  ---
+  #title
+  Built-in [Shopify Analytics]{.text-primary}
+
+  #description
+  Send headless analytics to Shopify with drop-in view components and a typed event bus. Consent-aware out of the box via the Customer Privacy API.
+  :::
+
+  :::u-page-feature
+  ---
+  icon: i-lucide-rabbit
+  to: /essentials/caching
+  ---
+  #title
+  Customizable [Request Caching]{.text-primary}
+
+  #description
+  Cache API responses on the client and the server-side proxy with configurable cache profiles. One request option, both layers covered.
+  :::
+
+  :::u-page-feature
+  ---
+  icon: i-lucide-fishing-hook
+  to: /going-further/webhooks
+  ---
+  #title
+  Effortless [Webhook Subscriptions]{.text-primary}
+
+  #description
+  Subscribe to Shopify webhooks from your config and receive them with automatic HMAC validation. Includes a CLI to manage subscriptions.
+  :::
+
+  :::u-page-feature
+  ---
+  icon: i-lucide-app-window
+  to: /going-further/sandbox
+  ---
+  #title
+  Integrated [GraphiQL Sandbox]{.text-primary}
+
+  #description
+  Explore your store's APIs with a built-in GraphiQL sandbox for every configured client. Available instantly in development mode.
   :::
 ::
