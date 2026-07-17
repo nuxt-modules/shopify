@@ -1,6 +1,6 @@
 # Contributing
 
-Thank you for taking the time to contribute to the Nuxt Shopify module ❤️
+Thank you for taking the time to contribute to the Nuxt Shopify module 💚
 
 Here are some guidelines to get you started.
 
@@ -15,7 +15,7 @@ Here are some guidelines to get you started.
 
 ## Development
 
-Start the default [playground](https://github.com/nuxt-modules/shopify/tree/main/playgrounds/playground):
+Start the default [playground](https://github.com/nuxt-modules/shopify/tree/main/playgrounds/playground-v4):
 ```bash
 pnpm run dev
 ```
@@ -50,14 +50,18 @@ pnpm run build
     - Use `feat/` for new features.
     - Use `fix/` for bug fixes.
     - Use `docs/` for documentation changes.
+- Please use [conventional commits](https://www.conventionalcommits.org/) for your commit messages and PR titles
+  (e.g. `feat: add x`, `fix: handle y`). PRs are squash-merged, and the merge commit message drives both the
+  auto-generated release notes and the next version bump.
 - Please ensure your PR passes all checks.
 - Please ensure your PR is rebased on the latest commit of the `main` branch.
 
 ## Releasing
 
-1. Update the version in `package.json`.
-2. Update the changelog in `CHANGELOG.md`.
-3. Commit the changes and merge to the `main` branch.
-4. Create a new release on GitHub.
+Releases are automated with [uppt](https://github.com/danielroe/uppt):
 
-[Learn more about semantic versioning](https://semver.org/).
+1. On every push to `main`, a draft release PR (branch `release/vX.Y.Z`) is opened or updated automatically.
+   The version bump is derived from the conventional commits since the last release, and the PR body contains
+   the generated changelog.
+2. Merging the release PR tags the release, creates a [GitHub release](https://github.com/nuxt-modules/shopify/releases)
+   from the PR body, and publishes the package to npm.

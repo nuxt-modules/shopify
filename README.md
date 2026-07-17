@@ -14,7 +14,7 @@ hot-reloaded type generation from your GraphQL queries.
 
 - 📚 [Documentation](https://shopify.nuxtjs.org)
 - 🛍️ [Store Template](https://github.com/nuxt-modules/shopify/tree/main/template)
-- ✨ [Release Notes](https://github.com/nuxt-modules/shopify/tree/main/CHANGELOG.md)
+- ✨ [Release Notes](https://github.com/nuxt-modules/shopify/releases)
 
 ## Features
 
@@ -26,14 +26,14 @@ hot-reloaded type generation from your GraphQL queries.
 - 🛠️ Automatic mock.shop integration
 - 🚩 Error handling optimized for Nuxt
 - 📡 Server-side proxy for API requests
-- 🧩 GraphQL fragments support
+- 🧩 GraphQL fragments and metafields support
 - 🏎️ Caching for client and server-side requests
+- 🔍 Analytics and Customer Privacy API support
 - ⚙️ Customizable GraphQL code generation
 - 📦 Auto-imports for GraphQL queries and generated types
 - 🪝 Webhook subscription support
 - 🏖️ Sandbox integrated with GraphiQL Explorer
 - 🔄 Hooks for customizing the module behavior
-- 🔍 Full Analytics support
 - 🧪 Tested with Nuxt 3 & 4
 
 ## Setup
@@ -236,8 +236,9 @@ export default defineEventHandler(async () => {
 ```
 
 Notice how we can use the `graphql` directive inside the event handler, this is possible because in
-the standard module configuration all `.ts` and `.gql` files are automatically processed for the
-storefront API, as long as the don't end with `.admin.ts` or `.admin.gql`.
+the standard module configuration all `.gql`, `.graphql`, `.ts`, `.js` and `.vue` files are automatically
+processed for the storefront API, as long as they don't match the admin patterns (e.g. `.admin.ts`) or the
+customer account patterns (e.g. `.customer-account.ts`, `.customer.ts`, `.account.ts`).
 Read more about the [codegen configuration](https://shopify.nuxtjs.org/essentials/codegen).
 
 Now we can call the API at `/api/products` to obtain the first three products:
@@ -320,7 +321,7 @@ All requests to the Storefront API will now return data from [mock.shop](https:/
 ### Proxying client requests
 
 All requests going out from the client side are proxied through the Nitro server by default.
-To disable proxying, you can set the `proxy` option in the module config.
+To disable proxying, set the `proxy` option to `false` in the module config.
 Proxying is only available in SSR mode.
 
 ```ts
@@ -328,7 +329,7 @@ export default defineNuxtConfig({
   shopify: {
     clients: {
       storefront: {
-        proxy: true,
+        proxy: false, // default: true
       },
     },
   },
@@ -342,15 +343,16 @@ Once installed, the module automatically generates your GraphQL types and saves 
 - .nuxt/types — Type definitions
 - .nuxt/schema — GraphQL schema files
 
-To enable IDE support, you can add a GraphQL configuration file:
+For IDE support, the module automatically generates a GraphQL config file at `.nuxt/graphql.config.mjs`,
+with a project per configured client. Point your editor's GraphQL plugin at it, or reference it from a root config file:
 
-```yaml
-# ~/graphql.config.yml
+```js
+// ~/graphql.config.mjs
 
-schema:
-  - ./.nuxt/schema/storefront.schema.json
-  - ./.nuxt/schema/admin.schema.json
+export { default } from "./.nuxt/graphql.config.mjs"
 ```
+
+You can disable the config file generation by setting `graphql.generateConfig` to `false` in the module config.
 
 ### Handling GraphQL fragments
 
@@ -381,7 +383,7 @@ Files placed in the `~/graphql` directory will be automatically imported by the 
 
 ### Handling errors
 
-By default, the module will throw an error if the storefront or admin client encounters an error instead of returning the errors object in the response.
+By default, the module will throw an error if a client encounters an error instead of returning the errors object in the response.
 This is done so that Nuxt can take over the error handling.
 
 You can customize this behavior by setting the `errors.throw` option in the module config.
@@ -505,10 +507,12 @@ export default defineNuxtConfig({
     webhooks: {
       secret: "my-shopify-app-client-secret",
 
-      hooks: {
-        topic: "ORDERS_CREATE",
-        uri: "https://shopify.nuxtjs.org/api/webhooks/orders-create",
-      },
+      hooks: [
+        {
+          topic: "ORDERS_CREATE",
+          uri: "https://shopify.nuxtjs.org/api/webhooks/orders-create",
+        },
+      ],
     },
   },
 })
@@ -539,7 +543,7 @@ Read more about webhooks in our [webhooks documentation](https://shopify.nuxtjs.
    pnpm install
    ```
 4. Run `pnpm run prepare:dev` to generate type stubs.
-5. Start the default [playground](https://github.com/nuxt-modules/shopify/tree/main/playgrounds/playground) with:
+5. Start the default [playground](https://github.com/nuxt-modules/shopify/tree/main/playgrounds/playground-v4) with:
    ```bash
    pnpm run dev
    ```
