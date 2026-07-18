@@ -2,6 +2,7 @@ import type { CustomerPrivacyApi, PrivacyBanner, TrackingConsent } from '../../.
 
 import { useHead } from '#imports'
 
+import { createLogger } from '../log'
 import { waitFor, windowRef } from './helpers'
 
 const CONSENT_API = 'https://cdn.shopify.com/shopifycloud/consent-tracking-api/v0.2/consent-tracking-api.js'
@@ -71,9 +72,9 @@ export function setupCustomerPrivacy(config: {
 
   const ready = waitFor(getCustomerPrivacy).then((api) => {
     if (api && config.withPrivacyBanner) {
-      void waitFor(() => getPrivacyWindow().privacyBanner ?? null).then((banner) => {
-        banner?.loadBanner(bannerConfig)
-      })
+      void waitFor(() => getPrivacyWindow().privacyBanner ?? null)
+        .then(banner => banner?.loadBanner(bannerConfig))
+        .catch(error => createLogger().debug('Failed to load the Shopify privacy banner:', error))
     }
   })
 
@@ -87,10 +88,16 @@ export function setupCustomerPrivacy(config: {
     getConsent: () => {
       const api = getCustomerPrivacy()
 
+      const analyticsAllowed = api?.analyticsProcessingAllowed() ?? false
+      const marketingAllowed = api?.marketingAllowed() ?? false
+      const saleOfDataAllowed = api?.saleOfDataAllowed() ?? false
+
       return {
-        analyticsAllowed: api?.analyticsProcessingAllowed() ?? false,
-        marketingAllowed: api?.marketingAllowed() ?? false,
-        saleOfDataAllowed: api?.saleOfDataAllowed() ?? false,
+        analyticsAllowed,
+        marketingAllowed,
+        saleOfDataAllowed,
+        ccpaEnforced: !saleOfDataAllowed,
+        gdprEnforced: !(marketingAllowed && analyticsAllowed),
       }
     },
 

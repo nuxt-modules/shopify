@@ -21,7 +21,7 @@ export default defineEventHandler(async (event: H3Event) => {
 
   const { _shopify } = useRuntimeConfig()
 
-  const clientType = event.path.split('/').pop() as ShopifyClientType
+  const clientType = event.path.split('?')[0]!.split('/').pop() as ShopifyClientType
 
   if (!_shopify) {
     throw createError({

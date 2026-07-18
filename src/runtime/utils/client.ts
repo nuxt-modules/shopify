@@ -68,7 +68,7 @@ export const createClient = <Operations extends AllOperations = AllOperations, C
   })
 
   const getHeaders: ShopifyApiClient<Operations>['getHeaders'] = customHeaders =>
-    ({ ...(customHeaders ?? {}), ...headers })
+    ({ ...headers, ...(customHeaders ?? {}) })
 
   const getApiUrl: ShopifyApiClient<Operations>['getApiUrl'] = (propApiVersion?: string) =>
     propApiVersion ? getStoreUrl(propApiVersion) : apiUrl

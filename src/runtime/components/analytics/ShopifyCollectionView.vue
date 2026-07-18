@@ -10,9 +10,13 @@ const props = defineProps<{
 
 const analytics = useShopifyAnalytics()
 
-onMounted(() => analytics.publish('collection_viewed', props.data))
+const publish = () => {
+  if (props.data.collection.id) analytics.publish('collection_viewed', props.data)
+}
 
-watch(() => props.data.collection.id, () => analytics.publish('collection_viewed', props.data))
+onMounted(publish)
+
+watch(() => props.data.collection.id, publish)
 </script>
 
 <template>

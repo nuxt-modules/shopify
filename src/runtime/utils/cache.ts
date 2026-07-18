@@ -9,6 +9,12 @@ import type {
 
 import { hash } from 'ohash'
 
+function toCacheTtl(maxAge: number, staleMaxAge: number) {
+  const ttl = maxAge * 1000 + staleMaxAge * 1000
+
+  return ttl > 0 ? { ttl } : undefined
+}
+
 function getLRUCacheSettings<
   Operation extends keyof Operations,
   Operations extends AllOperations,
@@ -20,18 +26,14 @@ function getLRUCacheSettings<
     const maxAge = cacheOptions[options.cache]!.maxAge ?? 0
     const staleMaxAge = cacheOptions[options.cache]!.staleMaxAge ?? 0
 
-    return {
-      ttl: (maxAge ?? 0) * 1000 + (staleMaxAge ?? 0) * 1000,
-    }
+    return toCacheTtl(maxAge, staleMaxAge)
   }
   else if (typeof options?.cache === 'object') {
     if (typeof options.cache.client === 'string' && cacheOptions?.[options.cache.client]) {
       const maxAge = cacheOptions[options.cache.client]!.maxAge ?? 0
       const staleMaxAge = cacheOptions[options.cache.client]!.staleMaxAge ?? 0
 
-      return {
-        ttl: (maxAge ?? 0) * 1000 + (staleMaxAge ?? 0) * 1000,
-      }
+      return toCacheTtl(maxAge, staleMaxAge)
     }
     else if (typeof options.cache.client === 'object') return options.cache.client
   }
@@ -61,7 +63,7 @@ export default async function useCache<
   cacheOptions?: Record<string, Pick<CacheOptions, 'maxAge' | 'staleMaxAge' | 'swr'>>,
 ): Promise<ClientResponse<ReturnData<Operation, Operations>>> {
   const inMemoryConfig = storage ? getLRUCacheSettings(options, cacheOptions) : undefined
-  const proxyCacheHeaders = storage ? getProxyCacheHeaders(options) : undefined
+  const proxyCacheHeaders = getProxyCacheHeaders(options)
 
   const cacheKey = hash({ operation, options })
 
@@ -77,7 +79,7 @@ export default async function useCache<
     },
   } as typeof options)
 
-  if (storage && inMemoryConfig) {
+  if (storage && inMemoryConfig && !response.errors) {
     await storage.setItem(cacheKey, response, inMemoryConfig)
   }
 

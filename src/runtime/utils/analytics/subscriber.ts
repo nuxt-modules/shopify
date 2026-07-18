@@ -1,5 +1,6 @@
 import type { ShopifyAnalytics, ShopifyAnalyticsProduct } from '@shopify/hydrogen-react'
 import type {
+  AnalyticsConsentFlags,
   AnalyticsEmitter,
   AnalyticsProductInput,
   ShopAnalytics,
@@ -17,6 +18,55 @@ import {
 import { createLogger } from '../log'
 import { persistTrackingTokens } from './cookies'
 import { version } from '../../../../package.json'
+
+const MAX_QUEUED_EVENTS = 20
+
+const REQUIRED_SHOP_FIELDS = ['shopId', 'acceptedLanguage', 'currency', 'hydrogenSubchannelId'] as const
+const REQUIRED_PRODUCT_FIELDS = ['id', 'title', 'price', 'vendor', 'variantId', 'variantTitle'] as const
+
+const reported = new Set<string>()
+
+function reportOnce(message: string) {
+  if (reported.has(message)) return
+
+  reported.add(message)
+
+  createLogger().warn(message)
+}
+
+function validateShop(shop: ShopAnalytics | null): shop is ShopAnalytics {
+  const missing = REQUIRED_SHOP_FIELDS.filter(field => !shop?.[field])
+
+  if (!missing.length) return true
+
+  reportOnce(
+    `Cannot send analytics events: the shop is missing \`${missing.join('`, `')}\`. `
+    + 'Set them under `shopify.analytics` or make sure the storefront client can reach the Shopify API',
+  )
+
+  return false
+}
+
+function validateProducts(products: AnalyticsProductInput[] | undefined, source: string): products is AnalyticsProductInput[] {
+  if (!products?.length) {
+    reportOnce(`Cannot send analytics event \`${source}\`: no products were provided`)
+
+    return false
+  }
+
+  for (const product of products) {
+    const missing = REQUIRED_PRODUCT_FIELDS.filter(field => !product[field])
+
+    if (missing.length) {
+      reportOnce(
+        `Incomplete analytics event \`${source}\`: product \`${product.id || 'unknown'}\` is missing `
+        + `\`${missing.join('`, `')}\`. Add the matching fields to your GraphQL query`,
+      )
+    }
+  }
+
+  return true
+}
 
 function formatProducts(products: AnalyticsProductInput[]): ShopifyAnalyticsProduct[] {
   return products.map(product => ({
@@ -60,19 +110,15 @@ export function createShopifySubscriber(emitter: AnalyticsEmitter, options: {
   domain?: string
   cookieDomain?: string
   canTrack: () => boolean
-  getConsent?: () => { analyticsAllowed: boolean, marketingAllowed: boolean, saleOfDataAllowed: boolean }
+  getConsent?: () => AnalyticsConsentFlags
   whenReady: (callback: () => void) => void
 }) {
   const { shop, domain, cookieDomain, canTrack, getConsent, whenReady } = options
 
   const basePayload = (): Record<string, unknown> | null => {
-    if (!canTrack()) return null
-
     const resolved = shop()
 
-    if (!resolved?.shopId || !resolved.acceptedLanguage || !resolved.currency) {
-      return null
-    }
+    if (!validateShop(resolved)) return null
 
     persistTrackingTokens(cookieDomain)
 
@@ -83,21 +129,50 @@ export function createShopifySubscriber(emitter: AnalyticsEmitter, options: {
       currency: resolved.currency,
       acceptedLanguage: resolved.acceptedLanguage,
       hydrogenSubchannelId: resolved.hydrogenSubchannelId,
-      hasUserConsent: true,
-      ...(getConsent
-        ? getConsent()
-        : { analyticsAllowed: true, marketingAllowed: false, saleOfDataAllowed: false }),
+      hasUserConsent: canTrack(),
+      ...(getConsent?.() ?? {
+        analyticsAllowed: true,
+        marketingAllowed: false,
+        saleOfDataAllowed: false,
+        ccpaEnforced: true,
+        gdprEnforced: true,
+      }),
       ...getClientBrowserParameters(),
     }
+  }
+
+  const queue: Array<() => void> = []
+
+  const flush = () => {
+    const queued = queue.splice(0)
+
+    if (!canTrack()) return
+
+    for (const run of queued) run()
+  }
+
+  if (typeof document !== 'undefined') {
+    document.addEventListener('visitorConsentCollected', flush)
+  }
+
+  const track = (build: (payload: Record<string, unknown>) => void) => {
+    const run = () => {
+      const payload = basePayload()
+
+      if (payload) build(payload)
+    }
+
+    whenReady(() => {
+      if (canTrack()) return run()
+
+      if (queue.length < MAX_QUEUED_EVENTS) queue.push(run)
+    })
   }
 
   let viewPayload: Record<string, unknown> = {}
 
   emitter.on('page_viewed', (data) => {
-    whenReady(() => {
-      const payload = basePayload()
-      if (!payload) return
-
+    track((payload) => {
       const url = data?.url
       const location = url ? { url, path: new URL(url).pathname } : {}
 
@@ -108,11 +183,10 @@ export function createShopifySubscriber(emitter: AnalyticsEmitter, options: {
   })
 
   emitter.on('product_viewed', (data) => {
-    whenReady(() => {
-      const payload = basePayload()
+    track((payload) => {
       const products = data?.products
 
-      if (!payload || !products?.length) return
+      if (!validateProducts(products, 'product_viewed')) return
 
       const formatted = formatProducts(products)
 
@@ -130,11 +204,14 @@ export function createShopifySubscriber(emitter: AnalyticsEmitter, options: {
   })
 
   emitter.on('collection_viewed', (data) => {
-    whenReady(() => {
-      const payload = basePayload()
+    track((payload) => {
       const collection = data?.collection
 
-      if (!payload || !collection?.id) return
+      if (!collection?.id) {
+        reportOnce('Cannot send analytics event `collection_viewed`: no collection id was provided')
+
+        return
+      }
 
       viewPayload = {
         pageType: AnalyticsPageType.collection,
@@ -151,10 +228,7 @@ export function createShopifySubscriber(emitter: AnalyticsEmitter, options: {
   })
 
   emitter.on('search_viewed', (data) => {
-    whenReady(() => {
-      const payload = basePayload()
-      if (!payload) return
-
+    track((payload) => {
       viewPayload = { pageType: AnalyticsPageType.search }
 
       send(AnalyticsEventName.SEARCH_VIEW, {
@@ -166,16 +240,19 @@ export function createShopifySubscriber(emitter: AnalyticsEmitter, options: {
   })
 
   emitter.on('product_added_to_cart', (data) => {
-    whenReady(() => {
-      const payload = basePayload()
+    track((payload) => {
       const { cart, currentLine } = data ?? {}
 
-      if (!payload || !cart?.id || !currentLine?.id) return
+      if (!cart?.id || !currentLine?.id) return
+
+      const products = [lineToProduct(currentLine)]
+
+      validateProducts(products, 'product_added_to_cart')
 
       send(AnalyticsEventName.ADD_TO_CART, {
         ...payload,
         cartId: cart.id,
-        products: formatProducts([lineToProduct(currentLine)]),
+        products: formatProducts(products),
       }, domain)
     })
   })

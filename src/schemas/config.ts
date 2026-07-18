@@ -24,7 +24,7 @@ function enableable<S extends z.ZodTypeAny>(schema: S, fallback: z.output<S>, en
     .transform((v): z.output<S> | false => (v === true || v == null ? fallback : v as z.output<S> | false))
 }
 
-const proxyPathSchema = (path: string) => enableable(z.object({ path: z.string().optional() }), { path })
+const proxyPathSchema = (path: string) => enableable(z.object({ path: z.string().optional().default(path) }), { path })
 const publicProxyPathSchema = (path: string) => enableable(z.object({ path: z.string().optional().default(path) }), { path })
 
 const getDefaultDocuments = (clientType: string, { exclude }: { exclude?: boolean } = {}) => {

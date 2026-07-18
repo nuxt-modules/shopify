@@ -24,6 +24,10 @@ function subscriber(canTrack: () => boolean, resolvedShop: typeof shop | null = 
   return emitter
 }
 
+function collectConsent() {
+  document.dispatchEvent(new Event('visitorConsentCollected'))
+}
+
 beforeEach(() => {
   sendSpy.mockClear()
   for (const pair of document.cookie.split('; ')) {
@@ -63,6 +67,43 @@ describe('shopify subscriber consent gate', () => {
     subscriber(() => true, null).emit('page_viewed', { url: 'https://shop.test/' })
 
     expect(sendSpy).not.toHaveBeenCalled()
+  })
+
+  it('sends the landing page view once the visitor accepts', () => {
+    let allowed = false
+
+    subscriber(() => allowed).emit('page_viewed', { url: 'https://shop.test/landing' })
+
+    expect(sendSpy).not.toHaveBeenCalled()
+
+    allowed = true
+    collectConsent()
+
+    expect(sendSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ payload: expect.objectContaining({ url: 'https://shop.test/landing' }) }),
+      undefined,
+    )
+  })
+
+  it('discards what it queued when the visitor declines', () => {
+    subscriber(() => false).emit('page_viewed', { url: 'https://shop.test/' })
+
+    collectConsent()
+
+    expect(sendSpy).not.toHaveBeenCalled()
+  })
+
+  it('never replays an event twice', () => {
+    let allowed = false
+    const emitter = subscriber(() => allowed)
+
+    emitter.emit('page_viewed', { url: 'https://shop.test/' })
+
+    allowed = true
+    collectConsent()
+    collectConsent()
+
+    expect(sendSpy).toHaveBeenCalledOnce()
   })
 
   it('forwards the captured page url instead of the current location', () => {

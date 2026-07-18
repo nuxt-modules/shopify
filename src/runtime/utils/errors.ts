@@ -3,6 +3,10 @@ import type { ResponseErrors } from '@shopify/graphql-client'
 
 import { createError } from '#imports'
 
+function resolveStatusCode(networkStatusCode?: number): number {
+  return networkStatusCode && networkStatusCode >= 400 ? networkStatusCode : 500
+}
+
 export default function useErrors(
   hooks: any,
   hookKey: string,
@@ -17,7 +21,7 @@ export default function useErrors(
 
   if (shouldThrow && errors?.graphQLErrors?.length) {
     throw createError({
-      statusCode: errors.networkStatusCode ?? 500,
+      statusCode: resolveStatusCode(errors.networkStatusCode),
       statusMessage: errors.graphQLErrors.map(error =>
         `${tag} GraphQL error: ${error.message}${error.path?.length ? ` (at \`${error.path.join('.')}\`)` : ''}`,
       ).join(', '),
@@ -26,7 +30,7 @@ export default function useErrors(
 
   if (shouldThrow && errors?.message) {
     throw createError({
-      statusCode: errors.networkStatusCode ?? 500,
+      statusCode: resolveStatusCode(errors.networkStatusCode),
       statusMessage: `${tag} Request failed: ${errors.message}`,
     })
   }

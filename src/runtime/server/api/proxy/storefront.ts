@@ -75,7 +75,7 @@ export default defineEventHandler(async (event) => {
   const cacheBase = typeof cacheConfig?.proxy === 'string'
     ? cacheConfig.proxy
     : typeof cacheConfig?.proxy === 'object'
-      ? cacheConfig.proxy.base
+      ? 'storefront-proxy'
       : undefined
 
   const cachedProxyRequest = defineCachedFunction(async (
@@ -84,7 +84,11 @@ export default defineEventHandler(async (event) => {
     headers: Record<string, string>,
     body: Record<string, unknown> | string,
   ) => {
-    return await $fetch<object>(url, { method, headers, body })
+    const response = await $fetch.raw<object>(url, { method, headers, body })
+
+    forwardTrackingHeaders(event, response.headers)
+
+    return response._data
   }, {
     name: 'storefront-proxy',
 

@@ -147,9 +147,11 @@ describe('test module with nuxt 4', async () => {
   })
 
   it('should error when given invalid input', async () => {
-    await expect($fetch('/errors')).resolves.toMatchObject({
-      statusMessage: '[shopify] GraphQL error: Malformed cursor (at `products`)',
-    })
+    const error = await $fetch('/errors').catch(error => error) as { statusCode?: number, statusMessage?: string }
+
+    expect(error.statusCode).toBe(500)
+    expect(error.statusMessage).toContain('[shopify] GraphQL error:')
+    expect(error.statusMessage).toContain('(at `products`)')
   })
 
   it('should generate storefront api types', async () => {

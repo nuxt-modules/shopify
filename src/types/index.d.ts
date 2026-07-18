@@ -182,32 +182,6 @@ declare module '#app' {
      * Called when the customer account client throws an error within nuxt
      */
     'customer-account:client:errors': ({ errors }: ShopifyErrorHookParams) => HookResult
-
-    /**
-     * Called before redirecting the user to Shopify to start the browser-mode OAuth flow.
-     * The `params` object is the authorization request query and may be mutated (e.g. to add a `locale`).
-     */
-    'customer-account:auth:authorize': ({ params }: ShopifyCustomerAccountAuthorizeHookParams) => HookResult
-
-    /**
-     * Called after a successful customer account login in browser mode, after the session is stored.
-     */
-    'customer-account:auth:success': ({ user, tokens }: ShopifyCustomerAccountAuthSuccessHookParams) => HookResult
-
-    /**
-     * Called after the customer account access token has been refreshed in browser mode.
-     */
-    'customer-account:auth:refresh': ({ tokens }: ShopifyCustomerAccountAuthRefreshHookParams) => HookResult
-
-    /**
-     * Called before the customer account session is cleared on logout in browser mode.
-     */
-    'customer-account:auth:logout': ({ user, idToken }: ShopifyCustomerAccountAuthLogoutHookParams) => HookResult
-
-    /**
-     * Called when the customer account OAuth flow fails in browser mode.
-     */
-    'customer-account:auth:error': ({ error }: ShopifyCustomerAccountAuthErrorHookParams) => HookResult
   }
 }
 
@@ -363,6 +337,7 @@ export type {
 } from './client'
 
 export type {
+  AnalyticsConsentFlags,
   AnalyticsEmitter,
   AnalyticsEventName,
   AnalyticsEventPayload,
@@ -379,5 +354,6 @@ export type {
   ShopifyAnalyticsCart,
   ShopifyAnalyticsCartLine,
   ShopifyAnalyticsContext,
+  ShopifyAnalyticsShopContext,
   TrackingConsent,
 } from './analytics'

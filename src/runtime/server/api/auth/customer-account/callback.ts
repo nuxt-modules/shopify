@@ -62,6 +62,31 @@ export default defineEventHandler(async (event) => {
 
   const query = getQuery(event)
 
+  if (query.error) {
+    const error = String(query.error)
+    const description = typeof query.error_description === 'string' ? query.error_description : undefined
+
+    const returnTo = sanitizeReturnPath(getCookie(event, RETURN_TO_COOKIE))
+
+    deleteCookie(event, STATE_COOKIE)
+    deleteCookie(event, NONCE_COOKIE)
+    deleteCookie(event, VERIFIER_COOKIE)
+    deleteCookie(event, RETURN_TO_COOKIE)
+
+    await nitroApp.hooks.callHook('customer-account:auth:error', { error: new Error(description ?? error) })
+
+    if (error === 'access_denied') {
+      createLogger().debug('Customer account authorization was declined by the customer')
+
+      return sendRedirect(event, returnTo ?? '/')
+    }
+
+    throw createError({
+      statusCode: 401,
+      statusMessage: `[shopify] Customer account authorization failed: ${description ?? error}`,
+    })
+  }
+
   // First leg: no authorization code yet, so we start the OAuth flow.
   if (!query.code) {
     createLogger().debug('Starting customer account OAuth flow')

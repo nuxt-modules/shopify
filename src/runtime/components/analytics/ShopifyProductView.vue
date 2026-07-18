@@ -10,12 +10,13 @@ const props = defineProps<{
 
 const analytics = useShopifyAnalytics()
 
-onMounted(() => analytics.publish('product_viewed', props.data))
+const publish = () => {
+  if (props.data.products.length) analytics.publish('product_viewed', props.data)
+}
 
-watch(
-  () => props.data.products.map(product => product.variantId ?? product.id).join(','),
-  () => analytics.publish('product_viewed', props.data),
-)
+onMounted(publish)
+
+watch(() => props.data.products.map(product => product.variantId ?? product.id).join(','), publish)
 </script>
 
 <template>

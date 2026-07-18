@@ -143,6 +143,17 @@ describe('applyDocumentTrackingHeaders', () => {
     expect(serverTiming()).not.toContain('second-y')
   })
 
+  it('keeps looking when the first response carries no tracking values', () => {
+    const { event, serverTiming } = createEvent()
+
+    collectTrackingHeaders(event, shopifyResponse('processing;dur=12'))
+    collectTrackingHeaders(event, shopifyResponse('_y;desc="late-y", _s;desc="late-s"'))
+    applyDocumentTrackingHeaders(event)
+
+    expect(serverTiming()).toContain('late-y')
+    expect(serverTiming()).toContain('late-s')
+  })
+
   it('emits at least three entries so the browser will read them', () => {
     const { event, serverTiming } = createEvent()
 

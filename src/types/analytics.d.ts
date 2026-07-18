@@ -19,6 +19,11 @@ export interface ShopAnalytics {
   hydrogenSubchannelId: string
 }
 
+export interface ShopifyAnalyticsShopContext {
+  country?: string
+  language?: string
+}
+
 export interface AnalyticsProductInput {
   id: string
   title: string
@@ -105,6 +110,14 @@ export interface PrivacyBanner {
   showPreferences: (config?: Record<string, unknown>) => void
 }
 
+export interface AnalyticsConsentFlags {
+  analyticsAllowed: boolean
+  marketingAllowed: boolean
+  saleOfDataAllowed: boolean
+  ccpaEnforced: boolean
+  gdprEnforced: boolean
+}
+
 export interface TrackingConsent {
   analytics?: boolean
   marketing?: boolean
@@ -120,4 +133,5 @@ export interface ShopifyAnalyticsContext {
   publish: <E extends AnalyticsEventName>(event: E, payload: AnalyticsEventPayload<E>) => void
   subscribe: <E extends AnalyticsEventName>(event: E, callback: AnalyticsSubscriber<E>) => () => void
   setTrackingConsent: (consent: TrackingConsent, callback?: (result: { error?: string }) => void) => void
+  setShopContext: (context: ShopifyAnalyticsShopContext) => Promise<ShopAnalytics | null>
 }

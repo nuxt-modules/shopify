@@ -17,16 +17,15 @@ const unauthorized = () => createError({ statusCode: 401, statusMessage: 'Unauth
  * @throws Will throw an unauthorized error if validation fails.
  */
 export const validate = async (event: H3Event) => {
-  const runtimeConfig = useRuntimeConfig()
+  const { _shopify } = useRuntimeConfig()
 
-  if (import.meta.dev) {
-    createLogger().debug('Skipping webhook HMAC validation in dev mode')
+  if (!_shopify?.webhooks?.secret) {
+    if (!import.meta.dev) throw unauthorized()
+
+    createLogger().warn('Skipping webhook HMAC validation: no webhook secret is configured. Requests to this handler are unauthenticated')
+
     return
   }
-
-  const { _shopify } = runtimeConfig
-
-  if (!_shopify?.webhooks?.secret) throw unauthorized()
 
   const shopifyHmac = getWebhookHmac(event)
 

@@ -15,7 +15,7 @@ export default defineBuildConfig({
   ],
 
   replace: {
-    'await setupDevMode(nuxt, logger)': '',
+    'await setupDevMode(nuxt)': '',
   },
 
   externals: [

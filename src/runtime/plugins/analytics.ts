@@ -18,7 +18,7 @@ import { createEmitter } from '../utils/analytics/emitter'
 import { clearTrackingTokens } from '../utils/analytics/cookies'
 import { setupCustomerPrivacy } from '../utils/analytics/consent'
 import { createPageViewTracker } from '../utils/analytics/page-view'
-import { resolveShopAnalytics } from '../utils/analytics/shop'
+import { createShopResolver } from '../utils/analytics/shop'
 import { createShopifySubscriber } from '../utils/analytics/subscriber'
 import { ensureTrackingValues } from '../utils/analytics/tracking'
 
@@ -55,23 +55,32 @@ export default defineNuxtPlugin({
       locale: analytics.consent?.language || analytics.language,
     })
 
-    const shopResolved = resolveShopAnalytics({
+    const resolveShop = createShopResolver({
       shopId: analytics.shopId,
       currency: analytics.currency,
       language: analytics.language,
       storefrontId: analytics.storefrontId,
-    }).then((resolved) => {
-      if (resolved) shop.value = resolved
     })
+
+    const applyShop = (resolved: ShopAnalytics | null) => {
+      if (resolved) shop.value = resolved
+
+      return resolved
+    }
+
+    const shopResolved = resolveShop().then(applyShop)
 
     const trackingResolved = _shopify.clients.storefront?.proxy
       ? ensureTrackingValues()
       : Promise.resolve()
 
     const ready = Promise.all([shopResolved, privacy.ready, trackingResolved])
+      .catch(error => createLogger().debug('Analytics initialization did not complete cleanly:', error))
 
     const whenReady = (callback: () => void) => {
-      void ready.then(callback)
+      void ready
+        .then(callback)
+        .catch(error => createLogger().debug('Analytics callback failed:', error))
     }
 
     createShopifySubscriber(emitter, {
@@ -89,12 +98,13 @@ export default defineNuxtPlugin({
 
     document.addEventListener('visitorConsentCollected', dropTokensWithoutConsent)
 
-    void ready.then(() => {
+    whenReady(() => {
       if (!analytics.consent?.withPrivacyBanner) dropTokensWithoutConsent()
 
       createLogger().debug('Analytics initialized:', shop.value)
 
-      void nuxtApp.callHook('analytics:ready', { shop: shop.value })
+      void Promise.resolve(nuxtApp.callHook('analytics:ready', { shop: shop.value }))
+        .catch(error => createLogger().debug('Analytics ready hook failed:', error))
     })
 
     const context: ShopifyAnalyticsContext = {
@@ -103,9 +113,12 @@ export default defineNuxtPlugin({
       setCart: value => (cart.value = value),
       canTrack: privacy.canTrack,
       setTrackingConsent: privacy.setTrackingConsent,
+      setShopContext: context => resolveShop(context).then(applyShop),
 
       publish: (event, payload) => {
-        void nuxtApp.callHook('analytics:publish', { event, payload })
+        void Promise.resolve(nuxtApp.callHook('analytics:publish', { event, payload }))
+          .catch(error => createLogger().debug('Analytics publish hook failed:', error))
+
         emitter.emit(event, payload)
       },
 

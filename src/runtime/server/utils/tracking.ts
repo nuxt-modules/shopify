@@ -114,10 +114,15 @@ export function collectTrackingHeaders(event: H3Event, headers?: Headers): void 
 
   const state = useTrackingState(event)
 
-  if (state.serverTiming !== undefined) return
+  const serverTiming = headers.get('server-timing')
 
-  state.serverTiming = headers.get('server-timing') ?? ''
-  state.setCookie = typeof headers.getSetCookie === 'function' ? headers.getSetCookie() : []
+  if (serverTiming && !state.serverTiming && Object.keys(extractTrackedTimings(serverTiming)).length) {
+    state.serverTiming = serverTiming
+  }
+
+  if (!state.setCookie.length && typeof headers.getSetCookie === 'function') {
+    state.setCookie = headers.getSetCookie()
+  }
 }
 
 function forwardCookies(event: H3Event, cookies: string[]): string[] {

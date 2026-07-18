@@ -12,6 +12,7 @@ function createNoopContext(): ShopifyAnalyticsContext {
     publish: () => {},
     subscribe: () => () => {},
     setTrackingConsent: () => {},
+    setShopContext: () => Promise.resolve(null),
   }
 }
 
