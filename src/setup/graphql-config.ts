@@ -52,7 +52,7 @@ function splitDocuments(documents: string[]): Pick<GraphqlProject, 'documents' |
   }
 }
 
-export default async function setupGraphqlConfig(nuxt: Nuxt, config: ShopifyConfig) {
+export default function setupGraphqlConfig(nuxt: Nuxt, config: ShopifyConfig) {
   const logger = useLogger()
 
   if (!config.graphql.generateConfig) {

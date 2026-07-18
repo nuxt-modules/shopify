@@ -115,7 +115,6 @@ export default async function setupClients(nuxt: Nuxt, config: ShopifyConfig, re
           handler: resolver.resolve('./runtime/server/api/auth/customer-account/bridge'),
         })
 
-        // Resolve the bridge URL to an absolute dev-server URL so the handoff targets the real port.
         const bridgeURL = joinURL(nuxt.options.devServer.url, bridgePath)
 
         if (nuxt.options.runtimeConfig._shopify?.clients.customerAccount?.dev) {

@@ -4,18 +4,23 @@ import type {
   ShopifyAnalyticsContext,
 } from '../../module'
 
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
+import defu from 'defu'
 import {
   defineNuxtPlugin,
+  useRouter,
   useRuntimeConfig,
 } from '#imports'
 
 import { createLogger } from '../utils/log'
+import { createCartTracker } from '../utils/analytics/cart'
 import { createEmitter } from '../utils/analytics/emitter'
+import { clearTrackingTokens } from '../utils/analytics/cookies'
 import { setupCustomerPrivacy } from '../utils/analytics/consent'
+import { createPageViewTracker } from '../utils/analytics/page-view'
 import { resolveShopAnalytics } from '../utils/analytics/shop'
 import { createShopifySubscriber } from '../utils/analytics/subscriber'
-import defu from 'defu'
+import { ensureTrackingValues } from '../utils/analytics/tracking'
 
 export default defineNuxtPlugin({
   name: 'shopify:analytics',
@@ -59,7 +64,11 @@ export default defineNuxtPlugin({
       if (resolved) shop.value = resolved
     })
 
-    const ready = Promise.all([shopResolved, privacy.ready])
+    const trackingResolved = _shopify.clients.storefront?.proxy
+      ? ensureTrackingValues()
+      : Promise.resolve()
+
+    const ready = Promise.all([shopResolved, privacy.ready, trackingResolved])
 
     const whenReady = (callback: () => void) => {
       void ready.then(callback)
@@ -68,11 +77,21 @@ export default defineNuxtPlugin({
     createShopifySubscriber(emitter, {
       shop: () => shop.value,
       domain: host,
+      cookieDomain: privacy.cookieDomain,
       canTrack: privacy.canTrack,
+      getConsent: privacy.getConsent,
       whenReady,
     })
 
+    const dropTokensWithoutConsent = () => {
+      if (!privacy.canTrack()) clearTrackingTokens(privacy.cookieDomain)
+    }
+
+    document.addEventListener('visitorConsentCollected', dropTokensWithoutConsent)
+
     void ready.then(() => {
+      if (!analytics.consent?.withPrivacyBanner) dropTokensWithoutConsent()
+
       createLogger().debug('Analytics initialized:', shop.value)
 
       void nuxtApp.callHook('analytics:ready', { shop: shop.value })
@@ -91,6 +110,18 @@ export default defineNuxtPlugin({
       },
 
       subscribe: emitter.on,
+    }
+
+    watch(cart, createCartTracker({ publish: context.publish }))
+
+    if (analytics.autoPageView) {
+      const trackPageView = createPageViewTracker({
+        router: useRouter(),
+        shop: () => shop.value,
+        publish: url => context.publish('page_viewed', { url }),
+      })
+
+      whenReady(trackPageView)
     }
 
     const shopifyContext = nuxtApp.$shopify as { analytics?: ShopifyAnalyticsContext } ?? {}

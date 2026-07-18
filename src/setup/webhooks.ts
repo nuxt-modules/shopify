@@ -1,11 +1,8 @@
 import type { Resolver } from '@nuxt/kit'
-import type { Nuxt } from '@nuxt/schema'
-
-import type { ShopifyConfig } from '../types'
 
 import { addServerImports } from '@nuxt/kit'
 
-export default async function setupWebhooks(nuxt: Nuxt, config: ShopifyConfig, resolver: Resolver) {
+export default function setupWebhooks(resolver: Resolver) {
   const functionsPath = resolver.resolve('./runtime/server/utils/webhooks/functions')
 
   addServerImports([

@@ -12,18 +12,20 @@ function getPrivacyWindow() {
   return windowRef<{ Shopify?: { customerPrivacy?: CustomerPrivacyApi }, privacyBanner?: PrivacyBanner }>()
 }
 
-function parseStoreDomain(checkoutDomain: string): string | undefined {
+export function parseStoreDomain(checkoutDomain: string): string | undefined {
   if (typeof window === 'undefined') return undefined
 
   const current = window.location.host.split('.').reverse()
   const checkout = checkoutDomain.split('.').reverse()
   const shared: string[] = []
 
-  checkout.forEach((part, index) => {
-    if (part === current[index]) shared.push(part)
-  })
+  for (const [index, part] of checkout.entries()) {
+    if (part !== current[index]) break
 
-  return shared.reverse().join('.') || undefined
+    shared.push(part)
+  }
+
+  return shared.length > 1 ? shared.reverse().join('.') : undefined
 }
 
 function getCustomerPrivacy(): CustomerPrivacyApi | null {
@@ -78,7 +80,19 @@ export function setupCustomerPrivacy(config: {
   return {
     ready,
 
+    cookieDomain: ancestorDomain ? `.${ancestorDomain}` : undefined,
+
     canTrack: () => getCustomerPrivacy()?.analyticsProcessingAllowed() ?? false,
+
+    getConsent: () => {
+      const api = getCustomerPrivacy()
+
+      return {
+        analyticsAllowed: api?.analyticsProcessingAllowed() ?? false,
+        marketingAllowed: api?.marketingAllowed() ?? false,
+        saleOfDataAllowed: api?.saleOfDataAllowed() ?? false,
+      }
+    },
 
     setTrackingConsent: (consent: TrackingConsent, callback?: (result: { error?: string }) => void) => {
       getCustomerPrivacy()?.setTrackingConsent({ ...consentConfig, ...consent }, callback)

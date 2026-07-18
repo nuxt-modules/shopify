@@ -2,7 +2,10 @@ import type { StorefrontApiClient, StorefrontOperations } from '@nuxtjs/shopify/
 
 import { joinURL } from 'ufo'
 
-import { useRuntimeConfig, useNuxtApp, useRequestURL } from '#imports'
+import { getRequestHeader } from 'h3'
+
+import { useRuntimeConfig, useNuxtApp, useRequestURL, useRequestEvent } from '#imports'
+import { createTrackingHeaders, collectTrackingHeaders } from '../../server/utils/tracking'
 import { createClient } from '../../utils/client'
 import { createStorefrontConfig } from '../../utils/clients/storefront'
 import useErrors from '../../utils/errors'
@@ -19,6 +22,12 @@ export function useStorefront(): StorefrontApiClient<true> {
     config.apiUrl = joinURL(useRequestURL().origin, _shopify.clients.storefront.proxy.path)
   }
 
+  const event = import.meta.server ? useRequestEvent() : undefined
+
+  if (event) {
+    Object.assign(config.headers, createTrackingHeaders(event, getRequestHeader(event, 'cookie')))
+  }
+
   nuxtApp.hooks.callHook('storefront:client:configure', { config })
 
   const originalClient = createClient<StorefrontOperations, true>(config)
@@ -30,6 +39,8 @@ export function useStorefront(): StorefrontApiClient<true> {
     nuxtApp.hooks.callHook('storefront:client:request', { operation, options })
 
     const response = await useCache(storage, originalClient.request, operation, options, cacheOptions)
+
+    if (event) collectTrackingHeaders(event, response.headers)
 
     if (response.errors) useErrors(nuxtApp.hooks, 'storefront:client:errors', response.errors, _shopify?.errors?.throw ?? false)
 

@@ -3,13 +3,15 @@ import type { ShopAnalytics } from '../../../module'
 import { useStorefront } from '../../composables/storefront/client'
 import { createLogger } from '../log'
 
-const SHOP_QUERY = `query ShopifyAnalyticsShop {
-  shop { id }
-  localization {
-    country { currency { isoCode } }
-    language { isoCode }
+const SHOP_QUERY = `#graphql
+  query ShopifyAnalyticsShop {
+    shop { id }
+    localization {
+      country { currency { isoCode } }
+      language { isoCode }
+    }
   }
-}`
+`
 
 interface ShopQueryResult {
   shop?: { id?: string }

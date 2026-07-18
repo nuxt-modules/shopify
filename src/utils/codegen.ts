@@ -138,7 +138,7 @@ export function createIntrospectionGenerator(): NuxtTemplate<ShopifyTemplateOpti
     return extractResult(generate({
       overwrite: true,
       ignoreNoDocuments: true,
-      silent: useLogger().level < LogLevels.debug,
+      silent: useLogger().level < LogLevels.verbose,
       generates: {
         [data.options.filename]: generatorConfig,
       },
@@ -161,7 +161,7 @@ export function createTypesGenerator(): NuxtTemplate<ShopifyTemplateOptions>['ge
     return extractResult(generate({
       overwrite: true,
       ignoreNoDocuments: true,
-      silent: useLogger().level < LogLevels.debug,
+      silent: useLogger().level < LogLevels.verbose,
       generates: {
         [data.options.filename]: generatorConfig,
       },
@@ -204,7 +204,7 @@ export function createOperationsGenerator(): NuxtTemplate<ShopifyTemplateOptions
 
     return extractResult(generate({
       overwrite: true,
-      silent: useLogger().level < LogLevels.debug,
+      silent: useLogger().level < LogLevels.verbose,
       generates: {
         [data.options.filename]: generatorConfig,
       },

@@ -2,6 +2,7 @@ packages:
   - playgrounds/*
   - template
   - docs
+
 allowBuilds:
   "@parcel/watcher": true
   better-sqlite3: true
@@ -9,3 +10,6 @@ allowBuilds:
   sharp: true
   unrs-resolver: true
   vue-demi: true
+
+minimumReleaseAge: 1440 # 1 day
+minimumReleaseAgeStrict: true

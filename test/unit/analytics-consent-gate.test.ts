@@ -1,11 +1,12 @@
 // @vitest-environment happy-dom
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { sendSpy } = vi.hoisted(() => ({ sendSpy: vi.fn() }))
+const { sendSpy } = vi.hoisted(() => ({ sendSpy: vi.fn().mockResolvedValue(undefined) }))
 
 vi.mock('@shopify/hydrogen-react', () => ({
   sendShopifyAnalytics: sendSpy,
   getClientBrowserParameters: () => ({ url: 'https://shop.test/', path: '/' }),
+  getTrackingValues: () => ({ uniqueToken: '', visitToken: '', consent: '' }),
   AnalyticsEventName: { PAGE_VIEW_2: 'PAGE_VIEW_2', PRODUCT_VIEW: 'PRODUCT_VIEW', COLLECTION_VIEW: 'COLLECTION_VIEW', SEARCH_VIEW: 'SEARCH_VIEW', ADD_TO_CART: 'ADD_TO_CART' },
   AnalyticsPageType: { product: 'product', collection: 'collection', search: 'search' },
   ShopifySalesChannel: { headless: 'headless' },
@@ -32,18 +33,30 @@ beforeEach(() => {
 })
 
 describe('shopify subscriber consent gate', () => {
-  it('sends nothing and sets no tracking cookie when consent is denied', () => {
+  it('sends nothing when consent is denied', () => {
     subscriber(() => false).emit('page_viewed', { url: 'https://shop.test/' })
 
     expect(sendSpy).not.toHaveBeenCalled()
-    expect(document.cookie).not.toContain('_shopify_y')
   })
 
-  it('sends and sets the visitor cookie when consent is granted', () => {
+  it('sends when consent is granted', () => {
     subscriber(() => true).emit('page_viewed', { url: 'https://shop.test/' })
 
     expect(sendSpy).toHaveBeenCalledOnce()
+  })
+
+  it('writes the visitor tokens Shopify no longer issues', () => {
+    subscriber(() => true).emit('page_viewed', { url: 'https://shop.test/' })
+
     expect(document.cookie).toContain('_shopify_y')
+    expect(document.cookie).toContain('_shopify_s')
+  })
+
+  it('writes no tracking cookies without consent', () => {
+    subscriber(() => false).emit('page_viewed', { url: 'https://shop.test/' })
+
+    expect(document.cookie).not.toContain('_shopify_y')
+    expect(document.cookie).not.toContain('_shopify_s')
   })
 
   it('does not send when shop identity is incomplete', () => {

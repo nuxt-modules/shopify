@@ -14,11 +14,15 @@ import {
   fetchCustomerIdentity,
   generateCodeChallenge,
   generateRandomToken,
+  getIdTokenNonce,
   getOpenIdConfiguration,
+  sanitizeReturnPath,
 } from '../../../../utils/customer-account/oauth'
 
 const STATE_COOKIE = 'shopify-customer-account-state'
 const VERIFIER_COOKIE = 'shopify-customer-account-verifier'
+const NONCE_COOKIE = 'shopify-customer-account-nonce'
+const RETURN_TO_COOKIE = 'shopify-customer-account-return-to'
 
 const transientCookieOptions: Parameters<typeof setCookie>[3] = {
   httpOnly: true,
@@ -63,8 +67,16 @@ export default defineEventHandler(async (event) => {
     createLogger().debug('Starting customer account OAuth flow')
 
     const state = generateRandomToken(16)
+    const nonce = generateRandomToken(16)
 
     setCookie(event, STATE_COOKIE, state, transientCookieOptions)
+    setCookie(event, NONCE_COOKIE, nonce, transientCookieOptions)
+
+    const returnTo = sanitizeReturnPath(query.return_to)
+
+    if (returnTo) {
+      setCookie(event, RETURN_TO_COOKIE, returnTo, transientCookieOptions)
+    }
 
     let codeChallenge: string | undefined
 
@@ -76,12 +88,20 @@ export default defineEventHandler(async (event) => {
       codeChallenge = await generateCodeChallenge(codeVerifier)
     }
 
+    const asString = (value: unknown) => typeof value === 'string' && value ? value : undefined
+
     const params = buildAuthorizationParams({
       clientId: customerAccount.clientId,
       redirectUri,
       scope: customerAccount.scope,
       state,
+      nonce,
       codeChallenge,
+      loginHint: asString(query.login_hint),
+      loginHintMode: asString(query.login_hint_mode),
+      locale: asString(query.locale),
+      regionCountry: asString(query.region_country),
+      acrValues: asString(query.acr_values),
     })
 
     await nitroApp.hooks.callHook('customer-account:auth:authorize', { params })
@@ -91,10 +111,14 @@ export default defineEventHandler(async (event) => {
 
   // Second leg: Shopify redirected back with an authorization code.
   const expectedState = getCookie(event, STATE_COOKIE)
+  const expectedNonce = getCookie(event, NONCE_COOKIE)
   const codeVerifier = getCookie(event, VERIFIER_COOKIE)
+  const returnTo = sanitizeReturnPath(getCookie(event, RETURN_TO_COOKIE))
 
   deleteCookie(event, STATE_COOKIE)
+  deleteCookie(event, NONCE_COOKIE)
   deleteCookie(event, VERIFIER_COOKIE)
+  deleteCookie(event, RETURN_TO_COOKIE)
 
   if (!expectedState || query.state !== expectedState) {
     throw createError({ statusCode: 403, statusMessage: '[shopify] Invalid OAuth state' })
@@ -115,6 +139,14 @@ export default defineEventHandler(async (event) => {
       codeVerifier,
     })
 
+    if (expectedNonce) {
+      const returnedNonce = tokens.id_token ? getIdTokenNonce(tokens.id_token) : undefined
+
+      if (returnedNonce !== expectedNonce) {
+        throw new Error('[shopify] Returned nonce does not match the nonce of the authorization request')
+      }
+    }
+
     const user = await fetchCustomerIdentity(customerAccount.apiUrl, tokens.access_token)
 
     const tokenSet = {
@@ -130,11 +162,10 @@ export default defineEventHandler(async (event) => {
     const bridgeURL = customerAccount.dev?.bridgeURL
     const isTunnelHost = import.meta.dev && tunnelURL?.length && bridgeURL?.length && requestURL.toString().includes(tunnelURL)
 
-    // Dev bridge: hand the session off to localhost instead of persisting it on the tunnel host.
     if (isTunnelHost) {
-      const nonce = createBridgeNonce({ user, tokens: tokenSet })
+      const bridgeNonce = createBridgeNonce({ user, tokens: tokenSet, returnTo })
 
-      return sendRedirect(event, localConsumeUrl(bridgeURL, nonce))
+      return sendRedirect(event, localConsumeUrl(bridgeURL, bridgeNonce))
     }
 
     await setCustomerAccountSession(event, {
@@ -143,7 +174,7 @@ export default defineEventHandler(async (event) => {
       loggedInAt: Date.now(),
     })
 
-    return sendRedirect(event, customerAccount.redirectURL)
+    return sendRedirect(event, returnTo ?? customerAccount.redirectURL)
   }
   catch (error) {
     createLogger().error('Customer account OAuth flow failed:', error)

@@ -20,6 +20,7 @@ import setupImports from './setup/imports'
 import setupProxy from './setup/proxy'
 import setupRequirements from './setup/requirements'
 import setupSandbox from './setup/sandbox'
+import setupVite from './setup/vite'
 import setupWebhooks from './setup/webhooks'
 
 import { configSchema, publicConfigSchema } from './schemas'
@@ -72,16 +73,17 @@ export default defineNuxtModule<ModuleOptions>({
       })
 
       await setupClients(nuxt, config, resolver)
-      await setupAnalytics(nuxt, config, resolver)
-      await setupImports(nuxt, config, resolver)
-      await setupProxy(nuxt, config, resolver)
-      await setupWebhooks(nuxt, config, resolver)
-      await setupCache(nuxt, config, resolver)
-      await setupSandbox(nuxt, config, resolver)
 
-      await setupAuth(nuxt, config)
-      await setupCodegen(nuxt, config)
-      await setupGraphqlConfig(nuxt, config)
+      setupCodegen(nuxt, config)
+      setupAnalytics(config, resolver)
+      setupImports(nuxt, config, resolver)
+      setupCache(nuxt, config, resolver)
+      setupProxy(nuxt, config, resolver)
+      setupAuth(nuxt, config)
+      setupSandbox(nuxt, config, resolver)
+      setupGraphqlConfig(nuxt, config)
+      setupVite(nuxt, config)
+      setupWebhooks(resolver)
 
       await nuxt.callHook('shopify:setup', { nuxt, config })
 

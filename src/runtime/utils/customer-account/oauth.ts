@@ -43,23 +43,83 @@ function getBasicAuthHeader(clientId: string, clientSecret: string): string {
   return `Basic ${btoa(`${clientId}:${clientSecret}`)}`
 }
 
+export function getIdTokenNonce(idToken: string): string | undefined {
+  const payload = idToken.split('.')[1]
+
+  if (!payload) return undefined
+
+  try {
+    const base64 = payload.replace(/-/g, '+').replace(/_/g, '/')
+    const padded = base64.padEnd(base64.length + (4 - base64.length % 4) % 4, '=')
+    const bytes = Uint8Array.from(atob(padded), char => char.charCodeAt(0))
+
+    const claims = JSON.parse(new TextDecoder().decode(bytes)) as { nonce?: string }
+
+    return claims.nonce
+  }
+  catch {
+    return undefined
+  }
+}
+
+export function normalizeLocale(locale: string): string {
+  const [language, region] = locale.replace(/_/g, '-').split('-')
+
+  if (!language) return ''
+
+  return region
+    ? `${language.toLowerCase()}-${region.toUpperCase()}`
+    : language.toLowerCase()
+}
+
+export function sanitizeReturnPath(value: unknown): string | undefined {
+  if (typeof value !== 'string') return undefined
+
+  // eslint-disable-next-line no-control-regex
+  const path = value.replace(/[\u0000-\u0020\u007F]/g, '')
+
+  if (!path.startsWith('/') || path.startsWith('//') || path.includes('\\')) {
+    return undefined
+  }
+
+  return path
+}
+
 export function buildAuthorizationParams(params: {
   clientId: string
   redirectUri: string
   scope: string[]
   state: string
+  nonce?: string
   codeChallenge?: string
+  loginHint?: string
+  loginHintMode?: string
+  locale?: string
+  regionCountry?: string
+  acrValues?: string
 }): Record<string, string> {
+  const locale = params.locale ? normalizeLocale(params.locale) : undefined
+
   return {
     response_type: 'code',
     client_id: params.clientId,
     redirect_uri: params.redirectUri,
     scope: [...new Set(params.scope)].join(' '),
     state: params.state,
+    ...(params.nonce ? { nonce: params.nonce } : {}),
     ...(params.codeChallenge
       ? {
           code_challenge: params.codeChallenge,
           code_challenge_method: 'S256',
+        }
+      : {}),
+    ...(locale ? { locale } : {}),
+    ...(params.regionCountry ? { region_country: params.regionCountry } : {}),
+    ...(params.acrValues ? { acr_values: params.acrValues } : {}),
+    ...(params.loginHint
+      ? {
+          login_hint: params.loginHint,
+          ...(params.loginHintMode ? { login_hint_mode: params.loginHintMode } : {}),
         }
       : {}),
   }

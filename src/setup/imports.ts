@@ -11,7 +11,7 @@ import {
   registerFunctionImports,
 } from '../utils/imports'
 
-export default async function setupImports(nuxt: Nuxt, config: ShopifyConfig, resolver: Resolver) {
+export default function setupImports(nuxt: Nuxt, config: ShopifyConfig, resolver: Resolver) {
   const logger = useLogger()
   const clients = getConfiguredClients(config)
 

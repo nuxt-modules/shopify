@@ -61,7 +61,11 @@ export interface ProductViewPayload { products: AnalyticsProductInput[] }
 export interface CollectionViewPayload { collection: { id: string, handle?: string } }
 export interface SearchViewPayload { searchTerm: string }
 export interface CartViewPayload { cart?: ShopifyAnalyticsCart | null }
-export interface CartLinePayload { cart: ShopifyAnalyticsCart, currentLine: ShopifyAnalyticsCartLine }
+export interface CartLinePayload {
+  cart: ShopifyAnalyticsCart
+  currentLine?: ShopifyAnalyticsCartLine
+  prevLine?: ShopifyAnalyticsCartLine
+}
 export interface CartUpdatePayload { cart: ShopifyAnalyticsCart | null, prevCart?: ShopifyAnalyticsCart | null }
 
 export interface AnalyticsEventPayloads {

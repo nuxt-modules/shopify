@@ -7,7 +7,7 @@ import { addPlugin } from '@nuxt/kit'
 
 import { useLogger } from '../utils/log'
 
-export default async function setupCache(nuxt: Nuxt, config: ShopifyConfig, resolver: Resolver) {
+export default function setupCache(nuxt: Nuxt, config: ShopifyConfig, resolver: Resolver) {
   const logger = useLogger()
   const storefrontPluginPath = resolver.resolve('./runtime/plugins/cache/storefront')
 

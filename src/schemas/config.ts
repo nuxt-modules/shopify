@@ -194,6 +194,8 @@ const analyticsSchema = z.object({
   language: z.string().optional(),
   currency: z.string().optional(),
 
+  autoPageView: z.boolean().optional().default(true),
+
   consent: z.object({
     checkoutDomain: z.string().optional(),
     storefrontAccessToken: z.string().optional(),
@@ -245,7 +247,7 @@ export const configSchema = z.object({
 
   webhooks: webhooksSchema.optional(),
 
-  analytics: enableable(analyticsSchema, {}, false),
+  analytics: enableable(analyticsSchema, { autoPageView: true }, false),
 
   logger: z.any().transform(v => v as Partial<ConsolaOptions>).optional(),
 })

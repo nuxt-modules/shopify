@@ -3,6 +3,7 @@ import type { CustomerAccountTokenSet, CustomerAccountUser } from './session'
 type BridgePayload = {
   user: CustomerAccountUser
   tokens: CustomerAccountTokenSet
+  returnTo?: string
   expiresAt: number
 }
 

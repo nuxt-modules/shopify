@@ -18,6 +18,8 @@ onMounted(() => {
 })
 
 analytics.subscribe('product_added_to_cart', (payload) => {
+  if (!payload.currentLine) return
+
   log.value.unshift(`added ${payload.currentLine.merchandise.product.title}`)
 })
 

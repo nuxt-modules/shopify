@@ -6,7 +6,7 @@ import { useLogger } from '../utils/log'
 import { getConfiguredClients } from '../utils/clients'
 import { registerTemplates } from '../utils/templates'
 
-export default async function setupCodegen(nuxt: Nuxt, config: ShopifyConfig) {
+export default function setupCodegen(nuxt: Nuxt, config: ShopifyConfig) {
   const logger = useLogger()
   const clients = getConfiguredClients(config)
 

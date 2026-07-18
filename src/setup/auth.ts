@@ -4,7 +4,7 @@ import type { ShopifyConfig } from '../types'
 
 import { useLogger } from '../utils/log'
 
-export default async function setupAuth(nuxt: Nuxt, config: ShopifyConfig) {
+export default function setupAuth(nuxt: Nuxt, config: ShopifyConfig) {
   const logger = useLogger()
 
   const adminTokenStorageMount = typeof config.clients.admin?.tokenStorage === 'object'

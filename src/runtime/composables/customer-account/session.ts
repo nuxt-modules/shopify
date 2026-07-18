@@ -1,8 +1,23 @@
 import type { CustomerAccountSession, CustomerAccountUser } from '../../server/utils/customer-account/session'
 
 import { computed } from 'vue'
-import { joinURL, withLeadingSlash } from 'ufo'
+import { joinURL, withLeadingSlash, withQuery } from 'ufo'
 import { createError, navigateTo, useRequestFetch, useRuntimeConfig, useState } from '#imports'
+
+type LoginOptions = {
+  /** Pre-fills the customer's email address on Shopify's login screen. */
+  loginHint?: string
+  /** Set to `submit` to skip the email step when `loginHint` is given. */
+  loginHintMode?: string
+  /** Language of Shopify's login screen, e.g. `de` or `pt-BR`. */
+  locale?: string
+  /** Country context for the login screen, e.g. `DE`. */
+  countryCode?: string
+  /** Authentication context class values, e.g. for B2B flows. */
+  acrValues?: string
+  /** Path to return to after login, defaulting to the configured `redirectURL`. */
+  returnTo?: string
+}
 
 const emptySession = (): CustomerAccountSession => ({
   loggedIn: false,
@@ -30,12 +45,21 @@ export function useCustomerAccountSession() {
     ready.value = true
   }
 
-  const login = () => {
+  const login = (options?: LoginOptions) => {
     let url = withLeadingSlash(customerAccount.loginURL)
 
     if (import.meta.dev && customerAccount.dev.tunnelURL) {
       url = joinURL(customerAccount.dev.tunnelURL, customerAccount.loginURL)
     }
+
+    url = withQuery(url, {
+      ...(options?.loginHint ? { login_hint: options.loginHint } : {}),
+      ...(options?.loginHintMode ? { login_hint_mode: options.loginHintMode } : {}),
+      ...(options?.locale ? { locale: options.locale } : {}),
+      ...(options?.countryCode ? { region_country: options.countryCode } : {}),
+      ...(options?.acrValues ? { acr_values: options.acrValues } : {}),
+      ...(options?.returnTo ? { return_to: options.returnTo } : {}),
+    })
 
     return navigateTo(url, { external: true })
   }

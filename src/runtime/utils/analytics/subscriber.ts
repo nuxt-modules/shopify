@@ -15,7 +15,7 @@ import {
 } from '@shopify/hydrogen-react'
 
 import { createLogger } from '../log'
-import { ensureShopifyCookies } from './cookies'
+import { persistTrackingTokens } from './cookies'
 import { version } from '../../../../package.json'
 
 function formatProducts(products: AnalyticsProductInput[]): ShopifyAnalyticsProduct[] {
@@ -58,10 +58,12 @@ function send(eventName: string, payload: Record<string, unknown>, domain?: stri
 export function createShopifySubscriber(emitter: AnalyticsEmitter, options: {
   shop: () => ShopAnalytics | null
   domain?: string
+  cookieDomain?: string
   canTrack: () => boolean
+  getConsent?: () => { analyticsAllowed: boolean, marketingAllowed: boolean, saleOfDataAllowed: boolean }
   whenReady: (callback: () => void) => void
 }) {
-  const { shop, domain, canTrack, whenReady } = options
+  const { shop, domain, cookieDomain, canTrack, getConsent, whenReady } = options
 
   const basePayload = (): Record<string, unknown> | null => {
     if (!canTrack()) return null
@@ -72,7 +74,7 @@ export function createShopifySubscriber(emitter: AnalyticsEmitter, options: {
       return null
     }
 
-    ensureShopifyCookies()
+    persistTrackingTokens(cookieDomain)
 
     return {
       shopifySalesChannel: ShopifySalesChannel.headless,
@@ -82,10 +84,14 @@ export function createShopifySubscriber(emitter: AnalyticsEmitter, options: {
       acceptedLanguage: resolved.acceptedLanguage,
       hydrogenSubchannelId: resolved.hydrogenSubchannelId,
       hasUserConsent: true,
-      analyticsAllowed: true,
+      ...(getConsent
+        ? getConsent()
+        : { analyticsAllowed: true, marketingAllowed: false, saleOfDataAllowed: false }),
       ...getClientBrowserParameters(),
     }
   }
+
+  let viewPayload: Record<string, unknown> = {}
 
   emitter.on('page_viewed', (data) => {
     whenReady(() => {
@@ -93,8 +99,11 @@ export function createShopifySubscriber(emitter: AnalyticsEmitter, options: {
       if (!payload) return
 
       const url = data?.url
+      const location = url ? { url, path: new URL(url).pathname } : {}
 
-      send(AnalyticsEventName.PAGE_VIEW_2, url ? { ...payload, url, path: new URL(url).pathname } : payload, domain)
+      send(AnalyticsEventName.PAGE_VIEW_2, { ...payload, ...location, ...viewPayload }, domain)
+
+      viewPayload = {}
     })
   })
 
@@ -107,10 +116,14 @@ export function createShopifySubscriber(emitter: AnalyticsEmitter, options: {
 
       const formatted = formatProducts(products)
 
-      send(AnalyticsEventName.PRODUCT_VIEW, {
-        ...payload,
+      viewPayload = {
         pageType: AnalyticsPageType.product,
         resourceId: formatted[0]!.productGid,
+      }
+
+      send(AnalyticsEventName.PRODUCT_VIEW, {
+        ...payload,
+        ...viewPayload,
         products: formatted,
       }, domain)
     })
@@ -123,10 +136,14 @@ export function createShopifySubscriber(emitter: AnalyticsEmitter, options: {
 
       if (!payload || !collection?.id) return
 
-      send(AnalyticsEventName.COLLECTION_VIEW, {
-        ...payload,
+      viewPayload = {
         pageType: AnalyticsPageType.collection,
         resourceId: collection.id,
+      }
+
+      send(AnalyticsEventName.COLLECTION_VIEW, {
+        ...payload,
+        ...viewPayload,
         collectionHandle: collection.handle,
         collectionId: collection.id,
       }, domain)
@@ -138,9 +155,11 @@ export function createShopifySubscriber(emitter: AnalyticsEmitter, options: {
       const payload = basePayload()
       if (!payload) return
 
+      viewPayload = { pageType: AnalyticsPageType.search }
+
       send(AnalyticsEventName.SEARCH_VIEW, {
         ...payload,
-        pageType: AnalyticsPageType.search,
+        ...viewPayload,
         searchString: data?.searchTerm,
       }, domain)
     })
