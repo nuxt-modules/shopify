@@ -50,7 +50,7 @@ export function useCustomerAccountData<
       : Options extends { pick: any }
         ? InferPickType<ResT, Options>
         : ResT
-    ) | undefined,
+    ) | null | undefined,
     (NuxtErrorDataT extends Error | NuxtError ? NuxtErrorDataT : NuxtError<NuxtErrorDataT>) | null | undefined
 >
 
@@ -69,7 +69,7 @@ export function useCustomerAccountData<
       : Options extends { pick: any }
         ? InferPickType<ResT, Options>
         : ResT
-    ) | undefined,
+    ) | null | undefined,
     (NuxtErrorDataT extends Error | NuxtError ? NuxtErrorDataT : NuxtError<NuxtErrorDataT>) | null | undefined
 >
 
@@ -79,7 +79,8 @@ export function useCustomerAccountData<
 >(...args: any[]) {
   if (args.length < 1 || args.length > 3) {
     throw createError({
-      statusCode: 500,
+      status: 500,
+      statusText: 'Internal Server Error',
       message: '[shopify] [useCustomerAccountData] Invalid number of arguments',
     })
   }
@@ -106,9 +107,14 @@ export function useCustomerAccountData<
     ...(apiVersion ? { apiVersion } : {}),
     ...(retries ? { retries } : {}),
     ...(signal ? { signal } : {}),
-  } as ShopifyApiClientRequestOptions<Operation, CustomerAccountOperations, false>).then(r => r.data!)
+  } as ShopifyApiClientRequestOptions<Operation, CustomerAccountOperations, false>).then(r => (r.data ?? null) as ResT)
+
+  const asyncDataOptions = {
+    ...asyncOptions,
+    transform: async (data: ResT) => (asyncOptions.transform ? await asyncOptions.transform(data) : data) ?? null,
+  } as AsyncDataOptions<ResT>
 
   return key
-    ? useAsyncData(key, handler, asyncOptions as AsyncDataOptions<ResT>)
-    : useAsyncData(handler, asyncOptions as AsyncDataOptions<ResT>)
+    ? useAsyncData(key, handler, asyncDataOptions)
+    : useAsyncData(handler, asyncDataOptions)
 }
