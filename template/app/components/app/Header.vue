@@ -2,6 +2,10 @@
 const { language, country } = useLocalization()
 const localePath = useLocalePath()
 
+const { public: { _shopify } } = useRuntimeConfig()
+
+const hasAccount = computed(() => !!_shopify?.clients?.customerAccount)
+
 const { data: items } = await useStorefrontData('main-menu', `#graphql
   query GetNavigation($handle: String!, $language: LanguageCode, $country: CountryCode)
   @inContext(language: $language, country: $country) {
@@ -36,18 +40,20 @@ const { data: items } = await useStorefrontData('main-menu', `#graphql
     </template>
 
     <UNavigationMenu
-      :items="items"
+      :items="items ?? []"
     />
 
     <template #body>
       <UNavigationMenu
-        :items="items"
+        :items="items ?? []"
         orientation="vertical"
       />
     </template>
 
     <template #right>
       <SearchModal />
+
+      <AccountMenu v-if="hasAccount" />
 
       <CartModal />
     </template>

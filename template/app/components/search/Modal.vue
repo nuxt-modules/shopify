@@ -118,6 +118,9 @@ const updateQuery = debounce((value: string) => query.value = value, 300)
       variant="ghost"
       color="neutral"
       :label="$t('search.label')"
+      :ui="{
+        label: 'hidden min-[380px]:block',
+      }"
     />
 
     <template #content>
@@ -127,6 +130,11 @@ const updateQuery = debounce((value: string) => query.value = value, 300)
         :groups="groups"
         :close="true"
         @update:search-term="updateQuery"
+      />
+
+      <ShopifySearchView
+        v-if="query"
+        :data="{ searchTerm: query }"
       />
     </template>
   </UModal>

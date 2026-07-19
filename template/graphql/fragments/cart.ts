@@ -7,8 +7,10 @@ export const CART_LINE_FRAGMENT = `#graphql
         ...ProductVariantFields
 
         product {
+          id
           handle
           title
+          vendor
         }
       }
     }
@@ -39,6 +41,7 @@ export const CART_LINE_CONNECTION_FRAGMENT = `#graphql
 export const CART_FRAGMENT = `#graphql
   fragment CartFields on Cart {
     id
+    updatedAt
     checkoutUrl
     totalQuantity
     lines(first: 250) {

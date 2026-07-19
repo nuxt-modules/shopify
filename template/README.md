@@ -11,7 +11,7 @@
 
 - 🛍️ **Shopify Integration**: Sell your products directly from your Nuxt app with [Nuxt Shopify](https://github.com/nuxt-modules/shopify)
 - 🌐 **Internationalization**: Built-in page localizations with Nuxt i18n
-- 👤 **Order and Account Management**: View and manage order status and customer accounts (Coming soon)
+- 👤 **Order and Account Management**: Log in with the Customer Account API to view your profile and order history
 - 🧩 **UI Components**: Built with Nuxt UI components and Tailwind 4 for a consistent look and feel
 - 🖼️ **Image Optimization**: Automatically optimized images with Nuxt Image
 - 🔗 **Type Safety**: Fully type-safe and checked with Vue-Tsc
@@ -56,6 +56,15 @@ NUXT_SHOPIFY_NAME="YOUR_SHOP_NAME"
 NUXT_SHOPIFY_CLIENTS_STOREFRONT_API_VERSION="2026-01"
 NUXT_SHOPIFY_CLIENTS_STOREFRONT_PUBLIC_ACCESS_TOKEN="YOUR_PUBLIC_ACCESS_TOKEN"
 ```
+
+To enable the customer account (login, profile and order history), add your [Customer Account API](https://shopify.nuxtjs.org/essentials/customer-account) credentials as well:
+
+```sh
+NUXT_SHOPIFY_CLIENTS_CUSTOMER_ACCOUNT_CLIENT_ID="YOUR_CUSTOMER_ACCOUNT_CLIENT_ID"
+NUXT_SHOPIFY_CLIENTS_CUSTOMER_ACCOUNT_CLIENT_SECRET="YOUR_CUSTOMER_ACCOUNT_CLIENT_SECRET"
+```
+
+The OAuth flow needs a publicly reachable URL, so in development point it at a tunnel via the `dev.tunnelURL` option in `nuxt.config.ts`. See the [Customer Account API guide](https://shopify.nuxtjs.org/essentials/customer-account) for details.
 
 And that's it! Now your template is ready to use.
 

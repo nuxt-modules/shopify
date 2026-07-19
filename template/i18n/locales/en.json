@@ -37,7 +37,126 @@
     },
     "account": {
         "label": "Account",
-        "description": "Manage your account and orders"
+        "description": "Manage your account and orders",
+        "greeting": "Welcome back, {name}",
+        "welcome": "Welcome to your account",
+        "logout": "Log out",
+        "subscribeNewsletter": "Email me with news and offers",
+        "menu": {
+            "title": "Your user account",
+            "profile": "Profile",
+            "orders": "Orders",
+            "close": "Close account menu"
+        },
+        "signIn": {
+            "title": "Sign in or create account",
+            "description": "Access your profile, track your orders and manage your details.",
+            "action": "Sign in"
+        },
+        "profile": {
+            "title": "Profile",
+            "name": "Name",
+            "email": "Email",
+            "phone": "Phone",
+            "address": "Default address",
+            "empty": "Not provided",
+            "edit": "Edit profile",
+            "firstName": "First name",
+            "lastName": "Last name",
+            "save": "Save changes",
+            "managedByShopify": "Your email address and phone number are managed by Shopify and cannot be changed here.",
+            "toast": {
+                "updated": "Your profile has been updated.",
+                "error": "Your profile could not be updated."
+            }
+        },
+        "orders": {
+            "title": "Orders",
+            "empty": "You haven't placed any orders yet.",
+            "browse": "Start shopping",
+            "view": "View order",
+            "items": "{count} item | {count} items",
+            "status": {
+                "PAID": "Paid",
+                "PENDING": "Pending",
+                "AUTHORIZED": "Authorized",
+                "PARTIALLY_PAID": "Partially paid",
+                "PARTIALLY_REFUNDED": "Partially refunded",
+                "REFUNDED": "Refunded",
+                "VOIDED": "Voided",
+                "EXPIRED": "Expired"
+            },
+            "viewAll": "View all orders",
+            "notFound": "This order could not be found.",
+            "detail": {
+                "placed": "Placed on {date}",
+                "items": "Items",
+                "summary": "Summary",
+                "subtotal": "Subtotal",
+                "shipping": "Shipping",
+                "tax": "Tax",
+                "total": "Total",
+                "quantity": "Quantity: {count}",
+                "shippingAddress": "Shipping address",
+                "billingAddress": "Billing address",
+                "manage": "Manage order"
+            },
+            "fulfillment": {
+                "FULFILLED": "Fulfilled",
+                "IN_PROGRESS": "In progress",
+                "ON_HOLD": "On hold",
+                "OPEN": "Open",
+                "PARTIALLY_FULFILLED": "Partially fulfilled",
+                "PENDING_FULFILLMENT": "Pending fulfillment",
+                "READY_FOR_DELIVERY": "Ready for delivery",
+                "READY_FOR_PICKUP": "Ready for pickup",
+                "RESTOCKED": "Restocked",
+                "SCHEDULED": "Scheduled",
+                "UNFULFILLED": "Unfulfilled"
+            }
+        },
+        "toast": {
+            "error": {
+                "get": "Could not load your account.",
+                "tryAgain": "Please try again."
+            }
+        },
+        "recommended": "You might also like",
+        "cancel": "Cancel",
+        "addresses": {
+            "title": "Address book",
+            "description": "Manage the addresses saved to your account",
+            "add": "Add address",
+            "edit": "Edit",
+            "delete": "Delete",
+            "save": "Save address",
+            "default": "Default",
+            "setDefault": "Set as default",
+            "empty": "You haven't saved any addresses yet.",
+            "confirm": {
+                "title": "Delete this address?",
+                "description": "This cannot be undone."
+            },
+            "fields": {
+                "firstName": "First name",
+                "lastName": "Last name",
+                "company": "Company",
+                "address1": "Address",
+                "address2": "Apartment, suite, etc.",
+                "city": "City",
+                "zip": "Postal code",
+                "country": "Country",
+                "zone": "State / province",
+                "zoneHint": "Code, e.g. BE",
+                "phone": "Phone"
+            },
+            "toast": {
+                "created": "Address added.",
+                "updated": "Address updated.",
+                "deleted": "Address deleted.",
+                "error": "Your address could not be saved."
+            }
+        }
     },
     "pagination": {
         "previous": "Load previous",
@@ -58,8 +177,6 @@
             "loading": "Loading products...",
             "notFound": "No products found."
         },
-        "featured": "Featured Collection",
-        "unisex": "Unisex Clothing",
         "all": "All Collections"
     },
     "filters": {
@@ -68,7 +185,11 @@
     },
     "home": {
         "title": "Nuxt Shopify Demo Store",
-        "description": "This is a demo store built with Nuxt 4 and the Shopify Storefront API. It showcases how to build a fully functional e-commerce storefront with Nuxt UI."
+        "description": "This is a demo store built with Nuxt 4 and the Shopify Storefront API. It showcases how to build a fully functional e-commerce storefront with Nuxt UI.",
+        "products": {
+            "newest": "Newest Products",
+            "bestsellers": "Bestsellers"
+        }
     },
     "seo": {
         "description": "Welcome to our demo store! Explore our collections and find the perfect items for you. Enjoy a seamless shopping experience with Nuxt and Shopify."

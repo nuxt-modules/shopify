@@ -67,5 +67,10 @@ useSeoMeta({
     </p>
 
     <CollectionProducts :handle="handle" />
+
+    <ShopifyCollectionView
+      v-if="collection"
+      :data="{ collection: { id: collection.id, handle } }"
+    />
   </UContainer>
 </template>

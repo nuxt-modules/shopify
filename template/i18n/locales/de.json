@@ -35,6 +35,129 @@
         "collections": "Kollektionen",
         "articles": "Artikel"
     },
+    "account": {
+        "label": "Konto",
+        "description": "Verwalten Sie Ihr Konto und Ihre Bestellungen",
+        "greeting": "Willkommen zurück, {name}",
+        "welcome": "Willkommen in Ihrem Konto",
+        "logout": "Abmelden",
+        "subscribeNewsletter": "Newsletter abonnieren",
+        "menu": {
+            "title": "Ihr Kundenkonto",
+            "profile": "Profil",
+            "orders": "Bestellungen",
+            "close": "Kundenmenü schließen"
+        },
+        "signIn": {
+            "title": "Melden Sie sich in Ihrem Konto an",
+            "description": "Greifen Sie auf Ihr Profil zu, verfolgen Sie Ihre Bestellungen und verwalten Sie Ihre Daten.",
+            "action": "Anmelden"
+        },
+        "profile": {
+            "title": "Profil",
+            "name": "Name",
+            "email": "E-Mail",
+            "phone": "Telefon",
+            "address": "Standardadresse",
+            "empty": "Nicht angegeben",
+            "edit": "Profil bearbeiten",
+            "firstName": "Vorname",
+            "lastName": "Nachname",
+            "save": "Änderungen speichern",
+            "managedByShopify": "Ihre E-Mail-Adresse und Telefonnummer werden von Shopify verwaltet und können hier nicht geändert werden.",
+            "toast": {
+                "updated": "Ihr Profil wurde aktualisiert.",
+                "error": "Ihr Profil konnte nicht aktualisiert werden."
+            }
+        },
+        "orders": {
+            "title": "Bestellungen",
+            "empty": "Sie haben noch keine Bestellungen aufgegeben.",
+            "browse": "Jetzt einkaufen",
+            "view": "Bestellung ansehen",
+            "items": "{count} Artikel | {count} Artikel",
+            "status": {
+                "PAID": "Bezahlt",
+                "PENDING": "Ausstehend",
+                "AUTHORIZED": "Autorisiert",
+                "PARTIALLY_PAID": "Teilweise bezahlt",
+                "PARTIALLY_REFUNDED": "Teilweise erstattet",
+                "REFUNDED": "Erstattet",
+                "VOIDED": "Storniert",
+                "EXPIRED": "Abgelaufen"
+            },
+            "viewAll": "Alle Bestellungen ansehen",
+            "notFound": "Diese Bestellung konnte nicht gefunden werden.",
+            "detail": {
+                "placed": "Bestellt am {date}",
+                "items": "Artikel",
+                "summary": "Zusammenfassung",
+                "subtotal": "Zwischensumme",
+                "shipping": "Versand",
+                "tax": "Steuern",
+                "total": "Gesamt",
+                "quantity": "Menge: {count}",
+                "shippingAddress": "Lieferadresse",
+                "billingAddress": "Rechnungsadresse",
+                "manage": "Bestellung verwalten"
+            },
+            "fulfillment": {
+                "FULFILLED": "Versandt",
+                "IN_PROGRESS": "In Bearbeitung",
+                "ON_HOLD": "Zurückgestellt",
+                "OPEN": "Offen",
+                "PARTIALLY_FULFILLED": "Teilweise versandt",
+                "PENDING_FULFILLMENT": "Versand ausstehend",
+                "READY_FOR_DELIVERY": "Bereit zur Lieferung",
+                "READY_FOR_PICKUP": "Bereit zur Abholung",
+                "RESTOCKED": "Zurück im Lager",
+                "SCHEDULED": "Geplant",
+                "UNFULFILLED": "Nicht versandt"
+            }
+        },
+        "toast": {
+            "error": {
+                "get": "Ihr Konto konnte nicht geladen werden.",
+                "tryAgain": "Bitte versuchen Sie es erneut."
+            }
+        },
+        "recommended": "Das könnte Ihnen auch gefallen",
+        "cancel": "Abbrechen",
+        "addresses": {
+            "title": "Adressbuch",
+            "description": "Verwalten Sie die in Ihrem Konto gespeicherten Adressen",
+            "add": "Adresse hinzufügen",
+            "edit": "Bearbeiten",
+            "delete": "Löschen",
+            "save": "Adresse speichern",
+            "default": "Standard",
+            "setDefault": "Als Standard festlegen",
+            "empty": "Sie haben noch keine Adressen gespeichert.",
+            "confirm": {
+                "title": "Diese Adresse löschen?",
+                "description": "Dies kann nicht rückgängig gemacht werden."
+            },
+            "fields": {
+                "firstName": "Vorname",
+                "lastName": "Nachname",
+                "company": "Firma",
+                "address1": "Adresse",
+                "address2": "Wohnung, Zusatz usw.",
+                "city": "Stadt",
+                "zip": "Postleitzahl",
+                "country": "Land",
+                "zone": "Bundesland / Provinz",
+                "zoneHint": "Code, z. B. BE",
+                "phone": "Telefon"
+            },
+            "toast": {
+                "created": "Adresse hinzugefügt.",
+                "updated": "Adresse aktualisiert.",
+                "deleted": "Adresse gelöscht.",
+                "error": "Ihre Adresse konnte nicht gespeichert werden."
+            }
+        }
+    },
     "pagination": {
         "previous": "Vorherige Laden",
         "next": "Nächste Laden"
@@ -54,8 +177,6 @@
             "loading": "Produkte werden geladen...",
             "notFound": "Keine Produkte gefunden."
         },
-        "featured": "Empfohlene Kollektion",
-        "unisex": "Unisex-Kleidung",
         "all": "Alle Kollektionen"
     },
     "filters": {
@@ -64,7 +185,11 @@
     },
     "home": {
         "title": "Nuxt Shopify Demo Store",
-        "description": "Dies ist ein Demo-Shop, der mit Nuxt 4 und der Shopify Storefront API erstellt wurde. Er zeigt, wie man einen voll funktionsfähigen E-Commerce-Storefront mit Nuxt UI erstellt."
+        "description": "Dies ist ein Demo-Shop, der mit Nuxt 4 und der Shopify Storefront API erstellt wurde. Er zeigt, wie man einen voll funktionsfähigen E-Commerce-Storefront mit Nuxt UI erstellt.",
+        "products": {
+            "newest": "Neueste Produkte",
+            "bestsellers": "Bestseller"
+        }
     },
     "seo": {
         "description": "Willkommen in unserem Demo-Shop! Entdecken Sie unsere Kollektionen und finden Sie die perfekten Artikel für Sie. Genießen Sie ein nahtloses Einkaufserlebnis mit Nuxt und Shopify."

@@ -24,3 +24,31 @@ export const useLocalization = () => {
     getCountry,
   }
 }
+
+export const useCountries = async () => {
+  const { language, country } = useLocalization()
+  const { locale } = useI18n()
+
+  const { data: localization } = await useStorefrontData(`countries-${locale.value}`, `#graphql
+    query AvailableCountries($language: LanguageCode, $country: CountryCode)
+    @inContext(language: $language, country: $country) {
+      localization {
+        availableCountries {
+          isoCode
+          name
+        }
+      }
+    }
+  `, {
+    variables: localizationParamsSchema.parse({
+      language: language.value,
+      country: country.value,
+    }),
+    transform: data => data?.localization,
+    cache: 'long',
+  })
+
+  return computed(() => (localization.value?.availableCountries ?? [])
+    .map(({ isoCode, name }) => ({ label: name, value: String(isoCode) }))
+    .sort((a, b) => a.label.localeCompare(b.label)))
+}

@@ -1,10 +1,7 @@
 <script setup lang="ts">
 import type { ProductFilter } from '#shopify/storefront'
 
-import { z } from 'zod'
-
 const props = defineProps<{
-  handle: string
   first?: number
   last?: number
   after?: string
@@ -18,7 +15,7 @@ const props = defineProps<{
 const { language, country } = useLocalization()
 const { locale } = useI18n()
 
-const key = computed(() => `product-slider-${props.handle}-${locale.value}`)
+const key = computed(() => `product-slider-${Object.values(props).join('-')}-${locale.value}`)
 
 const first = computed(() => props.first ? Number(props.first) : undefined)
 const last = computed(() => props.last ? Number(props.last) : undefined)
@@ -30,8 +27,7 @@ const reverse = computed(() => props.reverse ? Boolean(props.reverse) : undefine
 const filters = computed(() => props.filters ? props.filters : undefined)
 
 const { data: products } = await useStorefrontData(key, `#graphql
-  query FetchSliderCollection(
-    $handle: String,
+  query FetchSliderProducts(
     $after: String,
     $before: String,
     $first: Int,
@@ -39,26 +35,21 @@ const { data: products } = await useStorefrontData(key, `#graphql
     $language: LanguageCode,
     $country: CountryCode
   )
-  @inContext(language: $language, country: $country) {
-    collection(handle: $handle) {
-      products(
-        after: $after,
-        before: $before,
-        first: $first,
-        last: $last,
-      ) {
-        ...ProductConnectionFields
-      }
+  @inContext(language: $language, country: $country) { 
+    products(
+      after: $after,
+      before: $before,
+      first: $first,
+      last: $last,
+    ) {
+      ...ProductConnectionFields
     }
   }
   ${IMAGE_FRAGMENT}
   ${PRICE_FRAGMENT}
   ${PRODUCT_CONNECTION_FRAGMENT}
 `, {
-  variables: z.object({
-    handle: z.string(),
-  }).extend(productConnectionParamsSchema.shape).extend(localizationParamsSchema.shape).parse({
-    handle: props.handle,
+  variables: productConnectionParamsSchema.extend(localizationParamsSchema.shape).parse({
     first: first.value,
     last: last.value,
     after: after.value,
@@ -69,7 +60,7 @@ const { data: products } = await useStorefrontData(key, `#graphql
     language: language.value,
     country: country.value,
   }),
-  transform: data => flattenConnection(data?.collection?.products),
+  transform: data => flattenConnection(data?.products),
   cache: 'long',
 })
 </script>
@@ -77,11 +68,10 @@ const { data: products } = await useStorefrontData(key, `#graphql
 <template>
   <UCarousel
     v-slot="{ item: product, index }"
-    :items="products"
+    :items="products ?? []"
     class="w-full mb-6"
     :ui="{ item: 'md:basis-1/2 lg:basis-1/3' }"
     arrows
-    loop
   >
     <ProductCard
       :product="product"

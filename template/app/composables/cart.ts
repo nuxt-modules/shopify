@@ -6,11 +6,22 @@ export const useCart = () => {
   const toast = useToast()
   const { t } = useI18n()
 
+  const analytics = useShopifyAnalytics()
+
   const cart = useState<CartFieldsFragment | undefined>('shopify-cart', () => undefined)
   const loading = useState('shopify-cart-loading', () => ref(false))
   const open = useState('shopify-cart-open', () => ref(false))
 
   const id = useCookie<string>('shopify-cart-id', undefined)
+
+  const setCart = (value?: CartFieldsFragment) => {
+    cart.value = value
+
+    analytics.setCart(value
+      ? { ...value, lines: flattenConnection(value.lines) }
+      : null,
+    )
+  }
 
   const lines = computed(() => flattenConnection(cart.value?.lines))
   const checkoutUrl = computed(() => cart.value?.checkoutUrl)
@@ -70,7 +81,7 @@ export const useCart = () => {
       country: country.value,
     }),
   })).then(({ data }) =>
-    cart.value = data?.cart ?? undefined,
+    setCart(data?.cart ?? undefined),
   ).catch(() => toast.add({
     title: t('cart.toast.error.get'),
     description: t('cart.toast.error.tryAgain'),
@@ -107,7 +118,7 @@ export const useCart = () => {
       country: country.value,
     }),
   })).then(({ data }) => {
-    cart.value = data?.cartLinesAdd?.cart ?? undefined
+    setCart(data?.cartLinesAdd?.cart ?? undefined)
 
     if (!open.value) toast.add({
       title: t('cart.toast.add'),
@@ -154,7 +165,7 @@ export const useCart = () => {
       country: country.value,
     }),
   })).then(({ data }) => {
-    cart.value = data?.cartLinesUpdate?.cart ?? undefined
+    setCart(data?.cartLinesUpdate?.cart ?? undefined)
 
     if (!open.value) toast.add({
       title: t('cart.toast.update'),
@@ -196,7 +207,7 @@ export const useCart = () => {
       country: country.value,
     }),
   })).then(({ data }) => {
-    cart.value = data?.cartLinesRemove?.cart ?? undefined
+    setCart(data?.cartLinesRemove?.cart ?? undefined)
 
     if (!open.value) toast.add({
       title: t('cart.toast.remove'),

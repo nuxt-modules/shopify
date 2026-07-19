@@ -62,6 +62,7 @@ export const PRODUCT_FRAGMENT = `#graphql
     id
     handle
     title
+    vendor
     description
     availableForSale
     featuredImage {

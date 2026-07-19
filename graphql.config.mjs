@@ -53,6 +53,7 @@ export const projects = {
   'playground-v3-admin': admin('playgrounds/playground-v3'),
   'playground-v3-storefront': storefront('playgrounds/playground-v3'),
 
+  'template-customer-account': customerAccount('template'),
   'template-storefront': storefront('template'),
   'docs-storefront': storefront('docs'),
 }

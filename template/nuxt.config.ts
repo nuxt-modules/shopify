@@ -16,20 +16,28 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     shopify: {
-      name: 'nuxt-shopify-demo-store',
+      name: 'nuxt-module-store',
 
       clients: {
         storefront: {
           mock: true,
-          apiVersion: '2026-01',
+          apiVersion: '2026-04',
+        },
+
+        customerAccount: {
+          apiVersion: '2026-04',
+          clientId: '',
+        },
+      },
+
+      analytics: {
+        storefrontId: '',
+
+        consent: {
+          withPrivacyBanner: true,
         },
       },
     },
-  },
-
-  routeRules: {
-    '/': { prerender: true },
-    '/blog/**': { isr: 3600 },
   },
 
   compatibilityDate: '2026-03-15',
@@ -64,11 +72,6 @@ export default defineNuxtConfig({
       },
       {
         code: 'de-de',
-        language: 'de',
-        file: 'de.json',
-      },
-      {
-        code: 'de-at',
         language: 'de',
         file: 'de.json',
       },

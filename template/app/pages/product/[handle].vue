@@ -120,5 +120,19 @@ watch(selectedVariant, (variant) => {
         </UCarousel>
       </div>
     </div>
+
+    <ShopifyProductView
+      v-if="product && selectedVariant"
+      :data="{
+        products: [{
+          id: product.id,
+          title: product.title,
+          vendor: product.vendor,
+          price: selectedVariant.price.amount,
+          variantId: selectedVariant.id,
+          variantTitle: selectedVariant.title,
+        }],
+      }"
+    />
   </UContainer>
 </template>
