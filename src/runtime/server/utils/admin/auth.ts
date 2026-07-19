@@ -152,7 +152,8 @@ export const withAdminCredentials = async <Operations extends AdminOperations, C
 
   if (!shopName || !adminClientConfig) {
     throw createError({
-      statusCode: 500,
+      status: 500,
+      statusText: 'Internal Server Error',
       message: '[shopify] Failed to create admin client: missing shop name or admin config',
     })
   }

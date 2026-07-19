@@ -29,13 +29,13 @@ export async function getValidCustomerAccessToken(event: H3Event): Promise<strin
   const customerAccount = _shopify?.clients?.customerAccount
 
   if (!_shopify || !customerAccount) {
-    throw createError({ statusCode: 500, message: '[shopify] Customer account client is not configured' })
+    throw createError({ status: 500, statusText: 'Internal Server Error', message: '[shopify] Customer account client is not configured' })
   }
 
   const session = await getSession<CustomerAccountSessionData>(event, getSessionConfig(_shopify))
 
   if (!session.data.user || !session.id) {
-    throw createError({ statusCode: 401, message: '[shopify] No authenticated customer account session' })
+    throw createError({ status: 401, statusText: 'Unauthorized', message: '[shopify] No authenticated customer account session' })
   }
 
   const id = session.id
@@ -44,7 +44,7 @@ export async function getValidCustomerAccessToken(event: H3Event): Promise<strin
   const tokens = await storage.getItem(id)
 
   if (!tokens?.accessToken) {
-    throw createError({ statusCode: 401, message: '[shopify] Customer account session expired' })
+    throw createError({ status: 401, statusText: 'Unauthorized', message: '[shopify] Customer account session expired' })
   }
 
   if (!isExpired(tokens.expiresAt)) {
@@ -52,7 +52,7 @@ export async function getValidCustomerAccessToken(event: H3Event): Promise<strin
   }
 
   if (!tokens.refreshToken) {
-    throw createError({ statusCode: 401, message: '[shopify] Customer account session expired' })
+    throw createError({ status: 401, statusText: 'Unauthorized', message: '[shopify] Customer account session expired' })
   }
 
   if (!pendingRefreshRequests.has(id)) {
@@ -88,7 +88,7 @@ export async function getValidCustomerAccessToken(event: H3Event): Promise<strin
   const refreshed = await pendingRefreshRequests.get(id)!.catch((error) => {
     createLogger().error('Failed to refresh the customer account session:', error)
 
-    throw createError({ statusCode: 401, message: '[shopify] Customer account session expired' })
+    throw createError({ status: 401, statusText: 'Unauthorized', message: '[shopify] Customer account session expired' })
   })
 
   return refreshed.accessToken

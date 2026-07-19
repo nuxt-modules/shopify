@@ -8,25 +8,25 @@ export default defineEventHandler(async (event) => {
   const { _shopify } = useRuntimeConfig(event)
 
   if (!import.meta.dev) {
-    throw createError({ statusCode: 404, statusMessage: 'Not found' })
+    throw createError({ status: 404, statusText: 'Not Found' })
   }
 
   const customerAccount = _shopify?.clients?.customerAccount
 
   if (!customerAccount) {
-    throw createError({ statusCode: 500, statusMessage: '[shopify] Customer account client is not configured' })
+    throw createError({ status: 500, statusText: 'Internal Server Error', message: '[shopify] Customer account client is not configured' })
   }
 
   const nonce = getQuery(event).nonce
 
   if (typeof nonce !== 'string' || !nonce) {
-    throw createError({ statusCode: 400, statusMessage: '[shopify] Dev bridge missing nonce' })
+    throw createError({ status: 400, statusText: 'Bad Request', message: '[shopify] Dev bridge missing nonce' })
   }
 
   const payload = consumeBridgeNonce(nonce)
 
   if (!payload) {
-    throw createError({ statusCode: 401, statusMessage: '[shopify] Dev bridge invalid or expired nonce' })
+    throw createError({ status: 401, statusText: 'Unauthorized', message: '[shopify] Dev bridge invalid or expired nonce' })
   }
 
   await setCustomerAccountSession(event, {

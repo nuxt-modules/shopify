@@ -36,7 +36,7 @@ function localConsumeUrl(bridgeURL: string, nonce: string) {
   const url = new URL(bridgeURL.includes('://') ? bridgeURL : joinURL('http://localhost:3000', bridgeURL))
 
   if (!['localhost', '127.0.0.1'].includes(url.hostname)) {
-    throw createError({ statusCode: 500, statusMessage: '[shopify] Invalid dev bridge URL for customer account API' })
+    throw createError({ status: 500, statusText: 'Internal Server Error', message: '[shopify] Invalid dev bridge URL for customer account API' })
   }
 
   url.searchParams.set('nonce', nonce)
@@ -50,7 +50,7 @@ export default defineEventHandler(async (event) => {
   const customerAccount = _shopify?.clients?.customerAccount
 
   if (!_shopify || !customerAccount?.clientId || !customerAccount.apiUrl) {
-    throw createError({ statusCode: 500, statusMessage: '[shopify] Customer account client is not configured' })
+    throw createError({ status: 500, statusText: 'Internal Server Error', message: '[shopify] Customer account client is not configured' })
   }
 
   const requestURL = getRequestURL(event)
@@ -82,8 +82,9 @@ export default defineEventHandler(async (event) => {
     }
 
     throw createError({
-      statusCode: 401,
-      statusMessage: `[shopify] Customer account authorization failed: ${description ?? error}`,
+      status: 401,
+      statusText: 'Unauthorized',
+      message: `[shopify] Customer account authorization failed: ${description ?? error}`,
     })
   }
 
@@ -146,11 +147,11 @@ export default defineEventHandler(async (event) => {
   deleteCookie(event, RETURN_TO_COOKIE)
 
   if (!expectedState || query.state !== expectedState) {
-    throw createError({ statusCode: 403, statusMessage: '[shopify] Invalid OAuth state' })
+    throw createError({ status: 403, statusText: 'Forbidden', message: '[shopify] Invalid OAuth state' })
   }
 
   if (!customerAccount.clientSecret && !codeVerifier) {
-    throw createError({ statusCode: 400, statusMessage: '[shopify] Missing PKCE verifier' })
+    throw createError({ status: 400, statusText: 'Bad Request', message: '[shopify] Missing PKCE verifier' })
   }
 
   try {

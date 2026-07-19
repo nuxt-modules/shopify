@@ -31,7 +31,7 @@ export function useCustomerAccountSession() {
   const customerAccount = _shopify?.clients?.customerAccount
 
   if (!customerAccount) {
-    throw createError({ statusCode: 500, message: '[shopify] Customer account client is not configured' })
+    throw createError({ status: 500, statusText: 'Internal Server Error', message: '[shopify] Customer account client is not configured' })
   }
 
   const session = useState<CustomerAccountSession>('shopify-customer-account-session', emptySession)

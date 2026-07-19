@@ -14,7 +14,8 @@ export function getSessionConfig(config?: ShopifyConfig): SessionConfig {
 
   if (!session?.password) {
     throw createError({
-      statusCode: 500,
+      status: 500,
+      statusText: 'Internal Server Error',
       message: '[shopify] Failed to resolve the customer account session: no session password configured. '
         + 'Set `shopify.clients.customerAccount.session.password` or the '
         + '`NUXT_SHOPIFY_CLIENTS_CUSTOMER_ACCOUNT_SESSION_PASSWORD` environment variable.',
@@ -59,7 +60,8 @@ export async function requireCustomerAccountSession(event: H3Event): Promise<Cus
 
   if (!session.user) {
     throw createError({
-      statusCode: 401,
+      status: 401,
+      statusText: 'Unauthorized',
       message: '[shopify] No authenticated customer account session',
     })
   }

@@ -147,11 +147,13 @@ describe('test module with nuxt 4', async () => {
   })
 
   it('should error when given invalid input', async () => {
-    const error = await $fetch('/errors').catch(error => error) as { statusCode?: number, statusMessage?: string }
+    const error = await $fetch('/errors').catch(error => error) as { statusCode?: number, statusMessage?: string, data?: { message?: string } }
 
     expect(error.statusCode).toBe(500)
-    expect(error.statusMessage).toContain('[shopify] GraphQL error:')
-    expect(error.statusMessage).toContain('(at `products`)')
+
+    expect(error.statusMessage).toBe('Internal Server Error')
+    expect(error.data?.message).toContain('[shopify] GraphQL error:')
+    expect(error.data?.message).toContain('(at `products`)')
   })
 
   it('should generate storefront api types', async () => {

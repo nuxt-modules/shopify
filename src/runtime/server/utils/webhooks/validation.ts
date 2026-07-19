@@ -7,7 +7,7 @@ import { useRuntimeConfig } from '#imports'
 import { createLogger } from '../log'
 import { getWebhookHmac } from './functions'
 
-const unauthorized = () => createError({ statusCode: 401, statusMessage: 'Unauthorized' })
+const unauthorized = () => createError({ status: 401, statusText: 'Unauthorized' })
 
 /**
  * Validates an incoming Shopify webhook request by verifying its HMAC signature.

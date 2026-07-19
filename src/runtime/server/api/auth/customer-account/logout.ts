@@ -13,13 +13,13 @@ export default defineEventHandler(async (event) => {
   const customerAccount = _shopify?.clients?.customerAccount
 
   if (!_shopify || !customerAccount) {
-    throw createError({ statusCode: 500, statusMessage: '[shopify] Customer account client is not configured' })
+    throw createError({ status: 500, statusText: 'Internal Server Error', message: '[shopify] Customer account client is not configured' })
   }
 
   const secFetchSite = getRequestHeader(event, 'sec-fetch-site')
 
   if (secFetchSite && !['same-origin', 'same-site', 'none'].includes(secFetchSite)) {
-    throw createError({ statusCode: 403, statusMessage: '[shopify] Cross-site logout is not allowed' })
+    throw createError({ status: 403, statusText: 'Forbidden', message: '[shopify] Cross-site logout is not allowed' })
   }
 
   const { user } = await getCustomerAccountSession(event)
