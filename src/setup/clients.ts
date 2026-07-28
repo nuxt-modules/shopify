@@ -3,7 +3,7 @@ import type { Nuxt } from '@nuxt/schema'
 
 import type { ShopifyConfig } from '../types'
 
-import { addImports, addPlugin, addServerHandler, addServerImports } from '@nuxt/kit'
+import { addImports, addPlugin, addRouteMiddleware, addServerHandler, addServerImports } from '@nuxt/kit'
 import { joinURL, withLeadingSlash, withoutHost } from 'ufo'
 
 import { useLogger } from '../utils/log'
@@ -15,7 +15,7 @@ import {
   registerClientAsyncImports,
 } from '../utils/clients'
 import { ShopifyClientType } from '../schemas'
-import { createStoreDomain } from '../runtime/utils/client'
+import { createStoreDomain } from '../runtime/utils/clients/transport'
 import { SESSION_PASSWORD_ENV, generateSessionPassword, persistSessionPassword } from '../utils/session'
 
 export default async function setupClients(nuxt: Nuxt, config: ShopifyConfig, resolver: Resolver) {
@@ -128,6 +128,14 @@ export default async function setupClients(nuxt: Nuxt, config: ShopifyConfig, re
         from: resolver.resolve('./runtime/composables/customer-account/session'),
         name: 'useCustomerAccountSession',
       }])
+
+      addRouteMiddleware({
+        name: 'customer-account',
+        path: resolver.resolve('./runtime/middleware/customer-account'),
+        global: false,
+      })
+
+      logger.debug('Registered customer account route middleware `customer-account`')
 
       addServerImports([
         'getCustomerAccountSession',

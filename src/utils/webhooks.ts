@@ -4,15 +4,8 @@ import type { ShopifyConfig } from '../types'
 
 import { loadNuxt } from '@nuxt/kit'
 
-import { createClient } from '../runtime/utils/client'
-import { createAdminConfig } from '../runtime/utils/clients/admin'
+import { createAdminClient } from '../runtime/utils/clients/admin'
 import { flattenConnection } from '../runtime/utils/functions/flattenConnection'
-
-const createAdminClient = (config: ShopifyConfig): AdminApiClient => {
-  const adminConfig = createAdminConfig(config)
-
-  return createClient(adminConfig)
-}
 
 const fetchSubscriptions = async (client: AdminApiClient) => {
   const { data, errors } = await client.request(`#graphql

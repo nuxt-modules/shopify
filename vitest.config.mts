@@ -5,7 +5,7 @@ import { defineConfig } from 'vitest/config'
 export default defineConfig({
   resolve: {
     alias: {
-      '#imports': fileURLToPath(new URL('./test/stubs/imports.ts', import.meta.url)),
+      '#imports': fileURLToPath(new URL('./test/helpers/stubs.ts', import.meta.url)),
     },
   },
   test: {

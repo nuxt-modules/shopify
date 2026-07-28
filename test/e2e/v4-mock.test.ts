@@ -4,13 +4,13 @@ import { access, readFile } from 'node:fs/promises'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { join } from 'node:path'
 
-import { ShopifyClientType } from '../src/schemas'
-import { getInterfaceExtensionFunction } from '../src/utils/codegen'
-import { expectedGraphqlProject, expectedStorefrontDocuments } from './helpers'
+import { ShopifyClientType } from '../../src/schemas'
+import { getInterfaceExtensionFunction } from '../../src/utils/codegen'
+import { expectedGraphqlProject, expectedStorefrontDocuments } from '../helpers/client'
 
-const playgroundDir = fileURLToPath(new URL('../playgrounds/playground-v4-mock', import.meta.url))
-const playgroundBuildDir = fileURLToPath(new URL('../playgrounds/playground-v4-mock/.nuxt', import.meta.url))
-const playgroundStorefrontTypesDir = fileURLToPath(new URL('../playgrounds/playground-v4-mock/.nuxt/types/storefront', import.meta.url))
+const playgroundDir = fileURLToPath(new URL('../../playgrounds/playground-v4-mock', import.meta.url))
+const playgroundBuildDir = fileURLToPath(new URL('../../playgrounds/playground-v4-mock/.nuxt', import.meta.url))
+const playgroundStorefrontTypesDir = fileURLToPath(new URL('../../playgrounds/playground-v4-mock/.nuxt/types/storefront', import.meta.url))
 
 describe('test mock.shop integration with nuxt 4', async () => {
   await setup({
@@ -41,7 +41,7 @@ describe('test mock.shop integration with nuxt 4', async () => {
           proxy: {
             path: '_proxy/storefront',
           },
-          retries: 3,
+          retries: 0,
           sandbox: true,
           documents: expectedStorefrontDocuments,
           cache: {

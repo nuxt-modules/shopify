@@ -1,38 +1,23 @@
-import type { AdminApiClient, AdminOperations } from '@nuxtjs/shopify/admin'
+import type { AdminApiClient } from '@nuxtjs/shopify/admin'
 
 import { useNitroApp } from 'nitropack/runtime'
 import { useRuntimeConfig } from '#imports'
-import { createClient } from '../../../utils/client'
-import { createAdminConfig } from '../../../utils/clients/admin'
-import { withAdminCredentials } from './auth'
-import useErrors from '../../../utils/errors'
+import { createAdminClient } from '../../../utils/clients/admin'
 
 export function useAdmin(): AdminApiClient {
   const { _shopify } = useRuntimeConfig()
 
-  const config = createAdminConfig(_shopify)
-
   const nitroApp = useNitroApp()
 
-  nitroApp.hooks.callHook('admin:client:configure', { config })
+  return createAdminClient(_shopify!, {
+    onConfigure: params => nitroApp.hooks.callHook('admin:client:configure', params),
+    onCreate: params => nitroApp.hooks.callHook('admin:client:create', params),
+    onRequest: params => nitroApp.hooks.callHook('admin:client:request', params),
+    onResponse: params => nitroApp.hooks.callHook('admin:client:response', params),
+    onErrors: params => nitroApp.hooks.callHook('admin:client:errors', params),
 
-  const originalClient = createClient<AdminOperations>(config)
-
-  const request: AdminApiClient['request'] = async (operation, options) => {
-    nitroApp.hooks.callHook('admin:client:request', { operation, options })
-
-    const response = await withAdminCredentials(originalClient, _shopify).then(client => client.request(operation, options))
-
-    if (response.errors) useErrors(nitroApp.hooks, 'admin:client:errors', response.errors, _shopify?.errors?.throw ?? false)
-
-    nitroApp.hooks.callHook('admin:client:response', { response, operation, options })
-
-    return response
-  }
-
-  const client = { ...originalClient, request } satisfies AdminApiClient
-
-  nitroApp.hooks.callHook('admin:client:create', { client })
-
-  return client
+    onAuthRequest: params => nitroApp.hooks.callHook('admin:auth:request', params),
+    onAuthToken: ({ token, refresh }) => nitroApp.hooks.callHook(refresh ? 'admin:auth:refresh' : 'admin:auth:success', { token }),
+    onAuthError: params => nitroApp.hooks.callHook('admin:auth:error', params),
+  })
 }

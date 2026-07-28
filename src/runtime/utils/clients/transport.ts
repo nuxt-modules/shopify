@@ -7,13 +7,13 @@ import type {
   ShopifyApiClient,
   ShopifyApiClientConfig,
   ShopifyApiClientRequestOptions,
-} from '../../module'
+} from '../../../module'
 
 import { createGraphQLClient } from '@shopify/graphql-client'
 import { joinURL } from 'ufo'
 import { createConsola } from 'consola'
 
-import pkg from '../../../package.json'
+import pkg from '../../../../package.json'
 
 export const createStoreDomain = (name: string) => `https://${name}.myshopify.com`
 
@@ -24,7 +24,7 @@ export const createApiUrl = (storeDomain: string, apiVersion: string, apiPrefix?
   'graphql.json',
 )
 
-export const createClient = <Operations extends AllOperations = AllOperations, Cache extends boolean | undefined = undefined>(
+export const createTransport = <Operations extends AllOperations = AllOperations, Cache extends boolean | undefined = undefined>(
   config: ShopifyApiClientConfig,
 ): ShopifyApiClient<Operations, Cache> => {
   const {

@@ -1,12 +1,12 @@
-import type { AdminOperations } from '../../../../clients/admin'
+import type { AdminTokenSet, ShopifyAuthCallbacks, ShopifyConfig } from '../../../../module'
 
-import type { AdminTokenSet, ShopifyApiClient, ShopifyConfig } from '../../../../module'
-
-import { createError } from 'h3'
-
-import { createStoreDomain } from '../../../utils/client'
+import { createStoreDomain } from '../transport'
 
 type AdminConfig = NonNullable<ShopifyConfig['clients']['admin']>
+
+export type AdminAccessTokenOptions = ShopifyAuthCallbacks & {
+  storage?: boolean
+}
 
 let pendingAccessTokenRequest: Promise<AdminTokenSet> | undefined
 
@@ -15,7 +15,9 @@ async function getTokenStorage(config: AdminConfig) {
     ? config.tokenStorage
     : 'admin-token'
 
-  return (await import('nitropack/runtime')).useStorage<AdminTokenSet>(storageBase)
+  return await import('nitropack/runtime')
+    .then(({ useStorage }) => useStorage<AdminTokenSet>(storageBase))
+    .catch(() => undefined)
 }
 
 function isTokenExpired(token: AdminTokenSet): boolean {
@@ -66,8 +68,13 @@ async function fetchAccessToken(
   }
 }
 
-export async function getAdminAccessToken(shopName: string, config: AdminConfig, store?: boolean): Promise<string> {
+export async function getAdminAccessToken(
+  shopName: string,
+  config: AdminConfig,
+  options: AdminAccessTokenOptions = {},
+): Promise<string> {
   const { accessToken, clientId, clientSecret, refreshToken } = config
+  const { storage: store, onAuthRequest, onAuthToken, onAuthError } = options
 
   if (accessToken && !clientId && !clientSecret) {
     return accessToken
@@ -77,7 +84,7 @@ export async function getAdminAccessToken(shopName: string, config: AdminConfig,
     throw new Error('[shopify] Failed to obtain admin API access token: missing `clientId` or `clientSecret` (provide both, or an `accessToken`)')
   }
 
-  let storedToken = store ? await getTokenStorage(config).then(storage => storage.getItem('token')) : undefined
+  let storedToken = store ? await getTokenStorage(config).then(storage => storage?.getItem('token')) : undefined
 
   if (!storedToken && accessToken) {
     storedToken = {
@@ -115,25 +122,21 @@ export async function getAdminAccessToken(shopName: string, config: AdminConfig,
       }
 
   pendingAccessTokenRequest = (async () => {
-    const nitroApp = await import('nitropack/runtime')
-      .then(({ useNitroApp }) => useNitroApp())
-      .catch(() => undefined)
-
     try {
-      await nitroApp?.hooks.callHook('admin:auth:request', { params })
+      await onAuthRequest?.({ params })
 
       const newToken = await fetchAccessToken(storeDomain, params)
 
       if (store) {
-        await getTokenStorage(config).then(storage => storage.setItem('token', newToken))
+        await getTokenStorage(config).then(storage => storage?.setItem('token', newToken))
       }
 
-      await nitroApp?.hooks.callHook(isRefresh ? 'admin:auth:refresh' : 'admin:auth:success', { token: newToken })
+      await onAuthToken?.({ token: newToken, refresh: isRefresh })
 
       return newToken
     }
     catch (error) {
-      await nitroApp?.hooks.callHook('admin:auth:error', { error })
+      await onAuthError?.({ error })
 
       throw error
     }
@@ -144,23 +147,4 @@ export async function getAdminAccessToken(shopName: string, config: AdminConfig,
   const token = await pendingAccessTokenRequest
 
   return token.accessToken
-}
-
-export const withAdminCredentials = async <Operations extends AdminOperations, Cache extends undefined>(client: ShopifyApiClient<Operations, Cache>, config?: Partial<ShopifyConfig>): Promise<ShopifyApiClient<Operations, Cache>> => {
-  const shopName = config?.name
-  const adminClientConfig = config?.clients?.admin
-
-  if (!shopName || !adminClientConfig) {
-    throw createError({
-      status: 500,
-      statusText: 'Internal Server Error',
-      message: '[shopify] Failed to create admin client: missing shop name or admin config',
-    })
-  }
-
-  const accessToken = await getAdminAccessToken(shopName, adminClientConfig, adminClientConfig.tokenStorage !== false)
-
-  client.config.headers['X-Shopify-Access-Token'] = accessToken
-
-  return client
 }

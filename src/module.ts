@@ -107,4 +107,11 @@ export default defineNuxtModule<ModuleOptions>({
   },
 })
 
+export {
+  createShopifyClient,
+  createStorefrontClient,
+  createCustomerAccountClient,
+  createAdminClient,
+} from './runtime/utils/clients'
+
 export type * from './types/index'

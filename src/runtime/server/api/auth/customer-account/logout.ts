@@ -3,9 +3,9 @@ import { useNitroApp } from 'nitropack/runtime'
 import { useRuntimeConfig } from '#imports'
 import { joinURL } from 'ufo'
 
-import { createStoreDomain } from '../../../../utils/client'
+import { createStoreDomain } from '../../../../utils/clients/transport'
 import { clearCustomerAccountSession, getCustomerAccountSession, getCustomerAccountTokens } from '../../../utils/customer-account/session'
-import { buildLogoutURL, getOpenIdConfiguration } from '../../../../utils/customer-account/oauth'
+import { buildLogoutURL, getOpenIdConfiguration } from '../../../../utils/clients/customer-account/auth'
 
 export default defineEventHandler(async (event) => {
   const { _shopify } = useRuntimeConfig(event)
@@ -17,8 +17,9 @@ export default defineEventHandler(async (event) => {
   }
 
   const secFetchSite = getRequestHeader(event, 'sec-fetch-site')
+  const secFetchMode = getRequestHeader(event, 'sec-fetch-mode')
 
-  if (secFetchSite && !['same-origin', 'same-site', 'none'].includes(secFetchSite)) {
+  if (secFetchSite === 'cross-site' && secFetchMode !== 'navigate') {
     throw createError({ status: 403, statusText: 'Forbidden', message: '[shopify] Cross-site logout is not allowed' })
   }
 

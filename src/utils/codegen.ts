@@ -13,9 +13,9 @@ import defu from 'defu'
 
 import { ShopifyClientType } from '../schemas'
 import { useLogger } from './log'
-import { getAdminAccessToken } from '../runtime/server/utils/admin/auth'
+import { getAdminAccessToken } from '../runtime/utils/clients/admin/auth'
 import { joinURL } from 'ufo'
-import { createStoreDomain } from '../runtime/utils/client'
+import { createStoreDomain } from '../runtime/utils/clients/transport'
 
 type ShopifyTemplateOptions = {
   filename: string

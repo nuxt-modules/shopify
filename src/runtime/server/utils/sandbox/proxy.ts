@@ -1,20 +1,14 @@
-import type { AdminOperations } from '@nuxtjs/shopify/admin'
-import type { CustomerAccountOperations } from '@nuxtjs/shopify/customer-account'
 import type { H3Event } from 'h3'
 
-import type { ShopifyApiClient, ShopifyClientType } from '../../../../module'
+import type { ShopifyClientType } from '../../../../module'
 
 import { createError, defineEventHandler, readValidatedBody } from 'h3'
 import { kebabCase } from 'scule'
 import { useRuntimeConfig } from '#imports'
 import { z } from 'zod'
 
-import { createAdminConfig } from '../../../utils/clients/admin'
-import { createCustomerAccountConfig } from '../../..//utils/clients/customer-account'
-import { createStorefrontConfig } from '../../../utils/clients/storefront'
-import { withCustomerAccountCredentials } from '../customer-account/auth'
-import { withAdminCredentials } from '../admin/auth'
-import { createClient } from '../../../utils/client'
+import { createShopifyClient } from '../../../utils/clients'
+import { getValidCustomerAccessToken } from '../customer-account/auth'
 
 export default defineEventHandler(async (event: H3Event) => {
   if (!import.meta.dev) return
@@ -38,23 +32,28 @@ export default defineEventHandler(async (event: H3Event) => {
 
   const body = await readValidatedBody(event, schema.parse)
 
-  let client: ReturnType<typeof createClient>
+  let client: ReturnType<typeof createShopifyClient>
 
   switch (kebabCase(clientType)) {
     case 'storefront':
-      client = createClient(createStorefrontConfig(_shopify))
+      client = createShopifyClient(_shopify, {
+        client: 'storefront',
+      })
 
-      return await client.request(body.query, { variables: body.variables })
+      break
     case 'customer-account':
-      client = createClient(createCustomerAccountConfig(_shopify))
+      client = createShopifyClient(_shopify, {
+        client: 'customerAccount',
+        auth: () => getValidCustomerAccessToken(event),
+      })
 
-      return await withCustomerAccountCredentials(client as unknown as ShopifyApiClient<CustomerAccountOperations, undefined>, event)
-        .then(client => client.request(body.query, { variables: body.variables }))
+      break
     case 'admin':
-      client = createClient(createAdminConfig(_shopify))
+      client = createShopifyClient(_shopify, {
+        client: 'admin',
+      })
 
-      return await withAdminCredentials(client as unknown as ShopifyApiClient<AdminOperations, undefined>, _shopify)
-        .then(client => client.request(body.query, { variables: body.variables }))
+      break
     default:
       throw createError({
         status: 400,
@@ -62,4 +61,6 @@ export default defineEventHandler(async (event: H3Event) => {
         message: `[shopify] Failed to handle sandbox request: unsupported client type \`${clientType}\``,
       })
   }
+
+  return await client.request(body.query, { variables: body.variables })
 })

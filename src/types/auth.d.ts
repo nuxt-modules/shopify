@@ -22,6 +22,7 @@ export type CustomerAccountTokens = {
 export type CustomerAccountSessionData = {
   user?: CustomerAccountUser
   loggedInAt?: number
+  tokens?: CustomerAccountTokenSet
 }
 
 export type CustomerAccountSession = {
