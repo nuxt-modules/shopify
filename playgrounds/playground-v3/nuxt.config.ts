@@ -1,4 +1,6 @@
 export default defineNuxtConfig({
+  extends: ['../../dev'],
+
   modules: [
     '../../src/module',
   ],
@@ -27,12 +29,4 @@ export default defineNuxtConfig({
   serverDir: 'server/',
 
   compatibilityDate: '2026-03-15',
-
-  hooks: {
-    // Fix monorepo-specific tsconfig issue when running `nuxt prepare`
-    'prepare:types': (opts) => {
-      opts.sharedTsConfig ||= {}
-      opts.sharedTsConfig.compilerOptions ||= {}
-    },
-  },
 })

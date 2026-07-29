@@ -1,5 +1,5 @@
 export default defineNuxtConfig({
-  extends: ['docus'],
+  extends: ['docus', '../dev'],
 
   modules: [
     '../src/module',

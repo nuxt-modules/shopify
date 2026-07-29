@@ -14,10 +14,6 @@ export default defineBuildConfig({
     },
   ],
 
-  replace: {
-    'await setupDevMode(nuxt)': '',
-  },
-
   externals: [
     '@shopify/hydrogen',
   ],

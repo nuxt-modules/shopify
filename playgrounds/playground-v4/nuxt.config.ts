@@ -1,4 +1,6 @@
 export default defineNuxtConfig({
+  extends: ['../../dev'],
+
   modules: [
     '../../src/module',
   ],

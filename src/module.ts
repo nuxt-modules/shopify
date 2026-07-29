@@ -14,7 +14,6 @@ import setupAuth from './setup/auth'
 import setupCache from './setup/cache'
 import setupClients from './setup/clients'
 import setupCodegen from './setup/codegen'
-import setupDevMode from './setup/dev'
 import setupGraphqlConfig from './setup/graphql-config'
 import setupImports from './setup/imports'
 import setupProxy from './setup/proxy'
@@ -102,8 +101,6 @@ export default defineNuxtModule<ModuleOptions>({
       logger.info('Skipping setup: no module configuration provided')
       logger.info('See the module configuration reference: https://shopify.nuxtjs.org/essentials/configuration')
     }
-
-    await setupDevMode(nuxt)
   },
 })
 

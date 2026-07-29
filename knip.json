@@ -3,6 +3,9 @@
   "tags": [
     "-lintignore"
   ],
+  "ignoreUnresolved": [
+    "../../dev"
+  ],
   "ignoreWorkspaces": [
     "docs",
     "template"
