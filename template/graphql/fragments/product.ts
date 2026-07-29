@@ -3,11 +3,17 @@ export const PRODUCT_VARIANT_FRAGMENT = `#graphql
     id
     title
     availableForSale
+    quantityAvailable
+    currentlyNotInStock
+    requiresShipping
     selectedOptions {
       name
       value
     }
     price {
+      ...PriceFields
+    }
+    compareAtPrice {
       ...PriceFields
     }
     image {
@@ -16,6 +22,39 @@ export const PRODUCT_VARIANT_FRAGMENT = `#graphql
     product {
       handle
       title
+    }
+  }
+`
+
+export const MEDIA_FRAGMENT = `#graphql
+  fragment MediaFields on Media {
+    __typename
+    id
+    alt
+    mediaContentType
+    previewImage {
+      ...ImageFields
+    }
+    ... on MediaImage {
+      image {
+        ...ImageFields
+      }
+    }
+    ... on Video {
+      sources {
+        url
+        mimeType
+      }
+    }
+    ... on ExternalVideo {
+      embedUrl
+      host
+    }
+    ... on Model3d {
+      sources {
+        url
+        mimeType
+      }
     }
   }
 `
@@ -64,7 +103,12 @@ export const PRODUCT_FRAGMENT = `#graphql
     title
     vendor
     description
+    productType
+    tags
     availableForSale
+    isGiftCard
+    requiresSellingPlan
+    totalInventory
     featuredImage {
       ...ImageFields
     }
@@ -72,6 +116,13 @@ export const PRODUCT_FRAGMENT = `#graphql
       edges {
         node {
           ...ImageFields
+        }
+      }
+    }
+    media(first: 250) {
+      edges {
+        node {
+          ...MediaFields
         }
       }
     }
@@ -86,6 +137,21 @@ export const PRODUCT_FRAGMENT = `#graphql
         ...PriceFields
       }
     }
+    compareAtPriceRange {
+      minVariantPrice {
+        ...PriceFields
+      }
+      maxVariantPrice {
+        ...PriceFields
+      }
+    }
+    sellingPlanGroups(first: 5) {
+      edges {
+        node {
+          name
+        }
+      }
+    }
     variants(first: 250) {
       ...ProductVariantConnectionFields
     }
@@ -93,6 +159,7 @@ export const PRODUCT_FRAGMENT = `#graphql
       ...ProductVariantFields
     }
   }
+  ${MEDIA_FRAGMENT}
   ${PRODUCT_OPTION_FRAGMENT}
   ${PRODUCT_VARIANT_CONNECTION_FRAGMENT}
 `

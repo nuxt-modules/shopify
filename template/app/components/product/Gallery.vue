@@ -10,18 +10,21 @@ const props = defineProps<{
 const carousel = useTemplateRef('carousel')
 
 const images = computed(() => flattenConnection(props.product.images))
+const media = computed(() => flattenConnection(props.product.media))
 
-const sliderImages = computed(() => {
-  if (props.selectedVariant?.image) {
-    const variantImage = props.selectedVariant.image
+const sliderMedia = computed(() => {
+  const variantImage = props.selectedVariant?.image
 
-    return [
-      variantImage,
-      ...images.value.filter(image => image.url !== variantImage.url),
-    ]
-  }
+  if (!variantImage) return media.value
 
-  return images.value
+  const rest = media.value.filter(item => (item.__typename === 'MediaImage'
+    ? item.image?.url
+    : item.previewImage?.url) !== variantImage.url)
+
+  const selected = media.value.find(item => item.__typename === 'MediaImage'
+    && item.image?.url === variantImage.url)
+
+  return selected ? [selected, ...rest] : media.value
 })
 
 watch(() => props.selectedVariant, () => carousel.value?.emblaApi?.scrollTo(0))
@@ -30,10 +33,10 @@ watch(() => props.selectedVariant, () => carousel.value?.emblaApi?.scrollTo(0))
 <template>
   <div class="w-full">
     <UCarousel
-      v-if="sliderImages.length > 1"
+      v-if="sliderMedia.length > 1"
       ref="carousel"
       v-slot="{ item, index }"
-      :items="sliderImages"
+      :items="sliderMedia"
       :ui="{
         prev: 'left-3!',
         next: 'right-3!',
@@ -42,16 +45,16 @@ watch(() => props.selectedVariant, () => carousel.value?.emblaApi?.scrollTo(0))
       arrows
       loop
     >
-      <ProductImage
-        :image="item"
+      <ProductMedia
+        :media="item"
         :loading="index === 0 ? 'eager' : 'lazy'"
         :title="`${props.product.title}${index !== 0 ? ` (${index})` : ''}`"
       />
     </UCarousel>
 
-    <ProductImage
-      v-else
-      :image="sliderImages[0]"
+    <ProductMedia
+      v-else-if="sliderMedia[0]"
+      :media="sliderMedia[0]"
       :title="props.product.title"
       class="mb-6 lg:mb-8"
       loading="eager"

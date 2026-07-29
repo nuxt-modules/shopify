@@ -1,7 +1,6 @@
 import type { CartFieldsFragment } from '#shopify/storefront'
 
 export const useCart = () => {
-  const { language, country } = useLocalization()
   const storefront = useStorefront()
   const toast = useToast()
   const { t } = useI18n()
@@ -50,12 +49,7 @@ export const useCart = () => {
         }
       }
     }
-  `, {
-    variables: localizationParamsSchema.parse({
-      language: language.value,
-      country: country.value,
-    }),
-  })).then(({ data }) =>
+  `)).then(({ data }) =>
     id.value = data?.cartCreate?.cart?.id ?? '',
   ).catch(() => toast.add({
     title: t('cart.toast.error.init'),
@@ -77,8 +71,6 @@ export const useCart = () => {
   `, {
     variables: cartGetInputSchema.parse({
       id: id.value,
-      language: language.value,
-      country: country.value,
     }),
   })).then(({ data }) =>
     setCart(data?.cart ?? undefined),
@@ -114,8 +106,6 @@ export const useCart = () => {
           quantity,
         },
       ],
-      language: language.value,
-      country: country.value,
     }),
   })).then(({ data }) => {
     setCart(data?.cartLinesAdd?.cart ?? undefined)
@@ -161,8 +151,6 @@ export const useCart = () => {
           quantity,
         },
       ],
-      language: language.value,
-      country: country.value,
     }),
   })).then(({ data }) => {
     setCart(data?.cartLinesUpdate?.cart ?? undefined)
@@ -203,8 +191,6 @@ export const useCart = () => {
     variables: cartRemoveInputSchema.parse({
       cartId: id.value,
       lineIds: [variantId],
-      language: language.value,
-      country: country.value,
     }),
   })).then(({ data }) => {
     setCart(data?.cartLinesRemove?.cart ?? undefined)

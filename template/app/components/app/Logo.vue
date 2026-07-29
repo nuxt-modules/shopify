@@ -22,19 +22,19 @@ const { data: logo } = await useStorefrontData('logo', `#graphql
 <template>
   <NuxtLink
     :to="localePath('/')"
-    class="flex items-center gap-3 mr-4 shrink-0"
+    class="flex items-center gap-1 mr-4 shrink-0 font-bold"
   >
     <NuxtImg
       :src="logo?.url"
       :alt="logo?.altText || 'Nuxt Shopify Store Logo'"
       provider="shopify"
-      class="h-5 w-auto hue-rotate-300"
+      class="h-7 w-auto mb-0.5"
       width="50"
-      height="22"
+      height="50"
       loading="eager"
       fetchpriority="high"
     />
 
-    Nuxt Shopify
+    <span class="text-primary">Nuxt</span> Shopify
   </NuxtLink>
 </template>

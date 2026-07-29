@@ -38,6 +38,7 @@ export default defineCommand({
     }
 
     const configContent = await readFile(configPath, 'utf-8')
+      .then(data => data.replace(/\n\s*extends: \['\.\.\/dev'\],\n\n?/, '\n'))
       .then(data => data.replace('../src/module', '@nuxtjs/shopify'))
 
     await writeFile(

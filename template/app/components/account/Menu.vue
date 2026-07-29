@@ -3,7 +3,7 @@ import type { FormSubmitEvent } from '@nuxt/ui'
 
 import * as z from 'zod'
 
-const { isLoggedIn, login, logout } = useCustomerAccountSession()
+const { isLoggedIn, login } = useCustomerAccountSession()
 const localePath = useLocalePath()
 const route = useRoute()
 
@@ -22,7 +22,7 @@ const state = reactive<Partial<Schema>>({
 const open = ref(false)
 
 const onSubmit = async (event: FormSubmitEvent<Schema>) => {
-  const returnToOrders = event.submitter?.attributes.getNamedItem('data-return-to-orders')?.value !== undefined
+  const returnToOrders = event.submitter?.hasAttribute('data-return-to-orders') ?? false
 
   await login({
     loginHint: event.data.email,
@@ -106,6 +106,19 @@ watch(() => route.path, () => open.value = false)
             <div class="mt-4 flex justify-between gap-6">
               <UButton
                 type="submit"
+                variant="soft"
+                size="xl"
+                trailing-icon="i-lucide-log-in"
+                :ui="{
+                  trailingIcon: 'size-4',
+                }"
+                class="order-2 grow justify-center"
+              >
+                {{ $t('account.signIn.action') }}
+              </UButton>
+
+              <UButton
+                type="submit"
                 variant="outline"
                 size="xl"
                 :label="$t('account.menu.orders')"
@@ -113,22 +126,9 @@ watch(() => route.path, () => open.value = false)
                 :ui="{
                   trailingIcon: 'size-4',
                 }"
-                class="grow justify-center"
+                class="order-1 grow justify-center"
                 data-return-to-orders
               />
-
-              <UButton
-                type="submit"
-                variant="soft"
-                size="xl"
-                trailing-icon="i-lucide-log-in"
-                :ui="{
-                  trailingIcon: 'size-4',
-                }"
-                class="grow justify-center"
-              >
-                {{ $t('account.signIn.action') }}
-              </UButton>
             </div>
           </UForm>
         </template>
@@ -158,7 +158,6 @@ watch(() => route.path, () => open.value = false)
             class="w-full justify-center text-center"
             :label="$t('account.logout')"
             icon="i-lucide-log-out"
-            @click="logout()"
           />
         </template>
       </div>

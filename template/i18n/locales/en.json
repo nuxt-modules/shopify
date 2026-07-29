@@ -170,7 +170,13 @@
         "add": "Add",
         "choose": "Choose",
         "view": "View product",
-        "recommendations": "You may also like"
+        "recommendations": "You may also like",
+        "soldOut": "Sold out",
+        "giftCard": "Gift card",
+        "subscription": "Subscription available",
+        "priceFrom": "From {price}",
+        "discount": "-{percentage}%",
+        "lowStock": "Only {count} left | Only {count} left"
     },
     "collection": {
         "products": {

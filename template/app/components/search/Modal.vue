@@ -1,12 +1,10 @@
 <script setup lang="ts">
-const { language, country } = useLocalization()
 const localePath = useLocalePath()
-const { locale } = useI18n()
 
 const query = ref('')
 const open = ref(false)
 
-const { data, status } = await useStorefrontData(`search-${query.value ?? 'none'}-${locale.value}`, `#graphql
+const { data, status } = await useStorefrontData(localizedKey('search', () => query.value ?? 'none'), `#graphql
   query predictiveSearch($query: String!, $first: Int, $language: LanguageCode, $country: CountryCode)
   @inContext(language: $language, country: $country) {
     predictiveSearch(query: $query) {
@@ -52,8 +50,6 @@ const { data, status } = await useStorefrontData(`search-${query.value ?? 'none'
 `, {
   variables: computed(() => predictiveSearchParamsSchema.extend(localizationParamsSchema.shape).parse({
     query: query.value,
-    language: language.value,
-    country: country.value,
   })),
   watch: [query],
   lazy: true,

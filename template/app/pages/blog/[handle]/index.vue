@@ -5,12 +5,11 @@ definePageMeta({
 
 const { shopify: { shopName } } = useAppConfig()
 const localePath = useLocalePath()
-const { locale } = useI18n()
 const route = useRoute()
 
 const handle = computed(() => route.params.handle as string)
 
-const { data: blog, error } = await useStorefrontData(`blog-${locale.value}-${handle.value}`, `#graphql
+const { data: blog, error } = await useStorefrontData(localizedKey('blog', handle), `#graphql
   query FetchBlog($handle: String) {
     blog(handle: $handle) {
       ...BlogFields

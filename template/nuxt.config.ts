@@ -22,18 +22,18 @@ export default defineNuxtConfig({
 
       clients: {
         storefront: {
-          mock: true,
           apiVersion: '2026-04',
+          publicAccessToken: '40d025de5a3421a960e8d7970b922901',
         },
 
         customerAccount: {
           apiVersion: '2026-04',
-          clientId: '',
+          clientId: '5d5e8bd8-ce5f-4cdb-9556-bf330ade1e9b',
         },
       },
 
       analytics: {
-        storefrontId: '',
+        storefrontId: '187932',
 
         consent: {
           withPrivacyBanner: true,
@@ -42,15 +42,12 @@ export default defineNuxtConfig({
     },
   },
 
-  compatibilityDate: '2026-03-15',
-
-  vite: {
-    server: {
-      allowedHosts: [
-        '.vercel.app',
-      ],
-    },
+  routeRules: {
+    '/account/**': { headers: { 'cache-control': 'no-store' } },
+    '/*/account/**': { headers: { 'cache-control': 'no-store' } },
   },
+
+  compatibilityDate: '2026-03-15',
 
   fonts: {
     families: [

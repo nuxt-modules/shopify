@@ -5,12 +5,11 @@ definePageMeta({
 
 const { shopify: { shopName } } = useAppConfig()
 const localePath = useLocalePath()
-const { locale } = useI18n()
 const route = useRoute()
 
 const handle = computed(() => route.params.handle as string)
 
-const key = computed(() => `collection-${locale.value}-${handle.value}`)
+const key = localizedKey('collection', handle)
 
 const { data: collection, error } = await useStorefrontData(key, `#graphql
   query FetchCollection(

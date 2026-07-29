@@ -7,8 +7,13 @@ const props = defineProps<{
   product: ProductFieldsFragment
 }>()
 
+const soldOut = computed(() => isSoldOut(props.product))
+
 const addToCart = async () => {
-  const variant = flattenConnection(props.product.variants)[0]
+  if (soldOut.value) return
+
+  const variant = props.product.selectedOrFirstAvailableVariant
+    ?? flattenConnection(props.product.variants).find(variant => variant.availableForSale)
 
   if (variant) {
     await add(variant.id, 1)
@@ -20,9 +25,10 @@ const addToCart = async () => {
   <UButton
     color="neutral"
     variant="ghost"
-    trailing-icon="i-lucide-shopping-bag"
-    :label="$t('product.add')"
-    :aria-label="$t('product.choose')"
+    :disabled="soldOut"
+    :trailing-icon="soldOut ? 'i-lucide-ban' : 'i-lucide-shopping-bag'"
+    :label="soldOut ? $t('product.soldOut') : $t('product.add')"
+    :aria-label="soldOut ? $t('product.soldOut') : $t('product.choose')"
     :ui="{
       trailingIcon: 'size-5',
       label: [

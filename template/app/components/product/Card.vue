@@ -13,7 +13,14 @@ const url = computed(() => localePath(`/product/${props.product.handle}`))
 const images = computed(() => flattenConnection(props.product.images))
 const variants = computed(() => flattenConnection(props.product.variants))
 
-const variant = ref(variants.value[0])
+const variant = computed(() => props.product.selectedOrFirstAvailableVariant ?? variants.value[0])
+
+const range = computed(() => hasPriceRange(props.product))
+const price = computed(() => displayPrice(props.product, variant.value ?? undefined))
+const compareAtPrice = computed(() => displayCompareAtPrice(props.product, variant.value ?? undefined))
+
+const soldOut = computed(() => isSoldOut(props.product))
+const discount = computed(() => discountPercentage(price.value, compareAtPrice.value))
 </script>
 
 <template>
@@ -26,6 +33,29 @@ const variant = ref(variants.value[0])
     }"
   >
     <div class="group relative rounded-md overflow-hidden mb-4">
+      <div class="absolute top-2 left-2 z-10 flex flex-col items-start gap-1">
+        <UBadge
+          v-if="soldOut"
+          color="neutral"
+          variant="solid"
+          :label="$t('product.soldOut')"
+        />
+
+        <UBadge
+          v-else-if="discount"
+          color="error"
+          variant="solid"
+          :label="$t('product.discount', { percentage: discount })"
+        />
+
+        <UBadge
+          v-if="product.isGiftCard"
+          color="primary"
+          variant="solid"
+          :label="$t('product.giftCard')"
+        />
+      </div>
+
       <UCarousel
         v-if="carousel && images.length > 1"
         v-slot="{ item, index }"
@@ -79,14 +109,16 @@ const variant = ref(variants.value[0])
         </p>
 
         <ProductPrice
-          v-if="variant"
-          :price="variant.price"
+          v-if="price"
+          :price="price"
+          :compare-at-price="compareAtPrice"
+          :from="range"
           class="grow text-right"
         />
       </NuxtLink>
 
       <CartChoose
-        v-if="variants.length > 1"
+        v-if="variants.length > 1 && !soldOut"
         :product="props.product"
       />
 

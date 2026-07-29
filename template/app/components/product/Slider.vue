@@ -12,10 +12,7 @@ const props = defineProps<{
   loading?: 'eager' | 'lazy'
 }>()
 
-const { language, country } = useLocalization()
-const { locale } = useI18n()
-
-const key = computed(() => `product-slider-${Object.values(props).join('-')}-${locale.value}`)
+const key = localizedKey('product-slider', () => Object.values(props).join('-'))
 
 const first = computed(() => props.first ? Number(props.first) : undefined)
 const last = computed(() => props.last ? Number(props.last) : undefined)
@@ -57,8 +54,6 @@ const { data: products } = await useStorefrontData(key, `#graphql
     sortKey: sortKey.value,
     reverse: reverse.value,
     filters: filters.value,
-    language: language.value,
-    country: country.value,
   }),
   transform: data => flattenConnection(data?.products),
   cache: 'long',

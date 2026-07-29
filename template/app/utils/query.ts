@@ -1,5 +1,12 @@
 import type { ProductFilter } from '#shopify/storefront'
+import type { MaybeRefOrGetter } from 'vue'
 import type { LocationQuery } from 'vue-router'
+
+export const localizedKey = (...parts: Array<MaybeRefOrGetter<string | undefined>>) => {
+  const { locale } = useI18n()
+
+  return computed(() => [locale.value, ...parts.map(part => toValue(part)).filter(Boolean)].join('-'))
+}
 
 export const queryToFilters = (query: LocationQuery) => {
   const filters = Object.entries(query).filter(([key]) => key.startsWith('filter.'))

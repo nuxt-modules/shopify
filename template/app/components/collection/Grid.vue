@@ -1,9 +1,7 @@
 <script setup lang="ts">
-const { language, country } = useLocalization()
 const localePath = useLocalePath()
-const { locale } = useI18n()
 
-const { data: collections } = await useStorefrontData(`collections-${locale.value}`, `#graphql
+const { data: collections } = await useStorefrontData(localizedKey('collections'), `#graphql
   query FetchCollections($first: Int, $language: LanguageCode, $country: CountryCode)
   @inContext(language: $language, country: $country) {
     collections(
@@ -18,8 +16,6 @@ const { data: collections } = await useStorefrontData(`collections-${locale.valu
 `, {
   variables: connectionParamsSchema.extend(localizationParamsSchema.shape).parse({
     first: 10,
-    language: language.value,
-    country: country.value,
   }),
   transform: data => flattenConnection(data?.collections).filter(c => c.description),
   cache: 'long',

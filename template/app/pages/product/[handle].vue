@@ -4,15 +4,13 @@ definePageMeta({
 })
 
 const { shopify: { shopName } } = useAppConfig()
-const { language, country } = useLocalization()
 const localePath = useLocalePath()
-const { locale } = useI18n()
 const router = useRouter()
 const route = useRoute()
 
 const handle = computed(() => route.params.handle as string)
 
-const { data, error } = await useStorefrontData(`product-${locale.value}-${handle.value}`, `#graphql
+const { data, error } = await useStorefrontData(localizedKey('product', handle), `#graphql
   query FetchProduct($handle: String, $language: LanguageCode, $country: CountryCode) 
   @inContext(language: $language, country: $country) {
     product(handle: $handle) {
@@ -29,8 +27,6 @@ const { data, error } = await useStorefrontData(`product-${locale.value}-${handl
 `, {
   variables: computed(() => productInputSchema.parse({
     handle: handle.value,
-    language: language.value,
-    country: country.value,
   })),
   cache: 'long',
 })

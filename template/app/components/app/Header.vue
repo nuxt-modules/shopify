@@ -1,12 +1,13 @@
 <script setup lang="ts">
-const { language, country } = useLocalization()
+import { withoutHost } from 'ufo'
+
 const localePath = useLocalePath()
 
 const { public: { _shopify } } = useRuntimeConfig()
 
 const hasAccount = computed(() => !!_shopify?.clients?.customerAccount)
 
-const { data: items } = await useStorefrontData('main-menu', `#graphql
+const { data: items } = await useStorefrontData(localizedKey('main-menu'), `#graphql
   query GetNavigation($handle: String!, $language: LanguageCode, $country: CountryCode)
   @inContext(language: $language, country: $country) {
     menu(handle: $handle) {
@@ -17,8 +18,6 @@ const { data: items } = await useStorefrontData('main-menu', `#graphql
 `, {
   variables: menuGetInputSchema.parse({
     handle: 'main-menu',
-    language: language.value,
-    country: country.value,
   }),
   transform: data => data.menu?.items?.map(item => ({
     label: item.title,
@@ -26,10 +25,9 @@ const { data: items } = await useStorefrontData('main-menu', `#graphql
       ? localePath(`/blog/${item.resource?.handle}`)
       : item.resource?.__typename === 'Collection'
         ? localePath(`/collection/${item.resource?.handle}`)
-        : item.url ?? undefined,
+        : withoutHost(item.url ?? ''),
   })) ?? [],
   cache: 'long',
-  watch: [language, country],
 })
 </script>
 

@@ -1,6 +1,5 @@
 export const useCollection = () => {
   const { shopify: { collection: { perPage } } } = useAppConfig()
-  const { country, language } = useLocalization()
   const { filters } = useFilters()
   const route = useRoute()
 
@@ -21,8 +20,6 @@ export const useCollection = () => {
     sortKey: sortKey.value,
     reverse: reverse.value,
     filters: filters.value,
-    language: language.value,
-    country: country.value,
   }))
 
   return {

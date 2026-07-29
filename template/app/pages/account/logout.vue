@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { withLeadingSlash } from 'ufo'
+const { logout } = useCustomerAccountSession()
 
-definePageMeta({
-  redirect: () => {
-    if (useCustomerAccountSession().isLoggedIn) {
-      return withLeadingSlash(useRuntimeConfig().public._shopify?.clients?.customerAccount?.logoutURL)
-    }
-    else {
-      return '/'
-    }
-  },
-})
+await logout()
 </script>
+
+<template>
+  <div class="flex justify-center py-16">
+    <UIcon
+      name="i-lucide-loader-circle"
+      class="size-8 animate-spin text-muted"
+    />
+  </div>
+</template>

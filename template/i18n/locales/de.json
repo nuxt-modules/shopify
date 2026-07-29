@@ -170,7 +170,13 @@
         "add": "Hinzufügen",
         "choose": "Auswählen",
         "view": "Produkt ansehen",
-        "recommendations": "Das könnte Ihnen auch gefallen"
+        "recommendations": "Das könnte Ihnen auch gefallen",
+        "soldOut": "Ausverkauft",
+        "giftCard": "Geschenkkarte",
+        "subscription": "Abo verfügbar",
+        "priceFrom": "Ab {price}",
+        "discount": "-{percentage}%",
+        "lowStock": "Nur noch {count} verfügbar | Nur noch {count} verfügbar"
     },
     "collection": {
         "products": {

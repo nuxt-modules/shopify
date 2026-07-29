@@ -9,7 +9,7 @@ const { locale } = useI18n()
 const router = useRouter()
 const route = useRoute()
 
-const key = computed(() => `collection-${locale.value}-${props.handle}-products`)
+const key = localizedKey('collection', () => props.handle, 'products')
 
 const { data: collection, status } = await useStorefrontData(key, `#graphql
   query FetchCollectionProducts(

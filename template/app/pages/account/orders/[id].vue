@@ -3,6 +3,7 @@ import type { BadgeProps } from '#ui/types'
 import type { MoneyV2 } from '#shopify/customer-account'
 
 definePageMeta({
+  middleware: 'customer-account',
   validate: route => typeof route.params.id === 'string' && route.params.id.length > 0,
 })
 
@@ -30,7 +31,7 @@ const { data: order, error } = await useCustomerAccountData(key, `#graphql
   transform: data => data?.order,
 })
 
-if (!order.value || error.value) {
+if (!order.value || (error.value && error.value.status !== 401)) {
   throw createError({
     status: 404,
     statusText: `${$t('error.notFound')}: ${route.fullPath}`,

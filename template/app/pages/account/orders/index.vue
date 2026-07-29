@@ -1,4 +1,6 @@
 <script setup lang="ts">
+definePageMeta({ middleware: 'customer-account' })
+
 const { shopify: { shopName } } = useAppConfig()
 const localePath = useLocalePath()
 
@@ -20,11 +22,11 @@ const { data: customer, error } = await useCustomerAccountData('account-orders',
   transform: data => data?.customer,
 })
 
-if (!customer.value || error.value) {
+if (error.value && error.value.status !== 401) {
   throw createError({
     status: 404,
     statusText: $t('error.notFound'),
-    message: error.value?.message || $t('account.toast.error.get'),
+    message: error.value.message || $t('account.toast.error.get'),
     fatal: true,
   })
 }
