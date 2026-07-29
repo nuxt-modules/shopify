@@ -334,7 +334,19 @@ export type {
   ShopifyApiClientConfig,
   ShopifyApiClientRequest,
   ShopifyApiClientRequestOptions,
+  ShopifyClientConfig,
+  ShopifyClientDefinition,
+  ShopifyClientKind,
+  ShopifyClientOptions,
+  ShopifyGenericClientOptions,
+  ShopifyInlineConfig,
 } from './client'
+
+export type {
+  ShopifyAuthCallbacks,
+  ShopifyClientCallbackResult,
+  ShopifyClientCallbacks,
+} from './hooks'
 
 export type {
   AnalyticsConsentFlags,

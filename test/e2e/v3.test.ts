@@ -4,18 +4,18 @@ import { access, readFile } from 'node:fs/promises'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { join } from 'node:path'
 
-import { ShopifyClientType } from '../src/schemas'
-import { getInterfaceExtensionFunction } from '../src/utils/codegen'
+import { ShopifyClientType } from '../../src/schemas'
+import { getInterfaceExtensionFunction } from '../../src/utils/codegen'
 import {
   expectedAdminDocuments,
   expectedGraphqlProject,
   expectedStorefrontDocuments,
-} from './helpers'
+} from '../helpers/client'
 
-const playgroundDir = fileURLToPath(new URL('../playgrounds/playground-v3', import.meta.url))
-const playgroundBuildDir = fileURLToPath(new URL('../playgrounds/playground-v3/.nuxt', import.meta.url))
-const playgroundStorefrontTypesDir = fileURLToPath(new URL('../playgrounds/playground-v3/.nuxt/types/storefront', import.meta.url))
-const playgroundAdminTypesDir = fileURLToPath(new URL('../playgrounds/playground-v3/.nuxt/types/admin', import.meta.url))
+const playgroundDir = fileURLToPath(new URL('../../playgrounds/playground-v3', import.meta.url))
+const playgroundBuildDir = fileURLToPath(new URL('../../playgrounds/playground-v3/.nuxt', import.meta.url))
+const playgroundStorefrontTypesDir = fileURLToPath(new URL('../../playgrounds/playground-v3/.nuxt/types/storefront', import.meta.url))
+const playgroundAdminTypesDir = fileURLToPath(new URL('../../playgrounds/playground-v3/.nuxt/types/admin', import.meta.url))
 
 describe('test module with nuxt 3', async () => {
   await setup({
@@ -39,7 +39,7 @@ describe('test module with nuxt 3', async () => {
             path: '_proxy/storefront',
           },
           publicAccessToken: process.env.NUXT_SHOPIFY_CLIENTS_STOREFRONT_PUBLIC_ACCESS_TOKEN,
-          retries: 3,
+          retries: 0,
           sandbox: true,
           documents: expectedStorefrontDocuments,
           cache: {
@@ -67,7 +67,7 @@ describe('test module with nuxt 3', async () => {
           apiVersion: process.env.NUXT_SHOPIFY_CLIENTS_ADMIN_API_VERSION,
           clientId: '<admin_client_id>',
           clientSecret: '<admin_client_secret>',
-          retries: 3,
+          retries: 0,
           sandbox: true,
           tokenStorage: {
             driver: 'memory',

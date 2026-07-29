@@ -1,13 +1,19 @@
+import type { StorefrontApiClient, StorefrontOperations } from '@nuxtjs/shopify/storefront'
+
 import type {
   ShopifyApiClientConfig,
   ShopifyConfig,
   PublicShopifyConfig,
-} from '../../../module'
+  ShopifyClientConfig,
+  ShopifyClientDefinition,
+  ShopifyClientOptions,
+} from '../../../../module'
 
 import {
   createApiUrl,
   createStoreDomain,
-} from '../client'
+} from '../transport'
+import { createClient } from '../create'
 
 const MOCK_STORE_DOMAIN = 'https://mock.shop'
 
@@ -24,6 +30,7 @@ export const createStorefrontConfig = (config?: ShopifyConfig | PublicShopifyCon
       storefront: {
         apiVersion,
         headers,
+        retries,
 
         publicAccessToken,
         mock,
@@ -50,10 +57,25 @@ export const createStorefrontConfig = (config?: ShopifyConfig | PublicShopifyCon
     apiUrl,
     apiVersion,
     logger,
+    retries,
     headers: {
       ...(privateAccessToken ? { 'Shopify-Storefront-Private-Token': privateAccessToken } : {}),
       ...(!privateAccessToken && publicAccessToken ? { 'X-Shopify-Storefront-Access-Token': publicAccessToken } : {}),
       ...headers,
     },
   } satisfies ShopifyApiClientConfig
+}
+
+const definition: ShopifyClientDefinition<'storefront'> = {
+  kind: 'storefront',
+  createConfig: createStorefrontConfig,
+  tracking: true,
+  cache: true,
+}
+
+export function createStorefrontClient<Cache extends boolean | undefined = undefined>(
+  config: ShopifyClientConfig<'storefront'>,
+  options: ShopifyClientOptions<StorefrontOperations, Cache> = {},
+): StorefrontApiClient<Cache> {
+  return createClient<StorefrontOperations, Cache>(definition, config, options)
 }

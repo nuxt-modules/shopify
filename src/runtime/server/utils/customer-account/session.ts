@@ -35,6 +35,10 @@ export function getSessionConfig(config?: ShopifyConfig): SessionConfig {
   }
 }
 
+export function usesExternalTokenStorage(config?: ShopifyConfig): boolean {
+  return !!config?.clients?.customerAccount?.tokenStorage
+}
+
 export function getCustomerAccountTokenStorage(config?: ShopifyConfig): Storage<CustomerAccountTokenSet> {
   const tokenStorage = config?.clients?.customerAccount?.tokenStorage
 
@@ -74,9 +78,29 @@ export async function setCustomerAccountSession(event: H3Event, data: { user: Cu
 
   const session = await useSession<CustomerAccountSessionData>(event, getSessionConfig(_shopify))
 
-  await session.update({ user: data.user, loggedInAt: data.loggedInAt })
+  if (usesExternalTokenStorage(_shopify)) {
+    await session.update({ user: data.user, loggedInAt: data.loggedInAt })
 
-  await getCustomerAccountTokenStorage(_shopify).setItem(session.id!, data.tokens)
+    await getCustomerAccountTokenStorage(_shopify).setItem(session.id!, data.tokens)
+  }
+  else {
+    await session.update({ user: data.user, loggedInAt: data.loggedInAt, tokens: data.tokens })
+  }
+}
+
+export async function setCustomerAccountTokens(event: H3Event, tokens: CustomerAccountTokenSet): Promise<void> {
+  const { _shopify } = useRuntimeConfig(event)
+
+  if (usesExternalTokenStorage(_shopify)) {
+    const session = await getSession<CustomerAccountSessionData>(event, getSessionConfig(_shopify))
+
+    if (session.id) await getCustomerAccountTokenStorage(_shopify).setItem(session.id, tokens)
+  }
+  else {
+    const session = await useSession<CustomerAccountSessionData>(event, getSessionConfig(_shopify))
+
+    await session.update({ tokens })
+  }
 }
 
 export async function getCustomerAccountTokens(event: H3Event): Promise<CustomerAccountTokenSet | null> {
@@ -86,7 +110,11 @@ export async function getCustomerAccountTokens(event: H3Event): Promise<Customer
 
   if (!session.data.user || !session.id) return null
 
-  return await getCustomerAccountTokenStorage(_shopify).getItem(session.id)
+  if (usesExternalTokenStorage(_shopify)) {
+    return await getCustomerAccountTokenStorage(_shopify).getItem(session.id)
+  }
+
+  return session.data.tokens ?? null
 }
 
 export async function clearCustomerAccountSession(event: H3Event): Promise<void> {
@@ -98,7 +126,7 @@ export async function clearCustomerAccountSession(event: H3Event): Promise<void>
 
   await session.clear()
 
-  if (id) {
+  if (usesExternalTokenStorage(_shopify) && id) {
     await getCustomerAccountTokenStorage(_shopify).removeItem(id)
   }
 }

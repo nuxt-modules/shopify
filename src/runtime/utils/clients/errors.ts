@@ -1,7 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import type { ResponseErrors } from '@shopify/graphql-client'
+import type { AllOperations, ResponseErrors } from '@shopify/graphql-client'
 
-import { createError } from '#imports'
+import type { ShopifyClientCallbacks } from '../../../module'
+
+import { createError } from 'h3'
 
 const statusTexts: Record<number, string> = {
   400: 'Bad Request',
@@ -25,24 +26,23 @@ function resolveStatusText(status: number): string {
   return statusTexts[status] ?? 'Internal Server Error'
 }
 
-export default function useErrors(
-  hooks: any,
-  hookKey: string,
+export default async function useErrors(
   errors: ResponseErrors,
   shouldThrow: boolean,
+  onErrors?: ShopifyClientCallbacks<AllOperations, undefined>['onErrors'],
 ) {
   const tag = '[shopify]'
 
   if (errors) {
-    hooks.callHook(hookKey, { errors })
+    await onErrors?.({ errors })
   }
 
   if (shouldThrow && errors?.graphQLErrors?.length) {
-    const statusCode = resolveStatus(errors.networkStatusCode)
+    const status = resolveStatus(errors.networkStatusCode)
 
     throw createError({
-      statusCode,
-      statusText: resolveStatusText(statusCode),
+      status,
+      statusText: resolveStatusText(status),
       message: errors.graphQLErrors.map(error =>
         `${tag} GraphQL error: ${error.message}${error.path?.length ? ` (at \`${error.path.join('.')}\`)` : ''}`,
       ).join(', '),
@@ -50,11 +50,11 @@ export default function useErrors(
   }
 
   if (shouldThrow && errors?.message) {
-    const statusCode = resolveStatus(errors.networkStatusCode)
+    const status = resolveStatus(errors.networkStatusCode)
 
     throw createError({
-      statusCode,
-      statusText: resolveStatusText(statusCode),
+      status,
+      statusText: resolveStatusText(status),
       message: `${tag} Request failed: ${errors.message}`,
     })
   }

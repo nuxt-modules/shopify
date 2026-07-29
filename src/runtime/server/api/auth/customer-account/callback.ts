@@ -3,7 +3,7 @@ import { useNitroApp } from 'nitropack/runtime'
 import { useRuntimeConfig } from '#imports'
 import { joinURL, withQuery } from 'ufo'
 
-import { createStoreDomain } from '../../../../utils/client'
+import { createStoreDomain } from '../../../../utils/clients/transport'
 import { createLogger } from '../../../utils/log'
 import { createBridgeNonce } from '../../../utils/customer-account/bridge'
 import { setCustomerAccountSession } from '../../../utils/customer-account/session'
@@ -17,7 +17,7 @@ import {
   getIdTokenNonce,
   getOpenIdConfiguration,
   sanitizeReturnPath,
-} from '../../../../utils/customer-account/oauth'
+} from '../../../../utils/clients/customer-account/auth'
 
 const STATE_COOKIE = 'shopify-customer-account-state'
 const VERIFIER_COOKIE = 'shopify-customer-account-verifier'

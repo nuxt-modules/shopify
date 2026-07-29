@@ -98,3 +98,61 @@ export type ShopifyAdminAuthTokenHookParams = {
 export type ShopifyAdminAuthErrorHookParams = {
   error: unknown
 }
+
+export type ShopifyClientCallbackResult = void | Promise<void>
+
+/**
+ * Lifecycle callbacks of a Shopify API client.
+ *
+ * The client itself is environment agnostic and never resolves a hook target on
+ * its own - wire these to `nuxtApp.hooks` / `nitroApp.hooks` / `nuxt.hooks`, or
+ * to anything else, at the call site.
+ */
+export type ShopifyClientCallbacks<Operations extends AllOperations, Cache extends boolean | undefined = undefined> = {
+  /**
+   * Called with the resolved client config, before the client is created.
+   * The config may be mutated.
+   */
+  onConfigure?: (params: ShopifyClientOptionHookParams) => ShopifyClientCallbackResult
+
+  /**
+   * Called with the fully assembled client.
+   */
+  onCreate?: (params: ShopifyClientHookParams<Operations, Cache>) => ShopifyClientCallbackResult
+
+  /**
+   * Called before every request is sent.
+   */
+  onRequest?: (params: ShopifyClientRequestHookParams<keyof Operations, Operations, Cache>) => ShopifyClientCallbackResult
+
+  /**
+   * Called after every response is received.
+   */
+  onResponse?: (params: ShopifyClientResponseHookParams<keyof Operations, Operations, Cache>) => ShopifyClientCallbackResult
+
+  /**
+   * Called whenever a response carries errors, before they are thrown.
+   */
+  onErrors?: (params: ShopifyErrorHookParams) => ShopifyClientCallbackResult
+}
+
+/**
+ * Lifecycle callbacks of an access token exchange.
+ */
+export type ShopifyAuthCallbacks = {
+  /**
+   * Called with the token request body, before it is sent. May be mutated.
+   */
+  onAuthRequest?: (params: ShopifyAdminAuthRequestHookParams) => ShopifyClientCallbackResult
+
+  /**
+   * Called with a newly obtained token. `refresh` is `true` when it was
+   * obtained through the refresh token grant.
+   */
+  onAuthToken?: (params: ShopifyAdminAuthTokenHookParams & { refresh: boolean }) => ShopifyClientCallbackResult
+
+  /**
+   * Called when the token exchange fails, before the error is rethrown.
+   */
+  onAuthError?: (params: ShopifyAdminAuthErrorHookParams) => ShopifyClientCallbackResult
+}

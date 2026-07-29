@@ -5,7 +5,7 @@ import {
   getIdTokenNonce,
   normalizeLocale,
   sanitizeReturnPath,
-} from '../../src/runtime/utils/customer-account/oauth'
+} from '../../src/runtime/utils/clients/customer-account/auth'
 
 function encodeIdToken(claims: Record<string, unknown>): string {
   const payload = Buffer.from(JSON.stringify(claims), 'utf8')

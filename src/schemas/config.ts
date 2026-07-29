@@ -3,12 +3,15 @@ import type { ConsolaOptions } from 'consola'
 import type { CacheOptions, StorageMounts } from 'nitropack'
 import type { LRUDriverOptions } from 'unstorage/drivers/lru-cache'
 
-import {
-  getCurrentApiVersion,
-  getCurrentSupportedApiVersions,
-} from '@shopify/graphql-client'
+import { getCurrentSupportedApiVersions } from '@shopify/graphql-client'
 import { kebabCase } from 'scule'
 import { z } from 'zod'
+
+import {
+  DEFAULT_API_VERSION,
+  DEFAULT_RETRIES,
+  DEFAULT_THROW_ERRORS,
+} from '../runtime/utils/clients/defaults'
 
 export enum ShopifyClientType {
   Storefront = 'storefront',
@@ -102,9 +105,9 @@ const codegenSchema = z.object({
 const clientSchema = z.object({
   apiVersion: z.string().refine(v => getCurrentSupportedApiVersions().includes(v), {
     error: v => `Unsupported API version "${v}". Supported versions are: ${getCurrentSupportedApiVersions().join(', ')}`,
-  }).optional().default(getCurrentApiVersion().version),
+  }).optional().default(DEFAULT_API_VERSION),
   headers: z.record(z.string(), z.string()).optional(),
-  retries: z.number().optional().default(3),
+  retries: z.number().optional().default(DEFAULT_RETRIES),
   sandbox: z.boolean().optional().default(true),
   documents: z.array(z.string()).optional(),
   autoImport: z.boolean().optional(),
@@ -148,7 +151,7 @@ const customerAccountClientSchema = clientSchema.extend({
   sessionURL: z.string().optional().default('_auth/customer-account/session'),
 
   session: customerAccountSessionSchema.optional().transform(v => ({ ...defaultCustomerAccountSessionOptions, ...(v ?? {}) })),
-  tokenStorage: enableable(storageMountSchema, defaultTokenStorageOptions),
+  tokenStorage: enableable(storageMountSchema, defaultTokenStorageOptions, false),
 
   documents: clientSchema.shape.documents.transform(v => v || defaultCustomerAccountDocuments),
   proxy: proxyPathSchema('_proxy/customer-account'),
@@ -233,8 +236,8 @@ export const configSchema = z.object({
   }),
 
   errors: z.object({
-    throw: z.boolean().optional().default(true),
-  }).optional().default({ throw: true }),
+    throw: z.boolean().optional().default(DEFAULT_THROW_ERRORS),
+  }).optional().default({ throw: DEFAULT_THROW_ERRORS }),
 
   fragments: z.object({
     paths: z.array(z.string()).optional().default(['/graphql']),

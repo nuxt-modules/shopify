@@ -1,21 +1,23 @@
 import type { H3Event } from 'h3'
 
-import type { CustomerAccountOperations } from '@nuxtjs/shopify/customer-account'
-import type { ShopifyApiClient } from '../../../../module'
-import type { CustomerAccountSessionData, CustomerAccountTokenSet } from './session'
+import type { CustomerAccountTokenSet } from './session'
 
-import { createError, getSession } from 'h3'
+import { createError } from 'h3'
 import { useNitroApp } from 'nitropack/runtime'
 import { useRuntimeConfig } from '#imports'
 
-import { createStoreDomain } from '../../../utils/client'
+import { createStoreDomain } from '../../../utils/clients/transport'
 import { createLogger } from '../log'
-import { getCustomerAccountTokenStorage, getSessionConfig } from './session'
-import { getOpenIdConfiguration, refreshAccessToken } from '../../../utils/customer-account/oauth'
+import { getCustomerAccountTokens, setCustomerAccountTokens } from './session'
+import { getOpenIdConfiguration, refreshAccessToken } from '../../../utils/clients/customer-account/auth'
 
 const EXPIRY_THRESHOLD_MS = 5 * 60 * 1000
 
 const pendingRefreshRequests = new Map<string, Promise<CustomerAccountTokenSet>>()
+
+function unauthorized(): ReturnType<typeof createError> {
+  return createError({ status: 401, statusText: 'Unauthorized', message: '[shopify] Customer account session expired' })
+}
 
 function isExpired(expiresAt?: number): boolean {
   if (!expiresAt) return false
@@ -32,19 +34,10 @@ export async function getValidCustomerAccessToken(event: H3Event): Promise<strin
     throw createError({ status: 500, statusText: 'Internal Server Error', message: '[shopify] Customer account client is not configured' })
   }
 
-  const session = await getSession<CustomerAccountSessionData>(event, getSessionConfig(_shopify))
-
-  if (!session.data.user || !session.id) {
-    throw createError({ status: 401, statusText: 'Unauthorized', message: '[shopify] No authenticated customer account session' })
-  }
-
-  const id = session.id
-  const storage = getCustomerAccountTokenStorage(_shopify)
-
-  const tokens = await storage.getItem(id)
+  const tokens = await getCustomerAccountTokens(event)
 
   if (!tokens?.accessToken) {
-    throw createError({ status: 401, statusText: 'Unauthorized', message: '[shopify] Customer account session expired' })
+    throw unauthorized()
   }
 
   if (!isExpired(tokens.expiresAt)) {
@@ -52,13 +45,13 @@ export async function getValidCustomerAccessToken(event: H3Event): Promise<strin
   }
 
   if (!tokens.refreshToken) {
-    throw createError({ status: 401, statusText: 'Unauthorized', message: '[shopify] Customer account session expired' })
+    throw unauthorized()
   }
 
-  if (!pendingRefreshRequests.has(id)) {
-    createLogger().debug('Refreshing expired customer account access token')
+  const refreshToken = tokens.refreshToken
 
-    const refreshToken = tokens.refreshToken
+  if (!pendingRefreshRequests.has(refreshToken)) {
+    createLogger().debug('Refreshing expired customer account access token')
 
     const request = getOpenIdConfiguration(createStoreDomain(_shopify.name))
       .then(configuration => refreshAccessToken(configuration, {
@@ -74,28 +67,22 @@ export async function getValidCustomerAccessToken(event: H3Event): Promise<strin
           expiresAt: Date.now() + (fresh.expires_in ?? 7200) * 1000,
         }
 
-        await storage.setItem(id, next)
+        await setCustomerAccountTokens(event, next)
 
         await useNitroApp().hooks.callHook('customer-account:auth:refresh', { tokens: next })
 
         return next
       })
-      .finally(() => pendingRefreshRequests.delete(id))
+      .finally(() => pendingRefreshRequests.delete(refreshToken))
 
-    pendingRefreshRequests.set(id, request)
+    pendingRefreshRequests.set(refreshToken, request)
   }
 
-  const refreshed = await pendingRefreshRequests.get(id)!.catch((error) => {
+  const refreshed = await pendingRefreshRequests.get(refreshToken)!.catch((error) => {
     createLogger().error('Failed to refresh the customer account session:', error)
 
-    throw createError({ status: 401, statusText: 'Unauthorized', message: '[shopify] Customer account session expired' })
+    throw unauthorized()
   })
 
   return refreshed.accessToken
-}
-
-export const withCustomerAccountCredentials = async <Operations extends CustomerAccountOperations, Cache extends undefined>(client: ShopifyApiClient<Operations, Cache>, event: H3Event): Promise<ShopifyApiClient<Operations, Cache>> => {
-  client.config.headers['Authorization'] = await getValidCustomerAccessToken(event)
-
-  return client
 }

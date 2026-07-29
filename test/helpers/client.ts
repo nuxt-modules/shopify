@@ -1,6 +1,6 @@
 import { kebabCase } from 'scule'
 
-import { ShopifyClientType } from '../src/schemas'
+import { ShopifyClientType } from '../../src/schemas'
 
 const ignores = [
   '!node_modules',

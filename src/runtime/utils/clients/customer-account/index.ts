@@ -1,12 +1,18 @@
+import type { CustomerAccountApiClient, CustomerAccountOperations } from '@nuxtjs/shopify/customer-account'
+
 import type {
   ShopifyApiClientConfig,
   ShopifyConfig,
   PublicShopifyConfig,
-} from '../../../module'
+  ShopifyClientConfig,
+  ShopifyClientDefinition,
+  ShopifyClientOptions,
+} from '../../../../module'
 
 import {
   createStoreDomain,
-} from '../client'
+} from '../transport'
+import { createClient } from '../create'
 
 export const createCustomerAccountConfig = (config?: ShopifyConfig | PublicShopifyConfig): ShopifyApiClientConfig => {
   if (!config?.clients?.customerAccount) {
@@ -22,6 +28,7 @@ export const createCustomerAccountConfig = (config?: ShopifyConfig | PublicShopi
         apiUrl,
         apiVersion,
         headers,
+        retries,
 
         clientId,
       },
@@ -37,7 +44,7 @@ export const createCustomerAccountConfig = (config?: ShopifyConfig | PublicShopi
   }
 
   if (!apiUrl) {
-    throw new Error('[shopify] Failed to create customer account client config: the customer account API URL could not be resolved (check the build logs)')
+    throw new Error('[shopify] Failed to create customer account client config: the customer account API URL could not be resolved')
   }
 
   return {
@@ -45,8 +52,23 @@ export const createCustomerAccountConfig = (config?: ShopifyConfig | PublicShopi
     apiUrl,
     apiVersion,
     logger,
+    retries,
     headers: {
       ...headers,
     },
   } satisfies ShopifyApiClientConfig
+}
+
+const definition: ShopifyClientDefinition<'customerAccount'> = {
+  kind: 'customerAccount',
+  createConfig: createCustomerAccountConfig,
+  authHeader: 'Authorization',
+  cookies: true,
+}
+
+export function createCustomerAccountClient(
+  config: ShopifyClientConfig<'customerAccount'>,
+  options: ShopifyClientOptions<CustomerAccountOperations> = {},
+): CustomerAccountApiClient {
+  return createClient<CustomerAccountOperations>(definition, config, options)
 }

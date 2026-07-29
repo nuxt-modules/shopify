@@ -18,7 +18,7 @@
   "homepage": "https://shopify.nuxtjs.org",
   "exports": {
     ".": {
-      "types": "./dist/types.d.mts",
+      "types": "./dist/module.d.mts",
       "import": "./dist/module.mjs"
     },
     "./storefront": {
@@ -35,7 +35,7 @@
   "typesVersions": {
     "*": {
       ".": [
-        "./dist/types.d.mts"
+        "./dist/module.d.mts"
       ],
       "storefront": [
         "./dist/clients/storefront.d.ts"

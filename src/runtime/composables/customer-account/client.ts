@@ -1,48 +1,21 @@
-import type { CustomerAccountApiClient, CustomerAccountOperations } from '@nuxtjs/shopify/customer-account'
+import type { CustomerAccountApiClient } from '@nuxtjs/shopify/customer-account'
 
-import { joinURL } from 'ufo'
-
-import { useRuntimeConfig, useNuxtApp, useRequestURL, useRequestHeaders } from '#imports'
-import { createClient } from '../../utils/client'
-import { createCustomerAccountConfig } from '../../utils/clients/customer-account'
-import useErrors from '../../utils/errors'
+import { useRuntimeConfig, useNuxtApp, useRequestURL, useRequestEvent } from '#imports'
+import { createCustomerAccountClient } from '../../utils/clients/customer-account'
 
 export function useCustomerAccount(): CustomerAccountApiClient {
   const { _shopify } = useRuntimeConfig().public
 
-  const config = createCustomerAccountConfig(_shopify)
-
   const nuxtApp = useNuxtApp()
 
-  if (_shopify?.clients.customerAccount?.proxy && !nuxtApp.payload.prerenderedAt) {
-    config.apiUrl = joinURL(useRequestURL().origin, _shopify.clients.customerAccount.proxy.path)
+  return createCustomerAccountClient(_shopify!, {
+    event: import.meta.server ? useRequestEvent() : undefined,
+    origin: nuxtApp.payload.prerenderedAt ? undefined : useRequestURL().origin,
 
-    if (import.meta.server) {
-      const cookie = useRequestHeaders(['cookie']).cookie
-
-      if (cookie) config.headers['Cookie'] = cookie
-    }
-  }
-
-  nuxtApp.hooks.callHook('customer-account:client:configure', { config })
-
-  const originalClient = createClient<CustomerAccountOperations>(config)
-
-  const request: CustomerAccountApiClient['request'] = async (operation, options) => {
-    await nuxtApp.hooks.callHook('customer-account:client:request', { operation, options, config: originalClient.config })
-
-    const response = await originalClient.request(operation, options)
-
-    if (response.errors) useErrors(nuxtApp.hooks, 'customer-account:client:errors', response.errors, _shopify?.errors?.throw ?? false)
-
-    nuxtApp.hooks.callHook('customer-account:client:response', { response, operation, options })
-
-    return response
-  }
-
-  const client = { ...originalClient, request } satisfies CustomerAccountApiClient
-
-  nuxtApp.hooks.callHook('customer-account:client:create', { client })
-
-  return client
+    onConfigure: params => nuxtApp.hooks.callHook('customer-account:client:configure', params),
+    onCreate: params => nuxtApp.hooks.callHook('customer-account:client:create', params),
+    onRequest: params => nuxtApp.hooks.callHook('customer-account:client:request', params),
+    onResponse: params => nuxtApp.hooks.callHook('customer-account:client:response', params),
+    onErrors: params => nuxtApp.hooks.callHook('customer-account:client:errors', params),
+  })
 }

@@ -1,4 +1,4 @@
-import type { CustomerAccountTokens, OpenIdConfiguration } from '../../../module'
+import type { CustomerAccountTokens, OpenIdConfiguration } from '../../../../module'
 
 import { withQuery } from 'ufo'
 
