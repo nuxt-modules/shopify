@@ -11,7 +11,6 @@
         "@nuxt/kit": "^4.4.8",
         "@nuxt/ui": "^4.9.0",
         "@nuxtjs/critters": "^0.9.2",
-        "@nuxtjs/shopify": "latest",
         "better-sqlite3": "^12.11.1",
         "docus": "^5.12.2",
         "motion-v": "^2.3.0",

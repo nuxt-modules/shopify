@@ -10,5 +10,6 @@ pkgs.mkShell {
     shellHook = ''
         export PNPM_HOME="$HOME/.pnpm"
         export PATH="$PNPM_HOME:$PATH"
+        export NODE_NO_WARNINGS=1
     '';
 }
