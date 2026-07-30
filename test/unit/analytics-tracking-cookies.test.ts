@@ -27,8 +27,10 @@ describe('analytics tracking cookies', () => {
   it('generates visitor tokens when the host strips server timing', () => {
     persistTrackingTokens()
 
-    expect(readCookie('_shopify_y')).toBeTruthy()
-    expect(readCookie('_shopify_s')).toBeTruthy()
+    const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+    expect(readCookie('_shopify_y')).toMatch(uuid)
+    expect(readCookie('_shopify_s')).toMatch(uuid)
   })
 
   it('reuses a token Shopify already issued rather than replacing it', () => {

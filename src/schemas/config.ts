@@ -11,6 +11,8 @@ import {
   DEFAULT_API_VERSION,
   DEFAULT_RETRIES,
   DEFAULT_THROW_ERRORS,
+  MAX_RETRIES,
+  MIN_RETRIES,
 } from '../runtime/utils/clients/defaults'
 
 export enum ShopifyClientType {
@@ -28,7 +30,6 @@ function enableable<S extends z.ZodTypeAny>(schema: S, fallback: z.output<S>, en
 }
 
 const proxyPathSchema = (path: string) => enableable(z.object({ path: z.string().optional().default(path) }), { path })
-const publicProxyPathSchema = (path: string) => enableable(z.object({ path: z.string().optional().default(path) }), { path })
 
 const getDefaultDocuments = (clientType: string, { exclude }: { exclude?: boolean } = {}) => {
   const clientName = kebabCase(clientType)
@@ -87,7 +88,7 @@ const defaultCacheConfig = { client: defaultClientCacheOptions, proxy: defaultPr
 const defaultCustomerAccountSessionOptions = { name: 'shopify-customer-account', maxAge: 60 * 60 * 24 * 7 }
 const defaultCustomerAccountScope = ['openid', 'email', 'customer-account-api:full']
 
-const storageMountSchema = z.any().transform(v => v as StorageMounts[string]).or(z.string())
+const storageMountSchema = z.any().transform(v => v as StorageMounts[string] | string)
 
 const clientCacheSchema = z.object({
   client: enableable(z.any().transform(v => v as LRUDriverOptions), defaultClientCacheOptions),
@@ -104,10 +105,10 @@ const codegenSchema = z.object({
 
 const clientSchema = z.object({
   apiVersion: z.string().refine(v => getCurrentSupportedApiVersions().includes(v), {
-    error: v => `Unsupported API version "${v}". Supported versions are: ${getCurrentSupportedApiVersions().join(', ')}`,
+    error: issue => `Unsupported API version "${issue.input}". Supported versions are: ${getCurrentSupportedApiVersions().join(', ')}`,
   }).optional().default(DEFAULT_API_VERSION),
   headers: z.record(z.string(), z.string()).optional(),
-  retries: z.number().optional().default(DEFAULT_RETRIES),
+  retries: z.number().int().min(MIN_RETRIES).max(MAX_RETRIES).optional().default(DEFAULT_RETRIES),
   sandbox: z.boolean().optional().default(true),
   documents: z.array(z.string()).optional(),
   autoImport: z.boolean().optional(),
@@ -209,10 +210,6 @@ const analyticsSchema = z.object({
 })
 
 const storefrontClient = storefrontClientSchema
-  .transform(client => ({
-    ...client,
-    ...((client.mock || client.publicAccessToken) ? { documents: ['**/*.vue', ...client.documents] } : {}),
-  }))
   .refine(client => client?.mock || client?.privateAccessToken || client?.publicAccessToken, {
     error: 'Either a public or private access token must be provided for the storefront client',
   })
@@ -227,13 +224,13 @@ const adminClient = adminClientSchema
   })
 
 export const configSchema = z.object({
-  name: z.string({ error: 'Shop name is required' }),
+  name: z.string({ error: 'Shop name is required' }).min(1, { error: 'Shop name cannot be empty' }),
 
   clients: z.object({
     [ShopifyClientType.Storefront]: storefrontClient.optional(),
     [ShopifyClientType.Admin]: adminClient.optional(),
     [ShopifyClientType.CustomerAccount]: customerAccountClient.optional(),
-  }),
+  }).optional().default({}),
 
   errors: z.object({
     throw: z.boolean().optional().default(DEFAULT_THROW_ERRORS),
@@ -266,7 +263,7 @@ export const publicConfigSchema = configSchema.omit({ clients: true, fragments: 
       cache: true,
       proxy: true,
     }).extend({
-      proxy: publicProxyPathSchema('_proxy/storefront'),
+      proxy: proxyPathSchema('_proxy/storefront'),
       cache: enableable(clientCacheSchema.omit({ proxy: true }), { client: defaultClientCacheOptions, options: defaultCacheOptions }),
     }).optional(),
 
@@ -281,9 +278,9 @@ export const publicConfigSchema = configSchema.omit({ clients: true, fragments: 
       tokenStorage: true,
       logoutRedirectURL: true,
     }).extend({
-      proxy: publicProxyPathSchema('_proxy/customer-account'),
+      proxy: proxyPathSchema('_proxy/customer-account'),
     }).optional(),
-  }),
+  }).optional().default({}),
 
   errors: configSchema.shape.errors,
 })

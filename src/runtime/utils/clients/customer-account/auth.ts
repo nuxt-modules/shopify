@@ -185,9 +185,11 @@ export async function fetchCustomerIdentity(apiUrl: string, accessToken: string)
   const response = await $fetch<{
     data?: {
       customer?: {
+        id: string | null
         firstName: string | null
         lastName: string | null
-        emailAddress: { emailAddress: string } | null
+        emailAddress: { emailAddress: string | null } | null
+        phoneNumber: { phoneNumber: string | null } | null
       }
     }
   }>(apiUrl, {
@@ -198,7 +200,7 @@ export async function fetchCustomerIdentity(apiUrl: string, accessToken: string)
     },
     body: JSON.stringify({
       operationName: 'getCustomer',
-      query: 'query getCustomer { customer { firstName lastName emailAddress { emailAddress } } }',
+      query: 'query getCustomer { customer { id firstName lastName emailAddress { emailAddress } phoneNumber { phoneNumber } } }',
     }),
   }).catch((error) => {
     throw new Error(`[shopify] Failed to fetch the customer identity: ${error}`)
@@ -206,14 +208,16 @@ export async function fetchCustomerIdentity(apiUrl: string, accessToken: string)
 
   const customer = response?.data?.customer
 
-  if (!customer?.emailAddress?.emailAddress) {
+  if (!customer?.id) {
     throw new Error('[shopify] Failed to fetch the customer identity: incomplete customer response')
   }
 
   return {
+    id: customer.id,
     firstName: customer.firstName,
     lastName: customer.lastName,
-    email: customer.emailAddress.emailAddress,
+    email: customer.emailAddress?.emailAddress ?? null,
+    phone: customer.phoneNumber?.phoneNumber ?? null,
   }
 }
 

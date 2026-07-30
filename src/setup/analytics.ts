@@ -16,11 +16,6 @@ export default function setupAnalytics(config: ShopifyConfig, resolver: Resolver
     logger.debug('Analytics is enabled but no `analytics.storefrontId` set. Events are attributed to the default storefront ("0").')
   }
 
-  if (!config.clients[ShopifyClientType.Storefront]?.publicAccessToken && !config.analytics.consent?.storefrontAccessToken) {
-    logger.error('Analytics is enabled but no public storefront access token is set. Set `clients.storefront.publicAccessToken` or `analytics.consent.storefrontAccessToken`. Disabling analytics.')
-    return
-  }
-
   if (!config.clients[ShopifyClientType.Storefront]?.proxy) {
     logger.warn('Analytics is enabled but the storefront proxy is disabled. Shopify only exposes visitor tracking identifiers on same-origin responses, so events will be reported without them.')
   }

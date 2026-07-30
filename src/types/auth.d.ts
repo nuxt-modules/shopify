@@ -1,7 +1,9 @@
 export type CustomerAccountUser = {
+  id: string
   firstName: string | null
   lastName: string | null
-  email: string
+  email: string | null
+  phone: string | null
 }
 
 export type CustomerAccountTokenSet = {

@@ -23,4 +23,15 @@ export default function setupRequirements(config: ShopifyConfig, publicConfig: P
     config.analytics = false
     publicConfig.analytics = false
   }
+
+  if (
+    config.analytics
+    && !config.clients[ShopifyClientType.Storefront]?.publicAccessToken
+    && !config.analytics.consent?.storefrontAccessToken
+  ) {
+    logger.error('Analytics is enabled but no public storefront access token is set. Set `clients.storefront.publicAccessToken` or `analytics.consent.storefrontAccessToken`. Disabling analytics.')
+
+    config.analytics = false
+    publicConfig.analytics = false
+  }
 }

@@ -7,35 +7,54 @@ import { loadNuxt } from '@nuxt/kit'
 import { createAdminClient } from '../runtime/utils/clients/admin'
 import { flattenConnection } from '../runtime/utils/functions/flattenConnection'
 
+const PAGE_SIZE = 250
+
 const fetchSubscriptions = async (client: AdminApiClient) => {
-  const { data, errors } = await client.request(`#graphql
-    query GetWebhookSubscriptions($first: Int!) {
-      webhookSubscriptions(first: $first) {
-        edges {
-          node {
-            id
-            topic
-            endpoint {
-              __typename
-              ... on WebhookHttpEndpoint {
-                callbackUrl
+  const subscriptions: ReturnType<typeof flattenConnection> = []
+
+  let after: string | undefined
+
+  do {
+    const { data, errors } = await client.request(`#graphql
+      query GetWebhookSubscriptions($first: Int!, $after: String) {
+        webhookSubscriptions(first: $first, after: $after) {
+          edges {
+            node {
+              id
+              topic
+              endpoint {
+                __typename
+                ... on WebhookHttpEndpoint {
+                  callbackUrl
+                }
               }
             }
           }
+          pageInfo {
+            hasNextPage
+            endCursor
+          }
         }
       }
+    `, {
+      variables: {
+        first: PAGE_SIZE,
+        after,
+      },
+    })
+
+    if (errors) {
+      throw new Error(`[shopify] Failed to fetch webhook subscriptions: ${JSON.stringify(errors, null, 2)}`)
     }
-  `, {
-    variables: {
-      first: 250,
-    },
-  })
 
-  if (errors) {
-    throw new Error(`[shopify] Failed to fetch webhook subscriptions: ${JSON.stringify(errors, null, 2)}`)
-  }
+    subscriptions.push(...flattenConnection(data?.webhookSubscriptions))
 
-  return flattenConnection(data?.webhookSubscriptions)
+    const pageInfo = data?.webhookSubscriptions?.pageInfo
+
+    after = pageInfo?.hasNextPage ? pageInfo.endCursor ?? undefined : undefined
+  } while (after)
+
+  return subscriptions
 }
 
 const createSubscription = async (client: AdminApiClient, hook: NonNullable<NonNullable<ShopifyConfig['webhooks']>['hooks']>[number]) => {

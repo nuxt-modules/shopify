@@ -18,7 +18,7 @@ import { getRequestHeader } from 'h3'
 import { joinURL } from 'ufo'
 
 import { createTrackingHeaders, collectTrackingHeaders } from '../../server/utils/tracking'
-import { createTransport } from './transport'
+import { PROXY_API_VERSION_HEADER, createTransport, withApiVersion } from './transport'
 import { DEFAULT_API_VERSION, DEFAULT_RETRIES, DEFAULT_THROW_ERRORS } from './defaults'
 import useCache from './cache'
 import useErrors from './errors'
@@ -62,7 +62,11 @@ export function createClient<
 
   const apiClientConfig = definition.createConfig(moduleConfig)
 
-  if (options.apiVersion) apiClientConfig.apiVersion = options.apiVersion
+  if (options.apiVersion) {
+    apiClientConfig.apiVersion = options.apiVersion
+    apiClientConfig.apiUrl = withApiVersion(apiClientConfig.apiUrl, options.apiVersion)
+  }
+
   if (options.retries !== undefined) apiClientConfig.retries = options.retries
   if (options.logger) apiClientConfig.logger = options.logger
   if (options.headers) Object.assign(apiClientConfig.headers, options.headers)
@@ -71,6 +75,10 @@ export function createClient<
 
   if (origin && proxy) {
     apiClientConfig.apiUrl = joinURL(origin, proxy.path)
+
+    if (options.apiVersion) {
+      apiClientConfig.headers[PROXY_API_VERSION_HEADER] = options.apiVersion
+    }
   }
 
   if (event) {

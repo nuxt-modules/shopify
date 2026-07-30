@@ -15,6 +15,10 @@ import { createConsola } from 'consola'
 
 import pkg from '../../../../package.json'
 
+export const PROXY_API_VERSION_HEADER = 'X-Shopify-Proxy-Api-Version'
+
+const API_VERSION_SEGMENT = /\/api\/[^/]+(?=\/|$)/
+
 export const createStoreDomain = (name: string) => `https://${name}.myshopify.com`
 
 export const createApiUrl = (storeDomain: string, apiVersion: string, apiPrefix?: string) => joinURL(
@@ -23,6 +27,11 @@ export const createApiUrl = (storeDomain: string, apiVersion: string, apiPrefix?
   apiVersion,
   'graphql.json',
 )
+
+export const isVersionedApiUrl = (apiUrl: string) => API_VERSION_SEGMENT.test(apiUrl)
+
+export const withApiVersion = (apiUrl: string, apiVersion: string) =>
+  apiUrl.replace(API_VERSION_SEGMENT, `/api/${apiVersion}`)
 
 export const createTransport = <Operations extends AllOperations = AllOperations, Cache extends boolean | undefined = undefined>(
   config: ShopifyApiClientConfig,
@@ -39,13 +48,6 @@ export const createTransport = <Operations extends AllOperations = AllOperations
   if (!apiVersion) {
     throw new Error('[shopify] Failed to create client: API version is required')
   }
-
-  const getStoreUrl = (apiVersion: string) => joinURL(
-    storeDomain,
-    'api',
-    apiVersion,
-    'graphql.json',
-  )
 
   const clientConfig = {
     storeDomain,
@@ -71,7 +73,7 @@ export const createTransport = <Operations extends AllOperations = AllOperations
     ({ ...headers, ...(customHeaders ?? {}) })
 
   const getApiUrl: ShopifyApiClient<Operations>['getApiUrl'] = (propApiVersion?: string) =>
-    propApiVersion ? getStoreUrl(propApiVersion) : apiUrl
+    propApiVersion ? withApiVersion(apiUrl, propApiVersion) : apiUrl
 
   const getGQLClientParams = <
     Operation extends keyof Operations,
@@ -92,11 +94,19 @@ export const createTransport = <Operations extends AllOperations = AllOperations
         cache,
       } = options
 
+      const proxied = apiVersion && !isVersionedApiUrl(apiUrl)
+
+      const requestHeaders = proxied
+        ? getHeaders({ ...headers, [PROXY_API_VERSION_HEADER]: apiVersion } as unknown as Record<string, string[]>)
+        : headers
+          ? getHeaders(headers as unknown as Record<string, string[]>)
+          : undefined
+
       props.push({
         ...(variables ? { variables } : {}),
         ...(apiVersion ? { url: getApiUrl(apiVersion) } : {}),
-        ...(headers ? { headers: getHeaders(headers as unknown as Record<string, string[]>) } : {}),
-        ...(retries ? { retries } : {}),
+        ...(requestHeaders ? { headers: requestHeaders } : {}),
+        ...(retries !== undefined ? { retries } : {}),
         ...(signal ? { signal } : {}),
         ...(cache ? { cache } : {}),
       })

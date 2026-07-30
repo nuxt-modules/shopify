@@ -24,7 +24,6 @@ const getExpectedDocuments = (clientType: string, { exclude }: { exclude?: boole
 }
 
 export const expectedStorefrontDocuments = [
-  '**/*.vue',
   '**/*.{gql,graphql,ts,js,vue}',
   ...getExpectedDocuments(ShopifyClientType.Admin, { exclude: true }),
   ...getExpectedDocuments(ShopifyClientType.CustomerAccount, { exclude: true }),

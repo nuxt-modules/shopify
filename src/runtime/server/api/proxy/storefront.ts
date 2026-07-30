@@ -5,7 +5,10 @@ import { z } from 'zod'
 
 import { useRuntimeConfig } from '#imports'
 import { createStorefrontConfig } from '../../../utils/clients/storefront'
+import { withApiVersion } from '../../../utils/clients/transport'
 import { forwardableCookie, forwardTrackingHeaders } from '../../utils/tracking'
+
+const API_VERSION_PATTERN = /^(?:unstable|2\d{3}-\d{2})$/
 
 const FORWARDED_HEADERS = [
   'accept',
@@ -56,11 +59,13 @@ export default defineEventHandler(async (event) => {
 
   const { apiUrl } = createStorefrontConfig(_shopify)
 
-  const apiVersion = requestHeaders['x-shopify-proxy-api-version']
+  const requestedApiVersion = requestHeaders['x-shopify-proxy-api-version']
 
-  const url = apiVersion === 'unstable'
-    ? apiUrl.replace(/\/api\/[^/]+\/graphql\.json$/, '/api/unstable/graphql.json')
-    : apiUrl
+  const apiVersion = requestedApiVersion && API_VERSION_PATTERN.test(requestedApiVersion)
+    ? requestedApiVersion
+    : undefined
+
+  const url = apiVersion ? withApiVersion(apiUrl, apiVersion) : apiUrl
 
   const storefrontConfig = _shopify?.clients.storefront
   const cacheConfig = storefrontConfig?.cache ? storefrontConfig.cache : undefined
@@ -93,7 +98,7 @@ export default defineEventHandler(async (event) => {
     name: 'storefront-proxy',
 
     shouldBypassCache: () => !requestCacheConfig,
-    getKey: (_url, _method, _headers, body) => hash(body),
+    getKey: (url, method, _headers, body) => hash({ url, method, cache: cacheOption, body }),
 
     ...(cacheBase ? { base: cacheBase } : {}),
     ...requestCacheConfig,

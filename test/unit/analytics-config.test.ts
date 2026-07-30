@@ -17,7 +17,7 @@ describe('analytics config', () => {
   })
 
   it('treats `true` as the default enabled config', () => {
-    expect(parseAnalytics(true)).toMatchObject({})
+    expect(parseAnalytics(true)).toStrictEqual({ autoPageView: true })
   })
 
   it('disables when set to `false`', () => {
@@ -25,7 +25,7 @@ describe('analytics config', () => {
   })
 
   it('enables with an empty config object', () => {
-    expect(parseAnalytics({})).toMatchObject({})
+    expect(parseAnalytics({})).toStrictEqual({ autoPageView: true })
   })
 
   it('keeps an explicit config object and defaults its options', () => {

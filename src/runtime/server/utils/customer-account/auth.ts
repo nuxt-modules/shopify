@@ -8,7 +8,7 @@ import { useRuntimeConfig } from '#imports'
 
 import { createStoreDomain } from '../../../utils/clients/transport'
 import { createLogger } from '../log'
-import { getCustomerAccountTokens, setCustomerAccountTokens } from './session'
+import { clearCustomerAccountSession, getCustomerAccountTokens, setCustomerAccountTokens } from './session'
 import { getOpenIdConfiguration, refreshAccessToken } from '../../../utils/clients/customer-account/auth'
 
 const EXPIRY_THRESHOLD_MS = 5 * 60 * 1000
@@ -78,8 +78,10 @@ export async function getValidCustomerAccessToken(event: H3Event): Promise<strin
     pendingRefreshRequests.set(refreshToken, request)
   }
 
-  const refreshed = await pendingRefreshRequests.get(refreshToken)!.catch((error) => {
+  const refreshed = await pendingRefreshRequests.get(refreshToken)!.catch(async (error) => {
     createLogger().error('Failed to refresh the customer account session:', error)
+
+    await clearCustomerAccountSession(event).catch(() => {})
 
     throw unauthorized()
   })
