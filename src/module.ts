@@ -3,7 +3,6 @@ import type { ModuleOptions } from './types'
 import {
   defineNuxtModule,
   useRuntimeConfig,
-  updateRuntimeConfig,
   createResolver,
 } from '@nuxt/kit'
 import { defu } from 'defu'
@@ -63,13 +62,13 @@ export default defineNuxtModule<ModuleOptions>({
 
       setupRequirements(config, publicConfig)
 
-      updateRuntimeConfig({
+      Object.assign(nuxt.options.runtimeConfig, defu({
         _shopify: config,
 
         public: {
           _shopify: publicConfig,
         },
-      })
+      }, nuxt.options.runtimeConfig))
 
       await setupClients(nuxt, config, resolver)
 

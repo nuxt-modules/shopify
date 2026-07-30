@@ -20,6 +20,7 @@
         "@nuxtjs/i18n": "^10.4.1",
         "@nuxtjs/shopify": "latest",
         "@shopify/hydrogen": "^2026.4.4",
+        "@shopify/hydrogen-react": "^2026.4.3",
         "@tailwindcss/typography": "^0.5.20",
         "nuxt": "^4.4.8",
         "zod": "^4.4.3"

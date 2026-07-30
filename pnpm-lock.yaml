@@ -226,6 +226,9 @@ importers:
       '@shopify/hydrogen':
         specifier: ^2026.4.4
         version: 2026.4.4(@react-router/dev@7.18.1(@types/node@25.9.5)(jiti@2.7.0)(lightningcss@1.32.0)(react-router@7.18.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(terser@5.49.0)(typescript@6.0.3)(vite@8.1.5(@types/node@25.9.5)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.49.0)(yaml@2.9.0))(yaml@2.9.0))(react-dom@18.3.1(react@18.3.1))(react-router@7.18.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(three@0.183.2)(vite@8.1.5(@types/node@25.9.5)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.49.0)(yaml@2.9.0))
+      '@shopify/hydrogen-react':
+        specifier: ^2026.4.3
+        version: 2026.4.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(three@0.183.2)(vite@8.1.5(@types/node@25.9.5)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.49.0)(yaml@2.9.0))
       '@tailwindcss/typography':
         specifier: ^0.5.20
         version: 0.5.20
