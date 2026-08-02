@@ -24,7 +24,7 @@ export default function setupCache(nuxt: Nuxt, config: ShopifyConfig, resolver: 
     nuxt.options.nitro.storage['storefront-proxy'] = storefrontStorageMount
   }
 
-  if (config.clients.storefront?.cache !== false) {
+  if (config.clients.storefront && config.clients.storefront.cache !== false) {
     addPlugin(storefrontPluginPath)
   }
 }

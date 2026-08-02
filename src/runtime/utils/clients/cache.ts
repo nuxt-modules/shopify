@@ -51,6 +51,20 @@ function getProxyCacheHeaders<
   }
 }
 
+function createCacheKey<
+  Operation extends keyof Operations,
+  Operations extends AllOperations,
+>(
+  operation: Operation,
+  options?: ShopifyApiClientRequestOptions<Operation, Operations, true>,
+) {
+  const keyableOptions = { ...options }
+
+  delete keyableOptions.signal
+
+  return hash({ operation, options: keyableOptions })
+}
+
 export default async function useCache<
   Request extends ShopifyApiClientRequest<Operations, true>,
   Operation extends keyof Operations,
@@ -65,9 +79,9 @@ export default async function useCache<
   const inMemoryConfig = storage ? getLRUCacheSettings(options, cacheOptions) : undefined
   const proxyCacheHeaders = getProxyCacheHeaders(options)
 
-  const cacheKey = hash({ operation, options })
+  const cacheKey = storage && inMemoryConfig ? createCacheKey(operation, options) : undefined
 
-  if (storage && inMemoryConfig && await storage.hasItem(cacheKey)) {
+  if (storage && cacheKey && await storage.hasItem(cacheKey)) {
     return await storage.getItem(cacheKey) as ClientResponse<ReturnData<Operation, Operations>>
   }
 
@@ -79,7 +93,7 @@ export default async function useCache<
     },
   } as typeof options)
 
-  if (storage && inMemoryConfig && !response.errors) {
+  if (storage && cacheKey && !response.errors) {
     await storage.setItem(cacheKey, response, inMemoryConfig)
   }
 

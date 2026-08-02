@@ -109,6 +109,26 @@ describe('client cache', () => {
     expect(requestOptions(request)).toMatchObject({ headers: { 'X-Shopify-Proxy-Cache': 'long' } })
   })
 
+  it('caches a request that carries an abort signal', async () => {
+    const storage = createStorage()
+    const request = createRequest()
+
+    const first = await useCache(storage, request as never, 'query X { a }' as never, { cache: 'short', signal: new AbortController().signal } as never, options)
+    const second = await useCache(storage, request as never, 'query X { a }' as never, { cache: 'short', signal: new AbortController().signal } as never, options)
+
+    expect(request).toHaveBeenCalledTimes(1)
+    expect(second).toStrictEqual(first)
+  })
+
+  it('passes an abort signal through when caching is off', async () => {
+    const request = createRequest()
+    const signal = new AbortController().signal
+
+    await useCache(undefined, request as never, 'query X { a }' as never, { signal } as never, options)
+
+    expect(requestOptions(request)).toMatchObject({ signal })
+  })
+
   it('supports split client and proxy cache tiers', async () => {
     const request = createRequest()
 

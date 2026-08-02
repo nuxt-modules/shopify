@@ -93,11 +93,17 @@ export function useStorefrontData<
   const { variables, headers, apiVersion, retries, signal, cache, ...asyncOptions } = options ?? {}
 
   const getVariables = () => {
-    const v = unref(variables)
-    for (const key in v) {
-      v[key] = unref(v[key])
+    const source = unref(variables)
+
+    if (!source) return source
+
+    const resolved = {} as typeof source
+
+    for (const key in source) {
+      resolved[key] = unref(source[key])
     }
-    return v
+
+    return resolved
   }
 
   const getHeaders = () => unref(headers)

@@ -35,7 +35,10 @@ export default async function setupClients(nuxt: Nuxt, config: ShopifyConfig, re
     if (clientType === ShopifyClientType.CustomerAccount && config.clients[clientType]) {
       const customerAccount = config.clients[clientType]
 
-      if (
+      if (customerAccount.apiUrl) {
+        logger.debug(`Using the configured customer account API URL: ${customerAccount.apiUrl}`)
+      }
+      else if (
         nuxt.options.runtimeConfig._shopify?.clients.customerAccount
         && nuxt.options.runtimeConfig.public._shopify?.clients.customerAccount
       ) {
@@ -51,7 +54,8 @@ export default async function setupClients(nuxt: Nuxt, config: ShopifyConfig, re
         else {
           logger.warn(
             `Could not resolve the customer account API URL from \`${wellKnownURL}\` - `
-            + 'customer account requests will fail (is the Customer Account API enabled for your store?)',
+            + 'customer account requests will fail (is the Customer Account API enabled for your store?, '
+            + 'or set `clients.customerAccount.apiUrl` explicitly)',
           )
         }
 
