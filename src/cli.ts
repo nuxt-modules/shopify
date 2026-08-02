@@ -2,10 +2,12 @@
 
 import { defineCommand, runMain } from 'citty'
 
+import { MODULE_VERSION } from './runtime/utils/version'
+
 const main = defineCommand({
   meta: {
     name: 'Nuxt Shopify',
-    version: '1.0.0',
+    version: MODULE_VERSION,
     description: 'Nuxt Shopify CLI',
   },
 

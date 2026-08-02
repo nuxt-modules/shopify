@@ -13,7 +13,7 @@ import { createGraphQLClient } from '@shopify/graphql-client'
 import { joinURL } from 'ufo'
 import { createConsola } from 'consola'
 
-import pkg from '../../../../package.json'
+import { MODULE_VERSION } from '../version'
 
 export const PROXY_API_VERSION_HEADER = 'X-Shopify-Proxy-Api-Version'
 
@@ -57,7 +57,7 @@ export const createTransport = <Operations extends AllOperations = AllOperations
       'Content-Type': 'application/json',
       'Accept': 'application/json',
       'X-SDK-Variant': 'nuxt-shopify',
-      'X-SDK-Version': pkg?.version ?? 'unknown',
+      'X-SDK-Version': MODULE_VERSION,
       ...headers,
     },
   } satisfies ShopifyApiClientConfig

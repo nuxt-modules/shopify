@@ -1,4 +1,9 @@
-import type { ShopifyAnalytics, ShopifyAnalyticsProduct } from '@shopify/hydrogen-react'
+import type {
+  ShopifyAddToCartPayload,
+  ShopifyAnalytics,
+  ShopifyAnalyticsProduct,
+  ShopifyPageViewPayload,
+} from '@shopify/hydrogen-react'
 import type {
   AnalyticsConsentFlags,
   AnalyticsEmitter,
@@ -17,7 +22,11 @@ import {
 
 import { createLogger } from '../log'
 import { persistTrackingTokens } from './cookies'
-import { version } from '../../../../package.json'
+import { MODULE_VERSION } from '../version'
+
+type PrivacyFields = { ccpaEnforced?: boolean, gdprEnforced?: boolean }
+
+type AnalyticsPayload = (ShopifyPageViewPayload | ShopifyAddToCartPayload) & PrivacyFields
 
 const MAX_QUEUED_EVENTS = 20
 
@@ -96,12 +105,12 @@ function lineToProduct(line: ShopifyAnalyticsCartLine): AnalyticsProductInput {
   }
 }
 
-function send(eventName: string, payload: Record<string, unknown>, domain?: string) {
+function send(eventName: string, payload: AnalyticsPayload, domain?: string) {
   const logger = createLogger()
 
   logger.debug(`Sending analytics event \`${eventName}\``)
 
-  sendShopifyAnalytics({ eventName, payload } as unknown as ShopifyAnalytics, domain)
+  sendShopifyAnalytics({ eventName, payload } as ShopifyAnalytics, domain)
     .catch(error => logger.debug(`Failed to send analytics event \`${eventName}\`:`, error))
 }
 
@@ -115,7 +124,7 @@ export function createShopifySubscriber(emitter: AnalyticsEmitter, options: {
 }) {
   const { shop, domain, cookieDomain, canTrack, getConsent, whenReady } = options
 
-  const basePayload = (): Record<string, unknown> | null => {
+  const basePayload = (): (ShopifyPageViewPayload & PrivacyFields) | null => {
     const resolved = shop()
 
     if (!validateShop(resolved)) return null
@@ -124,10 +133,10 @@ export function createShopifySubscriber(emitter: AnalyticsEmitter, options: {
 
     return {
       shopifySalesChannel: ShopifySalesChannel.headless,
-      assetVersionId: version,
+      assetVersionId: MODULE_VERSION,
       shopId: resolved.shopId,
-      currency: resolved.currency,
-      acceptedLanguage: resolved.acceptedLanguage,
+      currency: resolved.currency as ShopifyPageViewPayload['currency'],
+      acceptedLanguage: resolved.acceptedLanguage as ShopifyPageViewPayload['acceptedLanguage'],
       hydrogenSubchannelId: resolved.hydrogenSubchannelId,
       hasUserConsent: canTrack(),
       ...(getConsent?.() ?? {
@@ -155,7 +164,7 @@ export function createShopifySubscriber(emitter: AnalyticsEmitter, options: {
     document.addEventListener('visitorConsentCollected', flush)
   }
 
-  const track = (build: (payload: Record<string, unknown>) => void) => {
+  const track = (build: (payload: ShopifyPageViewPayload & PrivacyFields) => void) => {
     const run = () => {
       const payload = basePayload()
 
@@ -169,7 +178,7 @@ export function createShopifySubscriber(emitter: AnalyticsEmitter, options: {
     })
   }
 
-  let viewPayload: Record<string, unknown> = {}
+  let viewPayload: Partial<ShopifyPageViewPayload> = {}
 
   emitter.on('page_viewed', (data) => {
     track((payload) => {
