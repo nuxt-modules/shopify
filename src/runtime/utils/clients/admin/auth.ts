@@ -8,7 +8,7 @@ export type AdminAccessTokenOptions = ShopifyAuthCallbacks & {
   storage?: boolean
 }
 
-let pendingAccessTokenRequest: Promise<AdminTokenSet> | undefined
+const pendingAccessTokenRequests = new Map<string, Promise<AdminTokenSet>>()
 
 async function getTokenStorage(config: AdminConfig) {
   const storageBase = typeof config.tokenStorage === 'string'
@@ -98,12 +98,6 @@ export async function getAdminAccessToken(
     return storedToken.accessToken
   }
 
-  if (pendingAccessTokenRequest) {
-    const token = await pendingAccessTokenRequest
-
-    return token.accessToken
-  }
-
   const storeDomain = createStoreDomain(shopName)
 
   const isRefresh = !!storedToken?.refreshToken
@@ -121,28 +115,36 @@ export async function getAdminAccessToken(
         client_secret: clientSecret,
       }
 
-  pendingAccessTokenRequest = (async () => {
-    try {
-      await onAuthRequest?.({ params })
+  const pendingKey = `${shopName}:${clientId}:${params.grant_type}`
 
-      const newToken = await fetchAccessToken(storeDomain, params)
+  let pendingAccessTokenRequest = pendingAccessTokenRequests.get(pendingKey)
 
-      if (store) {
-        await getTokenStorage(config).then(storage => storage?.setItem('token', newToken))
+  if (!pendingAccessTokenRequest) {
+    pendingAccessTokenRequest = (async () => {
+      try {
+        await onAuthRequest?.({ params })
+
+        const newToken = await fetchAccessToken(storeDomain, params)
+
+        if (store) {
+          await getTokenStorage(config).then(storage => storage?.setItem('token', newToken))
+        }
+
+        await onAuthToken?.({ token: newToken, refresh: isRefresh })
+
+        return newToken
       }
+      catch (error) {
+        await onAuthError?.({ error })
 
-      await onAuthToken?.({ token: newToken, refresh: isRefresh })
+        throw error
+      }
+    })().finally(() => {
+      pendingAccessTokenRequests.delete(pendingKey)
+    })
 
-      return newToken
-    }
-    catch (error) {
-      await onAuthError?.({ error })
-
-      throw error
-    }
-  })().finally(() => {
-    pendingAccessTokenRequest = undefined
-  })
+    pendingAccessTokenRequests.set(pendingKey, pendingAccessTokenRequest)
+  }
 
   const token = await pendingAccessTokenRequest
 

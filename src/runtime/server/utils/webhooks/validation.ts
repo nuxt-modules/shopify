@@ -9,6 +9,20 @@ import { getWebhookHmac } from './functions'
 
 const unauthorized = () => createError({ status: 401, statusText: 'Unauthorized' })
 
+function hasValidSignature(secret: string, body: Buffer, signature: string): boolean {
+  try {
+    const calculated = Buffer.from(createHmac('sha256', secret).update(body).digest('base64'))
+    const received = Buffer.from(signature)
+
+    return calculated.length === received.length && timingSafeEqual(calculated, received)
+  }
+  catch (error) {
+    createLogger().error('Failed to validate the webhook HMAC signature:', error)
+
+    throw unauthorized()
+  }
+}
+
 /**
  * Validates an incoming Shopify webhook request by verifying its HMAC signature.
  *
@@ -35,14 +49,8 @@ export const validate = async (event: H3Event) => {
 
   if (!body?.length) throw unauthorized()
 
-  try {
-    const calculatedHmacDigest = createHmac('sha256', _shopify.webhooks.secret).update(body).digest('base64')
-    const isValid = timingSafeEqual(Buffer.from(calculatedHmacDigest), Buffer.from(shopifyHmac))
-
-    if (!isValid) throw unauthorized()
-  }
-  catch (error) {
-    createLogger().error('Failed to validate the webhook HMAC signature:', error)
+  if (!hasValidSignature(_shopify.webhooks.secret, body, shopifyHmac)) {
+    createLogger().debug('Rejected a webhook request: the HMAC signature does not match')
 
     throw unauthorized()
   }
