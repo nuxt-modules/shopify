@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
 
-import { configSchema, publicConfigSchema } from '../../src/schemas'
+import { configObjectSchema, publicConfigSchema } from '../../src/schemas'
 
 const storefront = { publicAccessToken: 'tok' }
 
 function issues(input: unknown) {
-  const result = configSchema.safeParse(input)
+  const result = configObjectSchema.safeParse(input)
 
   return result.success ? '' : z.prettifyError(result.error)
 }
@@ -23,7 +23,7 @@ describe('shop name', () => {
 
 describe('clients', () => {
   it('parses without a clients block', () => {
-    const config = configSchema.parse({ name: 'shop' })
+    const config = configObjectSchema.parse({ name: 'shop' })
 
     expect(config.clients).toStrictEqual({})
   })
@@ -47,20 +47,20 @@ describe('api version', () => {
 describe('retries', () => {
   it('accepts the range the Shopify client supports', () => {
     for (const retries of [0, 1, 2, 3]) {
-      expect(configSchema.parse({ name: 'shop', clients: { storefront: { ...storefront, retries } } }).clients.storefront?.retries).toBe(retries)
+      expect(configObjectSchema.parse({ name: 'shop', clients: { storefront: { ...storefront, retries } } }).clients.storefront?.retries).toBe(retries)
     }
   })
 
   it('rejects values the Shopify client would throw on', () => {
-    expect(configSchema.safeParse({ name: 'shop', clients: { storefront: { ...storefront, retries: 4 } } }).success).toBe(false)
-    expect(configSchema.safeParse({ name: 'shop', clients: { storefront: { ...storefront, retries: -1 } } }).success).toBe(false)
-    expect(configSchema.safeParse({ name: 'shop', clients: { storefront: { ...storefront, retries: 1.5 } } }).success).toBe(false)
+    expect(configObjectSchema.safeParse({ name: 'shop', clients: { storefront: { ...storefront, retries: 4 } } }).success).toBe(false)
+    expect(configObjectSchema.safeParse({ name: 'shop', clients: { storefront: { ...storefront, retries: -1 } } }).success).toBe(false)
+    expect(configObjectSchema.safeParse({ name: 'shop', clients: { storefront: { ...storefront, retries: 1.5 } } }).success).toBe(false)
   })
 })
 
 describe('storefront documents', () => {
   it('keeps a user-provided document list exactly as given', () => {
-    const config = configSchema.parse({
+    const config = configObjectSchema.parse({
       name: 'shop',
       clients: { storefront: { ...storefront, documents: ['app/graphql/**/*.ts'] } },
     })
@@ -69,7 +69,7 @@ describe('storefront documents', () => {
   })
 
   it('scans vue files through the default document list', () => {
-    const config = configSchema.parse({ name: 'shop', clients: { storefront } })
+    const config = configObjectSchema.parse({ name: 'shop', clients: { storefront } })
 
     expect(config.clients.storefront?.documents?.[0]).toBe('**/*.{gql,graphql,ts,js,vue}')
   })
@@ -107,20 +107,20 @@ describe('public config', () => {
 
 describe('enableable options', () => {
   it('resolves `true` to the default option object', () => {
-    const config = configSchema.parse({ name: 'shop', clients: { storefront: { ...storefront, cache: true } } })
+    const config = configObjectSchema.parse({ name: 'shop', clients: { storefront: { ...storefront, cache: true } } })
 
     expect(config.clients.storefront?.cache).toMatchObject({ client: { ttl: 10_000 } })
   })
 
   it('keeps `false` as an explicit opt-out', () => {
-    const config = configSchema.parse({ name: 'shop', clients: { storefront: { ...storefront, cache: false, proxy: false } } })
+    const config = configObjectSchema.parse({ name: 'shop', clients: { storefront: { ...storefront, cache: false, proxy: false } } })
 
     expect(config.clients.storefront?.cache).toBe(false)
     expect(config.clients.storefront?.proxy).toBe(false)
   })
 
   it('accepts a storage mount name as a string', () => {
-    const config = configSchema.parse({
+    const config = configObjectSchema.parse({
       name: 'shop',
       clients: { admin: { accessToken: 'shpat_x', tokenStorage: 'redis' } },
     })

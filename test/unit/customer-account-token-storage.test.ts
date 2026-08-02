@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
 
-import { configSchema } from '../../src/schemas'
+import { configObjectSchema } from '../../src/schemas'
 
 function parseTokenStorage(tokenStorage?: unknown) {
-  const config = configSchema.parse({
+  const config = configObjectSchema.parse({
     name: 'shop',
     clients: {
       customerAccount: {

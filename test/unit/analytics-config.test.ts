@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { configSchema } from '../../src/schemas'
+import { configObjectSchema } from '../../src/schemas'
 
 const base = {
   name: 'shop',
@@ -8,7 +8,7 @@ const base = {
 }
 
 function parseAnalytics(analytics?: unknown) {
-  return configSchema.parse(analytics === undefined ? base : { ...base, analytics }).analytics
+  return configObjectSchema.parse(analytics === undefined ? base : { ...base, analytics }).analytics
 }
 
 describe('analytics config', () => {

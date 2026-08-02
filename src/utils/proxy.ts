@@ -9,8 +9,7 @@ import type {
 import { addServerHandler } from '@nuxt/kit'
 import { joinURL, withLeadingSlash } from 'ufo'
 
-import { useLogger } from './log'
-import { kebabCase, upperFirst } from 'scule'
+import { kebabCase } from 'scule'
 
 export function registerProxy(nuxt: Nuxt, config: ShopifyConfig, clientType: ShopifyClientType, resolver: Resolver): string | false {
   const clientConfig = config.clients[clientType]
@@ -20,14 +19,6 @@ export function registerProxy(nuxt: Nuxt, config: ShopifyConfig, clientType: Sho
   const url = 'proxy' in clientConfig ? typeof clientConfig.proxy === 'object' ? clientConfig.proxy.path : undefined : undefined
 
   if (!url) return false
-
-  if (!nuxt.options.ssr || (nuxt.options as { _generate?: boolean })._generate) {
-    const logger = useLogger()
-
-    logger.info(`Skipping ${upperFirst(clientType)} proxy setup: server-side request proxying requires SSR`)
-
-    return false
-  }
 
   addServerHandler({
     handler: resolver.resolve(`./runtime/server/api/proxy/${kebabCase(clientType)}`),

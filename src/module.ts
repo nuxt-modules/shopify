@@ -16,7 +16,6 @@ import setupCodegen from './setup/codegen'
 import setupGraphqlConfig from './setup/graphql-config'
 import setupImports from './setup/imports'
 import setupProxy from './setup/proxy'
-import setupRequirements from './setup/requirements'
 import setupSandbox from './setup/sandbox'
 import setupVite from './setup/vite'
 import setupWebhooks from './setup/webhooks'
@@ -47,20 +46,18 @@ export default defineNuxtModule<ModuleOptions>({
 
     const logger = initLogger(rawConfig?.logger)
 
-    const moduleOptions = configSchema.safeParse(rawConfig)
-    const publicModuleOptions = publicConfigSchema.safeParse(rawConfig)
+    const moduleOptions = await configSchema.safeParseAsync({ ...rawConfig, _nuxt: nuxt })
 
-    if (moduleOptions.success && publicModuleOptions.success) {
+    if (moduleOptions.success) {
       logger.start('Starting setup')
 
       const config = moduleOptions.data
-      const publicConfig = publicModuleOptions.data
 
       logger.debug(`Configured clients: ${getConfiguredClients(config).join(', ') || 'none'}`)
 
       await nuxt.callHook('shopify:config', { nuxt, config })
 
-      setupRequirements(config, publicConfig)
+      const publicConfig = publicConfigSchema.parse(config)
 
       Object.assign(nuxt.options.runtimeConfig, defu({
         _shopify: config,
@@ -70,8 +67,7 @@ export default defineNuxtModule<ModuleOptions>({
         },
       }, nuxt.options.runtimeConfig))
 
-      await setupClients(nuxt, config, resolver)
-
+      setupClients(nuxt, config, resolver)
       setupCodegen(nuxt, config)
       setupAnalytics(config, resolver)
       setupImports(nuxt, config, resolver)
@@ -88,12 +84,7 @@ export default defineNuxtModule<ModuleOptions>({
       logger.success('Finished setup')
     }
     else if (Object.keys(rawConfig ?? {}).length) {
-      const issues = [...new Set(
-        [moduleOptions.error, publicModuleOptions.error]
-          .flatMap(error => error ? [z.prettifyError(error)] : []),
-      )].join('\n')
-
-      logger.error(`Skipping setup: invalid module configuration\n${issues}`)
+      logger.error(`Skipping setup: invalid module configuration\n${z.prettifyError(moduleOptions.error)}`)
       logger.info('See the module configuration reference: https://shopify.nuxtjs.org/essentials/configuration')
     }
     else {

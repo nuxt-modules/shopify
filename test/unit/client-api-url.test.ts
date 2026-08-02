@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { configSchema } from '../../src/schemas'
+import { configObjectSchema } from '../../src/schemas'
 import { createAdminConfig } from '../../src/runtime/utils/clients/admin'
 import { createCustomerAccountConfig } from '../../src/runtime/utils/clients/customer-account'
 import { createStorefrontConfig } from '../../src/runtime/utils/clients/storefront'
@@ -14,7 +14,7 @@ import {
 
 const storefront = { name: 'shop', clients: { storefront: { apiVersion: '2026-04', publicAccessToken: 'tok', retries: 0 } } }
 
-const proxiedStorefront = configSchema.parse({ name: 'shop', clients: { storefront: { apiVersion: '2026-04', publicAccessToken: 'tok' } } })
+const proxiedStorefront = configObjectSchema.parse({ name: 'shop', clients: { storefront: { apiVersion: '2026-04', publicAccessToken: 'tok' } } })
 const admin = { name: 'shop', clients: { admin: { apiVersion: '2026-04', accessToken: 'shpat_x', retries: 0 } } }
 const mock = { name: 'shop', clients: { storefront: { apiVersion: '2026-04', mock: true, retries: 0 } } }
 

@@ -15,10 +15,8 @@ import {
   registerClientAsyncImports,
 } from '../utils/clients'
 import { ShopifyClientType } from '../schemas'
-import { createStoreDomain } from '../runtime/utils/clients/transport'
-import { SESSION_PASSWORD_ENV, generateSessionPassword, persistSessionPassword } from '../utils/session'
 
-export default async function setupClients(nuxt: Nuxt, config: ShopifyConfig, resolver: Resolver) {
+export default function setupClients(nuxt: Nuxt, config: ShopifyConfig, resolver: Resolver) {
   const logger = useLogger()
   const clients = getConfiguredClients(config)
 
@@ -34,56 +32,6 @@ export default async function setupClients(nuxt: Nuxt, config: ShopifyConfig, re
 
     if (clientType === ShopifyClientType.CustomerAccount && config.clients[clientType]) {
       const customerAccount = config.clients[clientType]
-
-      if (customerAccount.apiUrl) {
-        logger.debug(`Using the configured customer account API URL: ${customerAccount.apiUrl}`)
-      }
-      else if (
-        nuxt.options.runtimeConfig._shopify?.clients.customerAccount
-        && nuxt.options.runtimeConfig.public._shopify?.clients.customerAccount
-      ) {
-        const wellKnownURL = createStoreDomain(config.name) + '/.well-known/customer-account-api'
-
-        const apiUrl = await fetch(wellKnownURL)
-          .then(async res => (await res.json() as { graphql_api: string }).graphql_api)
-          .catch(() => undefined)
-
-        if (apiUrl) {
-          logger.debug(`Resolved customer account API URL: ${apiUrl}`)
-        }
-        else {
-          logger.warn(
-            `Could not resolve the customer account API URL from \`${wellKnownURL}\` - `
-            + 'customer account requests will fail (is the Customer Account API enabled for your store?, '
-            + 'or set `clients.customerAccount.apiUrl` explicitly)',
-          )
-        }
-
-        nuxt.options.runtimeConfig._shopify.clients.customerAccount.apiUrl = apiUrl
-        nuxt.options.runtimeConfig.public._shopify.clients.customerAccount.apiUrl = apiUrl
-      }
-
-      const session = nuxt.options.runtimeConfig._shopify?.clients.customerAccount?.session
-
-      if (session && !session.password) {
-        const envPassword = process.env[SESSION_PASSWORD_ENV]
-
-        if (envPassword) {
-          session.password = envPassword
-        }
-        else if (nuxt.options.dev) {
-          const password = generateSessionPassword()
-
-          session.password = password
-
-          await persistSessionPassword(nuxt.options.rootDir, password)
-
-          logger.info('Generated a customer account session password in `.env`')
-        }
-        else {
-          logger.warn(`No customer account session password set - customer account sessions will fail until the \`${SESSION_PASSWORD_ENV}\` environment variable is set`)
-        }
-      }
 
       addServerHandler({
         method: 'get',

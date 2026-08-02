@@ -223,7 +223,7 @@ const adminClient = adminClientSchema
     message: 'Either an access token or both client ID and client secret must be provided for the admin client',
   })
 
-export const configSchema = z.object({
+export const configObjectSchema = z.object({
   name: z.string({ error: 'Shop name is required' }).min(1, { error: 'Shop name cannot be empty' }),
 
   clients: z.object({
@@ -252,7 +252,7 @@ export const configSchema = z.object({
   logger: z.any().transform(v => v as Partial<ConsolaOptions>).optional(),
 })
 
-export const publicConfigSchema = configSchema.omit({ clients: true, fragments: true, webhooks: true }).extend({
+export const publicConfigSchema = configObjectSchema.omit({ clients: true, fragments: true, webhooks: true }).extend({
   clients: z.object({
     [ShopifyClientType.Storefront]: storefrontClientSchema.omit({
       privateAccessToken: true,
@@ -282,5 +282,5 @@ export const publicConfigSchema = configSchema.omit({ clients: true, fragments: 
     }).optional(),
   }).optional().default({}),
 
-  errors: configSchema.shape.errors,
+  errors: configObjectSchema.shape.errors,
 })
