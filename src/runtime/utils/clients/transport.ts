@@ -16,6 +16,13 @@ import { createConsola } from 'consola'
 import { MODULE_VERSION } from '../version'
 
 export const PROXY_API_VERSION_HEADER = 'X-Shopify-Proxy-Api-Version'
+export const PROXY_CACHE_HEADER = 'X-Shopify-Proxy-Cache'
+export const PRIVATE_TOKEN_HEADER = 'Shopify-Storefront-Private-Token'
+export const PUBLIC_TOKEN_HEADER = 'X-Shopify-Storefront-Access-Token'
+export const ADMIN_TOKEN_HEADER = 'X-Shopify-Access-Token'
+export const BUYER_IP_HEADER = 'Shopify-Storefront-Buyer-IP'
+export const SDK_VARIANT_HEADER = 'X-SDK-Variant'
+export const SDK_VERSION_HEADER = 'X-SDK-Version'
 
 const API_VERSION_SEGMENT = /\/api\/[^/]+(?=\/|$)/
 
@@ -56,8 +63,8 @@ export const createTransport = <Operations extends AllOperations = AllOperations
     headers: {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
-      'X-SDK-Variant': 'nuxt-shopify',
-      'X-SDK-Version': MODULE_VERSION,
+      [SDK_VARIANT_HEADER]: 'nuxt-shopify',
+      [SDK_VERSION_HEADER]: MODULE_VERSION,
       ...headers,
     },
   } satisfies ShopifyApiClientConfig

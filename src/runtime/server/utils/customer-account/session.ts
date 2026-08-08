@@ -7,11 +7,9 @@ import { createError, getCookie, getSession, useSession } from 'h3'
 import { useStorage } from 'nitropack/runtime'
 import { useRuntimeConfig } from '#imports'
 
-import { SESSION_PASSWORD_ENV } from '../../../utils/session'
+import { SESSION_DEFAULT_NAME, SESSION_PASSWORD_ENV } from '../../../utils/session'
 
 export type { CustomerAccountSession, CustomerAccountSessionData, CustomerAccountTokenSet, CustomerAccountUser } from '../../../../module'
-
-const DEFAULT_SESSION_NAME = 'shopify-customer-account'
 
 export function getSessionConfig(config?: ShopifyConfig): SessionConfig {
   const session = config?.clients?.customerAccount?.session
@@ -28,7 +26,7 @@ export function getSessionConfig(config?: ShopifyConfig): SessionConfig {
   }
 
   return {
-    name: session?.name ?? DEFAULT_SESSION_NAME,
+    name: session?.name ?? SESSION_DEFAULT_NAME,
     password,
     maxAge: session?.maxAge,
     cookie: {
@@ -41,7 +39,7 @@ export function getSessionConfig(config?: ShopifyConfig): SessionConfig {
 }
 
 async function readSession(event: H3Event, config: SessionConfig) {
-  if (!getCookie(event, config.name ?? DEFAULT_SESSION_NAME)) return null
+  if (!getCookie(event, config.name ?? SESSION_DEFAULT_NAME)) return null
 
   return await getSession<CustomerAccountSessionData>(event, config)
 }

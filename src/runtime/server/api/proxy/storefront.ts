@@ -5,8 +5,23 @@ import { z } from 'zod'
 
 import { useRuntimeConfig } from '#imports'
 import { createStorefrontConfig } from '../../../utils/clients/storefront'
-import { withApiVersion } from '../../../utils/clients/transport'
-import { forwardableCookie, forwardTrackingHeaders } from '../../utils/tracking'
+import {
+  PRIVATE_TOKEN_HEADER,
+  PROXY_API_VERSION_HEADER,
+  PROXY_CACHE_HEADER,
+  PUBLIC_TOKEN_HEADER,
+  SDK_VARIANT_HEADER,
+  SDK_VERSION_HEADER,
+  withApiVersion,
+} from '../../../utils/clients/transport'
+import {
+  LEGACY_UNIQUE_TOKEN_HEADER,
+  LEGACY_VISIT_TOKEN_HEADER,
+  UNIQUE_TOKEN_HEADER,
+  VISIT_TOKEN_HEADER,
+  forwardableCookie,
+  forwardTrackingHeaders,
+} from '../../utils/tracking'
 
 const API_VERSION_PATTERN = /^(?:unstable|2\d{3}-\d{2})$/
 
@@ -17,15 +32,15 @@ const FORWARDED_HEADERS = [
   'origin',
   'referer',
   'user-agent',
-  'x-shopify-storefront-access-token',
-  'shopify-storefront-private-token',
-  'x-shopify-uniquetoken',
-  'x-shopify-visittoken',
-  'shopify-storefront-y',
-  'shopify-storefront-s',
-  'x-sdk-variant',
-  'x-sdk-version',
-]
+  PUBLIC_TOKEN_HEADER,
+  PRIVATE_TOKEN_HEADER,
+  UNIQUE_TOKEN_HEADER,
+  VISIT_TOKEN_HEADER,
+  LEGACY_UNIQUE_TOKEN_HEADER,
+  LEGACY_VISIT_TOKEN_HEADER,
+  SDK_VARIANT_HEADER,
+  SDK_VERSION_HEADER,
+].map(header => header.toLowerCase())
 
 function createUpstreamHeaders(headers: Record<string, string>): Record<string, string> {
   const upstream: Record<string, string> = {}
@@ -59,7 +74,7 @@ export default defineEventHandler(async (event) => {
 
   const { apiUrl } = createStorefrontConfig(_shopify)
 
-  const requestedApiVersion = requestHeaders['x-shopify-proxy-api-version']
+  const requestedApiVersion = requestHeaders[PROXY_API_VERSION_HEADER.toLowerCase()]
 
   const apiVersion = requestedApiVersion && API_VERSION_PATTERN.test(requestedApiVersion)
     ? requestedApiVersion
@@ -69,7 +84,7 @@ export default defineEventHandler(async (event) => {
 
   const storefrontConfig = _shopify?.clients.storefront
   const cacheConfig = storefrontConfig?.cache && storefrontConfig.cache.proxy ? storefrontConfig.cache : undefined
-  const cacheOption = requestHeaders['x-shopify-proxy-cache'] ?? 'none'
+  const cacheOption = requestHeaders[PROXY_CACHE_HEADER.toLowerCase()] ?? 'none'
 
   const requestCacheConfig = cacheConfig?.options
     ? Object.hasOwn(cacheConfig.options, cacheOption)

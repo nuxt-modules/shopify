@@ -1,4 +1,5 @@
 import { useStorefront } from '../../composables/storefront/client'
+import { PROXY_API_VERSION_HEADER } from '../clients/transport'
 import { createLogger } from '../log'
 
 const ENSURE_COOKIES_QUERY = `#graphql
@@ -33,7 +34,7 @@ export function ensureTrackingValues(): Promise<void> {
 
   pending ??= useStorefront()
     .request(ENSURE_COOKIES_QUERY, {
-      headers: { 'X-Shopify-Proxy-Api-Version': 'unstable' },
+      headers: { [PROXY_API_VERSION_HEADER]: 'unstable' },
     })
     .then(() => undefined)
     .catch((error) => {

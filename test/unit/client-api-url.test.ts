@@ -6,7 +6,10 @@ import { createCustomerAccountConfig } from '../../src/runtime/utils/clients/cus
 import { createStorefrontConfig } from '../../src/runtime/utils/clients/storefront'
 import { createClient } from '../../src/runtime/utils/clients/create'
 import {
+  BUYER_IP_HEADER,
+  PRIVATE_TOKEN_HEADER,
   PROXY_API_VERSION_HEADER,
+  PUBLIC_TOKEN_HEADER,
   createTransport,
   isVersionedApiUrl,
   withApiVersion,
@@ -116,8 +119,8 @@ describe('client config resolution', () => {
       clients: { storefront: { apiVersion: '2026-04', publicAccessToken: 'public', privateAccessToken: 'private', retries: 0 } },
     } as never)
 
-    expect(config.headers).toMatchObject({ 'Shopify-Storefront-Private-Token': 'private' })
-    expect(config.headers['X-Shopify-Storefront-Access-Token']).toBeUndefined()
+    expect(config.headers).toMatchObject({ [PRIVATE_TOKEN_HEADER]: 'private' })
+    expect(config.headers[PUBLIC_TOKEN_HEADER]).toBeUndefined()
   })
 
   it('refuses to build a storefront config without a token', () => {
@@ -132,5 +135,35 @@ describe('client config resolution', () => {
       name: '',
       clients: { storefront: { apiVersion: '2026-04', publicAccessToken: 'tok', retries: 0 } },
     } as never)).toThrow(/missing shop name/)
+  })
+})
+
+describe('buyer ip header', () => {
+  const definition = { kind: 'storefront', createConfig: createStorefrontConfig, cache: true } as never
+
+  const privateStorefront = { name: 'shop', clients: { storefront: { apiVersion: '2026-04', privateAccessToken: 'private', retries: 0 } } }
+
+  it('sends the buyer ip alongside a private access token', () => {
+    const client = createClient(definition, privateStorefront as never, { buyerIp: '203.0.113.4' } as never)
+
+    expect(client.config.headers[BUYER_IP_HEADER]).toBe('203.0.113.4')
+  })
+
+  it('does not send the buyer ip when the client uses a public access token', () => {
+    const client = createClient(definition, storefront as never, { buyerIp: '203.0.113.4' } as never)
+
+    expect(client.config.headers[BUYER_IP_HEADER]).toBeUndefined()
+  })
+
+  it('omits the buyer ip when none is resolved', () => {
+    const client = createClient(definition, privateStorefront as never, {} as never)
+
+    expect(client.config.headers[BUYER_IP_HEADER]).toBeUndefined()
+  })
+
+  it('allows opting out of the buyer ip explicitly', () => {
+    const client = createClient(definition, privateStorefront as never, { buyerIp: false } as never)
+
+    expect(client.config.headers[BUYER_IP_HEADER]).toBeUndefined()
   })
 })

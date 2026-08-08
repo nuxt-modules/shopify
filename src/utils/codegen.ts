@@ -10,12 +10,17 @@ import { preset, pluckConfig } from '@shopify/graphql-codegen'
 import { LogLevels } from 'consola'
 import { kebabCase, upperFirst } from 'scule'
 import defu from 'defu'
+import { joinURL } from 'ufo'
 
 import { ShopifyClientType } from '../schemas'
 import { useLogger } from './log'
 import { getAdminAccessToken } from '../runtime/utils/clients/admin/auth'
-import { joinURL } from 'ufo'
-import { createStoreDomain } from '../runtime/utils/clients/transport'
+import {
+  ADMIN_TOKEN_HEADER,
+  createStoreDomain,
+  PRIVATE_TOKEN_HEADER,
+  PUBLIC_TOKEN_HEADER,
+} from '../runtime/utils/clients/transport'
 
 type ShopifyTemplateOptions = {
   filename: string
@@ -72,10 +77,10 @@ async function getIntrospection(options: ShopifyTemplateOptions) {
       apiUrl = joinURL(createStoreDomain(shopName), `api/${apiVersion}/graphql.json`)
 
       if (storefrontConfig.privateAccessToken) {
-        headers['Shopify-Storefront-Private-Token'] = storefrontConfig.privateAccessToken
+        headers[PRIVATE_TOKEN_HEADER] = storefrontConfig.privateAccessToken
       }
       else if (storefrontConfig.publicAccessToken) {
-        headers['X-Shopify-Storefront-Access-Token'] = storefrontConfig.publicAccessToken
+        headers[PUBLIC_TOKEN_HEADER] = storefrontConfig.publicAccessToken
       }
     }
   }
@@ -85,7 +90,7 @@ async function getIntrospection(options: ShopifyTemplateOptions) {
   else if (clientType === ShopifyClientType.Admin) {
     const adminConfig = clientConfig as NonNullable<ShopifyConfig['clients']['admin']>
     apiUrl = joinURL(createStoreDomain(shopName), `admin/api/${apiVersion}/graphql.json`)
-    headers['X-Shopify-Access-Token'] = await getAdminAccessToken(shopName, adminConfig)
+    headers[ADMIN_TOKEN_HEADER] = await getAdminAccessToken(shopName, adminConfig)
   }
   else {
     throw new Error(`[shopify] Failed to generate introspection: unsupported client type \`${clientType}\``)

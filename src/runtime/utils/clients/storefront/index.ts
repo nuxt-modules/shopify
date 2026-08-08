@@ -10,6 +10,8 @@ import type {
 } from '../../../../module'
 
 import {
+  PRIVATE_TOKEN_HEADER,
+  PUBLIC_TOKEN_HEADER,
   createApiUrl,
   createStoreDomain,
 } from '../transport'
@@ -59,8 +61,8 @@ export const createStorefrontConfig = (config?: ShopifyConfig | PublicShopifyCon
     logger,
     retries,
     headers: {
-      ...(privateAccessToken ? { 'Shopify-Storefront-Private-Token': privateAccessToken } : {}),
-      ...(!privateAccessToken && publicAccessToken ? { 'X-Shopify-Storefront-Access-Token': publicAccessToken } : {}),
+      ...(privateAccessToken ? { [PRIVATE_TOKEN_HEADER]: privateAccessToken } : {}),
+      ...(!privateAccessToken && publicAccessToken ? { [PUBLIC_TOKEN_HEADER]: publicAccessToken } : {}),
       ...headers,
     },
   } satisfies ShopifyApiClientConfig

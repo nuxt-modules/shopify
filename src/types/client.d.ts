@@ -111,6 +111,12 @@ export type ShopifyClientOptions<
   origin?: string
 
   /**
+   * The buyer's IP address, sent as `Shopify-Storefront-Buyer-IP` to improve
+   * analytics attribution for server-to-server storefront requests.
+   */
+  buyerIp?: string | false
+
+  /**
    * Storage to cache responses in.
    */
   cache?: Storage<StorageValue>

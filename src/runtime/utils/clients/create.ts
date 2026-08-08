@@ -14,11 +14,11 @@ import type {
   ShopifyInlineConfig,
 } from '../../../module'
 
-import { getRequestHeader } from 'h3'
+import { getRequestHeader, getRequestIP } from 'h3'
 import { joinURL } from 'ufo'
 
 import { createTrackingHeaders, collectTrackingHeaders } from '../../server/utils/tracking'
-import { PROXY_API_VERSION_HEADER, createTransport, withApiVersion } from './transport'
+import { BUYER_IP_HEADER, PRIVATE_TOKEN_HEADER, PROXY_API_VERSION_HEADER, createTransport, withApiVersion } from './transport'
 import { DEFAULT_API_VERSION, DEFAULT_RETRIES, DEFAULT_THROW_ERRORS } from './defaults'
 import useCache from './cache'
 import useErrors from './errors'
@@ -55,7 +55,7 @@ export function createClient<
   options: ShopifyClientOptions<Operations, Cache> = {},
 ): ShopifyApiClient<Operations, Cache> {
   const { kind, authHeader } = definition
-  const { event, origin, cache, ...callbacks } = options
+  const { event, origin, cache, buyerIp, ...callbacks } = options
 
   const moduleConfig = normalizeConfig(kind, config)
   const clientConfig = moduleConfig.clients?.[kind]
@@ -90,6 +90,12 @@ export function createClient<
 
       if (cookie) apiClientConfig.headers['Cookie'] = cookie
     }
+  }
+
+  if (buyerIp !== false && apiClientConfig.headers[PRIVATE_TOKEN_HEADER]) {
+    const resolvedBuyerIp = buyerIp ?? (event ? getRequestIP(event, { xForwardedFor: true }) : undefined)
+
+    if (resolvedBuyerIp) apiClientConfig.headers[BUYER_IP_HEADER] = resolvedBuyerIp
   }
 
   callbacks.onConfigure?.({ config: apiClientConfig })

@@ -97,7 +97,7 @@ async function resolveSessionPassword(config: ShopifyConfig, nuxt: Nuxt) {
   if (!session || session.password) return
 
   const logger = useLogger()
-  const envPassword = process.env[SESSION_PASSWORD_ENV]
+  const envPassword = globalThis.process.env[SESSION_PASSWORD_ENV]
 
   if (envPassword) {
     session.password = envPassword

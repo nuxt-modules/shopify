@@ -4,8 +4,8 @@ import { appendResponseHeader, getRequestHeader } from 'h3'
 
 export const UNIQUE_TOKEN_HEADER = 'X-Shopify-UniqueToken'
 export const VISIT_TOKEN_HEADER = 'X-Shopify-VisitToken'
-const LEGACY_UNIQUE_TOKEN_HEADER = 'Shopify-Storefront-Y'
-const LEGACY_VISIT_TOKEN_HEADER = 'Shopify-Storefront-S'
+export const LEGACY_UNIQUE_TOKEN_HEADER = 'Shopify-Storefront-Y'
+export const LEGACY_VISIT_TOKEN_HEADER = 'Shopify-Storefront-S'
 
 const TRACKED_TIMINGS = ['_y', '_s', '_cmp'] as const
 

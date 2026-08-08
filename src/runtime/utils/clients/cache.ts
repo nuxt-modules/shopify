@@ -9,6 +9,8 @@ import type {
 
 import { hash } from 'ohash'
 
+import { PROXY_CACHE_HEADER } from './transport'
+
 function toCacheTtl(maxAge: number, staleMaxAge: number) {
   const ttl = maxAge * 1000 + staleMaxAge * 1000
 
@@ -44,10 +46,10 @@ function getProxyCacheHeaders<
   Operations extends AllOperations,
 >(options?: ShopifyApiClientRequestOptions<Operation, Operations, true>) {
   if (typeof options?.cache === 'string') {
-    return { 'X-Shopify-Proxy-Cache': options.cache }
+    return { [PROXY_CACHE_HEADER]: options.cache }
   }
   else if (typeof options?.cache === 'object' && typeof options.cache.proxy === 'string') {
-    return { 'X-Shopify-Proxy-Cache': options.cache.proxy }
+    return { [PROXY_CACHE_HEADER]: options.cache.proxy }
   }
 }
 

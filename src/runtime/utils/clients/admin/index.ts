@@ -9,6 +9,7 @@ import type {
 } from '../../../../module'
 
 import {
+  ADMIN_TOKEN_HEADER,
   createApiUrl,
   createStoreDomain,
 } from '../transport'
@@ -41,7 +42,7 @@ export const createAdminConfig = (config?: Partial<ShopifyConfig>): ShopifyApiCl
     logger,
     retries,
     headers: {
-      ...(accessToken ? { 'X-Shopify-Access-Token': accessToken } : {}),
+      ...(accessToken ? { [ADMIN_TOKEN_HEADER]: accessToken } : {}),
       ...headers,
     },
   } satisfies ShopifyApiClientConfig
@@ -50,7 +51,7 @@ export const createAdminConfig = (config?: Partial<ShopifyConfig>): ShopifyApiCl
 const definition: ShopifyClientDefinition<'admin'> = {
   kind: 'admin',
   createConfig: createAdminConfig,
-  authHeader: 'X-Shopify-Access-Token',
+  authHeader: ADMIN_TOKEN_HEADER,
 }
 
 export function createAdminClient(

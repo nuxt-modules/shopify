@@ -1,1 +1,3 @@
 export const SESSION_PASSWORD_ENV = 'NUXT_SHOPIFY_CLIENTS_CUSTOMER_ACCOUNT_SESSION_PASSWORD'
+
+export const SESSION_DEFAULT_NAME = 'shopify-customer-account'

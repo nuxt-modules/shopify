@@ -14,6 +14,7 @@ import {
   MAX_RETRIES,
   MIN_RETRIES,
 } from '../runtime/utils/clients/defaults'
+import { SESSION_DEFAULT_NAME } from '../runtime/utils/session'
 
 export enum ShopifyClientType {
   Storefront = 'storefront',
@@ -85,7 +86,7 @@ const defaultTokenStorageOptions = { driver: 'memory' } as StorageMounts[string]
 
 const defaultCacheConfig = { client: defaultClientCacheOptions, proxy: defaultProxyCacheOptions, options: defaultCacheOptions }
 
-const defaultCustomerAccountSessionOptions = { name: 'shopify-customer-account', maxAge: 60 * 60 * 24 * 7 }
+const defaultCustomerAccountSessionOptions = { name: SESSION_DEFAULT_NAME, maxAge: 60 * 60 * 24 * 7 }
 const defaultCustomerAccountScope = ['openid', 'email', 'customer-account-api:full']
 
 const storageMountSchema = z.any().transform(v => v as StorageMounts[string] | string)
