@@ -8,6 +8,7 @@
     "automerge": true,
     "autodiscover": true,
     "rangeStrategy": "bump",
+    "minimumReleaseAge": "3 days",
     "commitMessagePrefix": "chore:",
     "lockFileMaintenance": {
         "enabled": true
