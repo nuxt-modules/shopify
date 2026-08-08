@@ -74,3 +74,24 @@ jobs:
       - uses: danielroe/uppt/publish@7bcfb5397c37202ef882363f755423130419d28a # v0.5.5
         with:
           files: ${{ needs.pack.outputs.files }}
+
+  deploy:
+    if: |
+      github.event_name == 'workflow_dispatch'
+      && startsWith(github.ref, 'refs/tags/v')
+    needs: [publish]
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-${{ github.ref }}
+      cancel-in-progress: false
+    permissions:
+      actions: write
+    steps:
+      - name: Dispatch docs and template deployments
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          gh workflow run docs.yml --ref "$TAG"
+          gh workflow run template.yml --ref "$TAG"
