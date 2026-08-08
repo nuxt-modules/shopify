@@ -9,8 +9,6 @@ import { defu } from 'defu'
 import { z } from 'zod'
 
 import setupAnalytics from './setup/analytics'
-import setupAuth from './setup/auth'
-import setupCache from './setup/cache'
 import setupClients from './setup/clients'
 import setupCodegen from './setup/codegen'
 import setupGraphqlConfig from './setup/graphql-config'
@@ -71,9 +69,7 @@ export default defineNuxtModule<ModuleOptions>({
       setupCodegen(nuxt, config)
       setupAnalytics(config, resolver)
       setupImports(nuxt, config, resolver)
-      setupCache(nuxt, config, resolver)
       setupProxy(nuxt, config, resolver)
-      setupAuth(nuxt, config)
       setupSandbox(nuxt, config, resolver)
       setupGraphqlConfig(nuxt, config)
       setupVite(nuxt, config)

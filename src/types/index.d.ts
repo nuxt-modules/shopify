@@ -350,6 +350,7 @@ export type {
   ShopifyClientDefinition,
   ShopifyClientKind,
   ShopifyClientOptions,
+  ShopifyClientSetupContext,
   ShopifyGenericClientOptions,
   ShopifyInlineConfig,
 } from './client'

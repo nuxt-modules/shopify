@@ -13,6 +13,8 @@ import type {
 import type { ConsolaOptions } from 'consola'
 import type { H3Event } from 'h3'
 import type { Storage, StorageValue } from 'unstorage'
+import type { Resolver } from '@nuxt/kit'
+import type { Nuxt } from '@nuxt/schema'
 
 import type {
   PublicShopifyConfig,
@@ -23,6 +25,12 @@ import type {
   ShopifyAuthCallbacks,
   ShopifyClientCallbacks,
 } from './hooks'
+
+export type ShopifyClientSetupContext = {
+  nuxt: Nuxt
+  config: ShopifyConfig
+  resolver: Resolver
+}
 
 type CacheHeaderType = 'short' | 'long' | 'none' | string
 

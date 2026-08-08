@@ -19,7 +19,7 @@ export default defineEventHandler(async (event) => {
 
   const accessToken = await getValidCustomerAccessToken(event)
 
-  return await $fetch(apiUrl, {
+  return await $fetch<object>(apiUrl, {
     method: event.method,
     headers: {
       'Content-Type': 'application/json',
