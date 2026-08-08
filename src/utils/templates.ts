@@ -10,7 +10,6 @@ import {
   addTypeTemplate,
   updateTemplates,
 } from '@nuxt/kit'
-import defu from 'defu'
 import { minimatch } from 'minimatch'
 import { kebabCase } from 'scule'
 
@@ -111,18 +110,12 @@ export function registerTemplates(
     getContents: () => indexTemplate(types.filename, operations.filename).trimStart(),
   })
 
-  nuxt.options = defu(nuxt.options, {
-    alias: {
-      [`#shopify/${kebabCase(clientType)}`]: `./${dirname(index.filename)}`,
-    },
-    nitro: {
-      typescript: {
-        tsConfig: {
-          include: [
-            `./${dirname(index.filename)}`,
-          ],
-        },
-      },
-    },
-  })
+  const typesDir = `./${dirname(index.filename)}`
+
+  nuxt.options.alias[`#shopify/${kebabCase(clientType)}`] ??= typesDir
+
+  const typescript = nuxt.options.nitro.typescript ??= {}
+  const tsConfig = typescript.tsConfig ??= {}
+
+  tsConfig.include = [...tsConfig.include ?? [], typesDir]
 }

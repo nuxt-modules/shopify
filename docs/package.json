@@ -2,15 +2,19 @@
     "name": "nuxt-shopify-docs",
     "private": true,
     "scripts": {
-        "dev": "nuxt dev --extends docus",
-        "prepare": "nuxt prepare --extends docus",
-        "build": "nuxt build --extends docus",
-        "preview": "nuxt preview --extends docus"
+        "dev": "nuxt dev",
+        "prepare": "nuxt prepare",
+        "build": "nuxt build",
+        "preview": "nuxt preview",
+        "typecheck": "nuxt typecheck"
     },
     "dependencies": {
+        "@nuxt/content": "^3.15.0",
+        "@nuxt/icon": "^2.3.1",
         "@nuxt/kit": "^4.4.8",
         "@nuxt/ui": "^4.9.0",
         "@nuxtjs/critters": "^0.9.2",
+        "@vueuse/core": "^14.4.0",
         "better-sqlite3": "^13.0.2",
         "docus": "^5.12.2",
         "motion-v": "^2.3.0",

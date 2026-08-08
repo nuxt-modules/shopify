@@ -28,5 +28,5 @@ const { data: items } = await useStorefrontData(key, `#graphql
 </script>
 
 <template>
-  <UNavigationMenu :items="items" />
+  <UNavigationMenu :items="items ?? []" />
 </template>

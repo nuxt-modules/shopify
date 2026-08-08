@@ -52,7 +52,7 @@
     "dist"
   ],
   "bin": {
-    "init": "dist/cli.mjs"
+    "nuxt-shopify": "dist/cli.mjs"
   },
   "scripts": {
     "build": "nuxt-module-build build",
@@ -70,7 +70,8 @@
     "typecheck:playground-v4-mock": "pnpm --filter playground-v4-mock typecheck",
     "typecheck:playground-v3": "pnpm --filter playground-v3 typecheck",
     "typecheck:template": "pnpm --filter ./template typecheck",
-    "typecheck:all": "vue-tsc --noEmit && pnpm --filter \"./playgrounds/*\" typecheck && pnpm --filter ./template typecheck",
+    "typecheck:docs": "pnpm --filter ./docs typecheck",
+    "typecheck:all": "vue-tsc --noEmit && pnpm --filter \"./playgrounds/*\" typecheck && pnpm --filter ./template typecheck && pnpm --filter ./docs typecheck",
     "knip": "knip",
     "test": "dotenv -e .env -- vitest run",
     "test:watch": "dotenv -e .env -- vitest watch",
@@ -100,6 +101,7 @@
     "consola": "^3.4.2",
     "defu": "^6.1.7",
     "giget": "^3.3.0",
+    "graphql": "^16.14.2",
     "graphql-yoga": "^5.21.2",
     "h3": "^1.15.11",
     "lru-cache": "^11.5.2",

@@ -84,8 +84,14 @@ export default defineNuxtModule<ModuleOptions>({
       logger.success('Finished setup')
     }
     else if (Object.keys(rawConfig ?? {}).length) {
+      const reference = 'See the module configuration reference: https://shopify.nuxtjs.org/essentials/configuration'
+
+      if (!nuxt.options.dev && !nuxt.options._prepare) {
+        throw new Error(`[shopify] Invalid module configuration\n${z.prettifyError(moduleOptions.error)}\n${reference}`)
+      }
+
       logger.error(`Skipping setup: invalid module configuration\n${z.prettifyError(moduleOptions.error)}`)
-      logger.info('See the module configuration reference: https://shopify.nuxtjs.org/essentials/configuration')
+      logger.info(reference)
     }
     else {
       logger.info('Skipping setup: no module configuration provided')

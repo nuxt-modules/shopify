@@ -1,0 +1,70 @@
+name: "\U0001F41E Bug report"
+description: Create a report to help us improve the Nuxt Shopify module
+labels: ["pending triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please carefully read the contribution docs before creating a bug report
+        👉 https://github.com/nuxt-modules/shopify/blob/main/.github/CONTRIBUTING.md
+
+        The quickest way to a minimal reproduction is the store template, which comes preconfigured with the module:
+        ```bash
+        npx @nuxtjs/shopify@latest init ./reproduction
+        ```
+  - type: textarea
+    id: bug-env
+    attributes:
+      label: Environment
+      description: You can use `npx nuxt info` to fill this section. Please also include the version of `@nuxtjs/shopify` you are using.
+      placeholder: Environment
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: Please provide a link to a repo that can reproduce the problem you ran into. A **minimal reproduction** is required unless you are absolutely sure that the issue is obvious and the provided information is enough to understand the problem. If a report is vague (e.g. just a generic error message) and has no reproduction, it will receive a "needs reproduction" label. If no reproduction is provided we might close it.
+      placeholder: Reproduction
+    validations:
+      required: true
+  - type: textarea
+    id: module-config
+    attributes:
+      label: Module configuration
+      description: The `shopify` block from your `nuxt.config.ts`. Please redact any access tokens, client secrets, session passwords and webhook secrets before posting.
+      render: ts
+    validations:
+      required: true
+  - type: dropdown
+    id: clients
+    attributes:
+      label: Which clients are affected?
+      multiple: true
+      options:
+        - Storefront
+        - Customer Account
+        - Admin
+        - Not client specific
+    validations:
+      required: true
+  - type: textarea
+    id: bug-description
+    attributes:
+      label: Describe the bug
+      description: A clear and concise description of what the bug is. If you intend to submit a PR for this issue, tell us in the description. Thanks!
+      placeholder: Bug description
+    validations:
+      required: true
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context
+      description: If applicable, add any other context about the problem here
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: |
+        Optional if provided reproduction. Please try not to insert an image but copy paste the log text. Setting `shopify.logger.level` to `4` enables the module's debug output.
+      render: shell-script

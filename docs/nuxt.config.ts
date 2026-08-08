@@ -52,7 +52,6 @@ export default defineNuxtConfig({
 
       clients: {
         storefront: {
-          apiVersion: '',
           proxy: false,
           mock: true,
         },
@@ -77,6 +76,18 @@ export default defineNuxtConfig({
     },
     optimizeDeps: {
       include: ['vaul-vue', 'reka-ui'],
+    },
+  },
+
+  hooks: {
+    'prepare:types'({ references }) {
+      const resolvesToDocusNuxtConfig = (reference: typeof references[number]) =>
+        'types' in reference && reference.types === 'docus'
+
+      const usableReferences = references.filter(reference => !resolvesToDocusNuxtConfig(reference))
+
+      references.length = 0
+      references.push(...usableReferences)
     },
   },
 
