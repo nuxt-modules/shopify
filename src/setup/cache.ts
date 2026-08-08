@@ -24,7 +24,12 @@ export default function setupCache(nuxt: Nuxt, config: ShopifyConfig, resolver: 
     nuxt.options.nitro.storage['storefront-proxy'] = storefrontStorageMount
   }
 
-  if (config.clients.storefront && config.clients.storefront.cache !== false) {
+  const storefrontCache = config.clients.storefront?.cache
+
+  if (storefrontCache && storefrontCache.client) {
     addPlugin(storefrontPluginPath)
+  }
+  else {
+    logger.debug('Skipping the storefront client cache plugin: `cache.client` is disabled')
   }
 }

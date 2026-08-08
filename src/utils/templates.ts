@@ -4,7 +4,7 @@ import type { ShopifyClientType, ShopifyConfig } from '../types'
 import type { ShopifyTemplateOptions } from './codegen'
 
 import { readFile } from 'node:fs/promises'
-import { dirname, basename, join } from 'node:path'
+import { dirname, basename, join, resolve } from 'node:path'
 import {
   addTemplate,
   addTypeTemplate,
@@ -27,12 +27,16 @@ export * from './${basename(operations)}'
 `
 }
 
+export function getIntrospectionFilename(clientType: ShopifyClientType, apiVersion: string) {
+  return `schema/${kebabCase(clientType)}.${apiVersion}.schema.json`
+}
+
 function setupWatcher(nuxt: Nuxt, template: NuxtTemplate<ShopifyTemplateOptions>) {
   nuxt.hook('builder:watch', async (_event, file) => {
     for (const document of template.options?.clientConfig?.documents ?? []) {
-      if (!minimatch(file, document)) continue
+      if (document.startsWith('!') || !minimatch(file, document)) continue
 
-      const content = await readFile(join(nuxt.options.srcDir, file), 'utf8')
+      const content = await readFile(resolve(nuxt.options.srcDir, file), 'utf8')
         .catch(() => '')
 
       if (
@@ -58,7 +62,7 @@ export function registerTemplates(
 
   if (!clientConfig) return
 
-  const introspectionFilename = `schema/${kebabCase(clientType)}.schema.json`
+  const introspectionFilename = getIntrospectionFilename(clientType, clientConfig.apiVersion)
   const introspectionPath = join(nuxt.options.buildDir, introspectionFilename)
 
   const introspection = addTemplate<ShopifyTemplateOptions>({

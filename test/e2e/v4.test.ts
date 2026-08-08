@@ -270,9 +270,9 @@ describe('test module with nuxt 4', async () => {
     expect(Object.keys(projects)).toEqual(['admin', 'customerAccount', 'default'])
 
     expect(projects).toStrictEqual({
-      admin: expectedGraphqlProject('.nuxt/schema/admin.schema.json', expectedAdminDocuments),
-      customerAccount: expectedGraphqlProject('.nuxt/schema/customer-account.schema.json', expectedCustomerAccountDocuments),
-      default: expectedGraphqlProject('.nuxt/schema/storefront.schema.json', expectedStorefrontDocuments),
+      admin: expectedGraphqlProject(`.nuxt/schema/admin.${process.env.NUXT_SHOPIFY_CLIENTS_ADMIN_API_VERSION}.schema.json`, expectedAdminDocuments),
+      customerAccount: expectedGraphqlProject(`.nuxt/schema/customer-account.${process.env.NUXT_SHOPIFY_CLIENTS_CUSTOMER_ACCOUNT_API_VERSION}.schema.json`, expectedCustomerAccountDocuments),
+      default: expectedGraphqlProject(`.nuxt/schema/storefront.${process.env.NUXT_SHOPIFY_CLIENTS_STOREFRONT_API_VERSION}.schema.json`, expectedStorefrontDocuments),
     })
 
     expect(defaultExport).toEqual({ projects })

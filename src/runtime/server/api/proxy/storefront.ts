@@ -68,11 +68,11 @@ export default defineEventHandler(async (event) => {
   const url = apiVersion ? withApiVersion(apiUrl, apiVersion) : apiUrl
 
   const storefrontConfig = _shopify?.clients.storefront
-  const cacheConfig = storefrontConfig?.cache ? storefrontConfig.cache : undefined
+  const cacheConfig = storefrontConfig?.cache && storefrontConfig.cache.proxy ? storefrontConfig.cache : undefined
   const cacheOption = requestHeaders['x-shopify-proxy-cache'] ?? 'none'
 
   const requestCacheConfig = cacheConfig?.options
-    ? cacheOption in cacheConfig.options
+    ? Object.hasOwn(cacheConfig.options, cacheOption)
       ? cacheConfig.options[cacheOption]
       : undefined
     : undefined

@@ -3,7 +3,9 @@ import { existsSync } from 'node:fs'
 import { appendFile, readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 
-export const SESSION_PASSWORD_ENV = 'NUXT_SHOPIFY_CLIENTS_CUSTOMER_ACCOUNT_SESSION_PASSWORD'
+import { SESSION_PASSWORD_ENV } from '../runtime/utils/session'
+
+export { SESSION_PASSWORD_ENV }
 
 export function generateSessionPassword(): string {
   return randomBytes(48).toString('base64url')

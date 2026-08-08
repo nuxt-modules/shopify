@@ -65,6 +65,10 @@ function createCacheKey<
   return hash({ operation, options: keyableOptions })
 }
 
+function detach<Data>(response: ClientResponse<Data>): ClientResponse<Data> {
+  return { ...response, ...(response.data ? { data: structuredClone(response.data) } : {}) }
+}
+
 export default async function useCache<
   Request extends ShopifyApiClientRequest<Operations, true>,
   Operation extends keyof Operations,
@@ -82,7 +86,7 @@ export default async function useCache<
   const cacheKey = storage && inMemoryConfig ? createCacheKey(operation, options) : undefined
 
   if (storage && cacheKey && await storage.hasItem(cacheKey)) {
-    return await storage.getItem(cacheKey) as ClientResponse<ReturnData<Operation, Operations>>
+    return detach(await storage.getItemRaw(cacheKey) as ClientResponse<ReturnData<Operation, Operations>>)
   }
 
   const response = await request(operation, {
@@ -94,7 +98,7 @@ export default async function useCache<
   } as typeof options)
 
   if (storage && cacheKey && !response.errors) {
-    await storage.setItem(cacheKey, response, inMemoryConfig)
+    await storage.setItemRaw(cacheKey, detach(response), inMemoryConfig)
   }
 
   return response

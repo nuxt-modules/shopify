@@ -111,6 +111,18 @@ declare module '@nuxt/schema' {
   }
 }
 
+declare module 'nuxt/schema' {
+  interface RuntimeConfig {
+    shopify?: ModuleOptions
+    _shopify?: ShopifyConfig
+  }
+
+  interface PublicRuntimeConfig {
+    shopify?: PublicModuleOptions
+    _shopify?: PublicShopifyConfig
+  }
+}
+
 declare module '#app' {
   interface NuxtApp {
     $shopify?: {

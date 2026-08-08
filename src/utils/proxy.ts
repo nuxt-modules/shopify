@@ -1,5 +1,4 @@
 import type { Resolver } from '@nuxt/kit'
-import type { Nuxt } from '@nuxt/schema'
 
 import type {
   ShopifyClientType,
@@ -7,11 +6,11 @@ import type {
 } from '../types'
 
 import { addServerHandler } from '@nuxt/kit'
-import { joinURL, withLeadingSlash } from 'ufo'
+import { withLeadingSlash } from 'ufo'
 
 import { kebabCase } from 'scule'
 
-export function registerProxy(nuxt: Nuxt, config: ShopifyConfig, clientType: ShopifyClientType, resolver: Resolver): string | false {
+export function registerProxy(config: ShopifyConfig, clientType: ShopifyClientType, resolver: Resolver): string | false {
   const clientConfig = config.clients[clientType]
 
   if (!clientConfig) return false
@@ -25,5 +24,5 @@ export function registerProxy(nuxt: Nuxt, config: ShopifyConfig, clientType: Sho
     route: withLeadingSlash(url),
   })
 
-  return joinURL(nuxt.options.devServer.url, url)
+  return url
 }

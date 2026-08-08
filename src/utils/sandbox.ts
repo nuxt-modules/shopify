@@ -8,12 +8,6 @@ import { addDevServerHandler, addServerHandler, type Resolver } from '@nuxt/kit'
 import { defineEventHandler, setResponseHeader } from 'h3'
 import { kebabCase } from 'scule'
 
-function getSandboxUrl(nuxt: Nuxt, clientType: ShopifyClientType): string {
-  const url = new URL(nuxt.options.devServer.url)
-
-  return url.href + '_sandbox/' + kebabCase(clientType)
-}
-
 function createSandboxHandler(clientType: ShopifyClientType) {
   return defineEventHandler(async (event: H3Event) => {
     const { renderGraphiQL } = await import('@graphql-yoga/render-graphiql')
@@ -28,7 +22,7 @@ function createSandboxHandler(clientType: ShopifyClientType) {
   })
 }
 
-export function registerSandbox(nuxt: Nuxt, resolver: Resolver, clientType: ShopifyClientType): string {
+export function registerSandbox(resolver: Resolver, clientType: ShopifyClientType): string {
   addDevServerHandler({
     handler: createSandboxHandler(clientType),
     route: `/_sandbox/${kebabCase(clientType)}`,
@@ -39,7 +33,7 @@ export function registerSandbox(nuxt: Nuxt, resolver: Resolver, clientType: Shop
     route: `/_sandbox/proxy/${kebabCase(clientType)}`,
   })
 
-  return getSandboxUrl(nuxt, clientType)
+  return `_sandbox/${kebabCase(clientType)}`
 }
 
 export function shouldEnableSandbox(nuxt: Nuxt, clientConfig: ShopifyConfig['clients'][ShopifyClientType]): boolean {

@@ -3,9 +3,11 @@ import type { Nuxt } from '@nuxt/schema'
 import type { ShopifyConfig } from '../types'
 
 import { upperFirst } from 'scule'
+import { joinURL } from 'ufo'
 
 import { useLogger } from '../utils/log'
 import { getConfiguredClients } from '../utils/clients'
+import { onDevServerURL } from '../utils/dev'
 import {
   registerSandbox,
   shouldEnableSandbox,
@@ -20,9 +22,11 @@ export default function setupSandbox(nuxt: Nuxt, config: ShopifyConfig, resolver
     const clientConfig = config.clients[clientType]
 
     if (shouldEnableSandbox(nuxt, clientConfig)) {
-      const url = registerSandbox(nuxt, resolver, clientType)
+      const path = registerSandbox(resolver, clientType)
 
-      logger.info(`${upperFirst(clientType)} sandbox available at: ${url}`)
+      onDevServerURL(nuxt, origin =>
+        logger.info(`${upperFirst(clientType)} sandbox available at: ${joinURL(origin, path)}`),
+      )
     }
   }
 }

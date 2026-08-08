@@ -43,7 +43,7 @@ function resolveRequirements(config: ShopifyConfig) {
 }
 
 function resolveProxies(config: ShopifyConfig, nuxt: Nuxt) {
-  if (nuxt.options.ssr && !(nuxt.options as { _generate?: boolean })._generate) return
+  if (!(nuxt.options as { _generate?: boolean })._generate) return
 
   const logger = useLogger()
 
@@ -52,7 +52,7 @@ function resolveProxies(config: ShopifyConfig, nuxt: Nuxt) {
 
     if (!client?.proxy) continue
 
-    logger.info(`Disabling the ${clientType} proxy: server-side request proxying requires SSR. Requests are sent to Shopify directly.`)
+    logger.info(`Disabling the ${clientType} proxy: static generation has no server to proxy through, requests are sent to Shopify directly`)
 
     client.proxy = false
   }
@@ -106,7 +106,7 @@ async function resolveSessionPassword(config: ShopifyConfig, nuxt: Nuxt) {
   }
 
   if (!nuxt.options.dev) {
-    logger.warn(`No customer account session password set - customer account sessions will fail until the \`${SESSION_PASSWORD_ENV}\` environment variable is set`)
+    logger.warn(`No customer account session password set at build time: set \`${SESSION_PASSWORD_ENV}\` in the deployment environment or customer account sessions will fail`)
 
     return
   }

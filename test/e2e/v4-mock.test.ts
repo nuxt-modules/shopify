@@ -123,7 +123,7 @@ describe('test mock.shop integration with nuxt 4', async () => {
     expect(Object.keys(projects)).toEqual(['default'])
 
     expect(projects).toStrictEqual({
-      default: expectedGraphqlProject('.nuxt/schema/storefront.schema.json', expectedStorefrontDocuments),
+      default: expectedGraphqlProject(`.nuxt/schema/storefront.${process.env.NUXT_SHOPIFY_CLIENTS_STOREFRONT_API_VERSION}.schema.json`, expectedStorefrontDocuments),
     })
 
     expect(defaultExport).toEqual({ projects })

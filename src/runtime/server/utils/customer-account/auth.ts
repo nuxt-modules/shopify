@@ -67,8 +67,6 @@ export async function getValidCustomerAccessToken(event: H3Event): Promise<strin
           expiresAt: Date.now() + (fresh.expires_in ?? 7200) * 1000,
         }
 
-        await setCustomerAccountTokens(event, next)
-
         await useNitroApp().hooks.callHook('customer-account:auth:refresh', { tokens: next })
 
         return next
@@ -85,6 +83,8 @@ export async function getValidCustomerAccessToken(event: H3Event): Promise<strin
 
     throw unauthorized()
   })
+
+  await setCustomerAccountTokens(event, refreshed)
 
   return refreshed.accessToken
 }

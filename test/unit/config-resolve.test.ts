@@ -102,7 +102,7 @@ describe('peer dependency requirements', () => {
   })
 })
 
-describe('proxy requires SSR', () => {
+describe('proxy requires a server', () => {
   const input = { name: 'shop', clients: { storefront, customerAccount: { clientId: 'cid' } } }
 
   it('keeps the proxies when rendering on the server', async () => {
@@ -113,13 +113,13 @@ describe('proxy requires SSR', () => {
     expect(publicConfig.clients.customerAccount?.proxy).toEqual({ path: '_proxy/customer-account' })
   })
 
-  it('disables every proxy in both configs when ssr is off', async () => {
+  it('keeps the proxies when ssr is off', async () => {
     const { config, publicConfig } = await resolve(input, nuxtStub({ ssr: false }))
 
-    expect(config.clients.storefront?.proxy).toBe(false)
-    expect(config.clients.customerAccount?.proxy).toBe(false)
-    expect(publicConfig.clients.storefront?.proxy).toBe(false)
-    expect(publicConfig.clients.customerAccount?.proxy).toBe(false)
+    expect(config.clients.storefront?.proxy).toEqual({ path: '_proxy/storefront' })
+    expect(config.clients.customerAccount?.proxy).toEqual({ path: '_proxy/customer-account' })
+    expect(publicConfig.clients.storefront?.proxy).toEqual({ path: '_proxy/storefront' })
+    expect(publicConfig.clients.customerAccount?.proxy).toEqual({ path: '_proxy/customer-account' })
   })
 
   it('disables every proxy in both configs when prerendering the whole app', async () => {

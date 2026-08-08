@@ -197,8 +197,8 @@ describe('test module with nuxt 3', async () => {
     expect(Object.keys(projects)).toEqual(['admin', 'default'])
 
     expect(projects).toStrictEqual({
-      admin: expectedGraphqlProject('.nuxt/schema/admin.schema.json', expectedAdminDocuments),
-      default: expectedGraphqlProject('.nuxt/schema/storefront.schema.json', expectedStorefrontDocuments),
+      admin: expectedGraphqlProject(`.nuxt/schema/admin.${process.env.NUXT_SHOPIFY_CLIENTS_ADMIN_API_VERSION}.schema.json`, expectedAdminDocuments),
+      default: expectedGraphqlProject(`.nuxt/schema/storefront.${process.env.NUXT_SHOPIFY_CLIENTS_STOREFRONT_API_VERSION}.schema.json`, expectedStorefrontDocuments),
     })
 
     expect(defaultExport).toEqual({ projects })

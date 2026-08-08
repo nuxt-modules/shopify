@@ -7,6 +7,7 @@ import { addImports, addPlugin, addRouteMiddleware, addServerHandler, addServerI
 import { joinURL, withLeadingSlash, withoutHost } from 'ufo'
 
 import { useLogger } from '../utils/log'
+import { onDevServerURL } from '../utils/dev'
 import {
   getConfiguredClients,
   isPublicClient,
@@ -67,11 +68,11 @@ export default function setupClients(nuxt: Nuxt, config: ShopifyConfig, resolver
           handler: resolver.resolve('./runtime/server/api/auth/customer-account/bridge'),
         })
 
-        const bridgeURL = joinURL(nuxt.options.devServer.url, bridgePath)
+        onDevServerURL(nuxt, (origin) => {
+          const dev = nuxt.options.runtimeConfig._shopify?.clients.customerAccount?.dev
 
-        if (nuxt.options.runtimeConfig._shopify?.clients.customerAccount?.dev) {
-          nuxt.options.runtimeConfig._shopify.clients.customerAccount.dev.bridgeURL = bridgeURL
-        }
+          if (dev) dev.bridgeURL = joinURL(origin, bridgePath)
+        })
 
         logger.debug(`Registered customer account dev bridge at \`${bridgePath}\``)
       }

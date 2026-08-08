@@ -1,7 +1,9 @@
 import type { Storage, StorageValue } from 'unstorage'
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { createStorage as createLruStorage } from 'unstorage'
 
+import lruCacheDriver from '../../src/runtime/utils/lru-driver'
 import useCache from '../../src/runtime/utils/clients/cache'
 
 const options = {
@@ -15,8 +17,8 @@ let ttls: Map<string, unknown>
 function createStorage() {
   return {
     hasItem: async (key: string) => store.has(key),
-    getItem: async (key: string) => store.get(key) ?? null,
-    setItem: async (key: string, value: unknown, opts?: unknown) => {
+    getItemRaw: async (key: string) => store.get(key) ?? null,
+    setItemRaw: async (key: string, value: unknown, opts?: unknown) => {
       store.set(key, value)
       ttls.set(key, opts)
     },
@@ -29,6 +31,10 @@ function createRequest(data: unknown = { product: { id: '1' } }) {
 
 function requestOptions(request: ReturnType<typeof createRequest>) {
   return request.mock.calls[0]?.[1]
+}
+
+function product(response: unknown) {
+  return (response as { data: { product: { title: string } } }).data.product
 }
 
 beforeEach(() => {
@@ -142,5 +148,32 @@ describe('client cache', () => {
 
     expect(requestOptions(request)).toMatchObject({ headers: { 'X-Shopify-Proxy-Cache': 'long' } })
     expect([...ttls.values()]).toStrictEqual([{ ttl: 10_000 }])
+  })
+
+  it('keeps the response headers intact across a cache hit', async () => {
+    const storage = createLruStorage({ driver: lruCacheDriver({}) })
+    const request = vi.fn(async () => ({ data: { a: 1 }, headers: new Headers({ 'x-a': 'b' }) }))
+
+    await useCache(storage, request as never, 'query X { a }' as never, { cache: 'short' } as never, options)
+    const hit = await useCache(storage, request as never, 'query X { a }' as never, { cache: 'short' } as never, options)
+
+    expect(request).toHaveBeenCalledTimes(1)
+    expect(hit.headers).toBeInstanceOf(Headers)
+    expect(hit.headers?.get('x-a')).toBe('b')
+  })
+
+  it('returns a fresh copy of the cached response to each caller', async () => {
+    const storage = createLruStorage({ driver: lruCacheDriver({}) })
+    const request = vi.fn(async () => ({ data: { product: { title: 'original' } }, headers: new Headers() }))
+
+    const first = await useCache(storage, request as never, 'query X { a }' as never, { cache: 'short' } as never, options)
+
+    product(first).title = 'mutated'
+
+    const second = await useCache(storage, request as never, 'query X { a }' as never, { cache: 'short' } as never, options)
+
+    expect(request).toHaveBeenCalledTimes(1)
+    expect(second).not.toBe(first)
+    expect(product(second).title).toBe('original')
   })
 })

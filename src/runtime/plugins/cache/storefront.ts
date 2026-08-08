@@ -12,10 +12,11 @@ export default defineNuxtPlugin({
 
     const { _shopify } = useRuntimeConfig().public
 
-    const storefrontConfig = _shopify?.clients.storefront
-    const storefrontCache = storefrontConfig?.cache && storefrontConfig.cache.client ? storefrontConfig.cache.client : undefined
+    const storefrontCache = _shopify?.clients.storefront?.cache
 
-    const config = typeof storefrontCache === 'object' ? storefrontCache : undefined
+    if (!storefrontCache || !storefrontCache.client) return
+
+    const config = typeof storefrontCache.client === 'object' ? storefrontCache.client : undefined
 
     const storage = createStorage({
       // Uses custom driver to allow setting TTL per entry

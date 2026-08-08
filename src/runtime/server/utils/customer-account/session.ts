@@ -3,36 +3,47 @@ import type { Storage } from 'unstorage'
 
 import type { CustomerAccountSession, CustomerAccountSessionData, CustomerAccountTokenSet, CustomerAccountUser, ShopifyConfig } from '../../../../module'
 
-import { createError, getSession, useSession } from 'h3'
+import { createError, getCookie, getSession, useSession } from 'h3'
 import { useStorage } from 'nitropack/runtime'
 import { useRuntimeConfig } from '#imports'
 
+import { SESSION_PASSWORD_ENV } from '../../../utils/session'
+
 export type { CustomerAccountSession, CustomerAccountSessionData, CustomerAccountTokenSet, CustomerAccountUser } from '../../../../module'
+
+const DEFAULT_SESSION_NAME = 'shopify-customer-account'
 
 export function getSessionConfig(config?: ShopifyConfig): SessionConfig {
   const session = config?.clients?.customerAccount?.session
+  const password = session?.password || globalThis.process?.env?.[SESSION_PASSWORD_ENV]
 
-  if (!session?.password) {
+  if (!password) {
     throw createError({
       status: 500,
       statusText: 'Internal Server Error',
       message: '[shopify] Failed to resolve the customer account session: no session password configured. '
         + 'Set `shopify.clients.customerAccount.session.password` or the '
-        + '`NUXT_SHOPIFY_CLIENTS_CUSTOMER_ACCOUNT_SESSION_PASSWORD` environment variable.',
+        + `\`${SESSION_PASSWORD_ENV}\` environment variable.`,
     })
   }
 
   return {
-    name: session.name,
-    password: session.password,
-    maxAge: session.maxAge,
+    name: session?.name ?? DEFAULT_SESSION_NAME,
+    password,
+    maxAge: session?.maxAge,
     cookie: {
       sameSite: 'lax',
       secure: !import.meta.dev,
-      ...session.cookie,
+      ...session?.cookie,
       httpOnly: true,
     },
   }
+}
+
+async function readSession(event: H3Event, config: SessionConfig) {
+  if (!getCookie(event, config.name ?? DEFAULT_SESSION_NAME)) return null
+
+  return await getSession<CustomerAccountSessionData>(event, config)
 }
 
 export function usesExternalTokenStorage(config?: ShopifyConfig): boolean {
@@ -50,12 +61,12 @@ export function getCustomerAccountTokenStorage(config?: ShopifyConfig): Storage<
 export async function getCustomerAccountSession(event: H3Event): Promise<CustomerAccountSession> {
   const { _shopify } = useRuntimeConfig(event)
 
-  const session = await getSession<CustomerAccountSessionData>(event, getSessionConfig(_shopify))
+  const session = await readSession(event, getSessionConfig(_shopify))
 
   return {
-    loggedIn: !!session.data.user,
-    user: session.data.user ?? null,
-    loggedInAt: session.data.loggedInAt ?? null,
+    loggedIn: !!session?.data.user,
+    user: session?.data.user ?? null,
+    loggedInAt: session?.data.loggedInAt ?? null,
   }
 }
 
@@ -92,9 +103,9 @@ export async function setCustomerAccountTokens(event: H3Event, tokens: CustomerA
   const { _shopify } = useRuntimeConfig(event)
 
   if (usesExternalTokenStorage(_shopify)) {
-    const session = await getSession<CustomerAccountSessionData>(event, getSessionConfig(_shopify))
+    const session = await readSession(event, getSessionConfig(_shopify))
 
-    if (session.id) await getCustomerAccountTokenStorage(_shopify).setItem(session.id, tokens)
+    if (session?.id) await getCustomerAccountTokenStorage(_shopify).setItem(session.id, tokens)
   }
   else {
     const session = await useSession<CustomerAccountSessionData>(event, getSessionConfig(_shopify))
@@ -106,9 +117,9 @@ export async function setCustomerAccountTokens(event: H3Event, tokens: CustomerA
 export async function getCustomerAccountTokens(event: H3Event): Promise<CustomerAccountTokenSet | null> {
   const { _shopify } = useRuntimeConfig(event)
 
-  const session = await getSession<CustomerAccountSessionData>(event, getSessionConfig(_shopify))
+  const session = await readSession(event, getSessionConfig(_shopify))
 
-  if (!session.data.user || !session.id) return null
+  if (!session?.data.user || !session.id) return null
 
   if (usesExternalTokenStorage(_shopify)) {
     return await getCustomerAccountTokenStorage(_shopify).getItem(session.id)

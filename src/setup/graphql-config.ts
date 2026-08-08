@@ -5,10 +5,10 @@ import type { ShopifyConfig } from '../types'
 import { relative, sep } from 'node:path'
 
 import { addTemplate } from '@nuxt/kit'
-import { kebabCase } from 'scule'
 
 import { ShopifyClientType } from '../schemas'
 import { getConfiguredClients } from '../utils/clients'
+import { getIntrospectionFilename } from '../utils/templates'
 import { useLogger } from '../utils/log'
 
 const PROJECT_ORDER = [
@@ -75,7 +75,7 @@ export default function setupGraphqlConfig(nuxt: Nuxt, config: ShopifyConfig) {
     const name = clientType === ShopifyClientType.Storefront ? 'default' : clientType
 
     projects[name] = {
-      schema: `${buildDir}/schema/${kebabCase(clientType)}.schema.json`,
+      schema: `${buildDir}/${getIntrospectionFilename(clientType, clientConfig.apiVersion)}`,
       ...splitDocuments(clientConfig.documents ?? []),
     }
   }

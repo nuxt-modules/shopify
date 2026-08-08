@@ -81,7 +81,7 @@ export function createClient<
     }
   }
 
-  if (event) {
+  if (import.meta.server && event) {
     if (definition.tracking) {
       Object.assign(apiClientConfig.headers, createTrackingHeaders(event, getRequestHeader(event, 'cookie')))
     }
@@ -121,7 +121,7 @@ export function createClient<
       ? await useCache(cache, transport.request as any, operation, options, cacheOptions?.options)
       : await transport.request(operation, options)
 
-    if (event && definition.tracking) collectTrackingHeaders(event, response.headers)
+    if (import.meta.server && event && definition.tracking) collectTrackingHeaders(event, response.headers)
 
     if (response.errors) await useErrors(response.errors, throwOnErrors, callbacks.onErrors)
 

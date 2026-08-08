@@ -27,7 +27,9 @@ export default function setupVite(nuxt: Nuxt, config: ShopifyConfig) {
     deps.push('@shopify/hydrogen-react')
   }
 
-  if (config.clients?.storefront && config.clients.storefront.cache !== false) {
+  const storefrontCache = config.clients?.storefront?.cache
+
+  if (storefrontCache && storefrontCache.client) {
     deps.push('lru-cache')
   }
 
