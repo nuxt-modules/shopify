@@ -12,5 +12,6 @@
     "commitMessagePrefix": "chore:",
     "lockFileMaintenance": {
         "enabled": true
-    }
+    },
+    "postUpdateOptions": ["pnpmDedupe"]
 }
