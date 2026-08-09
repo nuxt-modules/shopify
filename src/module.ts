@@ -12,6 +12,7 @@ import setupAnalytics from './setup/analytics'
 import setupClients from './setup/clients'
 import setupCodegen from './setup/codegen'
 import setupGraphqlConfig from './setup/graphql-config'
+import setupGraphqlTransform from './setup/graphql-transform'
 import setupImports from './setup/imports'
 import setupProxy from './setup/proxy'
 import setupExplorer from './setup/explorer'
@@ -74,6 +75,8 @@ export default defineNuxtModule<ModuleOptions>({
       setupGraphqlConfig(nuxt, config)
       setupVite(nuxt, config)
       setupWebhooks(resolver)
+
+      await setupGraphqlTransform(nuxt, config)
 
       await nuxt.callHook('shopify:setup', { nuxt, config })
 

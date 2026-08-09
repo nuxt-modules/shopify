@@ -256,7 +256,9 @@ export const configObjectSchema = z.object({
 
   graphql: z.object({
     generateConfig: z.boolean().optional().default(true),
-  }).optional().default({ generateConfig: true }),
+    normalize: z.boolean().optional().default(true),
+    injectFragments: z.boolean().optional().default(true),
+  }).optional().default({ generateConfig: true, normalize: true, injectFragments: true }),
 
   webhooks: webhooksSchema.optional(),
 
