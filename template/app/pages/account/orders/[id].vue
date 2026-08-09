@@ -22,8 +22,6 @@ const { data: order, error } = await useCustomerAccountData(key, `#graphql
       ...OrderDetailsFields
     }
   }
-  ${ADDRESS_FRAGMENT}
-  ${ORDER_DETAILS_FRAGMENT}
 `, {
   variables: computed(() => customerOrderInputSchema.parse({
     id: id.value,

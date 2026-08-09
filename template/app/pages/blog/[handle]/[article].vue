@@ -21,7 +21,6 @@ const { data: blog, error } = await useStorefrontData(localizedKey('blog', artic
       }
     }
   }
-  ${ARTICLE_FRAGMENT}
 `, {
   variables: {
     handle: handle.value,

@@ -30,5 +30,4 @@ export const MENU_FRAGMENT = `#graphql
       ...MenuItemFields
     }
   },
-  ${MENU_ITEM_FRAGMENT}
 `

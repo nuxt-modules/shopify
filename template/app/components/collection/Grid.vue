@@ -10,9 +10,6 @@ const { data: collections } = await useStorefrontData(localizedKey('collections'
       ...CollectionConnectionFields
     }
   }
-  ${IMAGE_FRAGMENT}
-  ${COLLECTION_FRAGMENT}
-  ${COLLECTION_CONNECTION_FRAGMENT}
 `, {
   variables: connectionParamsSchema.extend(localizationParamsSchema.shape).parse({
     first: 10,

@@ -42,6 +42,8 @@ export function registerFragmentImports(nuxt: Nuxt, config: ShopifyConfig) {
   if (!config.fragments?.autoImport) return
 
   const includeClient = hasPublicClient(config)
+  const watchedByGraphqlTransform = config.graphql.injectFragments
+
   nuxt.options.watch = nuxt.options.watch || []
 
   for (const dir of config.fragments.dirs) {
@@ -49,7 +51,9 @@ export function registerFragmentImports(nuxt: Nuxt, config: ShopifyConfig) {
 
     autoImportDirectory(fragmentsPath, includeClient)
 
-    nuxt.options.watch.push(fragmentsPath)
+    if (!watchedByGraphqlTransform) {
+      nuxt.options.watch.push(fragmentsPath)
+    }
   }
 }
 

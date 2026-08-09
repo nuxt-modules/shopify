@@ -13,7 +13,6 @@ const { data: logo } = await useStorefrontData('logo', `#graphql
       }
     }
   }
-  ${IMAGE_FRAGMENT}
 `, {
   transform: data => data?.shop?.brand?.logo?.image,
 })

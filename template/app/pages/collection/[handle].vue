@@ -22,8 +22,6 @@ const { data: collection, error } = await useStorefrontData(key, `#graphql
       ...CollectionFields
     }
   }
-  ${COLLECTION_FRAGMENT}
-  ${IMAGE_FRAGMENT}
 `, {
   variables: computed(() => collectionInputSchema.parse({
     handle: handle.value,

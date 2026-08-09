@@ -42,9 +42,6 @@ const { data: products } = await useStorefrontData(key, `#graphql
       ...ProductConnectionFields
     }
   }
-  ${IMAGE_FRAGMENT}
-  ${PRICE_FRAGMENT}
-  ${PRODUCT_CONNECTION_FRAGMENT}
 `, {
   variables: productConnectionParamsSchema.extend(localizationParamsSchema.shape).parse({
     first: first.value,

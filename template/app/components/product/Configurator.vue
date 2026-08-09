@@ -34,10 +34,6 @@ const { data } = await useStorefrontData(localizedKey('product-options', handle)
       }
     }
   }
-  ${IMAGE_FRAGMENT}
-  ${PRICE_FRAGMENT}
-  ${PRODUCT_VARIANT_FRAGMENT}
-  ${PRODUCT_OPTION_FRAGMENT}
 `, {
   variables: computed(() => productInputSchema.parse({
     handle: handle.value,

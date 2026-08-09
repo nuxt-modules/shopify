@@ -47,7 +47,7 @@ export default defineNuxtConfig({
     '/*/account/**': { headers: { 'cache-control': 'no-store' } },
   },
 
-  compatibilityDate: '2026-03-15',
+  compatibilityDate: '2026-08-09',
 
   fonts: {
     families: [

@@ -93,7 +93,6 @@ export const PRODUCT_VARIANT_CONNECTION_FRAGMENT = `#graphql
       }
     }
   }
-  ${PRODUCT_VARIANT_FRAGMENT}
 `
 
 export const PRODUCT_FRAGMENT = `#graphql
@@ -159,9 +158,6 @@ export const PRODUCT_FRAGMENT = `#graphql
       ...ProductVariantFields
     }
   }
-  ${MEDIA_FRAGMENT}
-  ${PRODUCT_OPTION_FRAGMENT}
-  ${PRODUCT_VARIANT_CONNECTION_FRAGMENT}
 `
 
 export const PRODUCT_CONNECTION_FRAGMENT = `#graphql
@@ -191,7 +187,6 @@ export const PRODUCT_CONNECTION_FRAGMENT = `#graphql
       endCursor
     }
   }
-  ${PRODUCT_FRAGMENT}
 `
 
 export const PRODUCT_FILTERS_FRAGMENT = `#graphql

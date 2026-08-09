@@ -46,7 +46,6 @@ const { data, status } = await useStorefrontData(localizedKey('search', () => qu
       }
     }
   }
-  ${IMAGE_FRAGMENT}
 `, {
   variables: computed(() => predictiveSearchParamsSchema.extend(localizationParamsSchema.shape).parse({
     query: query.value,

@@ -14,7 +14,6 @@ const { data: items } = await useStorefrontData(localizedKey('main-menu'), `#gra
       ...MenuFields
     }
   }
-  ${MENU_FRAGMENT}
 `, {
   variables: menuGetInputSchema.parse({
     handle: 'main-menu',

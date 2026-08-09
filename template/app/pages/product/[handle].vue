@@ -21,9 +21,6 @@ const { data, error } = await useStorefrontData(localizedKey('product', handle),
       ...ProductFields
     }
   }
-  ${IMAGE_FRAGMENT}
-  ${PRICE_FRAGMENT}
-  ${PRODUCT_FRAGMENT}
 `, {
   variables: computed(() => productInputSchema.parse({
     handle: handle.value,

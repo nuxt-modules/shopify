@@ -14,6 +14,7 @@ import { joinURL } from 'ufo'
 import { createConsola } from 'consola'
 
 import { MODULE_VERSION } from '../version'
+import { normalizeOperation } from '../graphql/normalize'
 
 export const PROXY_API_VERSION_HEADER = 'X-Shopify-Proxy-Api-Version'
 export const PROXY_CACHE_HEADER = 'X-Shopify-Proxy-Cache'
@@ -42,6 +43,7 @@ export const withApiVersion = (apiUrl: string, apiVersion: string) =>
 
 export const createTransport = <Operations extends AllOperations = AllOperations, Cache extends boolean | undefined = undefined>(
   config: ShopifyApiClientConfig,
+  transportOptions: { normalize?: boolean } = {},
 ): ShopifyApiClient<Operations, Cache> => {
   const {
     storeDomain,
@@ -89,7 +91,11 @@ export const createTransport = <Operations extends AllOperations = AllOperations
     operation: Operation,
     options?: ShopifyApiClientRequestOptions<Operation, Operations, Cache>,
   ): RequestParams => {
-    const props: RequestParams = [operation as string]
+    const props: RequestParams = [
+      transportOptions.normalize === false
+        ? operation as string
+        : normalizeOperation(operation as string),
+    ]
 
     if (options && Object.keys(options).length > 0) {
       const {

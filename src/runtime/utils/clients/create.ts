@@ -18,7 +18,13 @@ import { getRequestHeader, getRequestIP } from 'h3'
 import { joinURL } from 'ufo'
 
 import { createTrackingHeaders, collectTrackingHeaders } from '../../server/utils/tracking'
-import { BUYER_IP_HEADER, PRIVATE_TOKEN_HEADER, PROXY_API_VERSION_HEADER, createTransport, withApiVersion } from './transport'
+import {
+  BUYER_IP_HEADER,
+  PRIVATE_TOKEN_HEADER,
+  PROXY_API_VERSION_HEADER,
+  createTransport,
+  withApiVersion,
+} from './transport'
 import { DEFAULT_API_VERSION, DEFAULT_RETRIES, DEFAULT_THROW_ERRORS } from './defaults'
 import useCache from './cache'
 import useErrors from './errors'
@@ -100,7 +106,9 @@ export function createClient<
 
   callbacks.onConfigure?.({ config: apiClientConfig })
 
-  const transport = createTransport<Operations, Cache>(apiClientConfig)
+  const transport = createTransport<Operations, Cache>(apiClientConfig, {
+    normalize: (moduleConfig as { graphql?: { normalize?: boolean } }).graphql?.normalize ?? true,
+  })
 
   const auth = options.auth || undefined
 
