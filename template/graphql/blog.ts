@@ -30,5 +30,4 @@ export const BLOG_FRAGMENT = `#graphql
       description
     }
   }
-  ${ARTICLE_FRAGMENT}
 `

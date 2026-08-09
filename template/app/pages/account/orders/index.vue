@@ -16,7 +16,6 @@ const { data: customer, error } = await useCustomerAccountData('account-orders',
       }
     }
   }
-  ${ORDER_FRAGMENT}
 `, {
   variables: customerOrdersInputSchema.parse({ first: 50 }),
   transform: data => data?.customer,

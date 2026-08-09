@@ -72,9 +72,6 @@ export const useAccount = () => {
           }
         }
       }
-      ${ADDRESS_FRAGMENT}
-      ${CUSTOMER_FRAGMENT}
-      ${CUSTOMER_USER_ERRORS_FRAGMENT}
     `, {
       variables: { input: customerUpdateInputSchema.parse(input) },
     })
@@ -102,8 +99,6 @@ export const useAccount = () => {
           }
         }
       }
-      ${ADDRESS_FRAGMENT}
-      ${ADDRESS_USER_ERRORS_FRAGMENT}
     `, {
       variables: { address, defaultAddress },
     })
@@ -131,8 +126,6 @@ export const useAccount = () => {
           }
         }
       }
-      ${ADDRESS_FRAGMENT}
-      ${ADDRESS_USER_ERRORS_FRAGMENT}
     `, {
       variables: { addressId, address, defaultAddress },
     })
@@ -160,7 +153,6 @@ export const useAccount = () => {
           }
         }
       }
-      ${ADDRESS_USER_ERRORS_FRAGMENT}
     `, {
       variables: { addressId },
     })

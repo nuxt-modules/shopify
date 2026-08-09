@@ -42,11 +42,6 @@ const { data: collection, status } = await useStorefrontData(key, `#graphql
       }
     }
   }
-  ${PRODUCT_CONNECTION_FRAGMENT}
-  ${PRODUCT_FILTERS_FRAGMENT}
-  ${COLLECTION_FRAGMENT}
-  ${IMAGE_FRAGMENT}
-  ${PRICE_FRAGMENT}
 `, {
   variables: computed(() => collectionInputSchema.parse({
     handle: props.handle,

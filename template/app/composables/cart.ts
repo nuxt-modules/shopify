@@ -64,10 +64,6 @@ export const useCart = () => {
         ...CartFields
       }
     }
-    ${CART_FRAGMENT}
-    ${IMAGE_FRAGMENT}
-    ${PRICE_FRAGMENT}
-    ${PRODUCT_VARIANT_FRAGMENT}
   `, {
     variables: cartGetInputSchema.parse({
       id: id.value,
@@ -92,11 +88,6 @@ export const useCart = () => {
         }
       }
     }
-    ${CART_FRAGMENT}
-    ${IMAGE_FRAGMENT}
-    ${PRICE_FRAGMENT}
-    ${CART_USER_ERRORS_FRAGMENT}
-    ${PRODUCT_VARIANT_FRAGMENT}
   `, {
     variables: cartLineInputSchema.parse({
       cartId: id.value,
@@ -137,11 +128,6 @@ export const useCart = () => {
         }
       }
     }
-    ${CART_FRAGMENT}
-    ${IMAGE_FRAGMENT}
-    ${PRICE_FRAGMENT}
-    ${CART_USER_ERRORS_FRAGMENT}
-    ${PRODUCT_VARIANT_FRAGMENT}
   `, {
     variables: cartUpdateInputSchema.parse({
       cartId: id.value,
@@ -182,11 +168,6 @@ export const useCart = () => {
         }
       }
     }
-    ${CART_FRAGMENT}
-    ${IMAGE_FRAGMENT}
-    ${PRICE_FRAGMENT}
-    ${CART_USER_ERRORS_FRAGMENT}
-    ${PRODUCT_VARIANT_FRAGMENT}
   `, {
     variables: cartRemoveInputSchema.parse({
       cartId: id.value,

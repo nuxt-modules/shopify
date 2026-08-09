@@ -27,9 +27,6 @@ const { data: customer, error, refresh } = await useCustomerAccountData('account
       }
     }
   }
-  ${ADDRESS_FRAGMENT}
-  ${CUSTOMER_FRAGMENT}
-  ${ORDER_FRAGMENT}
 `, {
   variables: {
     ...customerOrdersInputSchema.parse({ first: 1 }),
