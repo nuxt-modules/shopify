@@ -6,7 +6,7 @@ import { findGraphqlLiterals } from '../../src/utils/graphql/literals'
 import { normalizeOperation } from '../../src/runtime/utils/graphql/normalize'
 import { scanDefinitions } from '../../src/runtime/utils/graphql/scanner'
 import { touchesFragments } from '../../src/setup/graphql-transform'
-import { transformGraphqlLiterals } from '../../src/utils/graphql/transform'
+import { createGraphqlTransformPlugin, transformGraphqlLiterals } from '../../src/utils/graphql/transform'
 
 const IMAGE = `fragment ImageFields on Image {
     url
@@ -168,6 +168,39 @@ describe('fragment injection', () => {
 
     expect(result.match(/fragment ProductFields/g)).toHaveLength(1)
     expect(result.match(/fragment ImageFields/g)).toHaveLength(2)
+  })
+})
+
+describe('transform plugin', () => {
+  const plugin = createGraphqlTransformPlugin({ resolveRegistry: () => registry() })
+
+  const code = 'const q = `#graphql\n  query FetchProduct {\n    product { ...ProductFields }\n  }\n`'
+
+  const run = (id: string) => plugin.transform(code, id)
+
+  it('transforms a plain script module', () => {
+    expect(run('/project/app/composables/product.ts')?.code).toContain('fragment ProductFields')
+  })
+
+  it('transforms a single file component', () => {
+    expect(run('/project/app/pages/product.vue')?.code).toContain('fragment ProductFields')
+  })
+
+  it('transforms the script block of a single file component', () => {
+    const id = '/project/app/pages/product.vue?vue&type=script&setup=true&lang.ts'
+
+    expect(run(id)?.code).toContain('fragment ProductFields')
+  })
+
+  it('runs after the vue plugin so it never rewrites the source content of a component', () => {
+    expect(plugin.enforce).toBe('post')
+  })
+
+  it('emits a source map pointing back at the untransformed file', () => {
+    const result = run('/project/app/composables/product.ts')!
+
+    expect(result.map?.sources).toStrictEqual(['/project/app/composables/product.ts'])
+    expect(result.map?.sourcesContent).toStrictEqual([code])
   })
 })
 

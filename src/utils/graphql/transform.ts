@@ -1,5 +1,7 @@
 import type { FragmentRegistry } from './registry'
 
+import MagicString from 'magic-string'
+
 import { collectSpreads, scanDefinitions } from '../../runtime/utils/graphql/scanner'
 import { findGraphqlLiterals } from './literals'
 import { resolveFragments } from './registry'
@@ -16,22 +18,12 @@ export interface GraphqlTransformOptions {
   resolveRegistry: (file: string) => FragmentRegistry | undefined
 }
 
-function applyInsertions(source: string, insertions: Insertion[]) {
-  let result = source
-
-  for (const insertion of [...insertions].sort((left, right) => right.at - left.at)) {
-    result = result.slice(0, insertion.at) + insertion.text + result.slice(insertion.at)
-  }
-
-  return result
-}
-
-export function transformGraphqlLiterals(code: string, file: string, options: GraphqlTransformOptions) {
+function collectFragmentInsertions(code: string, file: string, options: GraphqlTransformOptions) {
   const registry = options.resolveRegistry(file)
 
-  if (!registry) return
-
   const insertions: Insertion[] = []
+
+  if (!registry) return insertions
 
   for (const literal of findGraphqlLiterals(code)) {
     const definitions = scanDefinitions(literal.content)
@@ -62,25 +54,42 @@ export function transformGraphqlLiterals(code: string, file: string, options: Gr
     })
   }
 
+  return insertions
+}
+
+function rewrite(code: string, file: string, options: GraphqlTransformOptions) {
+  const insertions = collectFragmentInsertions(code, file, options)
+
   if (!insertions.length) return
 
-  return applyInsertions(code, insertions)
+  const source = new MagicString(code)
+
+  for (const insertion of insertions) source.appendLeft(insertion.at, insertion.text)
+
+  return source
+}
+
+export function transformGraphqlLiterals(code: string, file: string, options: GraphqlTransformOptions) {
+  return rewrite(code, file, options)?.toString()
 }
 
 export function createGraphqlTransformPlugin(options: GraphqlTransformOptions) {
   return {
     name: 'nuxt-shopify:graphql',
-    enforce: 'pre' as const,
+    enforce: 'post' as const,
 
     transform(code: string, id: string) {
       if (!TRANSFORMABLE.test(id) || !code.includes('#graphql')) return
 
       const file = id.split('?')[0]!
-      const transformed = transformGraphqlLiterals(code, file, options)
+      const transformed = rewrite(code, file, options)
 
       if (!transformed) return
 
-      return { code: transformed, map: null }
+      return {
+        code: transformed.toString(),
+        map: transformed.generateMap({ source: file, includeContent: true, hires: true }),
+      }
     },
   }
 }

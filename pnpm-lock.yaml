@@ -59,6 +59,9 @@ importers:
       lru-cache:
         specifier: ^11.5.2
         version: 11.5.2
+      magic-string:
+        specifier: ^0.30.21
+        version: 0.30.21
       minimatch:
         specifier: ^10.2.5
         version: 10.2.5
