@@ -259,7 +259,6 @@ Markets.vue
           }
         }
       }
-      ${MARKET_FRAGMENT}
     `)
 
     return flattenConnection(data?.markets)

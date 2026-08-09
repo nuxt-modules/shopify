@@ -12,8 +12,6 @@ const { data: items } = await useStorefrontData(key, `#graphql
       ...MenuFields
     }
   }
-  ${MENU_FRAGMENT}
-  ${MENU_ITEM_FRAGMENT}
 `, {
   variables: {
     handle: props.handle,

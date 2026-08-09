@@ -433,7 +433,6 @@ const { data } = await storefront.request(`#graphql
       }
     }
   }
-  ${PRODUCT_FRAGMENT}
 `, {
   variables: {
     first: 5,

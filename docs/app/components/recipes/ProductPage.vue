@@ -25,9 +25,6 @@ const { data: product, refresh } = await useStorefrontData(`product-${props.hand
       }
     }
   }
-  ${OPTION_FRAGMENT}
-  ${VARIANT_FRAGMENT}
-  ${IMAGE_FRAGMENT}
 `, {
   variables: computed(() => ({
     handle: props.handle,

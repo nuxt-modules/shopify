@@ -27,8 +27,6 @@ const { data: collection, refresh } = await useStorefrontData(key, `#graphql
       }
     }
   }
-  ${COLLECTION_FRAGMENT}
-  ${PRODUCT_CONNECTION_FRAGMENT}
 `, {
   variables: computed(() => ({
     handle: props.handle,

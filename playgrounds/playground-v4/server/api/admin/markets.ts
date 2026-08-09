@@ -9,7 +9,6 @@ export default defineEventHandler(async () => {
         }
       }
     }
-    ${MARKET_FRAGMENT}
   `)
 
   return flattenConnection(data?.markets)

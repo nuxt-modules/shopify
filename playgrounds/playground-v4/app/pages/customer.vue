@@ -12,7 +12,6 @@ if (isLoggedIn.value) {
         ...CustomerFields
       }
     }
-    ${CUSTOMER_FRAGMENT}
   `)
 
   customer.value = data?.customer

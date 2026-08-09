@@ -28,8 +28,6 @@ const { data: collection, refresh } = await useStorefrontData(`filters-${props.h
       }
     }
   }
-  ${FILTER_FRAGMENT}
-  ${PRODUCT_FRAGMENT}
 `, {
   variables: computed(() => ({
     handle: props.handle,

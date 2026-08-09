@@ -34,5 +34,4 @@ export const PRODUCT_CONNECTION_FRAGMENT = `#graphql
       endCursor
     }
   }
-  ${PRODUCT_FRAGMENT}
 `
