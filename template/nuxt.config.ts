@@ -36,7 +36,7 @@ export default defineNuxtConfig({
         storefrontId: '187932',
 
         consent: {
-          withPrivacyBanner: true,
+          banner: true,
         },
       },
     },

@@ -80,7 +80,7 @@ npm run dev
 
 The server will be available at: http://localhost:3000/.
 
-To use the GraphQL playground for the Storefront API navigate to: http://localhost:3000/_sandbox/storefront.
+To use the GraphQL explorer for the Storefront API navigate to: http://localhost:3000/_explorer/storefront.
 
 ### Build
 

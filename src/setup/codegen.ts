@@ -15,8 +15,8 @@ export default function setupCodegen(nuxt: Nuxt, config: ShopifyConfig) {
 
     if (!clientConfig) continue
 
-    if (clientConfig.codegen?.skip) {
-      logger.info(`Skipping type generation for ${clientType}: \`codegen.skip\` is set`)
+    if (!clientConfig.codegen) {
+      logger.info(`Skipping type generation for ${clientType}: \`codegen\` is disabled`)
       continue
     }
 

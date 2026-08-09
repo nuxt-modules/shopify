@@ -14,7 +14,7 @@ import setupCodegen from './setup/codegen'
 import setupGraphqlConfig from './setup/graphql-config'
 import setupImports from './setup/imports'
 import setupProxy from './setup/proxy'
-import setupSandbox from './setup/sandbox'
+import setupExplorer from './setup/explorer'
 import setupVite from './setup/vite'
 import setupWebhooks from './setup/webhooks'
 
@@ -70,7 +70,7 @@ export default defineNuxtModule<ModuleOptions>({
       setupAnalytics(config, resolver)
       setupImports(nuxt, config, resolver)
       setupProxy(nuxt, config, resolver)
-      setupSandbox(nuxt, config, resolver)
+      setupExplorer(nuxt, config, resolver)
       setupGraphqlConfig(nuxt, config)
       setupVite(nuxt, config)
       setupWebhooks(resolver)

@@ -65,8 +65,8 @@ async function resolveCustomerAccountApiUrl(config: ShopifyConfig) {
 
   const logger = useLogger()
 
-  if (customerAccount.apiUrl) {
-    logger.debug(`Using the configured customer account API URL: ${customerAccount.apiUrl}`)
+  if (customerAccount.apiURL) {
+    logger.debug(`Using the configured customer account API URL: ${customerAccount.apiURL}`)
 
     return
   }
@@ -84,11 +84,11 @@ async function resolveCustomerAccountApiUrl(config: ShopifyConfig) {
     logger.warn(
       `Could not resolve the customer account API URL from \`${wellKnownURL}\` - `
       + 'customer account requests will fail (is the Customer Account API enabled for your store?, '
-      + 'or set `clients.customerAccount.apiUrl` explicitly)',
+      + 'or set `clients.customerAccount.apiURL` explicitly)',
     )
   }
 
-  customerAccount.apiUrl = apiUrl
+  customerAccount.apiURL = apiUrl
 }
 
 async function resolveSessionPassword(config: ShopifyConfig, nuxt: Nuxt) {

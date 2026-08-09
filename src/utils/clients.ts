@@ -42,9 +42,9 @@ export function registerClientAsyncImports(clientType: ShopifyClientType, resolv
 
 export function registerCustomerAccountAuthRoutes(customerAccount: CustomerAccountConfig, resolver: Resolver) {
   const routes = [
-    { path: withLeadingSlash(customerAccount.loginURL), handler: 'callback' },
-    { path: withLeadingSlash(customerAccount.logoutURL), handler: 'logout' },
-    { path: withLeadingSlash(customerAccount.sessionURL), handler: 'session' },
+    { path: withLeadingSlash(customerAccount.routes.callback), handler: 'callback' },
+    { path: withLeadingSlash(customerAccount.routes.logout), handler: 'logout' },
+    { path: withLeadingSlash(customerAccount.routes.session), handler: 'session' },
   ]
 
   for (const { path, handler } of routes) {

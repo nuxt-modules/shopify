@@ -35,7 +35,7 @@ describe('test module with nuxt 4', async () => {
       },
       fragments: {
         autoImport: true,
-        paths: ['/graphql'],
+        dirs: ['graphql'],
       },
       graphql: {
         generateConfig: true,
@@ -43,19 +43,21 @@ describe('test module with nuxt 4', async () => {
       clients: {
         storefront: {
           apiVersion: process.env.NUXT_SHOPIFY_CLIENTS_STOREFRONT_API_VERSION,
-          autoImport: true,
+          codegen: {
+            autoImport: true,
+          },
           proxy: {
-            path: '_proxy/storefront',
+            route: '_proxy/storefront',
           },
           publicAccessToken: process.env.NUXT_SHOPIFY_CLIENTS_STOREFRONT_PUBLIC_ACCESS_TOKEN,
           retries: 0,
-          sandbox: true,
+          explorer: true,
           documents: expectedStorefrontDocuments,
           cache: {
             client: {
               ttl: 10000,
             },
-            options: {
+            presets: {
               long: {
                 maxAge: 3600,
                 staleMaxAge: 82800,
@@ -77,7 +79,7 @@ describe('test module with nuxt 4', async () => {
           clientId: '<admin_client_id>',
           clientSecret: '<admin_client_secret>',
           retries: 0,
-          sandbox: true,
+          explorer: true,
           tokenStorage: {
             driver: 'memory',
           },
@@ -87,13 +89,18 @@ describe('test module with nuxt 4', async () => {
           apiVersion: process.env.NUXT_SHOPIFY_CLIENTS_CUSTOMER_ACCOUNT_API_VERSION,
           clientId: process.env.NUXT_SHOPIFY_CLIENTS_CUSTOMER_ACCOUNT_CLIENT_ID,
           documents: expectedCustomerAccountDocuments,
-          loginURL: '_auth/customer-account/callback',
-          logoutURL: '_auth/customer-account/logout',
+          routes: {
+            callback: '_auth/customer-account/callback',
+            logout: '_auth/customer-account/logout',
+            session: '_auth/customer-account/session',
+          },
+          afterLogin: '/',
+          afterLogout: '/',
           proxy: {
-            path: '_proxy/customer-account',
+            route: '_proxy/customer-account',
           },
           retries: 0,
-          sandbox: true,
+          explorer: true,
         },
       },
       webhooks: {
@@ -112,10 +119,10 @@ describe('test module with nuxt 4', async () => {
     expect((json as {
       clients: {
         customerAccount: {
-          apiUrl: string
+          apiURL: string
         }
       }
-    }).clients.customerAccount.apiUrl).toContain('/account/customer/api/')
+    }).clients.customerAccount.apiURL).toContain('/account/customer/api/')
   })
 
   it('should create a working server side storefront fetch client', async () => {

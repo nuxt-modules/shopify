@@ -49,7 +49,7 @@ export default defineEventHandler(async (event) => {
 
   const customerAccount = _shopify?.clients?.customerAccount
 
-  if (!_shopify || !customerAccount?.clientId || !customerAccount.apiUrl) {
+  if (!_shopify || !customerAccount?.clientId || !customerAccount.apiURL) {
     throw createError({ status: 500, statusText: 'Internal Server Error', message: '[shopify] Customer account client is not configured' })
   }
 
@@ -173,7 +173,7 @@ export default defineEventHandler(async (event) => {
       }
     }
 
-    const user = await fetchCustomerIdentity(customerAccount.apiUrl, tokens.access_token)
+    const user = await fetchCustomerIdentity(customerAccount.apiURL, tokens.access_token)
 
     const tokenSet = {
       accessToken: tokens.access_token,
@@ -200,13 +200,13 @@ export default defineEventHandler(async (event) => {
       loggedInAt: Date.now(),
     })
 
-    return sendRedirect(event, returnTo ?? customerAccount.redirectURL)
+    return sendRedirect(event, returnTo ?? customerAccount.afterLogin)
   }
   catch (error) {
     createLogger().error('Customer account OAuth flow failed:', error)
 
     await nitroApp.hooks.callHook('customer-account:auth:error', { error })
 
-    return sendRedirect(event, withQuery(customerAccount.redirectURL, { customer_account_error: '1' }))
+    return sendRedirect(event, withQuery(customerAccount.afterLogin, { customer_account_error: '1' }))
   }
 })

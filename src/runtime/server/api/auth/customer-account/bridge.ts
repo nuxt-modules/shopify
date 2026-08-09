@@ -35,5 +35,5 @@ export default defineEventHandler(async (event) => {
     loggedInAt: Date.now(),
   })
 
-  return sendRedirect(event, payload.returnTo ?? customerAccount.redirectURL)
+  return sendRedirect(event, payload.returnTo ?? customerAccount.afterLogin)
 })

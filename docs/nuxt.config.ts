@@ -61,6 +61,7 @@ export default defineNuxtConfig({
 
   routeRules: {
     '/essentials/webhooks': { redirect: '/going-further/webhooks' },
+    '/going-further/sandbox': { redirect: '/going-further/explorer' },
   },
 
   vite: {

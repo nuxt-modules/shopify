@@ -108,18 +108,18 @@ describe('proxy requires a server', () => {
   it('keeps the proxies when rendering on the server', async () => {
     const { config, publicConfig } = await resolve(input)
 
-    expect(config.clients.storefront?.proxy).toEqual({ path: '_proxy/storefront' })
-    expect(publicConfig.clients.storefront?.proxy).toEqual({ path: '_proxy/storefront' })
-    expect(publicConfig.clients.customerAccount?.proxy).toEqual({ path: '_proxy/customer-account' })
+    expect(config.clients.storefront?.proxy).toEqual({ route: '_proxy/storefront' })
+    expect(publicConfig.clients.storefront?.proxy).toEqual({ route: '_proxy/storefront' })
+    expect(publicConfig.clients.customerAccount?.proxy).toEqual({ route: '_proxy/customer-account' })
   })
 
   it('keeps the proxies when ssr is off', async () => {
     const { config, publicConfig } = await resolve(input, nuxtStub({ ssr: false }))
 
-    expect(config.clients.storefront?.proxy).toEqual({ path: '_proxy/storefront' })
-    expect(config.clients.customerAccount?.proxy).toEqual({ path: '_proxy/customer-account' })
-    expect(publicConfig.clients.storefront?.proxy).toEqual({ path: '_proxy/storefront' })
-    expect(publicConfig.clients.customerAccount?.proxy).toEqual({ path: '_proxy/customer-account' })
+    expect(config.clients.storefront?.proxy).toEqual({ route: '_proxy/storefront' })
+    expect(config.clients.customerAccount?.proxy).toEqual({ route: '_proxy/customer-account' })
+    expect(publicConfig.clients.storefront?.proxy).toEqual({ route: '_proxy/storefront' })
+    expect(publicConfig.clients.customerAccount?.proxy).toEqual({ route: '_proxy/customer-account' })
   })
 
   it('disables every proxy in both configs when prerendering the whole app', async () => {
@@ -143,17 +143,17 @@ describe('customer account api url', () => {
     const { config, publicConfig } = await resolve(input)
 
     expect(fetch).toHaveBeenCalledWith('https://shop.myshopify.com/.well-known/customer-account-api')
-    expect(config.clients.customerAccount?.apiUrl).toBe(API_URL)
-    expect(publicConfig.clients.customerAccount?.apiUrl).toBe(API_URL)
+    expect(config.clients.customerAccount?.apiURL).toBe(API_URL)
+    expect(publicConfig.clients.customerAccount?.apiURL).toBe(API_URL)
   })
 
   it('prefers a configured url and skips the lookup', async () => {
     const configured = 'https://shopify.com/9/account/customer/api/2026-04/graphql'
 
-    const { config } = await resolve({ name: 'shop', clients: { customerAccount: { clientId: 'cid', apiUrl: configured } } })
+    const { config } = await resolve({ name: 'shop', clients: { customerAccount: { clientId: 'cid', apiURL: configured } } })
 
     expect(fetch).not.toHaveBeenCalled()
-    expect(config.clients.customerAccount?.apiUrl).toBe(configured)
+    expect(config.clients.customerAccount?.apiURL).toBe(configured)
   })
 
   it('leaves the url unset when the lookup fails', async () => {
@@ -161,7 +161,7 @@ describe('customer account api url', () => {
 
     const { config } = await resolve(input)
 
-    expect(config.clients.customerAccount?.apiUrl).toBeUndefined()
+    expect(config.clients.customerAccount?.apiURL).toBeUndefined()
   })
 })
 
@@ -215,6 +215,6 @@ describe('without a nuxt instance', () => {
     expect(persisted).toHaveLength(0)
     expect(config.analytics).toMatchObject({ autoPageView: true })
     expect(config.clients.customerAccount).toBeDefined()
-    expect(config.clients.storefront?.proxy).toEqual({ path: '_proxy/storefront' })
+    expect(config.clients.storefront?.proxy).toEqual({ route: '_proxy/storefront' })
   })
 })

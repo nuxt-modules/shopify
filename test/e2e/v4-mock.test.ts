@@ -28,7 +28,7 @@ describe('test mock.shop integration with nuxt 4', async () => {
       },
       fragments: {
         autoImport: true,
-        paths: ['/graphql'],
+        dirs: ['graphql'],
       },
       graphql: {
         generateConfig: true,
@@ -36,19 +36,21 @@ describe('test mock.shop integration with nuxt 4', async () => {
       clients: {
         storefront: {
           apiVersion: process.env.NUXT_SHOPIFY_CLIENTS_STOREFRONT_API_VERSION,
-          autoImport: true,
+          codegen: {
+            autoImport: true,
+          },
           mock: true,
           proxy: {
-            path: '_proxy/storefront',
+            route: '_proxy/storefront',
           },
           retries: 0,
-          sandbox: true,
+          explorer: true,
           documents: expectedStorefrontDocuments,
           cache: {
             client: {
               ttl: 10000,
             },
-            options: {
+            presets: {
               long: {
                 maxAge: 3600,
                 staleMaxAge: 82800,

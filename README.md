@@ -32,7 +32,7 @@ hot-reloaded type generation from your GraphQL queries.
 - ⚙️ Customizable GraphQL code generation
 - 📦 Auto-imports for GraphQL queries and generated types
 - 🪝 Webhook subscription support
-- 🏖️ Sandbox integrated with GraphiQL Explorer
+- 🏖️ Built-in GraphQL explorer for every client
 - 🔄 Hooks for customizing the module behavior
 - 🧪 Tested with Nuxt 3 & 4
 

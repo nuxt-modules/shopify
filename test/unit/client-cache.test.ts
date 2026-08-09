@@ -6,7 +6,7 @@ import { createStorage as createLruStorage } from 'unstorage'
 import lruCacheDriver from '../../src/runtime/utils/lru-driver'
 import useCache from '../../src/runtime/utils/clients/cache'
 
-const options = {
+const presets = {
   short: { maxAge: 1, staleMaxAge: 9, swr: true },
   long: { maxAge: 3600, staleMaxAge: 82800, swr: true },
 }
@@ -47,8 +47,8 @@ describe('client cache', () => {
     const storage = createStorage()
     const request = createRequest()
 
-    const first = await useCache(storage, request as never, 'query X { a }' as never, { cache: 'short' } as never, options)
-    const second = await useCache(storage, request as never, 'query X { a }' as never, { cache: 'short' } as never, options)
+    const first = await useCache(storage, request as never, 'query X { a }' as never, { cache: 'short' } as never, presets)
+    const second = await useCache(storage, request as never, 'query X { a }' as never, { cache: 'short' } as never, presets)
 
     expect(request).toHaveBeenCalledTimes(1)
     expect(second).toStrictEqual(first)
@@ -57,8 +57,8 @@ describe('client cache', () => {
   it('derives the ttl from the named cache tier', async () => {
     const storage = createStorage()
 
-    await useCache(storage, createRequest() as never, 'query X { a }' as never, { cache: 'short' } as never, options)
-    await useCache(storage, createRequest() as never, 'query Y { b }' as never, { cache: 'long' } as never, options)
+    await useCache(storage, createRequest() as never, 'query X { a }' as never, { cache: 'short' } as never, presets)
+    await useCache(storage, createRequest() as never, 'query Y { b }' as never, { cache: 'long' } as never, presets)
 
     expect([...ttls.values()]).toStrictEqual([{ ttl: 10_000 }, { ttl: 86_400_000 }])
   })
@@ -67,10 +67,10 @@ describe('client cache', () => {
     const storage = createStorage()
     const request = createRequest()
 
-    await useCache(storage, request as never, 'query X { a }' as never, { cache: 'short' } as never, options)
-    await useCache(storage, request as never, 'query Y { b }' as never, { cache: 'short' } as never, options)
-    await useCache(storage, request as never, 'query X { a }' as never, { cache: 'short', variables: { handle: 'a' } } as never, options)
-    await useCache(storage, request as never, 'query X { a }' as never, { cache: 'short', variables: { handle: 'b' } } as never, options)
+    await useCache(storage, request as never, 'query X { a }' as never, { cache: 'short' } as never, presets)
+    await useCache(storage, request as never, 'query Y { b }' as never, { cache: 'short' } as never, presets)
+    await useCache(storage, request as never, 'query X { a }' as never, { cache: 'short', variables: { handle: 'a' } } as never, presets)
+    await useCache(storage, request as never, 'query X { a }' as never, { cache: 'short', variables: { handle: 'b' } } as never, presets)
 
     expect(request).toHaveBeenCalledTimes(4)
     expect(store.size).toBe(4)
@@ -79,8 +79,8 @@ describe('client cache', () => {
   it('does not cache when no storage is available', async () => {
     const request = createRequest()
 
-    await useCache(undefined, request as never, 'query X { a }' as never, { cache: 'short' } as never, options)
-    await useCache(undefined, request as never, 'query X { a }' as never, { cache: 'short' } as never, options)
+    await useCache(undefined, request as never, 'query X { a }' as never, { cache: 'short' } as never, presets)
+    await useCache(undefined, request as never, 'query X { a }' as never, { cache: 'short' } as never, presets)
 
     expect(request).toHaveBeenCalledTimes(2)
   })
@@ -89,8 +89,8 @@ describe('client cache', () => {
     const storage = createStorage()
     const request = createRequest()
 
-    await useCache(storage, request as never, 'query X { a }' as never, { cache: 'nope' } as never, options)
-    await useCache(storage, request as never, 'query X { a }' as never, { cache: 'nope' } as never, options)
+    await useCache(storage, request as never, 'query X { a }' as never, { cache: 'nope' } as never, presets)
+    await useCache(storage, request as never, 'query X { a }' as never, { cache: 'nope' } as never, presets)
 
     expect(request).toHaveBeenCalledTimes(2)
     expect(store.size).toBe(0)
@@ -100,8 +100,8 @@ describe('client cache', () => {
     const storage = createStorage()
     const request = vi.fn(async () => ({ data: undefined, errors: { message: 'boom' }, headers: new Headers() }))
 
-    await useCache(storage, request as never, 'query X { a }' as never, { cache: 'short' } as never, options)
-    await useCache(storage, request as never, 'query X { a }' as never, { cache: 'short' } as never, options)
+    await useCache(storage, request as never, 'query X { a }' as never, { cache: 'short' } as never, presets)
+    await useCache(storage, request as never, 'query X { a }' as never, { cache: 'short' } as never, presets)
 
     expect(request).toHaveBeenCalledTimes(2)
     expect(store.size).toBe(0)
@@ -110,7 +110,7 @@ describe('client cache', () => {
   it('asks the proxy for the same tier it caches under', async () => {
     const request = createRequest()
 
-    await useCache(createStorage(), request as never, 'query X { a }' as never, { cache: 'long' } as never, options)
+    await useCache(createStorage(), request as never, 'query X { a }' as never, { cache: 'long' } as never, presets)
 
     expect(requestOptions(request)).toMatchObject({ headers: { 'X-Shopify-Proxy-Cache': 'long' } })
   })
@@ -119,8 +119,8 @@ describe('client cache', () => {
     const storage = createStorage()
     const request = createRequest()
 
-    const first = await useCache(storage, request as never, 'query X { a }' as never, { cache: 'short', signal: new AbortController().signal } as never, options)
-    const second = await useCache(storage, request as never, 'query X { a }' as never, { cache: 'short', signal: new AbortController().signal } as never, options)
+    const first = await useCache(storage, request as never, 'query X { a }' as never, { cache: 'short', signal: new AbortController().signal } as never, presets)
+    const second = await useCache(storage, request as never, 'query X { a }' as never, { cache: 'short', signal: new AbortController().signal } as never, presets)
 
     expect(request).toHaveBeenCalledTimes(1)
     expect(second).toStrictEqual(first)
@@ -130,7 +130,7 @@ describe('client cache', () => {
     const request = createRequest()
     const signal = new AbortController().signal
 
-    await useCache(undefined, request as never, 'query X { a }' as never, { signal } as never, options)
+    await useCache(undefined, request as never, 'query X { a }' as never, { signal } as never, presets)
 
     expect(requestOptions(request)).toMatchObject({ signal })
   })
@@ -143,7 +143,7 @@ describe('client cache', () => {
       request as never,
       'query X { a }' as never,
       { cache: { client: 'short', proxy: 'long' } } as never,
-      options,
+      presets,
     )
 
     expect(requestOptions(request)).toMatchObject({ headers: { 'X-Shopify-Proxy-Cache': 'long' } })
@@ -154,8 +154,8 @@ describe('client cache', () => {
     const storage = createLruStorage({ driver: lruCacheDriver({}) })
     const request = vi.fn(async () => ({ data: { a: 1 }, headers: new Headers({ 'x-a': 'b' }) }))
 
-    await useCache(storage, request as never, 'query X { a }' as never, { cache: 'short' } as never, options)
-    const hit = await useCache(storage, request as never, 'query X { a }' as never, { cache: 'short' } as never, options)
+    await useCache(storage, request as never, 'query X { a }' as never, { cache: 'short' } as never, presets)
+    const hit = await useCache(storage, request as never, 'query X { a }' as never, { cache: 'short' } as never, presets)
 
     expect(request).toHaveBeenCalledTimes(1)
     expect(hit.headers).toBeInstanceOf(Headers)
@@ -166,11 +166,11 @@ describe('client cache', () => {
     const storage = createLruStorage({ driver: lruCacheDriver({}) })
     const request = vi.fn(async () => ({ data: { product: { title: 'original' } }, headers: new Headers() }))
 
-    const first = await useCache(storage, request as never, 'query X { a }' as never, { cache: 'short' } as never, options)
+    const first = await useCache(storage, request as never, 'query X { a }' as never, { cache: 'short' } as never, presets)
 
     product(first).title = 'mutated'
 
-    const second = await useCache(storage, request as never, 'query X { a }' as never, { cache: 'short' } as never, options)
+    const second = await useCache(storage, request as never, 'query X { a }' as never, { cache: 'short' } as never, presets)
 
     expect(request).toHaveBeenCalledTimes(1)
     expect(second).not.toBe(first)

@@ -43,9 +43,7 @@ function getCustomerPrivacy(): CustomerPrivacyApi | null {
 export function setupCustomerPrivacy(config: {
   checkoutDomain: string
   storefrontAccessToken: string
-  withPrivacyBanner?: boolean
-  country?: string
-  locale?: string
+  banner?: { country?: string, locale?: string } | false
 }) {
   const ancestorDomain = parseStoreDomain(config.checkoutDomain)
 
@@ -58,20 +56,20 @@ export function setupCustomerPrivacy(config: {
 
   const bannerConfig = {
     ...consentConfig,
-    country: config.country,
-    locale: config.locale,
+    country: config.banner ? config.banner.country : undefined,
+    locale: config.banner ? config.banner.locale : undefined,
   }
 
   useHead({
     script: [{
       key: SCRIPT_ID,
-      src: config.withPrivacyBanner ? CONSENT_API_WITH_BANNER : CONSENT_API,
+      src: config.banner ? CONSENT_API_WITH_BANNER : CONSENT_API,
       async: true,
     }],
   })
 
   const ready = waitFor(getCustomerPrivacy).then((api) => {
-    if (api && config.withPrivacyBanner) {
+    if (api && config.banner) {
       void waitFor(() => getPrivacyWindow().privacyBanner ?? null)
         .then(banner => banner?.loadBanner(bannerConfig))
         .catch(error => createLogger().debug('Failed to load the Shopify privacy banner:', error))

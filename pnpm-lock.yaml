@@ -53,9 +53,6 @@ importers:
       graphql:
         specifier: ^16.14.2
         version: 16.14.2
-      graphql-yoga:
-        specifier: ^5.21.2
-        version: 5.21.2(graphql@16.14.2)
       h3:
         specifier: ^1.15.11
         version: 1.15.11

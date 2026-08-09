@@ -50,9 +50,10 @@ export default defineNuxtPlugin({
     const privacy = setupCustomerPrivacy({
       checkoutDomain: analytics.consent?.checkoutDomain || host,
       storefrontAccessToken,
-      withPrivacyBanner: analytics.consent?.withPrivacyBanner,
-      country: analytics.consent?.country,
-      locale: analytics.consent?.language || analytics.language,
+      banner: analytics.consent?.banner && {
+        country: analytics.consent.banner.country,
+        locale: analytics.consent.banner.language || analytics.language,
+      },
     })
 
     const resolveShop = createShopResolver({
@@ -99,7 +100,7 @@ export default defineNuxtPlugin({
     document.addEventListener('visitorConsentCollected', dropTokensWithoutConsent)
 
     whenReady(() => {
-      if (!analytics.consent?.withPrivacyBanner) dropTokensWithoutConsent()
+      if (!analytics.consent?.banner) dropTokensWithoutConsent()
 
       createLogger().debug('Analytics initialized:', shop.value)
 

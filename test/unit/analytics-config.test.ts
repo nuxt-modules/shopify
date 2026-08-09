@@ -37,7 +37,7 @@ describe('analytics config', () => {
   it('defaults the privacy banner off inside consent', () => {
     const analytics = parseAnalytics({ consent: { checkoutDomain: 'checkout.shop.com' } })
 
-    expect(analytics).toMatchObject({ consent: { checkoutDomain: 'checkout.shop.com', withPrivacyBanner: false } })
+    expect(analytics).toMatchObject({ consent: { checkoutDomain: 'checkout.shop.com', banner: false } })
   })
 
   it('normalizes a numeric storefrontId to a string (Nuxt coerces numeric env values)', () => {

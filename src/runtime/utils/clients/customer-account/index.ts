@@ -25,7 +25,7 @@ export const createCustomerAccountConfig = (config?: ShopifyConfig | PublicShopi
 
     clients: {
       customerAccount: {
-        apiUrl,
+        apiURL,
         apiVersion,
         headers,
         retries,
@@ -43,13 +43,13 @@ export const createCustomerAccountConfig = (config?: ShopifyConfig | PublicShopi
     throw new Error('[shopify] Failed to create customer account client config: missing `clientId`')
   }
 
-  if (!apiUrl) {
+  if (!apiURL) {
     throw new Error('[shopify] Failed to create customer account client config: the customer account API URL could not be resolved')
   }
 
   return {
     storeDomain: createStoreDomain(name),
-    apiUrl,
+    apiUrl: apiURL,
     apiVersion,
     logger,
     retries,

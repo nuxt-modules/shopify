@@ -15,14 +15,14 @@ export function registerProxy(config: ShopifyConfig, clientType: ShopifyClientTy
 
   if (!clientConfig) return false
 
-  const url = 'proxy' in clientConfig ? typeof clientConfig.proxy === 'object' ? clientConfig.proxy.path : undefined : undefined
+  const route = 'proxy' in clientConfig ? typeof clientConfig.proxy === 'object' ? clientConfig.proxy.route : undefined : undefined
 
-  if (!url) return false
+  if (!route) return false
 
   addServerHandler({
     handler: resolver.resolve(`./runtime/server/api/proxy/${kebabCase(clientType)}`),
-    route: withLeadingSlash(url),
+    route: withLeadingSlash(route),
   })
 
-  return url
+  return route
 }

@@ -14,12 +14,12 @@ export default function setupProxy(nuxt: Nuxt, config: ShopifyConfig, resolver: 
   const logger = useLogger()
 
   for (const clientType of Object.values(ShopifyClientType)) {
-    const path = registerProxy(config, clientType, resolver)
+    const route = registerProxy(config, clientType, resolver)
 
-    if (!path) continue
+    if (!route) continue
 
     onDevServerURL(nuxt, origin =>
-      logger.debug(`${upperFirst(clientType)} proxy available at: ${joinURL(origin, path)}`),
+      logger.debug(`${upperFirst(clientType)} proxy available at: ${joinURL(origin, route)}`),
     )
   }
 }

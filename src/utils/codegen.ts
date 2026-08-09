@@ -104,7 +104,7 @@ async function getIntrospection(options: ShopifyTemplateOptions) {
 }
 
 function getTypescriptPluginConfig(config: ShopifyConfig['clients'][ShopifyClientType]) {
-  return defu({ typescript: config?.codegen?.pluginOptions?.typescript }, {
+  return defu({ typescript: config?.codegen ? config.codegen.plugins?.typescript : undefined }, {
     typescript: {
       useTypeImports: true,
       defaultScalarType: 'unknown',

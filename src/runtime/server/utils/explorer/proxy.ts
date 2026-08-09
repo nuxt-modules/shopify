@@ -21,7 +21,7 @@ export default defineEventHandler(async (event: H3Event) => {
     throw createError({
       status: 500,
       statusText: 'Internal Server Error',
-      message: '[shopify] Failed to handle sandbox request: module configuration is missing',
+      message: '[shopify] Failed to handle explorer request: module configuration is missing',
     })
   }
 
@@ -58,7 +58,7 @@ export default defineEventHandler(async (event: H3Event) => {
       throw createError({
         status: 400,
         statusText: 'Bad Request',
-        message: `[shopify] Failed to handle sandbox request: unsupported client type \`${clientType}\``,
+        message: `[shopify] Failed to handle explorer request: unsupported client type \`${clientType}\``,
       })
   }
 

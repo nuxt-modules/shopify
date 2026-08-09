@@ -27,7 +27,7 @@ const customerAccount = {
     customerAccount: {
       apiVersion: '2026-04',
       clientId: 'cid',
-      apiUrl: 'https://shopify.com/1234/account/customer/api/2026-04/graphql',
+      apiURL: 'https://shopify.com/1234/account/customer/api/2026-04/graphql',
       retries: 0,
     },
   },

@@ -22,18 +22,18 @@ function getLRUCacheSettings<
   Operations extends AllOperations,
 >(
   options?: ShopifyApiClientRequestOptions<Operation, Operations, true>,
-  cacheOptions?: Record<string, Pick<CacheOptions, 'maxAge' | 'staleMaxAge' | 'swr'>>,
+  cachePresets?: Record<string, Pick<CacheOptions, 'maxAge' | 'staleMaxAge' | 'swr'>>,
 ) {
-  if (typeof options?.cache === 'string' && cacheOptions?.[options.cache]) {
-    const maxAge = cacheOptions[options.cache]!.maxAge ?? 0
-    const staleMaxAge = cacheOptions[options.cache]!.staleMaxAge ?? 0
+  if (typeof options?.cache === 'string' && cachePresets?.[options.cache]) {
+    const maxAge = cachePresets[options.cache]!.maxAge ?? 0
+    const staleMaxAge = cachePresets[options.cache]!.staleMaxAge ?? 0
 
     return toCacheTtl(maxAge, staleMaxAge)
   }
   else if (typeof options?.cache === 'object') {
-    if (typeof options.cache.client === 'string' && cacheOptions?.[options.cache.client]) {
-      const maxAge = cacheOptions[options.cache.client]!.maxAge ?? 0
-      const staleMaxAge = cacheOptions[options.cache.client]!.staleMaxAge ?? 0
+    if (typeof options.cache.client === 'string' && cachePresets?.[options.cache.client]) {
+      const maxAge = cachePresets[options.cache.client]!.maxAge ?? 0
+      const staleMaxAge = cachePresets[options.cache.client]!.staleMaxAge ?? 0
 
       return toCacheTtl(maxAge, staleMaxAge)
     }
@@ -80,9 +80,9 @@ export default async function useCache<
   request: Request,
   operation: Operation,
   options?: ShopifyApiClientRequestOptions<Operation, Operations, true>,
-  cacheOptions?: Record<string, Pick<CacheOptions, 'maxAge' | 'staleMaxAge' | 'swr'>>,
+  cachePresets?: Record<string, Pick<CacheOptions, 'maxAge' | 'staleMaxAge' | 'swr'>>,
 ): Promise<ClientResponse<ReturnData<Operation, Operations>>> {
-  const inMemoryConfig = storage ? getLRUCacheSettings(options, cacheOptions) : undefined
+  const inMemoryConfig = storage ? getLRUCacheSettings(options, cachePresets) : undefined
   const proxyCacheHeaders = getProxyCacheHeaders(options)
 
   const cacheKey = storage && inMemoryConfig ? createCacheKey(operation, options) : undefined

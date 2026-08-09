@@ -447,12 +447,12 @@ Build your Shopify store with Nuxt
   :::u-page-feature
   ---
   icon: i-lucide-app-window
-  to: /going-further/sandbox
+  to: /going-further/explorer
   ---
   #title
-  Integrated [GraphiQL Sandbox]{.text-primary}
+  Integrated [GraphQL Explorer]{.text-primary}
 
   #description
-  Explore your store's APIs with a built-in GraphiQL sandbox for every configured client. Available instantly in development mode.
+  Explore your store's APIs with a built-in GraphQL explorer for every configured client. Available instantly in development mode.
   :::
 ::

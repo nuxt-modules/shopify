@@ -15,7 +15,7 @@ type LoginOptions = {
   countryCode?: string
   /** Authentication context class values, e.g. for B2B flows. */
   acrValues?: string
-  /** Path to return to after login, defaulting to the configured `redirectURL`. */
+  /** Path to return to after login, defaulting to the configured `afterLogin`. */
   returnTo?: string
 }
 
@@ -38,7 +38,7 @@ export function useCustomerAccountSession() {
   const ready = useState<boolean>('shopify-customer-account-session-ready', () => false)
 
   const fetch = async () => {
-    session.value = await useRequestFetch()<CustomerAccountSession>(withLeadingSlash(customerAccount.sessionURL), {
+    session.value = await useRequestFetch()<CustomerAccountSession>(withLeadingSlash(customerAccount.routes.session), {
       headers: { accept: 'application/json' },
     }).catch(() => emptySession())
 
@@ -46,10 +46,10 @@ export function useCustomerAccountSession() {
   }
 
   const login = (options?: LoginOptions) => {
-    let url = withLeadingSlash(customerAccount.loginURL)
+    let url = withLeadingSlash(customerAccount.routes.callback)
 
     if (import.meta.dev && customerAccount.dev.tunnelURL) {
-      url = joinURL(customerAccount.dev.tunnelURL, customerAccount.loginURL)
+      url = joinURL(customerAccount.dev.tunnelURL, customerAccount.routes.callback)
     }
 
     url = withQuery(url, {
@@ -64,7 +64,7 @@ export function useCustomerAccountSession() {
     return navigateTo(url, { external: true })
   }
 
-  const logout = () => navigateTo(withLeadingSlash(customerAccount.logoutURL), { external: true })
+  const logout = () => navigateTo(withLeadingSlash(customerAccount.routes.logout), { external: true })
 
   return {
     user: computed((): CustomerAccountUser | null => session.value.user),

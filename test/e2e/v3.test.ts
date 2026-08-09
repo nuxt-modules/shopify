@@ -34,19 +34,21 @@ describe('test module with nuxt 3', async () => {
       clients: {
         storefront: {
           apiVersion: process.env.NUXT_SHOPIFY_CLIENTS_STOREFRONT_API_VERSION,
-          autoImport: true,
+          codegen: {
+            autoImport: true,
+          },
           proxy: {
-            path: '_proxy/storefront',
+            route: '_proxy/storefront',
           },
           publicAccessToken: process.env.NUXT_SHOPIFY_CLIENTS_STOREFRONT_PUBLIC_ACCESS_TOKEN,
           retries: 0,
-          sandbox: true,
+          explorer: true,
           documents: expectedStorefrontDocuments,
           cache: {
             client: {
               ttl: 10000,
             },
-            options: {
+            presets: {
               long: {
                 maxAge: 3600,
                 staleMaxAge: 82800,
@@ -68,7 +70,7 @@ describe('test module with nuxt 3', async () => {
           clientId: '<admin_client_id>',
           clientSecret: '<admin_client_secret>',
           retries: 0,
-          sandbox: true,
+          explorer: true,
           tokenStorage: {
             driver: 'memory',
           },
@@ -77,7 +79,7 @@ describe('test module with nuxt 3', async () => {
       },
       fragments: {
         autoImport: true,
-        paths: ['/graphql'],
+        dirs: ['graphql'],
       },
       graphql: {
         generateConfig: true,

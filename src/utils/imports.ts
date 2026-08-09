@@ -44,8 +44,8 @@ export function registerFragmentImports(nuxt: Nuxt, config: ShopifyConfig) {
   const includeClient = hasPublicClient(config)
   nuxt.options.watch = nuxt.options.watch || []
 
-  for (const path of config.fragments.paths) {
-    const fragmentsPath = join(nuxt.options.rootDir, path)
+  for (const dir of config.fragments.dirs) {
+    const fragmentsPath = join(nuxt.options.rootDir, dir)
 
     autoImportDirectory(fragmentsPath, includeClient)
 
@@ -56,7 +56,7 @@ export function registerFragmentImports(nuxt: Nuxt, config: ShopifyConfig) {
 export function registerClientTypeImports(nuxt: Nuxt, config: ShopifyConfig, clientType: ShopifyClientType) {
   const clientConfig = config.clients[clientType]
 
-  if (!clientConfig?.autoImport) return
+  if (!clientConfig?.codegen || !clientConfig.codegen.autoImport) return
 
   const includeClient = hasPublicClient(config)
   const typesPath = join(nuxt.options.buildDir, `types/${kebabCase(clientType)}`)

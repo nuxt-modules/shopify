@@ -86,9 +86,9 @@ export default defineEventHandler(async (event) => {
   const cacheConfig = storefrontConfig?.cache && storefrontConfig.cache.proxy ? storefrontConfig.cache : undefined
   const cacheOption = requestHeaders[PROXY_CACHE_HEADER.toLowerCase()] ?? 'none'
 
-  const requestCacheConfig = cacheConfig?.options
-    ? Object.hasOwn(cacheConfig.options, cacheOption)
-      ? cacheConfig.options[cacheOption]
+  const requestCacheConfig = cacheConfig?.presets
+    ? Object.hasOwn(cacheConfig.presets, cacheOption)
+      ? cacheConfig.presets[cacheOption]
       : undefined
     : undefined
 

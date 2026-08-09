@@ -70,7 +70,7 @@ export default function setupGraphqlConfig(nuxt: Nuxt, config: ShopifyConfig) {
 
     const clientConfig = config.clients[clientType]
 
-    if (!clientConfig || clientConfig.codegen?.skip) continue
+    if (!clientConfig || !clientConfig.codegen) continue
 
     const name = clientType === ShopifyClientType.Storefront ? 'default' : clientType
 

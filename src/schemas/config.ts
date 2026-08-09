@@ -30,7 +30,7 @@ function enableable<S extends z.ZodTypeAny>(schema: S, fallback: z.output<S>, en
     .transform((v): z.output<S> | false => (v === true || v == null ? fallback : v as z.output<S> | false))
 }
 
-const proxyPathSchema = (path: string) => enableable(z.object({ path: z.string().optional().default(path) }), { path })
+const proxyRouteSchema = (route: string) => enableable(z.object({ route: z.string().optional().default(route) }), { route })
 
 const getDefaultDocuments = (clientType: string, { exclude }: { exclude?: boolean } = {}) => {
   const clientName = kebabCase(clientType)
@@ -75,7 +75,7 @@ const defaultAdminDocuments = [
   ...ignores,
 ]
 
-const defaultCacheOptions = {
+const defaultCachePresets = {
   short: { maxAge: 1, staleMaxAge: 9, swr: true },
   long: { maxAge: 3600, staleMaxAge: 82800, swr: true },
 } as Record<string, Pick<CacheOptions, 'maxAge' | 'staleMaxAge' | 'swr'>>
@@ -84,7 +84,7 @@ const defaultClientCacheOptions = { ttl: 10 * 1000 } as LRUDriverOptions
 const defaultProxyCacheOptions = { driver: 'lru-cache' } as StorageMounts[string]
 const defaultTokenStorageOptions = { driver: 'memory' } as StorageMounts[string]
 
-const defaultCacheConfig = { client: defaultClientCacheOptions, proxy: defaultProxyCacheOptions, options: defaultCacheOptions }
+const defaultCacheConfig = { client: defaultClientCacheOptions, proxy: defaultProxyCacheOptions, presets: defaultCachePresets }
 
 const defaultCustomerAccountSessionOptions = { name: SESSION_DEFAULT_NAME, maxAge: 60 * 60 * 24 * 7 }
 const defaultCustomerAccountScope = ['openid', 'email', 'customer-account-api:full']
@@ -94,14 +94,14 @@ const storageMountSchema = z.any().transform(v => v as StorageMounts[string] | s
 const clientCacheSchema = z.object({
   client: enableable(z.any().transform(v => v as LRUDriverOptions), defaultClientCacheOptions),
   proxy: enableable(storageMountSchema, defaultProxyCacheOptions),
-  options: z.record(z.string(), z.any().transform(v => v as Pick<CacheOptions, 'maxAge' | 'staleMaxAge' | 'swr'>)).optional().default(defaultCacheOptions),
+  presets: z.record(z.string(), z.any().transform(v => v as Pick<CacheOptions, 'maxAge' | 'staleMaxAge' | 'swr'>)).optional().default(defaultCachePresets),
 })
 
 const codegenSchema = z.object({
-  skip: z.boolean().optional(),
-  pluginOptions: z.object({
+  plugins: z.object({
     typescript: z.any().transform(v => v as TypeScriptPluginConfig).optional(),
   }).optional(),
+  autoImport: z.boolean().optional().default(false),
 })
 
 const clientSchema = z.object({
@@ -110,10 +110,9 @@ const clientSchema = z.object({
   }).optional().default(DEFAULT_API_VERSION),
   headers: z.record(z.string(), z.string()).optional(),
   retries: z.number().int().min(MIN_RETRIES).max(MAX_RETRIES).optional().default(DEFAULT_RETRIES),
-  sandbox: z.boolean().optional().default(true),
+  explorer: z.boolean().optional().default(true),
   documents: z.array(z.string()).optional(),
-  autoImport: z.boolean().optional(),
-  codegen: codegenSchema.optional(),
+  codegen: enableable(codegenSchema, { autoImport: false }),
 })
 
 const storefrontClientSchema = clientSchema.extend({
@@ -121,9 +120,9 @@ const storefrontClientSchema = clientSchema.extend({
   privateAccessToken: z.string().optional(),
   mock: z.boolean().optional(),
 
-  autoImport: z.boolean().optional().default(true),
+  codegen: enableable(codegenSchema.extend({ autoImport: z.boolean().optional().default(true) }), { autoImport: true }),
   documents: clientSchema.shape.documents.transform(v => v || defaultStorefrontDocuments),
-  proxy: proxyPathSchema('_proxy/storefront'),
+  proxy: proxyRouteSchema('_proxy/storefront'),
   cache: enableable(clientCacheSchema, defaultCacheConfig),
 })
 
@@ -139,24 +138,35 @@ const customerAccountSessionSchema = z.object({
   }).optional(),
 })
 
+const defaultCustomerAccountRoutes = {
+  callback: '_auth/customer-account/callback',
+  logout: '_auth/customer-account/logout',
+  session: '_auth/customer-account/session',
+}
+
+const customerAccountRoutesSchema = z.object({
+  callback: z.string().optional().default(defaultCustomerAccountRoutes.callback),
+  logout: z.string().optional().default(defaultCustomerAccountRoutes.logout),
+  session: z.string().optional().default(defaultCustomerAccountRoutes.session),
+})
+
 const customerAccountClientSchema = clientSchema.extend({
-  apiUrl: z.string().optional(),
+  apiURL: z.string().optional(),
 
   clientId: z.string(),
   clientSecret: z.string().optional(),
   scope: z.array(z.string()).optional().default(defaultCustomerAccountScope).transform(v => v?.length ? v : defaultCustomerAccountScope),
 
-  redirectURL: z.string().optional().default('/'),
-  logoutRedirectURL: z.string().optional(),
-  loginURL: z.string().optional().default('_auth/customer-account/callback'),
-  logoutURL: z.string().optional().default('_auth/customer-account/logout'),
-  sessionURL: z.string().optional().default('_auth/customer-account/session'),
+  routes: customerAccountRoutesSchema.optional().default(defaultCustomerAccountRoutes),
+
+  afterLogin: z.string().optional().default('/'),
+  afterLogout: z.string().optional(),
 
   session: customerAccountSessionSchema.optional().transform(v => ({ ...defaultCustomerAccountSessionOptions, ...(v ?? {}) })),
   tokenStorage: enableable(storageMountSchema, defaultTokenStorageOptions, false),
 
   documents: clientSchema.shape.documents.transform(v => v || defaultCustomerAccountDocuments),
-  proxy: proxyPathSchema('_proxy/customer-account'),
+  proxy: proxyRouteSchema('_proxy/customer-account'),
 
   dev: z.object({
     tunnelURL: z.string().optional(),
@@ -204,9 +214,11 @@ const analyticsSchema = z.object({
   consent: z.object({
     checkoutDomain: z.string().optional(),
     storefrontAccessToken: z.string().optional(),
-    withPrivacyBanner: z.boolean().optional().default(false),
-    country: z.string().optional(),
-    language: z.string().optional(),
+
+    banner: enableable(z.object({
+      country: z.string().optional(),
+      language: z.string().optional(),
+    }), {}, false),
   }).optional(),
 })
 
@@ -216,7 +228,7 @@ const storefrontClient = storefrontClientSchema
   })
 
 const customerAccountClient = customerAccountClientSchema
-  .transform(client => ({ ...client, logoutRedirectURL: client.logoutRedirectURL ?? client.redirectURL }))
+  .transform(client => ({ ...client, afterLogout: client.afterLogout ?? client.afterLogin }))
   .refine(client => client.clientId, { message: 'Client ID is required for the customer account client' })
 
 const adminClient = adminClientSchema
@@ -238,9 +250,9 @@ export const configObjectSchema = z.object({
   }).optional().default({ throw: DEFAULT_THROW_ERRORS }),
 
   fragments: z.object({
-    paths: z.array(z.string()).optional().default(['/graphql']),
+    dirs: z.array(z.string()).optional().default(['graphql']),
     autoImport: z.boolean().optional().default(true),
-  }).optional().default({ paths: ['/graphql'], autoImport: true }),
+  }).optional().default({ dirs: ['graphql'], autoImport: true }),
 
   graphql: z.object({
     generateConfig: z.boolean().optional().default(true),
@@ -257,29 +269,27 @@ export const publicConfigSchema = configObjectSchema.omit({ clients: true, fragm
   clients: z.object({
     [ShopifyClientType.Storefront]: storefrontClientSchema.omit({
       privateAccessToken: true,
-      sandbox: true,
+      explorer: true,
       documents: true,
       codegen: true,
-      autoImport: true,
       cache: true,
       proxy: true,
     }).extend({
-      proxy: proxyPathSchema('_proxy/storefront'),
-      cache: enableable(clientCacheSchema.omit({ proxy: true }), { client: defaultClientCacheOptions, options: defaultCacheOptions }),
+      proxy: proxyRouteSchema('_proxy/storefront'),
+      cache: enableable(clientCacheSchema.omit({ proxy: true }), { client: defaultClientCacheOptions, presets: defaultCachePresets }),
     }).optional(),
 
     [ShopifyClientType.CustomerAccount]: customerAccountClientSchema.omit({
-      sandbox: true,
+      explorer: true,
       documents: true,
       codegen: true,
-      autoImport: true,
       proxy: true,
       clientSecret: true,
       session: true,
       tokenStorage: true,
-      logoutRedirectURL: true,
+      afterLogout: true,
     }).extend({
-      proxy: proxyPathSchema('_proxy/customer-account'),
+      proxy: proxyRouteSchema('_proxy/customer-account'),
     }).optional(),
   }).optional().default({}),
 

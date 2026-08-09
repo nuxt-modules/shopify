@@ -71,10 +71,10 @@ export function createClient<
   if (options.logger) apiClientConfig.logger = options.logger
   if (options.headers) Object.assign(apiClientConfig.headers, options.headers)
 
-  const proxy = (clientConfig as { proxy?: { path: string } | false })?.proxy
+  const proxy = (clientConfig as { proxy?: { route: string } | false })?.proxy
 
   if (origin && proxy) {
-    apiClientConfig.apiUrl = joinURL(origin, proxy.path)
+    apiClientConfig.apiUrl = joinURL(origin, proxy.route)
 
     if (options.apiVersion) {
       apiClientConfig.headers[PROXY_API_VERSION_HEADER] = options.apiVersion
@@ -108,8 +108,8 @@ export function createClient<
     ?? moduleConfig.errors?.throw
     ?? DEFAULT_THROW_ERRORS
 
-  const cacheOptions = definition.cache
-    ? (clientConfig as { cache?: { options?: Record<string, Pick<CacheOptions, 'maxAge' | 'staleMaxAge' | 'swr'>> } | false })?.cache || undefined
+  const cacheConfig = definition.cache
+    ? (clientConfig as { cache?: { presets?: Record<string, Pick<CacheOptions, 'maxAge' | 'staleMaxAge' | 'swr'>> } | false })?.cache || undefined
     : undefined
 
   const request: ShopifyApiClient<Operations, Cache>['request'] = async (operation, options) => {
@@ -124,7 +124,7 @@ export function createClient<
     }
 
     const response = definition.cache
-      ? await useCache(cache, transport.request as any, operation, options, cacheOptions?.options)
+      ? await useCache(cache, transport.request as any, operation, options, cacheConfig?.presets)
       : await transport.request(operation, options)
 
     if (import.meta.server && event && definition.tracking) collectTrackingHeaders(event, response.headers)

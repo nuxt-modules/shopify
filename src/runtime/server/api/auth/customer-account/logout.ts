@@ -35,7 +35,7 @@ export default defineEventHandler(async (event) => {
     const configuration = await getOpenIdConfiguration(createStoreDomain(_shopify.name))
 
     const requestURL = getRequestURL(event)
-    const postLogoutRedirectUri = joinURL(requestURL.origin, customerAccount.logoutRedirectURL)
+    const postLogoutRedirectUri = joinURL(requestURL.origin, customerAccount.afterLogout)
 
     return sendRedirect(event, buildLogoutURL(configuration, {
       idToken,
@@ -43,5 +43,5 @@ export default defineEventHandler(async (event) => {
     }))
   }
 
-  return sendRedirect(event, customerAccount.logoutRedirectURL)
+  return sendRedirect(event, customerAccount.afterLogout)
 })
