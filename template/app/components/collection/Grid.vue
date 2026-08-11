@@ -1,5 +1,11 @@
 <script setup lang="ts">
+const props = defineProps<{
+  first?: number
+}>()
+
 const localePath = useLocalePath()
+
+const first = computed(() => props.first ?? 10)
 
 const { data: collections } = await useStorefrontData(localizedKey('collections'), `#graphql
   query FetchCollections($first: Int, $language: LanguageCode, $country: CountryCode)
@@ -11,10 +17,10 @@ const { data: collections } = await useStorefrontData(localizedKey('collections'
     }
   }
 `, {
-  variables: connectionParamsSchema.extend(localizationParamsSchema.shape).parse({
-    first: 10,
-  }),
-  transform: data => flattenConnection(data?.collections).filter(c => c.description),
+  variables: computed(() => connectionParamsSchema.extend(localizationParamsSchema.shape).parse({
+    first: first.value,
+  })),
+  transform: data => flattenConnection(data?.collections),
   cache: 'long',
 })
 </script>

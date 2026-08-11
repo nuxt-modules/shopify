@@ -183,7 +183,13 @@
             "loading": "Produkte werden geladen...",
             "notFound": "Keine Produkte gefunden."
         },
-        "all": "Alle Kollektionen"
+        "all": "Alle Kollektionen",
+        "description": "Entdecken Sie alle Kollektionen des Shops."
+    },
+    "policies": {
+        "title": "Richtlinien",
+        "description": "Die rechtlichen Bedingungen, die für Ihren Einkauf bei uns gelten.",
+        "empty": "Es wurden noch keine Richtlinien veröffentlicht."
     },
     "filters": {
         "title": "Filter",
@@ -206,6 +212,8 @@
         "collection": "Kollektion nicht gefunden",
         "product": "Produkt nicht gefunden",
         "blog": "Blog nicht gefunden",
-        "article": "Artikel nicht gefunden"
+        "article": "Artikel nicht gefunden",
+        "page": "Seite nicht gefunden",
+        "policy": "Richtlinie nicht gefunden"
     }
 }

@@ -183,7 +183,13 @@
             "loading": "Loading products...",
             "notFound": "No products found."
         },
-        "all": "All Collections"
+        "all": "All Collections",
+        "description": "Browse every collection in the store."
+    },
+    "policies": {
+        "title": "Policies",
+        "description": "The legal terms that apply when you shop with us.",
+        "empty": "No policies have been published yet."
     },
     "filters": {
         "title": "Filters",
@@ -206,6 +212,8 @@
         "collection": "Collection not found",
         "product": "Product not found",
         "blog": "Blog not found",
-        "article": "Article not found"
+        "article": "Article not found",
+        "page": "Page not found",
+        "policy": "Policy not found"
     }
 }

@@ -2,10 +2,17 @@
 import { withoutHost } from 'ufo'
 
 const localePath = useLocalePath()
+const router = useRouter()
 
 const { public: { _shopify } } = useRuntimeConfig()
 
 const hasAccount = computed(() => !!_shopify?.clients?.customerAccount)
+
+const localizedPath = (url: string) => {
+  const path = withoutHost(url)
+
+  return router.resolve(path).matched.length ? localePath(path) : path
+}
 
 const { data: items } = await useStorefrontData(localizedKey('main-menu'), `#graphql
   query GetNavigation($handle: String!, $language: LanguageCode, $country: CountryCode)
@@ -24,7 +31,7 @@ const { data: items } = await useStorefrontData(localizedKey('main-menu'), `#gra
       ? localePath(`/blog/${item.resource?.handle}`)
       : item.resource?.__typename === 'Collection'
         ? localePath(`/collection/${item.resource?.handle}`)
-        : withoutHost(item.url ?? ''),
+        : localizedPath(item.url ?? ''),
   })) ?? [],
   cache: 'long',
 })
