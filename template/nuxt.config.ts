@@ -4,6 +4,7 @@ export default defineNuxtConfig({
 
   modules: [
     '../src/module',
+    './modules/markets',
     '@nuxtjs/critters',
     '@nuxtjs/i18n',
     '@nuxt/image',
@@ -60,21 +61,6 @@ export default defineNuxtConfig({
 
   i18n: {
     strategy: 'prefix_except_default',
-
-    defaultLocale: 'en-us',
-
-    locales: [
-      {
-        code: 'en-us',
-        language: 'en',
-        file: 'en.json',
-      },
-      {
-        code: 'de-de',
-        language: 'de',
-        file: 'de.json',
-      },
-    ],
   },
 
   image: {

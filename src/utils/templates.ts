@@ -118,4 +118,10 @@ export function registerTemplates(
   const tsConfig = typescript.tsConfig ??= {}
 
   tsConfig.include = [...tsConfig.include ?? [], typesDir]
+
+  nuxt.hook('prepare:types', ({ nodeTsConfig }) => {
+    if (!nodeTsConfig) return
+
+    nodeTsConfig.include = [...nodeTsConfig.include ?? [], typesDir]
+  })
 }

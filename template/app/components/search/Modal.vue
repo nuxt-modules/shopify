@@ -4,6 +4,8 @@ const localePath = useLocalePath()
 const query = ref('')
 const open = ref(false)
 
+const { params: localization } = useLocalization()
+
 const { data, status } = await useStorefrontData(localizedKey('search', () => query.value ?? 'none'), `#graphql
   query predictiveSearch($query: String!, $first: Int, $language: LanguageCode, $country: CountryCode)
   @inContext(language: $language, country: $country) {
@@ -49,6 +51,7 @@ const { data, status } = await useStorefrontData(localizedKey('search', () => qu
 `, {
   variables: computed(() => predictiveSearchParamsSchema.extend(localizationParamsSchema.shape).parse({
     query: query.value,
+    ...localization.value,
   })),
   watch: [query],
   lazy: true,
@@ -107,6 +110,9 @@ const updateQuery = debounce((value: string) => query.value = value, 300)
     v-model:open="open"
     :title="$t('search.label')"
     :description="$t('search.description')"
+    :ui="{
+      content: 'max-w-2xl',
+    }"
   >
     <UButton
       icon="i-lucide-search"
@@ -124,6 +130,16 @@ const updateQuery = debounce((value: string) => query.value = value, 300)
         :placeholder="$t('search.placeholder')"
         :groups="groups"
         :close="true"
+        :ui="{
+          label: 'w-full',
+          group: 'flex flex-wrap',
+          item: 'sm:w-1/2',
+          itemLeadingAvatar: 'size-24 rounded-md me-2',
+          itemLabel: 'whitespace-normal flex flex-col',
+          itemLabelBase: 'py-1',
+          itemLabelSuffix: 'line-clamp-3',
+          itemWrapper: '[[data-slot=itemLeadingAvatar]+&]:py-0.5',
+        }"
         @update:search-term="updateQuery"
       />
 

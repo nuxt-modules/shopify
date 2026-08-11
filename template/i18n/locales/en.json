@@ -1,8 +1,13 @@
 {
     "footer": {
         "message": "Published under the MIT License.",
-        "github": "View on GitHub",
-        "country": "Select country and currency"
+        "github": "View on GitHub"
+    },
+    "localization": {
+        "title": "Country and language",
+        "description": "Prices and checkout currency follow the country you choose.",
+        "country": "Country/region",
+        "language": "Language"
     },
     "cart": {
         "title": "Cart",

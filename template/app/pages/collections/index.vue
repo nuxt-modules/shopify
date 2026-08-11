@@ -22,9 +22,6 @@ useSeoMeta({
       {{ $t('collection.description') }}
     </p>
 
-    <CollectionGrid
-      :first="50"
-      include-without-description
-    />
+    <CollectionGrid :first="50" />
   </UContainer>
 </template>

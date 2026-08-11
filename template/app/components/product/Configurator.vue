@@ -21,6 +21,8 @@ const state = reactive({
   selectedOptions: selectedVariant.value?.selectedOptions,
 })
 
+const { params: localization } = useLocalization()
+
 const { data } = await useStorefrontData(localizedKey('product-options', handle), `#graphql
   query FetchProductOptions($handle: String, $language: LanguageCode, $country: CountryCode, $selectedOptions: [SelectedOptionInput!]) 
   @inContext(language: $language, country: $country) {
@@ -38,6 +40,7 @@ const { data } = await useStorefrontData(localizedKey('product-options', handle)
   variables: computed(() => productInputSchema.parse({
     handle: handle.value,
     selectedOptions: state.selectedOptions,
+    ...localization.value,
   })),
   transform: value => value.product,
   watch: [() => state.selectedOptions],

@@ -10,6 +10,8 @@ const route = useRoute()
 
 const handle = computed(() => route.params.handle as string)
 
+const { params: localization } = useLocalization()
+
 const { data, error } = await useStorefrontData(localizedKey('product', handle), `#graphql
   query FetchProduct($handle: String, $language: LanguageCode, $country: CountryCode) 
   @inContext(language: $language, country: $country) {
@@ -24,6 +26,7 @@ const { data, error } = await useStorefrontData(localizedKey('product', handle),
 `, {
   variables: computed(() => productInputSchema.parse({
     handle: handle.value,
+    ...localization.value,
   })),
   cache: 'long',
 })

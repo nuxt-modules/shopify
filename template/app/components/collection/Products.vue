@@ -11,6 +11,8 @@ const route = useRoute()
 
 const key = localizedKey('collection', () => props.handle, 'products')
 
+const { params: localization } = useLocalization()
+
 const { data: collection, status } = await useStorefrontData(key, `#graphql
   query FetchCollectionProducts(
     $handle: String,
@@ -46,6 +48,7 @@ const { data: collection, status } = await useStorefrontData(key, `#graphql
   variables: computed(() => collectionInputSchema.parse({
     handle: props.handle,
     ...params.value,
+    ...localization.value,
   })),
   transform: data => data?.collection,
   watch: [params],

@@ -16,9 +16,15 @@ export const useLocalization = () => {
   const language = computed(() => getLanguage(locale.value))
   const country = computed(() => getCountry(locale.value))
 
+  const params = computed(() => localizationParamsSchema.parse({
+    language: language.value,
+    country: country.value,
+  }))
+
   return {
     language,
     country,
+    params,
 
     getLanguage,
     getCountry,

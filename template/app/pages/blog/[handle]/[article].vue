@@ -12,8 +12,11 @@ const route = useRoute()
 const handle = computed(() => route.params.handle as string)
 const article = computed(() => route.params.article as string)
 
+const { params: localization } = useLocalization()
+
 const { data: blog, error } = await useStorefrontData(localizedKey('blog', article), `#graphql
-  query FetchBlogArticle($handle: String!, $article: String!) {
+  query FetchBlogArticle($handle: String!, $article: String!, $language: LanguageCode, $country: CountryCode)
+  @inContext(language: $language, country: $country) {
     blog(handle: $handle) {
       title
       articleByHandle(handle: $article) {
@@ -22,10 +25,11 @@ const { data: blog, error } = await useStorefrontData(localizedKey('blog', artic
     }
   }
 `, {
-  variables: {
+  variables: computed(() => ({
     handle: handle.value,
     article: article.value,
-  },
+    ...localization.value,
+  })),
   transform: data => data?.blog,
   cache: 'long',
 })

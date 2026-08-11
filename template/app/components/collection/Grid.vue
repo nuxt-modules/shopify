@@ -7,6 +7,8 @@ const localePath = useLocalePath()
 
 const first = computed(() => props.first ?? 10)
 
+const { params: localization } = useLocalization()
+
 const { data: collections } = await useStorefrontData(localizedKey('collections'), `#graphql
   query FetchCollections($first: Int, $language: LanguageCode, $country: CountryCode)
   @inContext(language: $language, country: $country) {
@@ -19,6 +21,7 @@ const { data: collections } = await useStorefrontData(localizedKey('collections'
 `, {
   variables: computed(() => connectionParamsSchema.extend(localizationParamsSchema.shape).parse({
     first: first.value,
+    ...localization.value,
   })),
   transform: data => flattenConnection(data?.collections),
   cache: 'long',

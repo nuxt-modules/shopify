@@ -2,6 +2,8 @@
 const { shopify: { shopName } } = useAppConfig()
 const localePath = useLocalePath()
 
+const { params: localization } = useLocalization()
+
 const { data: policies } = await useStorefrontData(localizedKey('policies'), `#graphql
   query FetchPolicies($language: LanguageCode, $country: CountryCode)
   @inContext(language: $language, country: $country) {
@@ -10,7 +12,7 @@ const { data: policies } = await useStorefrontData(localizedKey('policies'), `#g
     }
   }
 `, {
-  variables: localizationParamsSchema.parse({}),
+  variables: localization,
   transform: data => flattenPolicies(data?.shop),
   cache: 'long',
 })

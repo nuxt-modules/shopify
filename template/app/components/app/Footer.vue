@@ -1,47 +1,7 @@
 <script setup lang="ts">
 import type { NavigationMenuItem } from '#ui/types'
-import type { Locale } from '#i18n'
 
-const { language, country, getCountry } = useLocalization()
-const switchLocalePath = useSwitchLocalePath()
-const { locale, locales } = useI18n()
-
-const { data: localization } = await useStorefrontData(`localizations-${locale.value}`, `#graphql
-  query AllLocalizations($language: LanguageCode, $country: CountryCode)
-  @inContext(language: $language, country: $country) {
-    localization {
-      availableCountries {
-        isoCode
-        name
-        currency {
-          isoCode
-          symbol
-          name
-        }
-      }
-    }
-  }
-`, {
-  variables: localizationParamsSchema.parse({
-    language: language.value,
-    country: country.value,
-  }),
-  transform: data => data?.localization,
-  cache: 'long',
-})
-
-const getCountryLabel = (code: Locale) => {
-  const country = localization.value?.availableCountries.find(c => c.isoCode === getCountry(code).toUpperCase())
-
-  return `${country?.name} (${country?.currency.isoCode})`
-}
-
-const switchLocale = async (locale: string) => navigateTo(switchLocalePath(locale as Locale))
-
-const countries = computed(() => locales.value.map(l => ({
-  label: getCountryLabel(l.code),
-  value: l.code,
-})))
+const { data: policies } = await useMenu('footer')
 
 const items = computed<NavigationMenuItem[]>(() => [
   {
@@ -72,6 +32,8 @@ const items = computed<NavigationMenuItem[]>(() => [
     :ui="{
       root: 'border-t border-neutral-200',
       top: 'pb-0 lg:pb-0',
+      bottom: 'border-t border-neutral-200',
+      container: 'pb-6 lg:pb-10',
     }"
   >
     <template #top>
@@ -94,7 +56,7 @@ const items = computed<NavigationMenuItem[]>(() => [
     </template>
 
     <template #left>
-      <p class="text-muted text-sm">
+      <p class="mt-3 lg:mt-0 text-muted text-sm">
         {{ $t('footer.message') }}
       </p>
     </template>
@@ -114,15 +76,20 @@ const items = computed<NavigationMenuItem[]>(() => [
           linkLabelExternalIcon: 'hidden',
         }"
       />
+    </template>
 
-      <USelect
-        :items="countries"
-        :default-value="locale"
-        icon="i-lucide-globe"
-        variant="ghost"
-        :aria-label="$t('footer.country')"
-        @update:model-value="async value => switchLocale(value)"
-      />
+    <template #bottom>
+      <div class="flex justify-center">
+        <UNavigationMenu
+          v-if="policies?.length"
+          variant="pill"
+          :items="policies"
+          :ui="{
+            list: 'flex-wrap justify-center lg:justify-end',
+            link: 'text-dimmed text-xs',
+          }"
+        />
+      </div>
     </template>
   </UFooter>
 </template>

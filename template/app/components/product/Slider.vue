@@ -23,6 +23,8 @@ const sortKey = computed(() => props.sortKey ? String(props.sortKey) : undefined
 const reverse = computed(() => props.reverse ? Boolean(props.reverse) : undefined)
 const filters = computed(() => props.filters ? props.filters : undefined)
 
+const { params: localization } = useLocalization()
+
 const { data: products } = await useStorefrontData(key, `#graphql
   query FetchSliderProducts(
     $after: String,
@@ -43,7 +45,7 @@ const { data: products } = await useStorefrontData(key, `#graphql
     }
   }
 `, {
-  variables: productConnectionParamsSchema.extend(localizationParamsSchema.shape).parse({
+  variables: computed(() => productConnectionParamsSchema.extend(localizationParamsSchema.shape).parse({
     first: first.value,
     last: last.value,
     after: after.value,
@@ -51,7 +53,8 @@ const { data: products } = await useStorefrontData(key, `#graphql
     sortKey: sortKey.value,
     reverse: reverse.value,
     filters: filters.value,
-  }),
+    ...localization.value,
+  })),
   transform: data => flattenConnection(data?.products),
   cache: 'long',
 })

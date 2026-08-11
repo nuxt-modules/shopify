@@ -11,6 +11,8 @@ const handle = computed(() => route.params.handle as string)
 
 const key = localizedKey('collection', handle)
 
+const { params: localization } = useLocalization()
+
 const { data: collection, error } = await useStorefrontData(key, `#graphql
   query FetchCollection(
     $handle: String,
@@ -25,6 +27,7 @@ const { data: collection, error } = await useStorefrontData(key, `#graphql
 `, {
   variables: computed(() => collectionInputSchema.parse({
     handle: handle.value,
+    ...localization.value,
   })),
   transform: data => data?.collection,
   cache: 'long',
