@@ -112,7 +112,7 @@ describe('test module with nuxt 3', async () => {
     const html = await $fetch('/admin')
 
     // Check that we get 2 markets
-    expect(html).toContain('<p>Market count: 2</p>')
+    expect(html).toContain('<p>Market count: 3</p>')
   })
 
   it('should generate storefront api types', async () => {

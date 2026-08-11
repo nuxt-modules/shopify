@@ -149,8 +149,8 @@ describe('test module with nuxt 4', async () => {
   it('should create a working admin fetch client', async () => {
     const html = await $fetch('/admin')
 
-    // Check that we get 2 markets
-    expect(html).toContain('<p>Market count: 2</p>')
+    // Check that we get 3 markets
+    expect(html).toContain('<p>Market count: 3</p>')
   })
 
   it('should error when given invalid input', async () => {

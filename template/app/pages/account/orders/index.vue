@@ -49,8 +49,8 @@ useSeoMeta({
       class="mb-6 lg:mb-8"
     />
 
-    <h1 class="text-4xl lg:text-5xl text-gray-900 font-extrabold">
-      {{ $t('account.orders.title') }}
+    <h1 class="text-4xl lg:text-5xl text-gray-900 font-extrabold mb-8 lg:mb-10">
+      {{ $t('account.orders.page.title') }}
     </h1>
 
     <AccountOrders :orders="orders" />

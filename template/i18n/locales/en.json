@@ -77,6 +77,9 @@
         },
         "orders": {
             "title": "Orders",
+            "page": {
+                "title": "Your order overview"
+            },
             "empty": "You haven't placed any orders yet.",
             "browse": "Start shopping",
             "view": "View order",
