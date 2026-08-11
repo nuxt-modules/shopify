@@ -61,6 +61,8 @@ useSeoMeta({
 })
 
 const filters = computed(() => collection.value?.products.filters)
+
+usePruneFilters(filters)
 const pageInfo = computed(() => collection.value?.products.pageInfo)
 const products = computed(() => flattenConnection(collection.value?.products))
 

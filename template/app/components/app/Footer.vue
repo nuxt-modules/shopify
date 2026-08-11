@@ -76,6 +76,15 @@ const items = computed<NavigationMenuItem[]>(() => [
           linkLabelExternalIcon: 'hidden',
         }"
       />
+
+      <AppLocaleSelect>
+        <UButton
+          variant="link"
+          color="neutral"
+          icon="i-lucide-languages"
+          :label="$t('localization.title')"
+        />
+      </AppLocaleSelect>
     </template>
 
     <template #bottom>

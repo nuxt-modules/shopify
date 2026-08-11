@@ -1,73 +1,14 @@
 <script setup lang="ts">
 import type { Locale } from '#i18n'
 
-const { language, country, getLanguage, getCountry } = useLocalization()
-const switchLocalePath = useSwitchLocalePath()
-const { locale, locales } = useI18n()
+const { countries, languages, select } = await useLocaleSelect()
 
 const open = ref(false)
 
-const { data: localization } = await useStorefrontData(localizedKey('localizations'), `#graphql
-  query AllLocalizations($language: LanguageCode, $country: CountryCode)
-  @inContext(language: $language, country: $country) {
-    localization {
-      availableCountries {
-        isoCode
-        name
-        currency {
-          isoCode
-          symbol
-          name
-        }
-      }
-    }
-  }
-`, {
-  variables: localizationParamsSchema.parse({
-    language: language.value,
-    country: country.value,
-  }),
-  transform: data => data?.localization,
-  cache: 'long',
-})
-
-const toLocale = (language: string, country: string) => `${language}-${country}`.toLowerCase() as Locale
-
-const codes = computed(() => new Set<string>(locales.value.map(l => l.code)))
-
-const currentLanguage = computed(() => getLanguage(locale.value))
-const currentCountry = computed(() => getCountry(locale.value).toUpperCase())
-
-const flag = (isoCode: string) => String.fromCodePoint(...[...isoCode.toUpperCase()]
-  .map(char => 0x1F1A5 + char.charCodeAt(0)))
-
-const countries = computed(() => (localization.value?.availableCountries ?? [])
-  .filter(c => codes.value.has(toLocale(currentLanguage.value, c.isoCode)))
-  .map(c => ({
-    code: String(c.isoCode),
-    label: c.name,
-    currency: `${c.currency.isoCode} ${c.currency.symbol}`,
-  }))
-  .sort((a, b) => a.label.localeCompare(b.label)))
-
-const languages = computed(() => {
-  const seen = new Map<string, { code: string, label: string }>()
-
-  for (const l of locales.value) {
-    const code = getLanguage(l.code)
-
-    if (!seen.has(code) && codes.value.has(toLocale(code, currentCountry.value))) {
-      seen.set(code, { code, label: l.name ?? code.toUpperCase() })
-    }
-  }
-
-  return [...seen.values()]
-})
-
-const select = async (language: string, country: string) => {
+const change = async (locale: Locale) => {
   open.value = false
 
-  await navigateTo(switchLocalePath(toLocale(language, country)))
+  await select(locale)
 }
 </script>
 
@@ -79,6 +20,7 @@ const select = async (language: string, country: string) => {
     should-scale-background
     :ui="{
       header: 'w-full max-w-(--ui-container) mx-auto px-4 sm:px-6 lg:px-8',
+      container: 'lg:pb-20 lg:pt-12',
     }"
   >
     <slot />
@@ -95,12 +37,12 @@ const select = async (language: string, country: string) => {
               <UButton
                 v-for="item in countries"
                 :key="item.code"
-                :variant="item.code === currentCountry ? 'soft' : 'outline'"
-                :color="item.code === currentCountry ? 'primary' : 'neutral'"
+                :variant="item.active ? 'soft' : 'outline'"
+                :color="item.active ? 'primary' : 'neutral'"
                 class="justify-between"
-                @click="select(currentLanguage, item.code)"
+                @click="change(item.locale)"
               >
-                <span>{{ flag(item.code) }} {{ item.label }}</span>
+                <span>{{ item.flag }} {{ item.label }}</span>
 
                 <span class="text-dimmed text-xs">{{ item.currency }}</span>
               </UButton>
@@ -116,10 +58,10 @@ const select = async (language: string, country: string) => {
               <UButton
                 v-for="item in languages"
                 :key="item.code"
-                :variant="item.code === currentLanguage ? 'soft' : 'outline'"
-                :color="item.code === currentLanguage ? 'primary' : 'neutral'"
+                :variant="item.active ? 'soft' : 'outline'"
+                :color="item.active ? 'primary' : 'neutral'"
                 :label="item.label"
-                @click="select(item.code, currentCountry)"
+                @click="change(item.locale)"
               />
             </div>
           </div>

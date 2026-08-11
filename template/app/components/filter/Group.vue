@@ -31,6 +31,11 @@ const filters = computed(() => props.filters?.map((filter) => {
         component: resolveComponent('FilterTypeList'),
         ...filterItem,
       }
+    case 'BOOLEAN':
+      return {
+        component: resolveComponent('FilterTypeBoolean'),
+        ...filterItem,
+      }
   }
 })?.filter(f => f !== undefined))
 

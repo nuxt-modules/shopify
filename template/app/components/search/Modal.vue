@@ -32,6 +32,9 @@ const { data, status } = await useStorefrontData(localizedKey('search', () => qu
           handle
           title
           description
+          image {
+            ...ImageFields
+          }
         }
       }
     }
@@ -87,6 +90,10 @@ const groups = computed(() => [
       label: collection.title,
       suffix: collection.description,
       to: localePath(`/collection/${collection.handle}`),
+      avatar: {
+        src: `${collection.image?.url}?width=40&height=40`,
+        alt: collection.image?.altText,
+      },
       onSelect: () => open.value = false,
     })),
   },
@@ -131,9 +138,9 @@ const updateQuery = debounce((value: string) => query.value = value, 300)
         :groups="groups"
         :close="true"
         :ui="{
-          label: 'w-full',
-          group: 'flex flex-wrap',
-          item: 'sm:w-1/2',
+          label: 'w-full text-lg px-2 pb-1',
+          group: 'flex flex-wrap p-2',
+          item: 'sm:w-1/2 p-3',
           itemLeadingAvatar: 'size-24 rounded-md me-2',
           itemLabel: 'whitespace-normal flex flex-col',
           itemLabelBase: 'py-1',

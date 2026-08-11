@@ -29,7 +29,9 @@ export const useMenu = async (handle: string) => {
         ? localePath(`/blog/${item.resource?.handle}`)
         : item.resource?.__typename === 'Collection'
           ? localePath(`/collection/${item.resource?.handle}`)
-          : localizedPath(item.url ?? ''),
+          : item.resource?.__typename === 'Page'
+            ? localePath(`/pages/${item.resource?.handle}`)
+            : localizedPath(item.url ?? ''),
     })) ?? [],
     cache: 'long',
   })

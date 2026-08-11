@@ -1,8 +1,4 @@
 <script setup lang="ts">
-const { public: { _shopify } } = useRuntimeConfig()
-
-const hasAccount = computed(() => !!_shopify?.clients?.customerAccount)
-
 const { data: items } = await useMenu('main-menu')
 </script>
 
@@ -26,18 +22,18 @@ const { data: items } = await useMenu('main-menu')
     <template #right>
       <SearchModal />
 
-      <AccountMenu v-if="hasAccount" />
-
-      <CartModal />
+      <AccountMenu />
 
       <AppLocaleSelect>
         <UButton
           variant="ghost"
           color="neutral"
-          icon="i-lucide-globe"
+          icon="i-lucide-languages"
           :aria-label="$t('localization.title')"
         />
       </AppLocaleSelect>
+
+      <CartModal />
     </template>
   </UHeader>
 </template>
