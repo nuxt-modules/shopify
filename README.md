@@ -8,9 +8,10 @@
 [![NPM last update][npm-last-update-src]][npm-last-update-href]
 [![License][license-src]][license-href]
 
-Fully typed fetch client for the [Shopify Storefront API](https://shopify.dev/docs/api/storefront), [Shopify Admin API](https://shopify.dev/docs/api/admin-graphql) and [Shopify Customer Account API](https://shopify.dev/docs/api/customer).
-You can use it on the server and client side, with built-in support for [mock.shop](https://mock.shop) and automatic,
+Typed fetch clients for the [Storefront API](https://shopify.dev/docs/api/storefront), [Customer Account API](https://shopify.dev/docs/api/customer) and [Admin API](https://shopify.dev/docs/api/admin-graphql).
+Use it on the server and client side with built-in fragment deduplication, proxying, caching, analytics, error handling, retries and automatic,
 hot-reloaded type generation from your GraphQL queries.
+Fully configurable, works out of the box with [mock.shop](https://mock.shop) for local development.
 
 - 📚 [Documentation](https://shopify.nuxtjs.org)
 - 🛍️ [Store Template](https://github.com/nuxt-modules/shopify/tree/main/template)
@@ -18,27 +19,27 @@ hot-reloaded type generation from your GraphQL queries.
 
 ## Features
 
-- 🔗 Fully typed fetch client from GraphQL schemas
+- 🔗 Fully typed fetch clients from GraphQL schemas
 - 🔥 Hot-reloads types automatically when your GraphQL changes
 - 🔐 Secure access token handling
 - 🛒 Storefront, Customer Account and Admin API support
 - 🌐 Server & client side support
-- 🛠️ Automatic mock.shop integration
 - 🚩 Error handling optimized for Nuxt
 - 📡 Server-side proxy for API requests
-- 🧩 GraphQL fragments and metafields support
+- 🧩 GraphQL fragment injection and deduplication
 - 🏎️ Caching for client and server-side requests
 - 🔍 Analytics and Customer Privacy API support
 - ⚙️ Customizable GraphQL code generation
-- 📦 Auto-imports for GraphQL queries and generated types
+- 📦 Auto-imports for fragments, queries and generated types
 - 🪝 Webhook subscription support
-- 🏖️ Built-in GraphQL explorer for every client
+- 🏖️ Built-in GraphQL explorer for all client APIs
+- 🛠️ Automatic mock.shop integration
 - 🔄 Hooks for customizing the module behavior
 - 🧪 Tested with Nuxt 3 & 4
 
 ## Setup
 
-> To get started immediately, you can use the [store template](https://github.com/nuxt-modules/shopify/tree/main/template) with a pre-configured Shopify store and module setup.
+> To get started, use the [store template](https://github.com/nuxt-modules/shopify/tree/main/template) with a fully functioning Shopify store.
 
 Run the following command to install the module in your project:
 
@@ -360,26 +361,44 @@ You can define reusable fragments in your GraphQL queries to avoid duplication a
 
 Here's an example of how to define and use a fragment:
 
-```graphql
-#graphql
-fragment ProductFields on Product {
-  id
-  title
-  description
-}
+```ts
+// ~/graphql/fragments/product.ts
 
-query FetchProducts($first: Int) {
-  products(first: $first) {
-    nodes {
-      ...ProductFields
-    }
+export const productFields = `#graphql
+  fragment ProductFields on Product {
+    id
+    title
+    description
   }
-}
+`
 ```
 
-You can place this query in a `.gql`, `.ts` or `.vue` file and use it in your requests. The module will be able to import the fragment and allow you to use it directly within your GraphQL operation.
+```html
+<!-- ~/pages/products.vue -->
 
-Files placed in the `~/graphql` directory will be automatically imported by the module, so it is recommended to organize your fragments there.
+<script setup lang="ts">
+  const storefront = useStorefront()
+
+  const products = await storefront.request(`#graphql
+    query FetchProducts($first: Int) {
+      products(first: $first) {
+        nodes {
+          ...ProductFields
+        }
+      }
+    }
+  `, {
+    variables: {
+      first: 5,
+    },
+  })
+</script>
+```
+
+The `ProductFields` fragment is automatically injected into the query, so you don't need to import it explicitly in your request.
+
+You can also place the query in a `.gql`, `.ts` or `.vue` file and import it to use in your requests.
+Files placed in the `~/graphql` directory will be automatically imported by the module, it is recommended to organize your fragments there.
 
 ### Handling errors
 
@@ -422,6 +441,8 @@ Client side caching is enabled globally by default and can be configured in the 
 For each client side request, caching is opt-in by setting the `cache` option in the request options.
 
 ```html
+<!-- ~/pages/products.vue -->
+
 <script setup lang="ts">
 const storefront = useStorefront()
 
@@ -464,6 +485,8 @@ Install `@shopify/hydrogen-react` and enable the `analytics` option, then report
 or publish events manually with the `useShopifyAnalytics` composable:
 
 ```html
+<!-- ~/pages/product.vue -->
+
 <template>
   <ShopifyProductView
     :data="{

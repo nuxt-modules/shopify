@@ -397,6 +397,18 @@ Build your Shopify store with Nuxt
 
   :::u-page-feature
   ---
+  icon: i-lucide-puzzle
+  to: /getting-started/usage#fragments
+  ---
+  #title
+  Fragment [Injection and Deduplication]{.text-primary} 
+
+  #description
+  Define reusable GraphQL fragments and have them automatically injected into your queries, no explicit imports needed.
+  :::
+
+  :::u-page-feature
+  ---
   icon: i-lucide-between-horizontal-start
   to: /going-further/hooks
   ---
@@ -437,7 +449,7 @@ Build your Shopify store with Nuxt
   to: /going-further/webhooks
   ---
   #title
-  Effortless [Webhook Subscriptions]{.text-primary}
+  Easy [Webhook Subscriptions]{.text-primary}
 
   #description
   Subscribe to Shopify webhooks from your config and receive them with automatic HMAC validation. Includes a CLI to manage subscriptions.
