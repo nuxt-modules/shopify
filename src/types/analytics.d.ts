@@ -134,4 +134,5 @@ export interface ShopifyAnalyticsContext {
   subscribe: <E extends AnalyticsEventName>(event: E, callback: AnalyticsSubscriber<E>) => () => void
   setTrackingConsent: (consent: TrackingConsent, callback?: (result: { error?: string }) => void) => void
   setShopContext: (context: ShopifyAnalyticsShopContext) => Promise<ShopAnalytics | null>
+  showPreferences: () => Promise<void>
 }

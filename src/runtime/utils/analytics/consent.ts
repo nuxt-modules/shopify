@@ -68,9 +68,11 @@ export function setupCustomerPrivacy(config: {
     }],
   })
 
+  const waitForBanner = () => waitFor(() => getPrivacyWindow().privacyBanner ?? null)
+
   const ready = waitFor(getCustomerPrivacy).then((api) => {
     if (api && config.banner) {
-      void waitFor(() => getPrivacyWindow().privacyBanner ?? null)
+      void waitForBanner()
         .then(banner => banner?.loadBanner(bannerConfig))
         .catch(error => createLogger().debug('Failed to load the Shopify privacy banner:', error))
     }
@@ -101,6 +103,18 @@ export function setupCustomerPrivacy(config: {
 
     setTrackingConsent: (consent: TrackingConsent, callback?: (result: { error?: string }) => void) => {
       getCustomerPrivacy()?.setTrackingConsent({ ...consentConfig, ...consent }, callback)
+    },
+
+    showPreferences: async () => {
+      if (!config.banner) {
+        createLogger().debug('Cannot show the Shopify privacy banner preferences, `analytics.consent.banner` is not enabled')
+
+        return
+      }
+
+      const banner = await waitForBanner()
+
+      banner?.showPreferences(bannerConfig)
     },
   }
 }

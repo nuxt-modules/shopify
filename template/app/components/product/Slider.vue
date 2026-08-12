@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import type { ProductFilter } from '#shopify/storefront'
+import type { ProductFilter, ProductSortKeys } from '#shopify/storefront'
 
 const props = defineProps<{
   first?: number
   last?: number
   after?: string
   before?: string
-  sortKey?: string
+  sortKey?: ProductSortKeys
   reverse?: boolean
   filters?: ProductFilter[]
   loading?: 'eager' | 'lazy'
@@ -31,15 +31,19 @@ const { data: products } = await useStorefrontData(key, `#graphql
     $before: String,
     $first: Int,
     $last: Int,
+    $sortKey: ProductSortKeys,
+    $reverse: Boolean,
     $language: LanguageCode,
     $country: CountryCode
   )
-  @inContext(language: $language, country: $country) { 
+  @inContext(language: $language, country: $country) {
     products(
       after: $after,
       before: $before,
       first: $first,
       last: $last,
+      sortKey: $sortKey,
+      reverse: $reverse,
     ) {
       ...ProductConnectionFields
     }

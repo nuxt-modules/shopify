@@ -114,6 +114,7 @@ export default defineNuxtPlugin({
       setCart: value => (cart.value = value),
       canTrack: privacy.canTrack,
       setTrackingConsent: privacy.setTrackingConsent,
+      showPreferences: privacy.showPreferences,
       setShopContext: context => resolveShop(context).then(applyShop),
 
       publish: (event, payload) => {

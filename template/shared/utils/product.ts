@@ -15,6 +15,18 @@ export const productFilterSchema = z.object({
 
 export const productSortKeysSchema = z.enum([
   'BEST_SELLING',
+  'CREATED_AT',
+  'ID',
+  'PRICE',
+  'PRODUCT_TYPE',
+  'RELEVANCE',
+  'TITLE',
+  'UPDATED_AT',
+  'VENDOR',
+])
+
+export const productCollectionSortKeysSchema = z.enum([
+  'BEST_SELLING',
   'COLLECTION_DEFAULT',
   'CREATED',
   'ID',
@@ -22,13 +34,12 @@ export const productSortKeysSchema = z.enum([
   'PRICE',
   'RELEVANCE',
   'TITLE',
-  'UPDATED_AT',
 ])
 
 export const productConnectionParamsSchema = connectionParamsSchema.extend({
   sortKey: productSortKeysSchema.optional(),
   reverse: z.boolean().optional(),
-  filters: z.array(productFilterSchema).optional(),
+  filters: productFilterSchema.optional(),
 })
 
 export const productInputSchema = z.object({

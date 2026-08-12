@@ -3,6 +3,8 @@ import type { NavigationMenuItem } from '#ui/types'
 
 const { data: policies } = await useMenu('footer')
 
+const analytics = useShopifyAnalytics()
+
 const items = computed<NavigationMenuItem[]>(() => [
   {
     to: 'https://github.com/nuxt-modules/shopify',
@@ -56,7 +58,7 @@ const items = computed<NavigationMenuItem[]>(() => [
     </template>
 
     <template #left>
-      <p class="mt-3 lg:mt-0 text-muted text-sm">
+      <p class="mb-5 lg:mb-0 text-muted text-sm">
         {{ $t('footer.message') }}
       </p>
     </template>
@@ -83,16 +85,23 @@ const items = computed<NavigationMenuItem[]>(() => [
           color="neutral"
           icon="i-lucide-languages"
           :label="$t('localization.title')"
+          :ui="{
+            base: 'hover:bg-elevated/50',
+            leadingIcon: 'text-dimmed',
+          }"
         />
       </AppLocaleSelect>
     </template>
 
     <template #bottom>
-      <div class="flex justify-center">
+      <div class="flex justify-center px-12">
         <UNavigationMenu
           v-if="policies?.length"
           variant="pill"
-          :items="policies"
+          :items="[...policies, {
+            onSelect: () => analytics.showPreferences(),
+            label: $t('footer.cookies'),
+          }]"
           :ui="{
             list: 'flex-wrap justify-center lg:justify-end',
             link: 'text-dimmed text-xs',

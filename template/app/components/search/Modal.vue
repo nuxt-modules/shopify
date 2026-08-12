@@ -127,7 +127,7 @@ const updateQuery = debounce((value: string) => query.value = value, 300)
       color="neutral"
       :label="$t('search.label')"
       :ui="{
-        label: 'hidden min-[380px]:block',
+        label: 'hidden min-[420px]:block',
       }"
     />
 

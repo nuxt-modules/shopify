@@ -1,7 +1,8 @@
 {
     "footer": {
         "message": "Published under the MIT License.",
-        "github": "View on GitHub"
+        "github": "View on GitHub",
+        "cookies": "Cookie Preferences"
     },
     "localization": {
         "title": "Country and language",
