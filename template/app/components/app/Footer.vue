@@ -3,24 +3,26 @@ import type { NavigationMenuItem } from '#ui/types'
 
 const { data: policies } = await useMenu('footer')
 
+const { t } = useI18n()
+
 const analytics = useShopifyAnalytics()
 
 const items = computed<NavigationMenuItem[]>(() => [
   {
     to: 'https://github.com/nuxt-modules/shopify',
-    label: 'Github',
+    label: t('footer.links.github'),
   },
   {
     to: 'https://nuxt.com/modules/shopify',
-    label: 'Module Page',
+    label: t('footer.links.module'),
   },
   {
     to: 'https://shopify.nuxtjs.org',
-    label: 'Documentation',
+    label: t('footer.links.documentation'),
   },
   {
     to: 'https://npmx.dev/package/@nuxtjs/shopify',
-    label: 'NPM Package',
+    label: t('footer.links.npm'),
   },
 ].map(item => ({
   ...item,
@@ -58,7 +60,7 @@ const items = computed<NavigationMenuItem[]>(() => [
     </template>
 
     <template #left>
-      <p class="mb-5 lg:mb-0 text-muted text-sm">
+      <p class="mb-5 lg:mb-0 text-muted font-medium text-sm">
         {{ $t('footer.message') }}
       </p>
     </template>

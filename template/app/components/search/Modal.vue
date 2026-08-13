@@ -148,6 +148,7 @@ const updateQuery = debounce((value: string) => query.value = value, 300)
           itemWrapper: '[[data-slot=itemLeadingAvatar]+&]:py-0.5',
         }"
         @update:search-term="updateQuery"
+        @update:open="open = false"
       />
 
       <ShopifySearchView

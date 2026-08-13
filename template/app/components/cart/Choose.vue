@@ -13,8 +13,8 @@ const open = ref(false)
 <template>
   <UModal
     v-model:open="open"
-    title="Choose Options"
-    description="Select the options you want to add to your cart."
+    :title="$t('product.options.title')"
+    :description="$t('product.options.description')"
     :ui="{
       content: 'max-w-4xl!',
     }"

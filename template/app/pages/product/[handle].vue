@@ -65,7 +65,7 @@ watch(selectedVariant, (variant) => {
   <UContainer class="py-6 pb-12 lg:py-8 lg:pb-16">
     <UBreadcrumb
       :items="[
-        { label: 'Products' },
+        { label: $t('breadcrumb.products') },
         { label: product?.title, to: localePath(`/product/${handle}`) },
       ]"
       class="mb-6 lg:mb-8"

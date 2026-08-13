@@ -52,7 +52,7 @@ useSeoMeta({
   <UContainer class="py-6 lg:py-8">
     <UBreadcrumb
       :items="[
-        { label: 'Collections' },
+        { label: $t('breadcrumb.collections') },
         { label: collection?.title, to: localePath(`/collection/${handle}`) },
       ]"
       class="mb-6 lg:mb-8"

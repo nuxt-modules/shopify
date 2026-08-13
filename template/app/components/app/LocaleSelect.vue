@@ -20,7 +20,7 @@ const change = async (locale: Locale) => {
     should-scale-background
     :ui="{
       header: 'w-full max-w-(--ui-container) mx-auto px-4 sm:px-6 lg:px-8',
-      container: 'lg:pb-20 lg:pt-12',
+      container: 'pb-8 pt-6 lg:pb-20 lg:pt-12',
     }"
   >
     <slot />
@@ -37,14 +37,21 @@ const change = async (locale: Locale) => {
               <UButton
                 v-for="item in countries"
                 :key="item.code"
-                :variant="item.active ? 'soft' : 'outline'"
+                :variant="item.active ? 'subtle' : 'outline'"
                 :color="item.active ? 'primary' : 'neutral'"
+                :trailing-icon="item.active ? 'i-lucide-check' : ''"
                 class="justify-between"
+                :ui="{
+                  trailingIcon: 'ms-auto',
+                }"
                 @click="change(item.locale)"
               >
-                <span>{{ item.flag }} {{ item.label }}</span>
+                <span>{{ item.flag }}</span>
+                <span>{{ item.label }}</span>
 
-                <span class="text-dimmed text-xs">{{ item.currency }}</span>
+                <span class="text-dimmed text-xs me-auto">
+                  {{ item.currency }}
+                </span>
               </UButton>
             </div>
           </div>
@@ -58,9 +65,13 @@ const change = async (locale: Locale) => {
               <UButton
                 v-for="item in languages"
                 :key="item.code"
-                :variant="item.active ? 'soft' : 'outline'"
+                :variant="item.active ? 'subtle' : 'outline'"
                 :color="item.active ? 'primary' : 'neutral'"
+                :trailing-icon="item.active ? 'i-lucide-check' : ''"
                 :label="item.label"
+                :ui="{
+                  trailingIcon: 'ms-auto',
+                }"
                 @click="change(item.locale)"
               />
             </div>

@@ -140,7 +140,7 @@ const onSubmit = async (event: FormSubmitEvent<typeof state>) => {
       <div class="flex justify-between items-center">
         <UFormField
           name="quantity"
-          label="Quantity"
+          :label="$t('product.quantity')"
           class="-mt-1"
           :ui="{ label: 'hidden' }"
         >

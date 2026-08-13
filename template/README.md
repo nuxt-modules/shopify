@@ -12,6 +12,7 @@
 - 🛍️ **Shopify Integration**: Sell your products directly from your Nuxt app with [Nuxt Shopify](https://github.com/nuxt-modules/shopify)
 - 🌐 **Internationalization**: Built-in page localizations with Nuxt i18n
 - 👤 **Order and Account Management**: Log in with the Customer Account API to view your profile and order history
+- 🔎 **Analytics and Cookies**: Integrated analytics and cookie consent management using the Customer Privacy API
 - 🧩 **UI Components**: Built with Nuxt UI components and Tailwind 4 for a consistent look and feel
 - 🖼️ **Image Optimization**: Automatically optimized images with Nuxt Image
 - 🔗 **Type Safety**: Fully type-safe and checked with Vue-Tsc
@@ -32,7 +33,7 @@ Deploy to Cloudflare:
 Run the following command to clone the shop template:
 
 ```sh
-npx @nuxtjs/shopify init ./my-shop
+npx @nuxtjs/shopify@latest init ./my-shop
 ```
 
 Now you can navigate to the `my-shop` directory:

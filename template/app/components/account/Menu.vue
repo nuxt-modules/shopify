@@ -89,7 +89,7 @@ watch(() => route.path, () => open.value = false)
               v-model="state.email"
               size="xl"
               trailing-icon="i-lucide-arrow-right"
-              placeholder="E-Mail"
+              :placeholder="$t('account.profile.email')"
               :ui="{
                 trailingIcon: 'size-4',
               }"

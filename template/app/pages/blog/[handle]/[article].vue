@@ -54,7 +54,7 @@ useSeoMeta({
   <UContainer class="py-6 lg:py-8">
     <UBreadcrumb
       :items="[
-        { label: 'Blog' },
+        { label: $t('breadcrumb.blog') },
         { label: blog?.title, to: localePath(`/blog/${handle}`) },
         { label: articleData?.title, to: localePath(`/blog/${handle}/${article}`) },
       ]"

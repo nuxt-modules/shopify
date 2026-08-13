@@ -2,7 +2,19 @@
     "footer": {
         "message": "Published under the MIT License.",
         "github": "View on GitHub",
-        "cookies": "Cookie Preferences"
+        "cookies": "Cookie Preferences",
+        "builtWith": "Built with",
+        "links": {
+            "github": "Github",
+            "module": "Module Page",
+            "documentation": "Documentation",
+            "npm": "NPM Package"
+        }
+    },
+    "breadcrumb": {
+        "collections": "Collections",
+        "products": "Products",
+        "blog": "Blog"
     },
     "localization": {
         "title": "Country and language",
@@ -178,6 +190,11 @@
     "product": {
         "add": "Add",
         "choose": "Choose",
+        "quantity": "Quantity",
+        "options": {
+            "title": "Choose Options",
+            "description": "Select the options you want to add to your cart."
+        },
         "view": "View product",
         "recommendations": "You may also like",
         "soldOut": "Sold out",

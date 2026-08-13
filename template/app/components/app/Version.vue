@@ -6,7 +6,7 @@ const { data: version } = await useAsyncData('nuxt-shopify-version', () =>
 <template>
   <p class="pb-2 pe-3 md:pb-4">
     <span class="text-sm text-muted">
-      Built with
+      {{ $t('footer.builtWith') }}
     </span>
 
     <br>
