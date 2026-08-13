@@ -14,6 +14,7 @@ import { joinURL } from 'ufo'
 
 import { ShopifyClientType } from '../schemas'
 import { useLogger } from './log'
+import { isInstalled } from './install'
 import { getAdminAccessToken } from '../runtime/utils/clients/admin/auth'
 import {
   ADMIN_TOKEN_HEADER,
@@ -21,6 +22,14 @@ import {
   PRIVATE_TOKEN_HEADER,
   PUBLIC_TOKEN_HEADER,
 } from '../runtime/utils/clients/transport'
+
+const HYDROGEN_STOREFRONT_SCHEMA = '@shopify/hydrogen/storefront.schema.json'
+const HYDROGEN_CUSTOMER_ACCOUNT_SCHEMA = '@shopify/hydrogen/customer-account.schema.json'
+
+const HYDROGEN_SCHEMAS: Partial<Record<ShopifyClientType, string>> = {
+  [ShopifyClientType.Storefront]: HYDROGEN_STOREFRONT_SCHEMA,
+  [ShopifyClientType.CustomerAccount]: HYDROGEN_CUSTOMER_ACCOUNT_SCHEMA,
+}
 
 type ShopifyTemplateOptions = {
   filename: string
@@ -35,13 +44,53 @@ type InterfaceExtensionsParams = {
   mutationType: string
 }
 
-async function extractResult(input: Promise<Types.FileOutput[]>, filename: string) {
+function getHydrogenSchema(clientType: ShopifyClientType) {
+  const schemaId = HYDROGEN_SCHEMAS[clientType]
+
+  if (!schemaId || !isInstalled(schemaId)) {
+    return undefined
+  }
+
+  return [import.meta.resolve(schemaId)]
+}
+
+function isRemoteSchema(schema: Types.ConfiguredOutput['schema']) {
+  return Array.isArray(schema) && schema.length > 0 && schema.every(pointer => typeof pointer === 'object')
+}
+
+async function extractResult(input: Promise<Types.FileOutput[]>) {
+  return (await input)?.at(0)?.content ?? ''
+}
+
+async function runGenerate<T extends Types.ConfiguredOutput>(
+  options: ShopifyTemplateOptions,
+  generatorConfig: T,
+  createConfig: (generatorConfig: T) => Types.Config,
+) {
+  const logger = useLogger()
+
   try {
-    return (await input)?.at(0)?.content ?? ''
+    return await extractResult(generate(createConfig(generatorConfig), false))
   }
   catch (error) {
-    useLogger().error(`Failed to generate \`${filename}\`: ${(error as Error).message}`)
-    return ''
+    const fallbackSchema = isRemoteSchema(generatorConfig.schema)
+      ? getHydrogenSchema(options.clientType)
+      : undefined
+
+    if (!fallbackSchema) {
+      logger.error(`Failed to generate \`${options.filename}\`: ${(error as Error).message}`)
+      return ''
+    }
+
+    logger.warn(`Failed to introspect the ${kebabCase(options.clientType)} API, falling back to the schema shipped with \`@shopify/hydrogen\`.`)
+
+    try {
+      return await extractResult(generate(createConfig({ ...generatorConfig, schema: fallbackSchema }), false))
+    }
+    catch (fallbackError) {
+      logger.error(`Failed to generate \`${options.filename}\`: ${(fallbackError as Error).message}`)
+      return ''
+    }
   }
 }
 
@@ -85,7 +134,7 @@ async function getIntrospection(options: ShopifyTemplateOptions) {
     }
   }
   else if (clientType === ShopifyClientType.CustomerAccount) {
-    return [import.meta.resolve('@shopify/hydrogen/customer-account.schema.json')]
+    return [import.meta.resolve(HYDROGEN_CUSTOMER_ACCOUNT_SCHEMA)]
   }
   else if (clientType === ShopifyClientType.Admin) {
     const adminConfig = clientConfig as NonNullable<ShopifyConfig['clients']['admin']>
@@ -140,14 +189,14 @@ export function createIntrospectionGenerator(): NuxtTemplate<ShopifyTemplateOpti
       config: generatorConfig,
     })
 
-    return extractResult(generate({
+    return runGenerate(data.options, generatorConfig, config => ({
       overwrite: true,
       ignoreNoDocuments: true,
       silent: useLogger().level < LogLevels.verbose,
       generates: {
-        [data.options.filename]: generatorConfig,
+        [data.options.filename]: config,
       },
-    }, false), data.options.filename)
+    }))
   }
 }
 
@@ -163,14 +212,14 @@ export function createTypesGenerator(): NuxtTemplate<ShopifyTemplateOptions>['ge
       config: generatorConfig,
     })
 
-    return extractResult(generate({
+    return runGenerate(data.options, generatorConfig, config => ({
       overwrite: true,
       ignoreNoDocuments: true,
       silent: useLogger().level < LogLevels.verbose,
       generates: {
-        [data.options.filename]: generatorConfig,
+        [data.options.filename]: config,
       },
-    }, false), data.options.filename)
+    }))
   }
 }
 
@@ -207,15 +256,15 @@ export function createOperationsGenerator(): NuxtTemplate<ShopifyTemplateOptions
       config: generatorConfig,
     })
 
-    return extractResult(generate({
+    return runGenerate(data.options, generatorConfig, config => ({
       overwrite: true,
       silent: useLogger().level < LogLevels.verbose,
       generates: {
-        [data.options.filename]: generatorConfig,
+        [data.options.filename]: config,
       },
       // @ts-expect-error weird behavior
       pluckConfig,
-    }, false), data.options.filename)
+    }))
   }
 }
 
