@@ -1,0 +1,245 @@
+{
+    "footer": {
+        "message": "Publié sous licence MIT.",
+        "github": "Voir sur GitHub",
+        "cookies": "Préférences de cookies",
+        "builtWith": "Créé avec",
+        "links": {
+            "github": "Github",
+            "module": "Page du module",
+            "documentation": "Documentation",
+            "npm": "Paquet NPM"
+        }
+    },
+    "breadcrumb": {
+        "collections": "Collections",
+        "products": "Produits",
+        "blog": "Blog"
+    },
+    "localization": {
+        "title": "Pays et langue",
+        "description": "Les prix et la devise de paiement dépendent du pays choisi.",
+        "country": "Pays/région",
+        "language": "Langue"
+    },
+    "cart": {
+        "title": "Panier",
+        "description": "Vérifiez les articles sélectionnés",
+        "empty": "Votre panier est vide.",
+        "subtotal": "Sous-total",
+        "checkout": "Commander",
+        "open": "Ouvrir le panier",
+        "toast": {
+            "add": "Article ajouté au panier.",
+            "update": "Panier mis à jour.",
+            "remove": "Article retiré du panier.",
+            "view": "Voir le panier",
+            "error": {
+                "init": "Le panier n'a pas pu être initialisé.",
+                "get": "Le panier n'a pas pu être récupéré.",
+                "add": "L'article n'a pas pu être ajouté au panier.",
+                "update": "L'article n'a pas pu être mis à jour dans le panier.",
+                "remove": "L'article n'a pas pu être retiré du panier.",
+                "tryAgain": "Veuillez réessayer."
+            }
+        }
+    },
+    "search": {
+        "label": "Recherche",
+        "placeholder": "Rechercher...",
+        "description": "Trouvez des produits et des collections",
+        "queries": "Rechercher",
+        "products": "Produits",
+        "collections": "Collections",
+        "articles": "Articles"
+    },
+    "account": {
+        "label": "Compte",
+        "description": "Gérez votre compte et vos commandes",
+        "greeting": "Bon retour, {name}",
+        "welcome": "Bienvenue dans votre compte",
+        "logout": "Se déconnecter",
+        "subscribeNewsletter": "Recevoir les actualités et les offres par e-mail",
+        "menu": {
+            "title": "Votre compte client",
+            "profile": "Profil",
+            "orders": "Commandes",
+            "close": "Fermer le menu du compte"
+        },
+        "signIn": {
+            "title": "Connectez-vous ou créez un compte",
+            "description": "Accédez à votre profil, suivez vos commandes et gérez vos informations.",
+            "action": "Se connecter"
+        },
+        "profile": {
+            "title": "Profil",
+            "name": "Nom",
+            "email": "E-mail",
+            "phone": "Téléphone",
+            "address": "Adresse par défaut",
+            "empty": "Non renseigné",
+            "edit": "Modifier le profil",
+            "firstName": "Prénom",
+            "lastName": "Nom",
+            "save": "Enregistrer les modifications",
+            "managedByShopify": "Votre adresse e-mail et votre numéro de téléphone sont gérés par Shopify et ne peuvent pas être modifiés ici.",
+            "toast": {
+                "updated": "Votre profil a été mis à jour.",
+                "error": "Votre profil n'a pas pu être mis à jour."
+            }
+        },
+        "orders": {
+            "title": "Commandes",
+            "page": {
+                "title": "Aperçu de vos commandes"
+            },
+            "empty": "Vous n'avez encore passé aucune commande.",
+            "browse": "Commencer mes achats",
+            "view": "Voir la commande",
+            "items": "{count} article | {count} articles",
+            "status": {
+                "PAID": "Payée",
+                "PENDING": "En attente",
+                "AUTHORIZED": "Autorisée",
+                "PARTIALLY_PAID": "Partiellement payée",
+                "PARTIALLY_REFUNDED": "Partiellement remboursée",
+                "REFUNDED": "Remboursée",
+                "VOIDED": "Annulée",
+                "EXPIRED": "Expirée"
+            },
+            "viewAll": "Voir toutes les commandes",
+            "notFound": "Cette commande est introuvable.",
+            "detail": {
+                "placed": "Passée le {date}",
+                "items": "Articles",
+                "summary": "Récapitulatif",
+                "subtotal": "Sous-total",
+                "shipping": "Livraison",
+                "tax": "Taxes",
+                "total": "Total",
+                "quantity": "Quantité : {count}",
+                "shippingAddress": "Adresse de livraison",
+                "billingAddress": "Adresse de facturation",
+                "manage": "Gérer la commande"
+            },
+            "fulfillment": {
+                "FULFILLED": "Expédiée",
+                "IN_PROGRESS": "En cours",
+                "ON_HOLD": "En suspens",
+                "OPEN": "Ouverte",
+                "PARTIALLY_FULFILLED": "Partiellement expédiée",
+                "PENDING_FULFILLMENT": "Expédition en attente",
+                "READY_FOR_DELIVERY": "Prête pour la livraison",
+                "READY_FOR_PICKUP": "Prête pour le retrait",
+                "RESTOCKED": "Remise en stock",
+                "SCHEDULED": "Planifiée",
+                "UNFULFILLED": "Non expédiée"
+            }
+        },
+        "toast": {
+            "error": {
+                "get": "Votre compte n'a pas pu être chargé.",
+                "tryAgain": "Veuillez réessayer."
+            }
+        },
+        "recommended": "Vous aimerez peut-être aussi",
+        "cancel": "Annuler",
+        "addresses": {
+            "title": "Carnet d'adresses",
+            "description": "Gérez les adresses enregistrées dans votre compte",
+            "add": "Ajouter une adresse",
+            "edit": "Modifier",
+            "delete": "Supprimer",
+            "save": "Enregistrer l'adresse",
+            "default": "Par défaut",
+            "setDefault": "Définir par défaut",
+            "empty": "Vous n'avez encore enregistré aucune adresse.",
+            "confirm": {
+                "title": "Supprimer cette adresse ?",
+                "description": "Cette action est irréversible."
+            },
+            "fields": {
+                "firstName": "Prénom",
+                "lastName": "Nom",
+                "company": "Société",
+                "address1": "Adresse",
+                "address2": "Appartement, bâtiment, etc.",
+                "city": "Ville",
+                "zip": "Code postal",
+                "country": "Pays",
+                "zone": "État / province",
+                "zoneHint": "Code, par ex. BE",
+                "phone": "Téléphone"
+            },
+            "toast": {
+                "created": "Adresse ajoutée.",
+                "updated": "Adresse mise à jour.",
+                "deleted": "Adresse supprimée.",
+                "error": "Votre adresse n'a pas pu être enregistrée."
+            }
+        }
+    },
+    "pagination": {
+        "previous": "Charger les précédents",
+        "next": "Charger les suivants"
+    },
+    "price": {
+        "from": "de",
+        "to": "à"
+    },
+    "product": {
+        "add": "Ajouter",
+        "choose": "Choisir",
+        "quantity": "Quantité",
+        "options": {
+            "title": "Choisir les options",
+            "description": "Sélectionnez les options que vous souhaitez ajouter au panier."
+        },
+        "view": "Voir le produit",
+        "recommendations": "Vous aimerez peut-être aussi",
+        "soldOut": "Épuisé",
+        "giftCard": "Carte cadeau",
+        "subscription": "Abonnement disponible",
+        "priceFrom": "À partir de {price}",
+        "discount": "-{percentage}%",
+        "lowStock": "Plus que {count} en stock | Plus que {count} en stock"
+    },
+    "collection": {
+        "products": {
+            "loading": "Chargement des produits...",
+            "notFound": "Aucun produit trouvé."
+        },
+        "all": "Toutes les collections",
+        "description": "Parcourez toutes les collections de la boutique."
+    },
+    "policies": {
+        "title": "Politiques",
+        "description": "Les conditions légales qui s'appliquent à vos achats chez nous.",
+        "empty": "Aucune politique n'a encore été publiée."
+    },
+    "filters": {
+        "title": "Filtres",
+        "clear": "Réinitialiser les filtres"
+    },
+    "home": {
+        "title": "Nuxt Shopify Demo Store",
+        "description": "Ceci est une boutique de démonstration créée avec Nuxt 4 et la Storefront API de Shopify. Elle montre comment créer une boutique en ligne entièrement fonctionnelle avec Nuxt UI.",
+        "products": {
+            "newest": "Nouveaux produits",
+            "bestsellers": "Meilleures ventes"
+        }
+    },
+    "seo": {
+        "description": "Bienvenue dans notre boutique de démonstration ! Explorez nos collections et trouvez les articles parfaits pour vous. Profitez d'une expérience d'achat fluide avec Nuxt et Shopify."
+    },
+    "error": {
+        "home": "Retour à l'accueil",
+        "notFound": "Page introuvable",
+        "collection": "Collection introuvable",
+        "product": "Produit introuvable",
+        "blog": "Blog introuvable",
+        "article": "Article introuvable",
+        "page": "Page introuvable",
+        "policy": "Politique introuvable"
+    }
+}

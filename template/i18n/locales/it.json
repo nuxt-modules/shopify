@@ -1,0 +1,245 @@
+{
+    "footer": {
+        "message": "Pubblicato con licenza MIT.",
+        "github": "Vedi su GitHub",
+        "cookies": "Preferenze cookie",
+        "builtWith": "Realizzato con",
+        "links": {
+            "github": "Github",
+            "module": "Pagina del modulo",
+            "documentation": "Documentazione",
+            "npm": "Pacchetto NPM"
+        }
+    },
+    "breadcrumb": {
+        "collections": "Collezioni",
+        "products": "Prodotti",
+        "blog": "Blog"
+    },
+    "localization": {
+        "title": "Paese e lingua",
+        "description": "I prezzi e la valuta di pagamento dipendono dal paese selezionato.",
+        "country": "Paese/regione",
+        "language": "Lingua"
+    },
+    "cart": {
+        "title": "Carrello",
+        "description": "Controlla gli articoli selezionati",
+        "empty": "Il tuo carrello è vuoto.",
+        "subtotal": "Subtotale",
+        "checkout": "Vai al pagamento",
+        "open": "Apri il carrello",
+        "toast": {
+            "add": "Articolo aggiunto al carrello.",
+            "update": "Carrello aggiornato.",
+            "remove": "Articolo rimosso dal carrello.",
+            "view": "Vedi il carrello",
+            "error": {
+                "init": "Impossibile inizializzare il carrello.",
+                "get": "Impossibile recuperare il carrello.",
+                "add": "Impossibile aggiungere l'articolo al carrello.",
+                "update": "Impossibile aggiornare l'articolo nel carrello.",
+                "remove": "Impossibile rimuovere l'articolo dal carrello.",
+                "tryAgain": "Riprova."
+            }
+        }
+    },
+    "search": {
+        "label": "Cerca",
+        "placeholder": "Cerca...",
+        "description": "Trova prodotti e collezioni",
+        "queries": "Cerca",
+        "products": "Prodotti",
+        "collections": "Collezioni",
+        "articles": "Articoli"
+    },
+    "account": {
+        "label": "Account",
+        "description": "Gestisci il tuo account e i tuoi ordini",
+        "greeting": "Bentornato, {name}",
+        "welcome": "Benvenuto nel tuo account",
+        "logout": "Esci",
+        "subscribeNewsletter": "Voglio ricevere novità e offerte via e-mail",
+        "menu": {
+            "title": "Il tuo account utente",
+            "profile": "Profilo",
+            "orders": "Ordini",
+            "close": "Chiudi il menu dell'account"
+        },
+        "signIn": {
+            "title": "Accedi o crea un account",
+            "description": "Accedi al tuo profilo, segui i tuoi ordini e gestisci i tuoi dati.",
+            "action": "Accedi"
+        },
+        "profile": {
+            "title": "Profilo",
+            "name": "Nome",
+            "email": "E-mail",
+            "phone": "Telefono",
+            "address": "Indirizzo predefinito",
+            "empty": "Non indicato",
+            "edit": "Modifica profilo",
+            "firstName": "Nome",
+            "lastName": "Cognome",
+            "save": "Salva modifiche",
+            "managedByShopify": "Il tuo indirizzo e-mail e il tuo numero di telefono sono gestiti da Shopify e non possono essere modificati qui.",
+            "toast": {
+                "updated": "Il tuo profilo è stato aggiornato.",
+                "error": "Impossibile aggiornare il tuo profilo."
+            }
+        },
+        "orders": {
+            "title": "Ordini",
+            "page": {
+                "title": "Panoramica dei tuoi ordini"
+            },
+            "empty": "Non hai ancora effettuato nessun ordine.",
+            "browse": "Inizia a fare acquisti",
+            "view": "Vedi ordine",
+            "items": "{count} articolo | {count} articoli",
+            "status": {
+                "PAID": "Pagato",
+                "PENDING": "In attesa",
+                "AUTHORIZED": "Autorizzato",
+                "PARTIALLY_PAID": "Parzialmente pagato",
+                "PARTIALLY_REFUNDED": "Parzialmente rimborsato",
+                "REFUNDED": "Rimborsato",
+                "VOIDED": "Annullato",
+                "EXPIRED": "Scaduto"
+            },
+            "viewAll": "Vedi tutti gli ordini",
+            "notFound": "Impossibile trovare questo ordine.",
+            "detail": {
+                "placed": "Effettuato il {date}",
+                "items": "Articoli",
+                "summary": "Riepilogo",
+                "subtotal": "Subtotale",
+                "shipping": "Spedizione",
+                "tax": "Imposte",
+                "total": "Totale",
+                "quantity": "Quantità: {count}",
+                "shippingAddress": "Indirizzo di spedizione",
+                "billingAddress": "Indirizzo di fatturazione",
+                "manage": "Gestisci ordine"
+            },
+            "fulfillment": {
+                "FULFILLED": "Spedito",
+                "IN_PROGRESS": "In corso",
+                "ON_HOLD": "In sospeso",
+                "OPEN": "Aperto",
+                "PARTIALLY_FULFILLED": "Parzialmente spedito",
+                "PENDING_FULFILLMENT": "Spedizione in attesa",
+                "READY_FOR_DELIVERY": "Pronto per la consegna",
+                "READY_FOR_PICKUP": "Pronto per il ritiro",
+                "RESTOCKED": "Riportato in magazzino",
+                "SCHEDULED": "Programmato",
+                "UNFULFILLED": "Non spedito"
+            }
+        },
+        "toast": {
+            "error": {
+                "get": "Impossibile caricare il tuo account.",
+                "tryAgain": "Riprova."
+            }
+        },
+        "recommended": "Potrebbe interessarti anche",
+        "cancel": "Annulla",
+        "addresses": {
+            "title": "Rubrica indirizzi",
+            "description": "Gestisci gli indirizzi salvati nel tuo account",
+            "add": "Aggiungi indirizzo",
+            "edit": "Modifica",
+            "delete": "Elimina",
+            "save": "Salva indirizzo",
+            "default": "Predefinito",
+            "setDefault": "Imposta come predefinito",
+            "empty": "Non hai ancora salvato nessun indirizzo.",
+            "confirm": {
+                "title": "Eliminare questo indirizzo?",
+                "description": "L'operazione non può essere annullata."
+            },
+            "fields": {
+                "firstName": "Nome",
+                "lastName": "Cognome",
+                "company": "Azienda",
+                "address1": "Indirizzo",
+                "address2": "Interno, scala, ecc.",
+                "city": "Città",
+                "zip": "CAP",
+                "country": "Paese",
+                "zone": "Provincia / stato",
+                "zoneHint": "Codice, ad es. BE",
+                "phone": "Telefono"
+            },
+            "toast": {
+                "created": "Indirizzo aggiunto.",
+                "updated": "Indirizzo aggiornato.",
+                "deleted": "Indirizzo eliminato.",
+                "error": "Impossibile salvare il tuo indirizzo."
+            }
+        }
+    },
+    "pagination": {
+        "previous": "Carica precedenti",
+        "next": "Carica successivi"
+    },
+    "price": {
+        "from": "da",
+        "to": "a"
+    },
+    "product": {
+        "add": "Aggiungi",
+        "choose": "Scegli",
+        "quantity": "Quantità",
+        "options": {
+            "title": "Scegli le opzioni",
+            "description": "Seleziona le opzioni che vuoi aggiungere al carrello."
+        },
+        "view": "Vedi prodotto",
+        "recommendations": "Potrebbe interessarti anche",
+        "soldOut": "Esaurito",
+        "giftCard": "Carta regalo",
+        "subscription": "Abbonamento disponibile",
+        "priceFrom": "Da {price}",
+        "discount": "-{percentage}%",
+        "lowStock": "Ne resta solo {count} | Ne restano solo {count}"
+    },
+    "collection": {
+        "products": {
+            "loading": "Caricamento dei prodotti...",
+            "notFound": "Nessun prodotto trovato."
+        },
+        "all": "Tutte le collezioni",
+        "description": "Esplora tutte le collezioni del negozio."
+    },
+    "policies": {
+        "title": "Informative",
+        "description": "Le condizioni legali che si applicano ai tuoi acquisti da noi.",
+        "empty": "Non è ancora stata pubblicata nessuna informativa."
+    },
+    "filters": {
+        "title": "Filtri",
+        "clear": "Cancella filtri"
+    },
+    "home": {
+        "title": "Nuxt Shopify Demo Store",
+        "description": "Questo è un negozio dimostrativo creato con Nuxt 4 e la Storefront API di Shopify. Mostra come realizzare uno storefront e-commerce completo con Nuxt UI.",
+        "products": {
+            "newest": "Prodotti più recenti",
+            "bestsellers": "Più venduti"
+        }
+    },
+    "seo": {
+        "description": "Benvenuto nel nostro negozio dimostrativo! Esplora le nostre collezioni e trova gli articoli perfetti per te. Goditi un'esperienza di acquisto fluida con Nuxt e Shopify."
+    },
+    "error": {
+        "home": "Torna alla home",
+        "notFound": "Pagina non trovata",
+        "collection": "Collezione non trovata",
+        "product": "Prodotto non trovato",
+        "blog": "Blog non trovato",
+        "article": "Articolo non trovato",
+        "page": "Pagina non trovata",
+        "policy": "Informativa non trovata"
+    }
+}
