@@ -4,6 +4,13 @@ export const cartGetInputSchema = localizationParamsSchema.extend({
   id: z.string().min(1),
 })
 
+export const cartCreateInputSchema = localizationParamsSchema.extend({
+  lines: z.array(z.object({
+    merchandiseId: z.string().min(1),
+    quantity: z.number().min(1).optional(),
+  })),
+})
+
 export const cartLineInputSchema = localizationParamsSchema.extend({
   cartId: z.string().min(1),
   lines: z.array(z.object({

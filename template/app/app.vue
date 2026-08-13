@@ -3,7 +3,7 @@ import * as locales from '@nuxt/ui/locale'
 
 const { shopify: { shopName } } = useAppConfig()
 const { language } = useLocalization()
-const { id, init, get } = useCart()
+const { get } = useCart()
 
 const lang = computed(() => locales[language.value].code)
 const dir = computed(() => locales[language.value].dir)
@@ -29,7 +29,7 @@ useHead({
   ],
 })
 
-watch(id, value => !value ? init().then(get) : get(), { immediate: true })
+await callOnce('shopify-cart', get)
 </script>
 
 <template>

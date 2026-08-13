@@ -9,7 +9,7 @@ const props = defineProps<{
 
 const { shopify: { shopName } } = useAppConfig()
 const { language } = useLocalization()
-const { id, init, get } = useCart()
+const { get } = useCart()
 const localePath = useLocalePath()
 
 const lang = computed(() => locales[language.value].code)
@@ -23,7 +23,7 @@ useHead({
   title: shopName,
 })
 
-watch(id, value => !value ? init().then(get) : get(), { immediate: true })
+await callOnce('shopify-cart', get)
 </script>
 
 <template>

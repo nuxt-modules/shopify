@@ -6,8 +6,8 @@ const open = ref(false)
 
 const { params: localization } = useLocalization()
 
-const { data, status } = await useStorefrontData(localizedKey('search', () => query.value ?? 'none'), `#graphql
-  query predictiveSearch($query: String!, $first: Int, $language: LanguageCode, $country: CountryCode)
+const { data, status } = await useStorefrontData(localizedKey('search'), `#graphql
+  query FetchPredictiveSearch($query: String!, $first: Int, $language: LanguageCode, $country: CountryCode)
   @inContext(language: $language, country: $country) {
     predictiveSearch(query: $query) {
       queries {
@@ -146,6 +146,7 @@ const updateQuery = debounce((value: string) => query.value = value, 300)
           itemLabelBase: 'py-1',
           itemLabelSuffix: 'line-clamp-3',
           itemWrapper: '[[data-slot=itemLeadingAvatar]+&]:py-0.5',
+          itemTrailingIcon: 'hidden',
         }"
         @update:search-term="updateQuery"
         @update:open="open = false"
