@@ -1,8 +1,30 @@
+import type { Nuxt } from 'nuxt/schema'
+import type { LocaleObject } from '@nuxtjs/i18n'
+
 import { resolve } from 'node:path'
 import { defineNuxtModule } from 'nuxt/kit'
 import { createStorefrontClient } from '@nuxtjs/shopify'
 
 const toLocale = (language: string, country: string) => `${language}-${country}`.toLowerCase()
+
+const setLanguageOptions = (nuxt: Nuxt, language?: string, country?: string, locales?: LocaleObject[]) => {
+  if (!locales || locales.length === 0) {
+    locales = [{
+      code: 'en-us',
+      language: 'en-US',
+      name: 'English',
+      file: 'en.json',
+    }]
+  }
+
+  nuxt.options.i18n.defaultLocale = toLocale(language ?? 'en', country ?? 'US')
+  nuxt.options.i18n.locales = locales
+
+  nuxt.hook('i18n:registerModule', register => register({
+    langDir: resolve(nuxt.options.rootDir, 'i18n/locales'),
+    locales,
+  }))
+}
 
 export default defineNuxtModule({
   meta: {
@@ -12,9 +34,13 @@ export default defineNuxtModule({
   async setup(_options, nuxt) {
     const config = nuxt.options.runtimeConfig._shopify
 
-    if (!config?.clients?.storefront) return
+    if (!config?.clients?.storefront) {
+      setLanguageOptions(nuxt)
 
-    const { data } = await createStorefrontClient(config).request(`#graphql
+      return
+    }
+
+    const response = await createStorefrontClient(config).request(`#graphql
       query FetchAvailableLocales {
         localization {
           country { isoCode }
@@ -25,11 +51,19 @@ export default defineNuxtModule({
           }
         }
       }
-    `)
+    `).catch(() => {
+      console.log('Failed to fetch available locales from Shopify. Using default `en-US`.')
 
-    if (!data) return
+      return null
+    })
 
-    const { country, language, availableCountries } = data.localization
+    if (!response?.data) {
+      setLanguageOptions(nuxt)
+
+      return
+    }
+
+    const { country, language, availableCountries } = response.data.localization
 
     const locales = availableCountries.flatMap(country =>
       country.availableLanguages.map(language => ({
@@ -39,12 +73,6 @@ export default defineNuxtModule({
         file: `${language.isoCode.toLowerCase()}.json`,
       })))
 
-    nuxt.options.i18n.defaultLocale = toLocale(language.isoCode, country.isoCode)
-    nuxt.options.i18n.locales = locales
-
-    nuxt.hook('i18n:registerModule', register => register({
-      langDir: resolve(nuxt.options.rootDir, 'i18n/locales'),
-      locales,
-    }))
+    setLanguageOptions(nuxt, language.isoCode, country.isoCode, locales)
   },
 })
