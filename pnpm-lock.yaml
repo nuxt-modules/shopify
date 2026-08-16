@@ -81,7 +81,7 @@ importers:
         specifier: ^1.17.5
         version: 1.17.5(db0@0.3.4(better-sqlite3@13.0.2))(ioredis@5.11.1)
       vue:
-        specifier: ^3.5.39
+        specifier: ^3
         version: 3.5.40(typescript@6.0.3)
       zod:
         specifier: ^4.4.3
@@ -234,7 +234,7 @@ importers:
         version: 10.4.1(@vue/compiler-dom@3.5.40)(db0@0.3.4(better-sqlite3@12.11.1))(esbuild@0.28.1)(eslint@10.7.0(jiti@2.7.0))(ioredis@5.11.1)(magicast@0.5.3)(rolldown@1.1.5)(rollup@4.62.2)(typescript@6.0.3)(vite@8.1.5(@types/node@25.9.5)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.49.0)(yaml@2.9.0))(vue@3.5.40(typescript@6.0.3))
       '@nuxtjs/shopify':
         specifier: latest
-        version: 0.8.1(@parcel/watcher@2.5.6)(@shopify/hydrogen-react@2026.4.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(three@0.183.2)(vite@8.1.5(@types/node@25.9.5)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.49.0)(yaml@2.9.0)))(@shopify/hydrogen@2026.4.4(@react-router/dev@7.18.1(@types/node@25.9.5)(jiti@2.7.0)(lightningcss@1.32.0)(react-router@7.18.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(terser@5.49.0)(typescript@6.0.3)(vite@8.1.5(@types/node@25.9.5)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.49.0)(yaml@2.9.0))(yaml@2.9.0))(react-dom@18.3.1(react@18.3.1))(react-router@7.18.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(three@0.183.2)(vite@8.1.5(@types/node@25.9.5)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.49.0)(yaml@2.9.0)))(@types/node@25.9.5)(better-sqlite3@12.11.1)(db0@0.3.4(better-sqlite3@12.11.1))(graphql@16.14.2)(ioredis@5.11.1)(magicast@0.5.3)(oxc-parser@0.128.0)(rolldown@1.1.5)(typescript@6.0.3)(vite@8.1.5(@types/node@25.9.5)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.49.0)(yaml@2.9.0))
+        version: 0.9.1(53f6710150717339f2cf22686472b220)
       '@shopify/hydrogen':
         specifier: ^2026.4.4
         version: 2026.4.4(@react-router/dev@7.18.1(@types/node@25.9.5)(jiti@2.7.0)(lightningcss@1.32.0)(react-router@7.18.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(terser@5.49.0)(typescript@6.0.3)(vite@8.1.5(@types/node@25.9.5)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.49.0)(yaml@2.9.0))(yaml@2.9.0))(react-dom@18.3.1(react@18.3.1))(react-router@7.18.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(three@0.183.2)(vite@8.1.5(@types/node@25.9.5)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.49.0)(yaml@2.9.0))
@@ -2487,8 +2487,8 @@ packages:
       zod:
         optional: true
 
-  '@nuxtjs/shopify@0.8.1':
-    resolution: {integrity: sha512-7iTtZeD0cDnR8R3aKmbwZkhMmO0WhHGrugUpMpgRpSpPRWXqc7/NXWeOByk/Y4kion0pzIEo+OJe3SYHe0f6MQ==}
+  '@nuxtjs/shopify@0.9.1':
+    resolution: {integrity: sha512-oml7xzJsd1FwgcaOz6xc+MwfEJLB9ku1ddZ9Fw9Kmo+BBUv/gje3grFln5F+S0nBe1aMF9hKlrcNMEzdXg2ecA==}
     engines: {node: ^20.x || ^22.x || ^24.x}
     hasBin: true
     peerDependencies:
@@ -14170,7 +14170,7 @@ snapshots:
       - vite
       - vue
 
-  '@nuxtjs/shopify@0.8.1(@parcel/watcher@2.5.6)(@shopify/hydrogen-react@2026.4.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(three@0.183.2)(vite@8.1.5(@types/node@25.9.5)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.49.0)(yaml@2.9.0)))(@shopify/hydrogen@2026.4.4(@react-router/dev@7.18.1(@types/node@25.9.5)(jiti@2.7.0)(lightningcss@1.32.0)(react-router@7.18.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(terser@5.49.0)(typescript@6.0.3)(vite@8.1.5(@types/node@25.9.5)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.49.0)(yaml@2.9.0))(yaml@2.9.0))(react-dom@18.3.1(react@18.3.1))(react-router@7.18.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(three@0.183.2)(vite@8.1.5(@types/node@25.9.5)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.49.0)(yaml@2.9.0)))(@types/node@25.9.5)(better-sqlite3@12.11.1)(db0@0.3.4(better-sqlite3@12.11.1))(graphql@16.14.2)(ioredis@5.11.1)(magicast@0.5.3)(oxc-parser@0.128.0)(rolldown@1.1.5)(typescript@6.0.3)(vite@8.1.5(@types/node@25.9.5)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.49.0)(yaml@2.9.0))':
+  '@nuxtjs/shopify@0.9.1(53f6710150717339f2cf22686472b220)':
     dependencies:
       '@graphql-codegen/cli': 7.2.0(@parcel/watcher@2.5.6)(@types/node@25.9.5)(graphql@16.14.2)(typescript@6.0.3)
       '@graphql-codegen/import-types-preset': 4.0.1(graphql@16.14.2)
@@ -14186,9 +14186,10 @@ snapshots:
       consola: 3.4.2
       defu: 6.1.7
       giget: 3.3.0
-      graphql-yoga: 5.21.2(graphql@16.14.2)
+      graphql: 16.14.2
       h3: 1.15.11
       lru-cache: 11.5.2
+      magic-string: 0.30.21
       minimatch: 10.2.5
       nitropack: 2.13.4(better-sqlite3@12.11.1)(oxc-parser@0.128.0)(rolldown@1.1.5)(vite@8.1.5(@types/node@25.9.5)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.49.0)(yaml@2.9.0))
       ohash: 2.0.11
@@ -14233,8 +14234,8 @@ snapshots:
       - db0
       - drizzle-orm
       - encoding
-      - graphql
       - graphql-sock
+      - graphql-yoga
       - idb-keyval
       - ioredis
       - magicast
