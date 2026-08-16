@@ -8,6 +8,7 @@ import type { ShopifyApiClientRequestOptions } from '../../../module'
 
 import { unref } from 'vue'
 import { createError, useAsyncData } from '#app'
+import { createAsyncDataKey, parseAsyncDataArguments } from '../../utils/clients/async'
 import { useStorefront } from './client'
 
 type PickFrom<T, K extends Array<string>> = T extends Array<any> ? T : T extends Record<string, any> ? keyof T extends K[number] ? T : K[number] extends never ? T : Pick<T, K[number]> : T
@@ -78,7 +79,7 @@ export function useStorefrontData<
   Operation extends keyof StorefrontOperations,
   ResT = ReturnData<Operation, StorefrontOperations>,
 >(...args: any[]) {
-  if (args.length < 1 || args.length > 3) {
+  if (args.length < 1 || args.length > 4) {
     throw createError({
       status: 500,
       statusText: 'Internal Server Error',
@@ -86,9 +87,7 @@ export function useStorefrontData<
     })
   }
 
-  const key = typeof args[1] === 'string' ? args[0] as MaybeRefOrGetter<string> : undefined
-  const operation = (key ? args[1] : args[0]) as Operation
-  const options = (key ? args[2] : args[1]) as StorefrontDataOptions<Operation, ResT> | undefined
+  const { key, operation, options, autoKey } = parseAsyncDataArguments<Operation, StorefrontDataOptions<Operation, ResT>>(args)
 
   const { variables, headers, apiVersion, retries, signal, cache, ...asyncOptions } = options ?? {}
 
@@ -124,7 +123,9 @@ export function useStorefrontData<
     transform: async (data: ResT) => (asyncOptions.transform ? await asyncOptions.transform(data) : data) ?? null,
   } as AsyncDataOptions<ResT>
 
-  return key
-    ? useAsyncData(key, handler, asyncDataOptions)
-    : useAsyncData(handler, asyncDataOptions)
+  return useAsyncData(
+    key ?? createAsyncDataKey(autoKey, operation, getVariables()),
+    handler,
+    asyncDataOptions,
+  )
 }

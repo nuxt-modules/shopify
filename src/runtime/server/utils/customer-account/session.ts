@@ -56,6 +56,16 @@ export function getCustomerAccountTokenStorage(config?: ShopifyConfig): Storage<
   return useStorage<CustomerAccountTokenSet>(base)
 }
 
+function getTokenStorageOptions(config?: ShopifyConfig) {
+  const maxAge = config?.clients?.customerAccount?.session?.maxAge
+
+  return maxAge ? { ttl: maxAge } : undefined
+}
+
+async function storeCustomerAccountTokens(config: ShopifyConfig | undefined, id: string, tokens: CustomerAccountTokenSet): Promise<void> {
+  await getCustomerAccountTokenStorage(config).setItem(id, tokens, getTokenStorageOptions(config))
+}
+
 export async function getCustomerAccountSession(event: H3Event): Promise<CustomerAccountSession> {
   const { _shopify } = useRuntimeConfig(event)
 
@@ -90,7 +100,7 @@ export async function setCustomerAccountSession(event: H3Event, data: { user: Cu
   if (usesExternalTokenStorage(_shopify)) {
     await session.update({ user: data.user, loggedInAt: data.loggedInAt })
 
-    await getCustomerAccountTokenStorage(_shopify).setItem(session.id!, data.tokens)
+    await storeCustomerAccountTokens(_shopify, session.id!, data.tokens)
   }
   else {
     await session.update({ user: data.user, loggedInAt: data.loggedInAt, tokens: data.tokens })
@@ -100,14 +110,22 @@ export async function setCustomerAccountSession(event: H3Event, data: { user: Cu
 export async function setCustomerAccountTokens(event: H3Event, tokens: CustomerAccountTokenSet): Promise<void> {
   const { _shopify } = useRuntimeConfig(event)
 
-  if (usesExternalTokenStorage(_shopify)) {
-    const session = await readSession(event, getSessionConfig(_shopify))
+  const sessionConfig = getSessionConfig(_shopify)
 
-    if (session?.id) await getCustomerAccountTokenStorage(_shopify).setItem(session.id, tokens)
+  if (!getCookie(event, sessionConfig.name ?? SESSION_DEFAULT_NAME)) {
+    throw createError({
+      status: 401,
+      statusText: 'Unauthorized',
+      message: '[shopify] Failed to store the customer account tokens: no authenticated customer account session',
+    })
+  }
+
+  const session = await useSession<CustomerAccountSessionData>(event, sessionConfig)
+
+  if (usesExternalTokenStorage(_shopify)) {
+    await storeCustomerAccountTokens(_shopify, session.id!, tokens)
   }
   else {
-    const session = await useSession<CustomerAccountSessionData>(event, getSessionConfig(_shopify))
-
     await session.update({ tokens })
   }
 }

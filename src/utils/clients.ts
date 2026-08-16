@@ -33,11 +33,13 @@ export function registerClientImports(clientType: ShopifyClientType, resolver: R
   }])
 }
 
-export function registerClientAsyncImports(clientType: ShopifyClientType, resolver: Resolver) {
-  addImports([{
-    from: resolver.resolve(`./runtime/composables/${kebabCase(clientType)}/async`),
-    name: `use${pascalCase(clientType)}Data`,
-  }])
+export function registerClientAsyncImports(nuxt: Nuxt, clientType: ShopifyClientType, resolver: Resolver) {
+  const from = resolver.resolve(`./runtime/composables/${kebabCase(clientType)}/async`)
+  const name = `use${pascalCase(clientType)}Data`
+
+  addImports([{ from, name }])
+
+  nuxt.options.optimization.keyedComposables.push({ name, argumentLength: 4, source: from })
 }
 
 export function registerCustomerAccountAuthRoutes(customerAccount: CustomerAccountConfig, resolver: Resolver) {

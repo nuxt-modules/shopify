@@ -23,7 +23,7 @@ export default function setupStorefrontClient({ nuxt, config, resolver }: Shopif
 
   if (isPublicClient(storefront)) {
     registerClientImports(ShopifyClientType.Storefront, resolver)
-    registerClientAsyncImports(ShopifyClientType.Storefront, resolver)
+    registerClientAsyncImports(nuxt, ShopifyClientType.Storefront, resolver)
   }
 
   const cache = typeof storefront.cache === 'object' ? storefront.cache : undefined

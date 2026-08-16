@@ -21,7 +21,7 @@ export default function setupCustomerAccountClient({ nuxt, config, resolver }: S
 
   if (isPublicClient(customerAccount)) {
     registerClientImports(ShopifyClientType.CustomerAccount, resolver)
-    registerClientAsyncImports(ShopifyClientType.CustomerAccount, resolver)
+    registerClientAsyncImports(nuxt, ShopifyClientType.CustomerAccount, resolver)
   }
 
   registerCustomerAccountAuthRoutes(customerAccount, resolver)
