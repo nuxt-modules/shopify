@@ -33,8 +33,8 @@ importers:
         specifier: ^3.0.0
         version: 3.0.0(@types/node@25.9.5)(typescript@6.0.3)
       '@shopify/graphql-client':
-        specifier: ^1.4.2
-        version: 1.4.2
+        specifier: ^2.0.0
+        version: 2.0.0
       '@shopify/graphql-codegen':
         specifier: ^0.1.0
         version: 0.1.0(graphql@16.14.2)
@@ -4449,6 +4449,9 @@ packages:
 
   '@shopify/graphql-client@1.4.2':
     resolution: {integrity: sha512-C/fEyx6BZmTGeJv0HSsduhfn5ZbkXk0nePkyo0+xXxorP1I+uvx9pobdFxTfiPnOrh+P6QiKzBgIviksnSo4YA==}
+
+  '@shopify/graphql-client@2.0.0':
+    resolution: {integrity: sha512-SfIZa6J9Px4ZSMIVdPLNupeSyqznovV6pDVxwC1rmbi0JTVj2q/CCsOf9hLQvsMdBiyJDHVnoVHGpBzlhpwO2Q==}
 
   '@shopify/graphql-codegen@0.1.0':
     resolution: {integrity: sha512-G3sSesLj7Czt/J2Bj+XlQ8u4pkfQEt32hsjoS3UGZlf1eAiVw0aBBddp+NI5HqBAi0gM/f7GLRAhG3kktPhZmA==}
@@ -15423,6 +15426,8 @@ snapshots:
   '@shopify/graphql-client@1.4.1': {}
 
   '@shopify/graphql-client@1.4.2': {}
+
+  '@shopify/graphql-client@2.0.0': {}
 
   '@shopify/graphql-codegen@0.1.0(graphql@16.14.2)':
     dependencies:

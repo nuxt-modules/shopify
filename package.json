@@ -95,7 +95,7 @@
     "@graphql-yoga/render-graphiql": "^5.21.2",
     "@nuxt/kit": "^4.4.8",
     "@shopify/api-codegen-preset": "^3.0.0",
-    "@shopify/graphql-client": "^1.4.2",
+    "@shopify/graphql-client": "^2.0.0",
     "@shopify/graphql-codegen": "^0.1.0",
     "citty": "^0.2.2",
     "consola": "^3.4.2",
