@@ -30,8 +30,8 @@ importers:
         specifier: ^4.4.8
         version: 4.4.8(magicast@0.5.3)
       '@shopify/api-codegen-preset':
-        specifier: ^2.0.1
-        version: 2.0.1(@types/node@25.9.5)(typescript@6.0.3)
+        specifier: ^3.0.0
+        version: 3.0.0(@types/node@25.9.5)(typescript@6.0.3)
       '@shopify/graphql-client':
         specifier: ^1.4.2
         version: 1.4.2
@@ -225,7 +225,7 @@ importers:
         version: 2.0.0(db0@0.3.4(better-sqlite3@12.11.1))(ioredis@5.11.1)(magicast@0.5.3)
       '@nuxt/ui':
         specifier: ^4.10.0
-        version: 4.10.0(71c5ad22ec41bbaa758426488e3953e1)
+        version: 4.10.0(f95142d078c6ac769a7115bc9ea32f56)
       '@nuxtjs/critters':
         specifier: ^0.9.2
         version: 0.9.2(magicast@0.5.3)
@@ -234,7 +234,7 @@ importers:
         version: 10.4.1(@vue/compiler-dom@3.5.40)(db0@0.3.4(better-sqlite3@12.11.1))(esbuild@0.28.1)(eslint@10.7.0(jiti@2.7.0))(ioredis@5.11.1)(magicast@0.5.3)(rolldown@1.1.5)(rollup@4.62.2)(typescript@6.0.3)(vite@8.1.5(@types/node@25.9.5)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.49.0)(yaml@2.9.0))(vue@3.5.40(typescript@6.0.3))
       '@nuxtjs/shopify':
         specifier: latest
-        version: 0.9.1(53f6710150717339f2cf22686472b220)
+        version: 0.9.2(53f6710150717339f2cf22686472b220)
       '@shopify/hydrogen':
         specifier: ^2026.4.4
         version: 2026.4.4(@react-router/dev@7.18.1(@types/node@25.9.5)(jiti@2.7.0)(lightningcss@1.32.0)(react-router@7.18.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(terser@5.49.0)(typescript@6.0.3)(vite@8.1.5(@types/node@25.9.5)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.49.0)(yaml@2.9.0))(yaml@2.9.0))(react-dom@18.3.1(react@18.3.1))(react-router@7.18.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(three@0.183.2)(vite@8.1.5(@types/node@25.9.5)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.49.0)(yaml@2.9.0))
@@ -2487,8 +2487,8 @@ packages:
       zod:
         optional: true
 
-  '@nuxtjs/shopify@0.9.1':
-    resolution: {integrity: sha512-oml7xzJsd1FwgcaOz6xc+MwfEJLB9ku1ddZ9Fw9Kmo+BBUv/gje3grFln5F+S0nBe1aMF9hKlrcNMEzdXg2ecA==}
+  '@nuxtjs/shopify@0.9.2':
+    resolution: {integrity: sha512-HbxneVmNacGCU5ltYAvvZNYYHeYKxnIeEZx7DrBM2HOF7pDsGLMh50oDHlp+TBr5TAQI+QjzZGXq631/5ePm7Q==}
     engines: {node: ^20.x || ^22.x || ^24.x}
     hasBin: true
     peerDependencies:
@@ -4439,6 +4439,10 @@ packages:
   '@shopify/api-codegen-preset@2.0.1':
     resolution: {integrity: sha512-sceMo8f10Vok7o409EVrh4XZcUyZJo25vkMmYR4CB8ERRbuXU+C5Icx+szvczqTciZYC2xkdkCczV6KSNUbdNA==}
     engines: {node: '>=20.0.0'}
+
+  '@shopify/api-codegen-preset@3.0.0':
+    resolution: {integrity: sha512-NKv+SUggxhHNeYjWFR+LKxb2PVtTaGlm5YJ7/jIGBr8E2v3yuo2TCp9tpcKqbECEhiQVcQzwnyeamW4LhWp92g==}
+    engines: {node: '>=22.0.0'}
 
   '@shopify/graphql-client@1.4.1':
     resolution: {integrity: sha512-/w4Uchx8ueI8gwmJd1ZbbIGndsjfMEFlzmay3P7rya5zj7K308xne/ggIvWDweueIut2qf1A8lI58xQl9Pu22w==}
@@ -13536,9 +13540,9 @@ snapshots:
       '@tiptap/suggestion': 3.28.0(@floating-ui/dom@1.8.0)(@tiptap/core@3.28.0(@tiptap/pm@3.28.0))(@tiptap/pm@3.28.0)
       '@tiptap/vue-3': 3.28.0(@floating-ui/dom@1.8.0)(@tiptap/core@3.28.0(@tiptap/pm@3.28.0))(@tiptap/pm@3.28.0)(vue@3.5.40(typescript@6.0.3))
       '@unhead/vue': 2.1.15(vue@3.5.40(typescript@6.0.3))
-      '@vueuse/core': 14.3.0(vue@3.5.40(typescript@6.0.3))
+      '@vueuse/core': 14.4.0(vue@3.5.40(typescript@6.0.3))
       '@vueuse/integrations': 14.3.0(change-case@5.4.4)(fuse.js@7.5.0)(vue@3.5.40(typescript@6.0.3))
-      '@vueuse/shared': 14.3.0(vue@3.5.40(typescript@6.0.3))
+      '@vueuse/shared': 14.4.0(vue@3.5.40(typescript@6.0.3))
       colortranslator: 5.0.0
       consola: 3.4.2
       defu: 6.1.7
@@ -13554,7 +13558,7 @@ snapshots:
       knitwork: 1.3.0
       magic-string: 0.30.21
       mlly: 1.8.2
-      motion-v: 2.3.0(@vueuse/core@14.3.0(vue@3.5.40(typescript@6.0.3)))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(vue@3.5.40(typescript@6.0.3))
+      motion-v: 2.3.0(@vueuse/core@14.4.0(vue@3.5.40(typescript@6.0.3)))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(vue@3.5.40(typescript@6.0.3))
       ohash: 2.0.11
       pathe: 2.0.3
       reka-ui: 2.10.1(vue@3.5.40(typescript@6.0.3))
@@ -13566,7 +13570,7 @@ snapshots:
       typescript: 6.0.3
       ufo: 1.6.4
       unplugin: 3.3.0(esbuild@0.28.1)(rolldown@1.1.5)(rollup@4.62.2)(vite@8.1.5(@types/node@25.9.5)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.49.0)(yaml@2.9.0))
-      unplugin-auto-import: 21.0.0(@nuxt/kit@4.4.8(magicast@0.5.3))(@vueuse/core@14.3.0(vue@3.5.40(typescript@6.0.3)))
+      unplugin-auto-import: 21.0.0(@nuxt/kit@4.4.8(magicast@0.5.3))(@vueuse/core@14.4.0(vue@3.5.40(typescript@6.0.3)))
       unplugin-vue-components: 32.1.0(@nuxt/kit@4.4.8(magicast@0.5.3))(esbuild@0.28.1)(rolldown@1.1.5)(rollup@4.62.2)(vite@8.1.5(@types/node@25.9.5)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.49.0)(yaml@2.9.0))(vue@3.5.40(typescript@6.0.3))
       vaul-vue: 0.4.1(reka-ui@2.10.1(vue@3.5.40(typescript@6.0.3)))(vue@3.5.40(typescript@6.0.3))
       vue-component-type-helpers: 3.3.7
@@ -13625,7 +13629,7 @@ snapshots:
       - vue
       - webpack
 
-  '@nuxt/ui@4.10.0(71c5ad22ec41bbaa758426488e3953e1)':
+  '@nuxt/ui@4.10.0(f95142d078c6ac769a7115bc9ea32f56)':
     dependencies:
       '@floating-ui/dom': 1.8.0
       '@iconify/vue': 5.0.1(vue@3.5.40(typescript@6.0.3))
@@ -13657,9 +13661,9 @@ snapshots:
       '@tiptap/suggestion': 3.28.0(@floating-ui/dom@1.8.0)(@tiptap/core@3.28.0(@tiptap/pm@3.28.0))(@tiptap/pm@3.28.0)
       '@tiptap/vue-3': 3.28.0(@floating-ui/dom@1.8.0)(@tiptap/core@3.28.0(@tiptap/pm@3.28.0))(@tiptap/pm@3.28.0)(vue@3.5.40(typescript@6.0.3))
       '@unhead/vue': 2.1.15(vue@3.5.40(typescript@6.0.3))
-      '@vueuse/core': 14.3.0(vue@3.5.40(typescript@6.0.3))
+      '@vueuse/core': 14.4.0(vue@3.5.40(typescript@6.0.3))
       '@vueuse/integrations': 14.3.0(change-case@5.4.4)(fuse.js@7.5.0)(vue@3.5.40(typescript@6.0.3))
-      '@vueuse/shared': 14.3.0(vue@3.5.40(typescript@6.0.3))
+      '@vueuse/shared': 14.4.0(vue@3.5.40(typescript@6.0.3))
       colortranslator: 5.0.0
       consola: 3.4.2
       defu: 6.1.7
@@ -13675,19 +13679,18 @@ snapshots:
       knitwork: 1.3.0
       magic-string: 0.30.21
       mlly: 1.8.2
-      motion-v: 2.3.0(@vueuse/core@14.3.0(vue@3.5.40(typescript@6.0.3)))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(vue@3.5.40(typescript@6.0.3))
+      motion-v: 2.3.0(@vueuse/core@14.4.0(vue@3.5.40(typescript@6.0.3)))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(vue@3.5.40(typescript@6.0.3))
       ohash: 2.0.11
       pathe: 2.0.3
       reka-ui: 2.10.1(vue@3.5.40(typescript@6.0.3))
       scule: 1.3.0
       tailwind-merge: 3.6.0
       tailwind-variants: 3.2.2(tailwind-merge@3.6.0)(tailwindcss@4.3.3)
-      tailwindcss: 4.3.3
       tinyglobby: 0.2.17
       typescript: 6.0.3
       ufo: 1.6.4
       unplugin: 3.3.0(esbuild@0.28.1)(rolldown@1.1.5)(rollup@4.62.2)(vite@8.1.5(@types/node@25.9.5)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.49.0)(yaml@2.9.0))
-      unplugin-auto-import: 21.0.0(@nuxt/kit@4.4.8(magicast@0.5.3))(@vueuse/core@14.3.0(vue@3.5.40(typescript@6.0.3)))
+      unplugin-auto-import: 21.0.0(@nuxt/kit@4.4.8(magicast@0.5.3))(@vueuse/core@14.4.0(vue@3.5.40(typescript@6.0.3)))
       unplugin-vue-components: 32.1.0(@nuxt/kit@4.4.8(magicast@0.5.3))(esbuild@0.28.1)(rolldown@1.1.5)(rollup@4.62.2)(vite@8.1.5(@types/node@25.9.5)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.49.0)(yaml@2.9.0))(vue@3.5.40(typescript@6.0.3))
       vaul-vue: 0.4.1(reka-ui@2.10.1(vue@3.5.40(typescript@6.0.3)))(vue@3.5.40(typescript@6.0.3))
       vue-component-type-helpers: 3.3.7
@@ -14170,7 +14173,7 @@ snapshots:
       - vite
       - vue
 
-  '@nuxtjs/shopify@0.9.1(53f6710150717339f2cf22686472b220)':
+  '@nuxtjs/shopify@0.9.2(53f6710150717339f2cf22686472b220)':
     dependencies:
       '@graphql-codegen/cli': 7.2.0(@parcel/watcher@2.5.6)(@types/node@25.9.5)(graphql@16.14.2)(typescript@6.0.3)
       '@graphql-codegen/import-types-preset': 4.0.1(graphql@16.14.2)
@@ -15380,6 +15383,25 @@ snapshots:
   '@shikijs/vscode-textmate@10.0.2': {}
 
   '@shopify/api-codegen-preset@2.0.1(@types/node@25.9.5)(typescript@6.0.3)':
+    dependencies:
+      '@graphql-codegen/cli': 6.3.1(@parcel/watcher@2.5.6)(@types/node@25.9.5)(graphql@16.14.2)(typescript@6.0.3)
+      '@graphql-codegen/introspection': 5.0.2(graphql@16.14.2)
+      '@graphql-codegen/typescript': 5.0.10(graphql@16.14.2)
+      '@parcel/watcher': 2.5.6
+      '@shopify/graphql-codegen': 0.1.0(graphql@16.14.2)
+      graphql: 16.14.2
+    transitivePeerDependencies:
+      - '@fastify/websocket'
+      - '@types/node'
+      - bufferutil
+      - cosmiconfig-toml-loader
+      - crossws
+      - graphql-sock
+      - supports-color
+      - typescript
+      - utf-8-validate
+
+  '@shopify/api-codegen-preset@3.0.0(@types/node@25.9.5)(typescript@6.0.3)':
     dependencies:
       '@graphql-codegen/cli': 6.3.1(@parcel/watcher@2.5.6)(@types/node@25.9.5)(graphql@16.14.2)(typescript@6.0.3)
       '@graphql-codegen/introspection': 5.0.2(graphql@16.14.2)
@@ -17296,13 +17318,13 @@ snapshots:
       '@shikijs/stream': 4.3.1(react@18.3.1)(vue@3.5.40(typescript@6.0.3))
       '@shikijs/themes': 4.3.1
       '@takumi-rs/core': 1.8.7(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      '@vueuse/core': 14.3.0(vue@3.5.40(typescript@6.0.3))
+      '@vueuse/core': 14.4.0(vue@3.5.40(typescript@6.0.3))
       ai: 6.0.229(zod@4.4.3)
       better-sqlite3: 13.0.2
       defu: 6.1.7
       exsolve: 1.1.0
       git-url-parse: 16.1.0
-      motion-v: 2.3.0(@vueuse/core@14.3.0(vue@3.5.40(typescript@6.0.3)))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(vue@3.5.40(typescript@6.0.3))
+      motion-v: 2.3.0(@vueuse/core@14.4.0(vue@3.5.40(typescript@6.0.3)))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(vue@3.5.40(typescript@6.0.3))
       nuxt: 4.4.8(@babel/plugin-syntax-jsx@7.29.7(@babel/core@7.29.7))(@babel/plugin-syntax-typescript@7.29.7(@babel/core@7.29.7))(@parcel/watcher@2.5.6)(@types/node@25.9.5)(@vue/compiler-sfc@3.5.40)(better-sqlite3@13.0.2)(cac@6.7.14)(db0@0.3.4(better-sqlite3@13.0.2))(esbuild@0.28.1)(eslint@10.7.0(jiti@2.7.0))(ioredis@5.11.1)(lightningcss@1.32.0)(magicast@0.5.3)(optionator@0.9.4)(rolldown@1.1.5)(rollup-plugin-visualizer@7.0.1(rolldown@1.1.5)(rollup@4.62.2))(rollup@4.62.2)(terser@5.49.0)(typescript@6.0.3)(vite@8.1.5(@types/node@25.9.5)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.49.0)(yaml@2.9.0))(vue-tsc@3.3.7(typescript@6.0.3))(yaml@2.9.0)
       nuxt-llms: 0.2.0(magicast@0.5.3)
       nuxt-og-image: 6.6.0(ac3f99bf1b1300233c1451c0a806ce76)
@@ -19713,19 +19735,6 @@ snapshots:
 
   motion-utils@12.39.0: {}
 
-  motion-v@2.3.0(@vueuse/core@14.3.0(vue@3.5.40(typescript@6.0.3)))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(vue@3.5.40(typescript@6.0.3)):
-    dependencies:
-      '@vueuse/core': 14.3.0(vue@3.5.40(typescript@6.0.3))
-      framer-motion: 12.42.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      hey-listen: 1.0.8
-      motion-dom: 12.42.2
-      motion-utils: 12.39.0
-      vue: 3.5.40(typescript@6.0.3)
-    transitivePeerDependencies:
-      - '@emotion/is-prop-valid'
-      - react
-      - react-dom
-
   motion-v@2.3.0(@vueuse/core@14.4.0(vue@3.5.40(typescript@6.0.3)))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(vue@3.5.40(typescript@6.0.3)):
     dependencies:
       '@vueuse/core': 14.4.0(vue@3.5.40(typescript@6.0.3))
@@ -22077,8 +22086,8 @@ snapshots:
       '@internationalized/date': 3.12.2
       '@internationalized/number': 3.6.7
       '@tanstack/vue-virtual': 3.13.32(vue@3.5.40(typescript@6.0.3))
-      '@vueuse/core': 14.3.0(vue@3.5.40(typescript@6.0.3))
-      '@vueuse/shared': 14.3.0(vue@3.5.40(typescript@6.0.3))
+      '@vueuse/core': 14.4.0(vue@3.5.40(typescript@6.0.3))
+      '@vueuse/shared': 14.4.0(vue@3.5.40(typescript@6.0.3))
       aria-hidden: 1.2.6
       defu: 6.1.7
       ohash: 2.0.11
@@ -23130,7 +23139,7 @@ snapshots:
 
   unpipe@1.0.0: {}
 
-  unplugin-auto-import@21.0.0(@nuxt/kit@4.4.8(magicast@0.5.3))(@vueuse/core@14.3.0(vue@3.5.40(typescript@6.0.3))):
+  unplugin-auto-import@21.0.0(@nuxt/kit@4.4.8(magicast@0.5.3))(@vueuse/core@14.4.0(vue@3.5.40(typescript@6.0.3))):
     dependencies:
       local-pkg: 1.2.1
       magic-string: 0.30.21
@@ -23140,7 +23149,7 @@ snapshots:
       unplugin-utils: 0.3.2
     optionalDependencies:
       '@nuxt/kit': 4.4.8(magicast@0.5.3)
-      '@vueuse/core': 14.3.0(vue@3.5.40(typescript@6.0.3))
+      '@vueuse/core': 14.4.0(vue@3.5.40(typescript@6.0.3))
 
   unplugin-utils@0.3.2:
     dependencies:
