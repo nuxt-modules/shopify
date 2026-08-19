@@ -3,9 +3,6 @@
   "tags": [
     "-lintignore"
   ],
-  "ignoreUnresolved": [
-    "../../dev"
-  ],
   "ignoreWorkspaces": [
     "docs",
     "template"
@@ -16,11 +13,11 @@
         "src/module.ts",
         "src/cli.ts",
         "src/clients/*.d.ts",
-        "src/runtime/**/*.ts",
+        "src/runtime/**/*.{ts,vue}",
         "test/**/*.test.ts"
       ],
       "project": [
-        "src/**/*.ts"
+        "src/**/*.{ts,vue}"
       ],
       "ignoreDependencies": [
         "@graphql-codegen/import-types-preset",
