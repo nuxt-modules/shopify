@@ -4,6 +4,7 @@ import { hash } from 'ohash'
 import { z } from 'zod'
 
 import { useRuntimeConfig } from '#imports'
+import { assertSameSite } from '../../utils/csrf'
 import { createStorefrontConfig } from '../../../utils/clients/storefront'
 import {
   PRIVATE_TOKEN_HEADER,
@@ -59,6 +60,8 @@ function createUpstreamHeaders(headers: Record<string, string>): Record<string, 
 }
 
 export default defineEventHandler(async (event) => {
+  assertSameSite(event)
+
   const schema = z.object({
     query: z.string(),
     variables: z.record(z.string(), z.unknown()).optional(),
