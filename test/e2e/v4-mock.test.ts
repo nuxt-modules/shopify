@@ -4,9 +4,9 @@ import { access, readFile } from 'node:fs/promises'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { join } from 'node:path'
 
-import { ShopifyClientType } from '../../src/schemas'
-import { getInterfaceExtensionFunction } from '../../src/utils/codegen'
-import { expectedGraphqlProject, expectedStorefrontDocuments } from '../helpers/client'
+import { ShopifyClientType } from '#src/schemas'
+import { getInterfaceExtensionFunction } from '#src/utils/codegen'
+import { expectedGraphqlProject, expectedStorefrontDocuments } from '#test/helpers/codegen'
 
 const playgroundDir = fileURLToPath(new URL('../../playgrounds/playground-v4-mock', import.meta.url))
 const playgroundBuildDir = fileURLToPath(new URL('../../playgrounds/playground-v4-mock/.nuxt', import.meta.url))

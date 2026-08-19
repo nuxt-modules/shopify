@@ -2,10 +2,17 @@ import { fileURLToPath } from 'node:url'
 
 import { defineConfig } from 'vitest/config'
 
+const resolvePath = (path: string) => fileURLToPath(new URL(path, import.meta.url))
+
 export default defineConfig({
+  define: {
+    'import.meta.dev': 'globalThis.__NUXT_DEV__',
+  },
   resolve: {
     alias: {
-      '#imports': fileURLToPath(new URL('./test/helpers/stubs.ts', import.meta.url)),
+      '#imports': resolvePath('./test/helpers/stubs.ts'),
+      '#src': resolvePath('./src'),
+      '#test': resolvePath('./test'),
     },
   },
   test: {

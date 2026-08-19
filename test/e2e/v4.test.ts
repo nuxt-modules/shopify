@@ -4,14 +4,14 @@ import { access, readFile } from 'node:fs/promises'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { join } from 'node:path'
 
-import { ShopifyClientType } from '../../src/schemas'
-import { getInterfaceExtensionFunction } from '../../src/utils/codegen'
+import { ShopifyClientType } from '#src/schemas'
+import { getInterfaceExtensionFunction } from '#src/utils/codegen'
 import {
   expectedAdminDocuments,
   expectedCustomerAccountDocuments,
   expectedGraphqlProject,
   expectedStorefrontDocuments,
-} from '../helpers/client'
+} from '#test/helpers/codegen'
 
 const playgroundDir = fileURLToPath(new URL('../../playgrounds/playground-v4', import.meta.url))
 const playgroundBuildDir = fileURLToPath(new URL('../../playgrounds/playground-v4/.nuxt', import.meta.url))
