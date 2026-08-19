@@ -6,7 +6,7 @@ import { useRuntimeConfig } from '#imports'
 import { createStorefrontClient } from '../../../utils/clients/storefront'
 
 export function useStorefront(event?: H3Event): StorefrontApiClient {
-  const { _shopify } = useRuntimeConfig()
+  const { _shopify } = useRuntimeConfig(event)
 
   const nitroApp = useNitroApp()
 

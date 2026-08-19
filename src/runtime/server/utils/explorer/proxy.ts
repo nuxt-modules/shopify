@@ -7,13 +7,16 @@ import { kebabCase } from 'scule'
 import { useRuntimeConfig } from '#imports'
 import { z } from 'zod'
 
+import { assertSameSite } from '../csrf'
 import { createShopifyClient } from '../../../utils/clients'
 import { getValidCustomerAccessToken } from '../customer-account/auth'
 
 export default defineEventHandler(async (event: H3Event) => {
   if (!import.meta.dev) return
 
-  const { _shopify } = useRuntimeConfig()
+  assertSameSite(event)
+
+  const { _shopify } = useRuntimeConfig(event)
 
   const clientType = event.path.split('?')[0]!.split('/').pop() as ShopifyClientType
 

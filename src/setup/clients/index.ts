@@ -1,5 +1,5 @@
 import type { Resolver } from '@nuxt/kit'
-import type { Nuxt } from 'nuxt/schema'
+import type { Nuxt } from '@nuxt/schema'
 
 import type { ShopifyConfig, ShopifyClientSetupContext } from '../../types'
 

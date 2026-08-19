@@ -1,8 +1,9 @@
-import { createError, defineEventHandler, getRequestHeader, getRequestURL, sendRedirect } from 'h3'
+import { createError, defineEventHandler, getRequestURL, sendRedirect } from 'h3'
 import { useNitroApp } from 'nitropack/runtime'
 import { useRuntimeConfig } from '#imports'
 import { joinURL } from 'ufo'
 
+import { assertSameSite } from '../../../utils/csrf'
 import { createStoreDomain } from '../../../../utils/clients/transport'
 import { clearCustomerAccountSession, getCustomerAccountSession, getCustomerAccountTokens } from '../../../utils/customer-account/session'
 import { buildLogoutURL, getOpenIdConfiguration } from '../../../../utils/clients/customer-account/auth'
@@ -16,12 +17,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ status: 500, statusText: 'Internal Server Error', message: '[shopify] Customer account client is not configured' })
   }
 
-  const secFetchSite = getRequestHeader(event, 'sec-fetch-site')
-  const secFetchMode = getRequestHeader(event, 'sec-fetch-mode')
-
-  if (secFetchSite === 'cross-site' && secFetchMode !== 'navigate') {
-    throw createError({ status: 403, statusText: 'Forbidden', message: '[shopify] Cross-site logout is not allowed' })
-  }
+  assertSameSite(event, { allowNavigation: true })
 
   const { user } = await getCustomerAccountSession(event)
   const tokens = await getCustomerAccountTokens(event)

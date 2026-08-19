@@ -70,7 +70,7 @@ export default defineEventHandler(async (event) => {
 
   const headers = createUpstreamHeaders(requestHeaders)
 
-  const { _shopify } = useRuntimeConfig()
+  const { _shopify } = useRuntimeConfig(event)
 
   const { apiUrl } = createStorefrontConfig(_shopify)
 

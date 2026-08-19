@@ -110,7 +110,7 @@ export function useCustomerAccountData<
     ...(variables ? { variables: getVariables() } : {}),
     ...(headers ? { headers: getHeaders() } : {}),
     ...(apiVersion ? { apiVersion } : {}),
-    ...(retries ? { retries } : {}),
+    ...(retries !== undefined ? { retries } : {}),
     ...(signal ? { signal } : {}),
   } as ShopifyApiClientRequestOptions<Operation, CustomerAccountOperations, false>).then(r => (r.data ?? null) as ResT)
 

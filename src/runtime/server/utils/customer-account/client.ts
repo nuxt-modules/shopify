@@ -8,7 +8,7 @@ import { createCustomerAccountClient } from '../../../utils/clients/customer-acc
 import { getValidCustomerAccessToken } from './auth'
 
 export function useCustomerAccount(event: H3Event): CustomerAccountApiClient {
-  const { _shopify } = useRuntimeConfig()
+  const { _shopify } = useRuntimeConfig(event)
 
   const nitroApp = useNitroApp()
 

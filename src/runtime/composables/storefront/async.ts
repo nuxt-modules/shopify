@@ -114,7 +114,7 @@ export function useStorefrontData<
     ...(headers ? { headers: getHeaders() } : {}),
     ...(cache ? { cache: getCache() } : {}),
     ...(apiVersion ? { apiVersion } : {}),
-    ...(retries ? { retries } : {}),
+    ...(retries !== undefined ? { retries } : {}),
     ...(signal ? { signal } : {}),
   } as ShopifyApiClientRequestOptions<Operation, StorefrontOperations, true>).then(r => (r.data ?? null) as ResT)
 

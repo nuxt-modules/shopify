@@ -31,7 +31,7 @@ function hasValidSignature(secret: string, body: Buffer, signature: string): boo
  * @throws Will throw an unauthorized error if validation fails.
  */
 export const validate = async (event: H3Event) => {
-  const { _shopify } = useRuntimeConfig()
+  const { _shopify } = useRuntimeConfig(event)
 
   if (!_shopify?.webhooks?.secret) {
     if (!import.meta.dev) throw unauthorized()

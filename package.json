@@ -75,7 +75,7 @@
     "knip": "knip",
     "test": "dotenv -e .env -- vitest run",
     "test:watch": "dotenv -e .env -- vitest watch",
-    "test:coverage": "vitest run --coverage",
+    "test:coverage": "dotenv -e .env -- vitest run --coverage",
     "analyze": "pnpm --filter playground-v4 analyze",
     "prepack": "nuxt-module-build prepare && nuxt-module-build build",
     "prepare": "nuxt-module-build prepare",
