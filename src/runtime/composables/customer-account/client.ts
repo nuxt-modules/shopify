@@ -1,15 +1,16 @@
 import type { CustomerAccountApiClient } from '@nuxtjs/shopify/customer-account'
+import type { H3Event } from 'h3'
 
 import { useRuntimeConfig, useNuxtApp, useRequestURL, useRequestEvent } from '#imports'
 import { createCustomerAccountClient } from '../../utils/clients/customer-account'
 
-export function useCustomerAccount(): CustomerAccountApiClient {
+export function useCustomerAccount(event?: H3Event): CustomerAccountApiClient {
   const { _shopify } = useRuntimeConfig().public
 
   const nuxtApp = useNuxtApp()
 
   return createCustomerAccountClient(_shopify!, {
-    event: import.meta.server ? useRequestEvent() : undefined,
+    event: event ?? (import.meta.server ? useRequestEvent() : undefined),
     origin: nuxtApp.payload.prerenderedAt ? undefined : useRequestURL().origin,
 
     onConfigure: params => nuxtApp.hooks.callHook('customer-account:client:configure', params),

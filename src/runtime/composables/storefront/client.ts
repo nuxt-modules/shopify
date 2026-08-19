@@ -1,15 +1,16 @@
 import type { StorefrontApiClient } from '@nuxtjs/shopify/storefront'
+import type { H3Event } from 'h3'
 
 import { useRuntimeConfig, useNuxtApp, useRequestURL, useRequestEvent } from '#imports'
 import { createStorefrontClient } from '../../utils/clients/storefront'
 
-export function useStorefront(): StorefrontApiClient<true> {
+export function useStorefront(event?: H3Event): StorefrontApiClient<true> {
   const { _shopify } = useRuntimeConfig().public
 
   const nuxtApp = useNuxtApp()
 
   return createStorefrontClient<true>(_shopify!, {
-    event: import.meta.server ? useRequestEvent() : undefined,
+    event: event ?? (import.meta.server ? useRequestEvent() : undefined),
     origin: nuxtApp.payload.prerenderedAt ? undefined : useRequestURL().origin,
     cache: nuxtApp.$shopify?.cache?.storefront,
 

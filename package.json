@@ -73,14 +73,14 @@
     "typecheck:docs": "pnpm --filter ./docs typecheck",
     "typecheck:all": "vue-tsc --noEmit && pnpm --filter \"./playgrounds/*\" typecheck && pnpm --filter ./template typecheck && pnpm --filter ./docs typecheck",
     "knip": "knip",
-    "test": "dotenv -e .env -- vitest run",
+    "test": "pnpm run prepare:playgrounds && dotenv -e .env -- vitest run",
     "test:watch": "dotenv -e .env -- vitest watch",
-    "test:coverage": "dotenv -e .env -- vitest run --coverage",
+    "test:coverage": "pnpm run prepare:playgrounds && dotenv -e .env -- vitest run --coverage",
     "analyze": "pnpm --filter playground-v4 analyze",
     "prepack": "nuxt-module-build prepare && nuxt-module-build build",
     "prepare": "nuxt-module-build prepare",
     "prepare:dev": "nuxt-module-build --filter={./playgrounds/*,./template} prepare",
-    "prepare:playgrounds": "pnpm --filter \"./playgrounds/*\" prepare",
+    "prepare:playgrounds": "dotenv -e .env -- pnpm --filter \"./playgrounds/*\" prepare",
     "prepare:template": "pnpm --filter ./template prepare",
     "prepare:docs": "pnpm --filter ./docs prepare",
     "prepare:all": "nuxt-module-build prepare && dotenv -e .env -- pnpm --filter \"./playgrounds/*\" --filter ./template --filter ./docs prepare",
@@ -163,6 +163,6 @@
     "codegen"
   ],
   "engines": {
-    "node": "^20.x || ^22.x || ^24.x"
+    "node": "^20.19.0 || >=22.12.0"
   }
 }
