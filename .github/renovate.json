@@ -13,26 +13,5 @@
     "postUpdateOptions": ["pnpmDedupe"],
     "lockFileMaintenance": {
         "enabled": true
-    },
-    "packageRules": [
-        {
-            "matchFileNames": ["docs/package.json"],
-            "matchUpdateTypes": ["minor", "patch"],
-            "groupName": "docs dependencies"
-        },
-        {
-            "matchFileNames": ["template/package.json"],
-            "matchUpdateTypes": ["minor", "patch"],
-            "groupName": "template dependencies"
-        },
-        {
-            "matchFileNames": [
-                "playground/playground-v3/package.json",
-                "playground/playground-v4/package.json",
-                "playground/playground-v4-mock/package.json"
-            ],
-            "matchUpdateTypes": ["minor", "patch"],
-            "groupName": "playground dependencies"
-        }
-    ]
+    }
 }
