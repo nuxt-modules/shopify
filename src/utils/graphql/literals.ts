@@ -7,7 +7,10 @@ export interface GraphqlLiteral {
 
 const INLINE_MARKER = /^\s*#graphql\s*\n/i
 const PRECEDING_MARKER = /\/\*\s*GraphQL\s*\*\/\s*$/i
+const PRECEDING_TAG = /(?<![\w$.])(?:gql|graphql)\s*$/i
 const ASSIGNED_BINDING = /(?:const|let|var)\s+(\w+)\s*=\s*$/
+
+export const GRAPHQL_MARKER = /#graphql|\/\*\s*GraphQL\s*\*\/|(?<![\w$.])(?:gql|graphql)\s*`/i
 
 const DIVISION_OPERAND_END = /[)\]}\w$]/
 
@@ -143,16 +146,23 @@ export function findGraphqlLiterals(code: string): GraphqlLiteral[] {
       const start = index + 1
       const end = findLiteralEnd(code, start)
       const content = code.slice(start, end)
-      const preceding = code.slice(0, index)
+      const preceding = code.slice(0, index).trimEnd()
 
-      const isGraphql = INLINE_MARKER.test(content) || PRECEDING_MARKER.test(preceding)
+      const isGraphql = INLINE_MARKER.test(content)
+        || PRECEDING_MARKER.test(preceding)
+        || PRECEDING_TAG.test(preceding)
 
       if (isGraphql) {
+        const declaration = preceding
+          .replace(PRECEDING_TAG, '')
+          .replace(PRECEDING_MARKER, '')
+          .trimEnd()
+
         literals.push({
           start,
           end,
           content,
-          binding: preceding.trimEnd().match(ASSIGNED_BINDING)?.[1],
+          binding: declaration.match(ASSIGNED_BINDING)?.[1],
         })
       }
 

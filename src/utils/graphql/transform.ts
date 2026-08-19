@@ -3,7 +3,7 @@ import type { FragmentRegistry } from './registry'
 import MagicString from 'magic-string'
 
 import { collectSpreads, scanDefinitions } from '../../runtime/utils/graphql/scanner'
-import { findGraphqlLiterals } from './literals'
+import { GRAPHQL_MARKER, findGraphqlLiterals } from './literals'
 import { resolveFragments } from './registry'
 
 const TRANSFORMABLE = /\.(?:ts|js|mjs|cjs|mts|cts|vue)(?:\?|$)/
@@ -79,7 +79,7 @@ export function createGraphqlTransformPlugin(options: GraphqlTransformOptions) {
     enforce: 'post' as const,
 
     transform(code: string, id: string) {
-      if (!TRANSFORMABLE.test(id) || !code.includes('#graphql')) return
+      if (!TRANSFORMABLE.test(id) || !GRAPHQL_MARKER.test(code)) return
 
       const file = id.split('?')[0]!
       const transformed = rewrite(code, file, options)
