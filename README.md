@@ -47,6 +47,12 @@ Run the following command to install the module in your project:
 npx nuxi@latest module add shopify
 ```
 
+Or scaffold a complete storefront from the [store template](https://github.com/nuxt-modules/shopify/tree/main/template):
+
+```bash
+npx @nuxtjs/shopify@latest init ./my-shop
+```
+
 <details>
 <summary>Or use the manual installation</summary>
 
@@ -175,7 +181,7 @@ const { data: products, error } = await useStorefrontData("products", `#graphql
 
 Note that `useStorefrontData` automatically extracts the `data` property from the response in order to be able to reliably
 stringify.
-When using it together with the setting `errors: { throw: false }` you will need to check for errors manually within the response instead of using the `error` object returned by the `useStorefrontData` composable.
+Because only `data` is kept, GraphQL errors are surfaced through the `error` ref returned by `useStorefrontData`, not inside the response. Use the `storefront:client:errors` hook if you need the raw error array.
 
 ### Access Customer Account API on the client side
 
@@ -266,8 +272,8 @@ You can use the `useCustomerAccount` utility to access the customer account API 
 ```ts
 // ~/server/api/customer.ts
 
-export default defineEventHandler(async () => {
-  const customerAccount = useCustomerAccount()
+export default defineEventHandler(async (event) => {
+  const customerAccount = useCustomerAccount(event)
 
   return await customerAccount.request(`#graphql
     query FetchCustomer {
@@ -323,7 +329,6 @@ All requests to the Storefront API will now return data from [mock.shop](https:/
 
 All requests going out from the client side are proxied through the Nitro server by default.
 To disable proxying, set the `proxy` option to `false` in the module config.
-Proxying is only available in SSR mode.
 
 ```ts
 export default defineNuxtConfig({
@@ -398,7 +403,7 @@ export const productFields = `#graphql
 The `ProductFields` fragment is automatically injected into the query, so you don't need to import it explicitly in your request.
 
 You can also place the query in a `.gql`, `.ts` or `.vue` file and import it to use in your requests.
-Files placed in the `~/graphql` directory will be automatically imported by the module, it is recommended to organize your fragments there.
+Files placed in the `graphql` directory in your project root will be automatically imported by the module, it is recommended to organize your fragments there. The path is resolved from the project root, so on Nuxt 4 it is `graphql/`, not `app/graphql/`.
 
 ### Handling errors
 
@@ -493,8 +498,10 @@ or publish events manually with the `useShopifyAnalytics` composable:
       products: [{
         id: product.id,
         title: product.title,
+        vendor: product.vendor,
         price: variant.price.amount,
         variantId: variant.id,
+        variantTitle: variant.title,
       }],
     }"
   />
@@ -504,7 +511,9 @@ or publish events manually with the `useShopifyAnalytics` composable:
 ```ts
 const analytics = useShopifyAnalytics()
 
-analytics.publish("product_added_to_cart", { cart, currentLine: line })
+// Cart events are derived from cart state
+analytics.setCart(cart)
+
 analytics.subscribe("product_added_to_cart", (payload) => {
   // e.g. forward to GA4 or Meta
 })

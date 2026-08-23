@@ -62,7 +62,7 @@ ProductImage.vue
     handle: string
   }>()
 
-  const { data } = await useStorefrontData('product', `#graphql
+  const { data } = await useStorefrontData(`#graphql
     query GetProduct($handle: String!) {
       product(handle: $handle) {
         featuredImage {
@@ -167,9 +167,9 @@ CustomerAccount.vue
       </UButton>
 
       <UButton
-        :to="logout" 
-        variant="outline" 
+        variant="outline"
         icon="i-lucide-log-out"
+        @click="logout()"
       >
         Log out
       </UButton>
