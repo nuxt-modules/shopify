@@ -47,6 +47,11 @@ beforeEach(() => {
 })
 
 describe('getValidCustomerAccessToken', () => {
+  it('reports a missing request event instead of failing on a cookie read', async () => {
+    await expect(getValidCustomerAccessToken(undefined))
+      .rejects.toMatchObject({ statusCode: 500, message: expect.stringContaining('Request event is not available') })
+  })
+
   it('throws when the customer account client is not configured', async () => {
     runtimeConfig._shopify = UNCONFIGURED_SHOPIFY_CONFIG
 

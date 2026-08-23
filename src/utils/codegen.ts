@@ -35,6 +35,10 @@ const HYDROGEN_SCHEMAS: Partial<Record<ShopifyClientType, string>> = {
 const INTROSPECTION_ATTEMPTS = 3
 const INTROSPECTION_RETRY_DELAY = 5000
 
+const TRANSPORT_ERROR_PATTERN = /Failed to load schema|ETIMEDOUT|ECONNREFUSED|ECONNRESET|ENOTFOUND|EAI_AGAIN|socket hang up|network|fetch failed|timeout/i
+
+const generateFailures = new Set<string>()
+
 type ShopifyTemplateOptions = {
   filename: string
   shopName: string
@@ -72,6 +76,20 @@ function hasStoredIntrospection(path?: string): path is string {
   return statSync(path).size > 0
 }
 
+function collectErrorMessages(error: unknown): string {
+  const messages = [(error as Error)?.message ?? String(error)]
+
+  for (const nested of (error as AggregateError)?.errors ?? []) {
+    messages.push((nested as Error)?.message ?? String(nested))
+  }
+
+  return messages.join('\n')
+}
+
+function isTransportError(error: unknown): boolean {
+  return TRANSPORT_ERROR_PATTERN.test(collectErrorMessages(error))
+}
+
 async function generateWithRetry<T extends Types.ConfiguredOutput>(
   generatorConfig: T,
   createConfig: (generatorConfig: T) => Types.Config,
@@ -81,7 +99,7 @@ async function generateWithRetry<T extends Types.ConfiguredOutput>(
       return await extractResult(generate(createConfig(generatorConfig), false))
     }
     catch (error) {
-      if (!isRemoteSchema(generatorConfig.schema) || attempt >= INTROSPECTION_ATTEMPTS) {
+      if (!isRemoteSchema(generatorConfig.schema) || !isTransportError(error) || attempt >= INTROSPECTION_ATTEMPTS) {
         throw error
       }
 
@@ -92,14 +110,22 @@ async function generateWithRetry<T extends Types.ConfiguredOutput>(
   }
 }
 
+export function getGenerateFailures(): string[] {
+  return [...generateFailures]
+}
+
+export function clearGenerateFailures() {
+  generateFailures.clear()
+}
+
 function reportGenerateFailure(nuxt: Nuxt, filename: string, error: unknown): '' {
   const message = `Failed to generate \`${filename}\`: ${(error as Error).message}`
 
-  if (!nuxt.options.dev && !nuxt.options._prepare) {
-    throw new Error(`[shopify] ${message}`)
-  }
-
   useLogger().error(`${message}\nTypes for this client are unavailable.`)
+
+  if (!nuxt.options.dev && !nuxt.options._prepare) {
+    generateFailures.add(message)
+  }
 
   return ''
 }
@@ -341,6 +367,7 @@ export function createOperationsGenerator(): NuxtTemplate<ShopifyTemplateOptions
 
     const contents = await runGenerate(data.nuxt, data.options, generatorConfig, config => ({
       overwrite: true,
+      ignoreNoDocuments: true,
       silent: useLogger().level < LogLevels.verbose,
       generates: {
         [data.options.filename]: config,

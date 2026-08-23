@@ -172,6 +172,34 @@ describe('introspection retries', () => {
     expect(schemaOfCall(-1)).toEqual([expect.stringContaining('storefront.schema.json')])
   })
 
+  it('does not retry an error the api will keep returning', async () => {
+    const invalid = () => Promise.reject(new Error('GraphQL Document Validation failed with 1 errors;\n  Error 0: Cannot query field "nope" on type "Shop".'))
+
+    generate.mockImplementation(invalid)
+
+    await expect(createIntrospectionGenerator()!(introspectionData())).resolves.toBe('')
+
+    expect(generate).toHaveBeenCalledTimes(2)
+  })
+
+  it('retries an error that wraps a transport failure', async () => {
+    vi.useFakeTimers()
+
+    const aggregate = () => Promise.reject(new AggregateError(
+      [new Error('Failed to load schema from https://mock.shop/api: connect ECONNREFUSED')],
+      'introspection failed',
+    ))
+
+    generate.mockImplementationOnce(aggregate).mockImplementation(succeeds)
+
+    const result = createIntrospectionGenerator()!(introspectionData())
+
+    await vi.advanceTimersByTimeAsync(60_000)
+
+    await expect(result).resolves.toBe('{"__schema":{}}')
+    expect(generate).toHaveBeenCalledTimes(2)
+  })
+
   it('does not retry a local schema file', async () => {
     generate.mockImplementation(fails)
 

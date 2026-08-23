@@ -140,11 +140,36 @@ describe('customer account api url', () => {
   const input = { name: 'shop', clients: { customerAccount: { clientId: 'cid' } } }
 
   it('resolves the url from the well-known endpoint into both configs', async () => {
-    const { config, publicConfig } = await resolve(input)
+    const { config, publicConfig } = await resolve({
+      name: 'shop',
+      clients: { customerAccount: { clientId: 'cid', apiVersion: '2026-04' } },
+    })
 
     expect(fetch).toHaveBeenCalledWith('https://shop.myshopify.com/.well-known/customer-account-api')
     expect(config.clients.customerAccount?.apiURL).toBe(API_URL)
     expect(publicConfig.clients.customerAccount?.apiURL).toBe(API_URL)
+  })
+
+  it('pins the resolved url to the configured api version', async () => {
+    const { config, publicConfig } = await resolve({
+      name: 'shop',
+      clients: { customerAccount: { clientId: 'cid', apiVersion: '2026-01' } },
+    })
+
+    const expected = 'https://shopify.com/1234/account/customer/api/2026-01/graphql'
+
+    expect(config.clients.customerAccount?.apiURL).toBe(expected)
+    expect(publicConfig.clients.customerAccount?.apiURL).toBe(expected)
+  })
+
+  it('leaves an unversioned well-known url untouched', async () => {
+    const unversioned = 'https://shopify.com/1234/account/customer/graphql'
+
+    vi.stubGlobal('fetch', vi.fn(() => Promise.resolve({ json: () => Promise.resolve({ graphql_api: unversioned }) })))
+
+    const { config } = await resolve(input)
+
+    expect(config.clients.customerAccount?.apiURL).toBe(unversioned)
   })
 
   it('prefers a configured url and skips the lookup', async () => {

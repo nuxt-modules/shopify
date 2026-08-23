@@ -121,7 +121,7 @@ const storefrontClientSchema = clientSchema.extend({
   mock: z.boolean().optional(),
 
   codegen: enableable(codegenSchema.extend({ autoImport: z.boolean().optional().default(true) }), { autoImport: true }),
-  documents: clientSchema.shape.documents.transform(v => v || defaultStorefrontDocuments),
+  documents: clientSchema.shape.documents.transform(v => v?.length ? v : defaultStorefrontDocuments),
   proxy: proxyRouteSchema('_proxy/storefront'),
   cache: enableable(clientCacheSchema, defaultCacheConfig),
 })
@@ -165,7 +165,7 @@ const customerAccountClientSchema = clientSchema.extend({
   session: customerAccountSessionSchema.optional().transform(v => ({ ...defaultCustomerAccountSessionOptions, ...(v ?? {}) })),
   tokenStorage: enableable(storageMountSchema, defaultTokenStorageOptions, false),
 
-  documents: clientSchema.shape.documents.transform(v => v || defaultCustomerAccountDocuments),
+  documents: clientSchema.shape.documents.transform(v => v?.length ? v : defaultCustomerAccountDocuments),
   proxy: proxyRouteSchema('_proxy/customer-account'),
 
   dev: z.object({
@@ -181,7 +181,7 @@ const adminClientSchema = clientSchema.extend({
   refreshToken: z.string().optional(),
 
   tokenStorage: enableable(storageMountSchema, defaultTokenStorageOptions),
-  documents: clientSchema.shape.documents.transform(v => v || defaultAdminDocuments),
+  documents: clientSchema.shape.documents.transform(v => v?.length ? v : defaultAdminDocuments),
 })
 
 const webhooksSchema = z.object({

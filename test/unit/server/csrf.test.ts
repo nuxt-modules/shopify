@@ -14,8 +14,40 @@ describe('assertSameSite', () => {
     expect(() => assertSameSite(event({ 'sec-fetch-site': site }))).not.toThrow()
   })
 
-  it('allows a request that does not send the fetch metadata header', () => {
+  it('allows a request that sends neither fetch metadata nor an origin', () => {
     expect(() => assertSameSite(event({}))).not.toThrow()
+  })
+
+  it('falls back to the origin when fetch metadata is missing', () => {
+    expect(() => assertSameSite(event({
+      host: 'shop.example',
+      origin: 'https://shop.example',
+    }))).not.toThrow()
+  })
+
+  it('rejects a cross-origin request when fetch metadata is missing', () => {
+    expect(() => assertSameSite(event({
+      host: 'shop.example',
+      origin: 'https://evil.example',
+    }))).toThrow(expect.objectContaining({ statusCode: 403 }))
+  })
+
+  it('rejects an unparseable origin when fetch metadata is missing', () => {
+    expect(() => assertSameSite(event({
+      host: 'shop.example',
+      origin: 'not a url',
+    }))).toThrow(expect.objectContaining({ statusCode: 403 }))
+  })
+
+  it('allows an opaque origin when fetch metadata is missing', () => {
+    expect(() => assertSameSite(event({ host: 'shop.example', origin: 'null' }))).not.toThrow()
+  })
+
+  it('does not apply the origin fallback when navigation is allowed', () => {
+    expect(() => assertSameSite(event({
+      host: 'shop.example',
+      origin: 'https://evil.example',
+    }), { allowNavigation: true })).not.toThrow()
   })
 
   it('rejects a cross-site request', () => {

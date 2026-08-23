@@ -40,6 +40,29 @@ describe('admin access token', () => {
     expect(fetchMock).not.toHaveBeenCalled()
   })
 
+  it('keeps using a static access token when no refresh token is configured', async () => {
+    const fetchMock = stubTokenEndpoint()
+
+    await expect(getAdminAccessToken('shop', { ...credentials, accessToken: 'static-token' } as never))
+      .resolves.toBe('static-token')
+
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('exchanges a configured refresh token instead of reusing the access token forever', async () => {
+    const fetchMock = stubTokenEndpoint()
+
+    await expect(getAdminAccessToken('shop', {
+      ...credentials,
+      accessToken: 'expired-token',
+      refreshToken: 'refresh-token',
+    } as never)).resolves.toBe('shop-refresh_token-token')
+
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    expect(fetchMock.mock.calls[0]![1].body.get('grant_type')).toBe('refresh_token')
+    expect(fetchMock.mock.calls[0]![1].body.get('refresh_token')).toBe('refresh-token')
+  })
+
   it('requires both a client id and secret when no access token is set', async () => {
     stubTokenEndpoint()
 

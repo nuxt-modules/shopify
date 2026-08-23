@@ -4,7 +4,7 @@ import type { z } from 'zod'
 import type { configObjectSchema } from './config'
 
 import { ShopifyClientType } from './config'
-import { createStoreDomain } from '../runtime/utils/clients/transport'
+import { createStoreDomain, isVersionedApiUrl, withApiVersion } from '../runtime/utils/clients/transport'
 import { isInstalled } from '../utils/install'
 import { useLogger } from '../utils/log'
 import { SESSION_PASSWORD_ENV, generateSessionPassword, persistSessionPassword } from '../utils/session'
@@ -52,7 +52,12 @@ function resolveProxies(config: ShopifyConfig, nuxt: Nuxt) {
 
     if (!client?.proxy) continue
 
-    logger.info(`Disabling the ${clientType} proxy: static generation has no server to proxy through, requests are sent to Shopify directly`)
+    if (clientType === ShopifyClientType.CustomerAccount) {
+      logger.warn('Disabling the customer account proxy: static generation has no server to proxy through. The customer account client cannot authenticate browser requests without the proxy, so prerendered pages must not call it')
+    }
+    else {
+      logger.info(`Disabling the ${clientType} proxy: static generation has no server to proxy through, requests are sent to Shopify directly`)
+    }
 
     client.proxy = false
   }
@@ -78,17 +83,20 @@ async function resolveCustomerAccountApiUrl(config: ShopifyConfig) {
     .catch(() => undefined)
 
   if (apiUrl) {
-    logger.debug(`Resolved customer account API URL: ${apiUrl}`)
-  }
-  else {
-    logger.warn(
-      `Could not resolve the customer account API URL from \`${wellKnownURL}\` - `
-      + 'customer account requests will fail (is the Customer Account API enabled for your store?, '
-      + 'or set `clients.customerAccount.apiURL` explicitly)',
-    )
+    customerAccount.apiURL = isVersionedApiUrl(apiUrl)
+      ? withApiVersion(apiUrl, customerAccount.apiVersion)
+      : apiUrl
+
+    logger.debug(`Resolved customer account API URL: ${customerAccount.apiURL}`)
+
+    return
   }
 
-  customerAccount.apiURL = apiUrl
+  logger.warn(
+    `Could not resolve the customer account API URL from \`${wellKnownURL}\` - `
+    + 'customer account requests will fail (is the Customer Account API enabled for your store?, '
+    + 'or set `clients.customerAccount.apiURL` explicitly)',
+  )
 }
 
 async function resolveSessionPassword(config: ShopifyConfig, nuxt: Nuxt) {

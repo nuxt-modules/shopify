@@ -13,10 +13,10 @@ export default function setupImports(nuxt: Nuxt, config: ShopifyConfig, resolver
   const logger = useLogger()
 
   if (config.fragments?.autoImport) {
-    logger.debug(`Auto-importing fragments from \`~/${config.fragments.dirs.join(', ~/')}\``)
+    logger.debug(`Auto-importing fragments from \`${config.fragments.dirs.join('`, `')}\``)
 
     registerFragmentImports(nuxt, config)
   }
 
-  registerFunctionImports(config, resolver)
+  registerFunctionImports(resolver)
 }

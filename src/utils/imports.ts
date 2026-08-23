@@ -24,24 +24,20 @@ function autoImportDirectory(path: string, includeClient: boolean) {
   }
 }
 
-function autoImportFunction(name: string, includeClient: boolean, resolver: Resolver) {
+function autoImportFunction(name: string, resolver: Resolver) {
   const imports = [{
     from: resolver.resolve(`./runtime/utils/functions/${name}`),
     name,
   }]
 
   addServerImports(imports)
-
-  if (includeClient) {
-    addImports(imports)
-  }
+  addImports(imports)
 }
 
 export function registerFragmentImports(nuxt: Nuxt, config: ShopifyConfig) {
   if (!config.fragments?.autoImport) return
 
   const includeClient = hasPublicClient(config)
-  const watchedByGraphqlTransform = config.graphql.injectFragments
 
   nuxt.options.watch = nuxt.options.watch || []
 
@@ -50,21 +46,17 @@ export function registerFragmentImports(nuxt: Nuxt, config: ShopifyConfig) {
 
     autoImportDirectory(fragmentsPath, includeClient)
 
-    if (!watchedByGraphqlTransform) {
-      nuxt.options.watch.push(fragmentsPath)
-    }
+    nuxt.options.watch.push(fragmentsPath)
   }
 }
 
-export function registerFunctionImports(config: ShopifyConfig, resolver: Resolver) {
-  const includeClient = hasPublicClient(config)
-
+export function registerFunctionImports(resolver: Resolver) {
   const functionNames = [
     'flattenConnection',
     'parseGid',
   ]
 
   for (const name of functionNames) {
-    autoImportFunction(name, includeClient, resolver)
+    autoImportFunction(name, resolver)
   }
 }
