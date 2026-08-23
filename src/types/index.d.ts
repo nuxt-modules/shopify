@@ -191,7 +191,7 @@ declare module '#app' {
     'customer-account:client:response': ({ response, operation, options }: ShopifyClientResponseHookParams<keyof CustomerAccountOperations, CustomerAccountOperations>) => HookResult
 
     /**
-     * Called when the customer account client throws an error within nuxt
+     * Called when the storefront client receives a response containing GraphQL errors
      */
     'customer-account:client:errors': ({ errors }: ShopifyErrorHookParams) => HookResult
   }
@@ -220,7 +220,7 @@ declare module 'nitropack/types' {
     'storefront:client:response': ({ response, operation, options }: ShopifyClientResponseHookParams<keyof StorefrontOperations, StorefrontOperations>) => HookResult
 
     /**
-     * Called when the storefront client throws an error within nitro
+     * Called when the storefront client receives a response containing GraphQL errors
      */
     'storefront:client:errors': ({ errors }: ShopifyErrorHookParams) => HookResult
 
@@ -245,7 +245,7 @@ declare module 'nitropack/types' {
     'customer-account:client:response': ({ response, operation, options }: ShopifyClientResponseHookParams<keyof CustomerAccountOperations, CustomerAccountOperations>) => HookResult
 
     /**
-     * Called when the customer account client throws an error within nitro
+     * Called when the customer account client receives a response containing GraphQL errors
      */
     'customer-account:client:errors': ({ errors }: ShopifyErrorHookParams) => HookResult
 
@@ -317,7 +317,7 @@ declare module 'nitropack/types' {
     'admin:client:response': ({ response, operation, options }: ShopifyClientResponseHookParams<keyof AdminOperations, AdminOperations>) => HookResult
 
     /**
-     * Called when the admin client throws an error within nitro
+     * Called when the admin client receives a response containing GraphQL errors
      */
     'admin:client:errors': ({ errors }: ShopifyErrorHookParams) => HookResult
   }

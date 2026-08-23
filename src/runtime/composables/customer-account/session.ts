@@ -25,6 +25,11 @@ const emptySession = (): CustomerAccountSession => ({
   loggedInAt: null,
 })
 
+/**
+ * Provides the customer account session state and the login and logout actions.
+ *
+ * @returns reactive session state with `login`, `logout` and `fetch`
+ */
 export function useCustomerAccountSession() {
   const { _shopify } = useRuntimeConfig().public
 

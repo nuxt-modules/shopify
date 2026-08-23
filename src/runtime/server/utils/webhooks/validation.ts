@@ -26,9 +26,9 @@ function hasValidSignature(secret: string, body: Buffer, signature: string): boo
 /**
  * Validates an incoming Shopify webhook request by verifying its HMAC signature.
  *
- * @param event H3 event object representing the incoming request.
+ * @param event The H3Event object with the incoming request
  *
- * @throws Will throw an unauthorized error if validation fails.
+ * @throws a 401 unauthorized error if validation fails
  */
 export const validate = async (event: H3Event) => {
   const { _shopify } = useRuntimeConfig(event)

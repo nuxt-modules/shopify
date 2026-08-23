@@ -6,9 +6,9 @@ import { validate } from './validation'
 /**
  * Defines a webhook event handler with Shopify's HMAC validation.
  *
- * @param handler The event handler function to be wrapped.
+ * @param handler The event handler function to be wrapped
  *
- * @returns A new event handler with validation applied.
+ * @returns A new event handler with validation applied
  */
 export const defineWebhookEventHandler = <
   Req extends EventHandlerRequest = EventHandlerRequest,

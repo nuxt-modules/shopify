@@ -28,7 +28,7 @@ export default defineNuxtModule<ModuleOptions>({
     name: 'nuxt-shopify',
     configKey: 'shopify',
     compatibility: {
-      nuxt: '>=3.12.0',
+      nuxt: '>=3.17.0',
     },
   },
 
@@ -98,6 +98,8 @@ export default defineNuxtModule<ModuleOptions>({
     }
   },
 })
+
+export { ShopifyClientType } from './schemas'
 
 export {
   createShopifyClient,

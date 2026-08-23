@@ -4,6 +4,13 @@ import type { H3Event } from 'h3'
 import { useRuntimeConfig, useNuxtApp, useRequestURL, useRequestEvent } from '#imports'
 import { createCustomerAccountClient } from '../../utils/clients/customer-account'
 
+/**
+ * Creates a Customer Account API client for the current request.
+ *
+ * @param event explicit H3 event, falls back to the current request event if not provided
+ *
+ * @returns a Customer Account API client instance
+ */
 export function useCustomerAccount(event?: H3Event): CustomerAccountApiClient {
   const { _shopify } = useRuntimeConfig().public
 

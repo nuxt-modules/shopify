@@ -5,6 +5,13 @@ import { useNitroApp } from 'nitropack/runtime'
 import { useRuntimeConfig } from '#imports'
 import { createAdminClient } from '../../../utils/clients/admin'
 
+/**
+ * Creates an Admin API client for the current request.
+ *
+ * @param event explicit H3 event
+ *
+ * @returns an Admin API client instance
+ */
 export function useAdmin(event?: H3Event): AdminApiClient {
   const { _shopify } = useRuntimeConfig(event)
 

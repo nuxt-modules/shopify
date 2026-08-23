@@ -6,7 +6,7 @@ import { MODULE_VERSION } from './runtime/utils/version'
 
 const main = defineCommand({
   meta: {
-    name: 'Nuxt Shopify',
+    name: 'nuxt-shopify',
     version: MODULE_VERSION,
     description: 'Nuxt Shopify CLI',
   },

@@ -38,6 +38,14 @@ type StorefrontDataOptions<Operation extends keyof StorefrontOperations, ResT>
       pick?: KeysOf<ResT>
     }
 
+/**
+ * Runs a Storefront API operation through `useAsyncData`.
+ *
+ * @param operation the GraphQL operation to run
+ * @param options request options
+ *
+ * @returns the `useAsyncData` result holding the operation's data
+ */
 export function useStorefrontData<
   Operation extends keyof StorefrontOperations,
   ResT = ReturnData<Operation, StorefrontOperations>,
@@ -56,6 +64,15 @@ export function useStorefrontData<
     (NuxtErrorDataT extends Error | NuxtError ? NuxtErrorDataT : NuxtError<NuxtErrorDataT>) | null | undefined
 >
 
+/**
+ * Runs a Storefront API operation through `useAsyncData`.
+ *
+ * @param key the key to use for the `useAsyncData` result
+ * @param operation the GraphQL operation to run
+ * @param options request options
+ *
+ * @returns the `useAsyncData` result holding the operation's data
+ */
 export function useStorefrontData<
   Operation extends keyof StorefrontOperations,
   ResT = ReturnData<Operation, StorefrontOperations>,

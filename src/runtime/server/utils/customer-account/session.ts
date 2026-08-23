@@ -66,32 +66,6 @@ async function storeCustomerAccountTokens(config: ShopifyConfig | undefined, id:
   await getCustomerAccountTokenStorage(config).setItem(id, tokens, getTokenStorageOptions(config))
 }
 
-export async function getCustomerAccountSession(event: H3Event): Promise<CustomerAccountSession> {
-  const { _shopify } = useRuntimeConfig(event)
-
-  const session = await readSession(event, getSessionConfig(_shopify))
-
-  return {
-    loggedIn: !!session?.data.user,
-    user: session?.data.user ?? null,
-    loggedInAt: session?.data.loggedInAt ?? null,
-  }
-}
-
-export async function requireCustomerAccountSession(event: H3Event): Promise<CustomerAccountSession> {
-  const session = await getCustomerAccountSession(event)
-
-  if (!session.user) {
-    throw createError({
-      status: 401,
-      statusText: 'Unauthorized',
-      message: '[shopify] No authenticated customer account session',
-    })
-  }
-
-  return session
-}
-
 export async function setCustomerAccountSession(event: H3Event, data: { user: CustomerAccountUser, tokens: CustomerAccountTokenSet, loggedInAt: number }): Promise<void> {
   const { _shopify } = useRuntimeConfig(event)
 
@@ -144,6 +118,53 @@ export async function getCustomerAccountTokens(event: H3Event): Promise<Customer
   return session.data.tokens ?? null
 }
 
+/**
+ * Reads the customer account session for the current request.
+ *
+ * @param event the current request event
+ *
+ * @returns resolved session data, logged in user and tokens if available
+ */
+export async function getCustomerAccountSession(event: H3Event): Promise<CustomerAccountSession> {
+  const { _shopify } = useRuntimeConfig(event)
+
+  const session = await readSession(event, getSessionConfig(_shopify))
+
+  return {
+    loggedIn: !!session?.data.user,
+    user: session?.data.user ?? null,
+    loggedInAt: session?.data.loggedInAt ?? null,
+  }
+}
+
+/**
+ * Reads the customer account session and rejects the request when nobody is signed in.
+ *
+ * @param event the current request event
+ *
+ * @returns the session of the signed in customer
+ *
+ * @throws a 401 unauthorized error when there is no active session
+ */
+export async function requireCustomerAccountSession(event: H3Event): Promise<CustomerAccountSession> {
+  const session = await getCustomerAccountSession(event)
+
+  if (!session.user) {
+    throw createError({
+      status: 401,
+      statusText: 'Unauthorized',
+      message: '[shopify] No authenticated customer account session',
+    })
+  }
+
+  return session
+}
+
+/**
+ * Ends the customer account session and removes any stored tokens.
+ *
+ * @param event the current request event
+ */
 export async function clearCustomerAccountSession(event: H3Event): Promise<void> {
   const { _shopify } = useRuntimeConfig(event)
 

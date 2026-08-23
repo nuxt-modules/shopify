@@ -37,6 +37,14 @@ type CustomerAccountDataOptions<Operation extends keyof CustomerAccountOperation
       pick?: KeysOf<ResT>
     }
 
+/**
+ * Runs a Customer Account API operation through `useAsyncData`.
+ *
+ * @param operation the GraphQL operation to run
+ * @param options request options
+ *
+ * @returns the `useAsyncData` result holding the operation's data
+ */
 export function useCustomerAccountData<
   Operation extends keyof CustomerAccountOperations,
   ResT = ReturnData<Operation, CustomerAccountOperations>,
@@ -55,6 +63,15 @@ export function useCustomerAccountData<
     (NuxtErrorDataT extends Error | NuxtError ? NuxtErrorDataT : NuxtError<NuxtErrorDataT>) | null | undefined
 >
 
+/**
+ * Runs a Customer Account API operation through `useAsyncData`.
+ *
+ * @param key the key to use for the `useAsyncData` result
+ * @param operation the GraphQL operation to run
+ * @param options request options
+ *
+ * @returns the `useAsyncData` result holding the operation's data
+ */
 export function useCustomerAccountData<
   Operation extends keyof CustomerAccountOperations,
   ResT = ReturnData<Operation, CustomerAccountOperations>,

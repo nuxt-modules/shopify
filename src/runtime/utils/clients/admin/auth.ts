@@ -90,7 +90,7 @@ export async function getAdminAccessToken(
     storedToken = {
       accessToken: accessToken,
       refreshToken: refreshToken,
-      expiresAt: 0,
+      expiresAt: refreshToken ? Date.now() : 0,
     }
   }
 

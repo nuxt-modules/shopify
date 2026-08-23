@@ -17,6 +17,11 @@ function createNoopContext(): ShopifyAnalyticsContext {
   }
 }
 
+/**
+ * Provides access to the Shopify analytics context.
+ *
+ * @returns the analytics context with the current shop, cart and consent state
+ */
 export function useShopifyAnalytics(): ShopifyAnalyticsContext {
   return useNuxtApp().$shopify?.analytics ?? createNoopContext()
 }
