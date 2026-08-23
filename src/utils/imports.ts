@@ -1,11 +1,10 @@
 import type { Resolver } from '@nuxt/kit'
 import type { Nuxt } from '@nuxt/schema'
 
-import type { ShopifyClientType, ShopifyConfig } from '../types'
+import type { ShopifyConfig } from '../types'
 
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
-import { kebabCase } from 'scule'
 import {
   addImports,
   addImportsDir,
@@ -55,17 +54,6 @@ export function registerFragmentImports(nuxt: Nuxt, config: ShopifyConfig) {
       nuxt.options.watch.push(fragmentsPath)
     }
   }
-}
-
-export function registerClientTypeImports(nuxt: Nuxt, config: ShopifyConfig, clientType: ShopifyClientType) {
-  const clientConfig = config.clients[clientType]
-
-  if (!clientConfig?.codegen || !clientConfig.codegen.autoImport) return
-
-  const includeClient = hasPublicClient(config)
-  const typesPath = join(nuxt.options.buildDir, `types/${kebabCase(clientType)}`)
-
-  autoImportDirectory(typesPath, includeClient)
 }
 
 export function registerFunctionImports(config: ShopifyConfig, resolver: Resolver) {

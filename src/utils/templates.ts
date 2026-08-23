@@ -26,8 +26,10 @@ export * from './${basename(operations)}'
 `
 }
 
+const OUTPUT_DIR = 'shopify'
+
 export function getIntrospectionFilename(clientType: ShopifyClientType, apiVersion: string) {
-  return `schema/${kebabCase(clientType)}.${apiVersion}.schema.json`
+  return `${OUTPUT_DIR}/schema/${kebabCase(clientType)}.${apiVersion}.schema.json`
 }
 
 function setupWatcher(nuxt: Nuxt, template: NuxtTemplate<ShopifyTemplateOptions>) {
@@ -77,7 +79,7 @@ export function registerTemplates(
     write: true,
   })
 
-  const typesFilename = `types/${kebabCase(clientType)}/${kebabCase(clientType)}.types`
+  const typesFilename = `${OUTPUT_DIR}/${kebabCase(clientType)}/${kebabCase(clientType)}.types`
   const types = addTypeTemplate<ShopifyTemplateOptions>({
     filename: `${typesFilename}.d.ts`,
     getContents: createTypesGenerator(),
@@ -90,7 +92,7 @@ export function registerTemplates(
     },
   })
 
-  const operationsFilename = `types/${kebabCase(clientType)}/${kebabCase(clientType)}.operations`
+  const operationsFilename = `${OUTPUT_DIR}/${kebabCase(clientType)}/${kebabCase(clientType)}.operations`
   const operations = addTypeTemplate<ShopifyTemplateOptions>({
     filename: `${operationsFilename}.d.ts`,
     getContents: createOperationsGenerator(),
@@ -106,7 +108,7 @@ export function registerTemplates(
   setupWatcher(nuxt, operations)
 
   const index = addTypeTemplate<ShopifyTemplateOptions>({
-    filename: `types/${kebabCase(clientType)}/index.d.ts`,
+    filename: `${OUTPUT_DIR}/${kebabCase(clientType)}/index.d.ts`,
     getContents: () => indexTemplate(types.filename, operations.filename).trimStart(),
   })
 

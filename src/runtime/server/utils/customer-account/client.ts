@@ -19,8 +19,17 @@ export function useCustomerAccount(event?: H3Event): CustomerAccountApiClient {
 
   const nitroApp = useNitroApp()
 
+  try {
+    event ??= useEvent()
+  }
+  catch {
+    // request event not available
+  }
+
   return createCustomerAccountClient(_shopify!, {
-    auth: () => getValidCustomerAccessToken(event ?? useEvent()),
+    event,
+
+    auth: () => getValidCustomerAccessToken(event),
 
     onConfigure: params => nitroApp.hooks.callHook('customer-account:client:configure', params),
     onCreate: params => nitroApp.hooks.callHook('customer-account:client:create', params),

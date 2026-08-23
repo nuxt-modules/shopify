@@ -1,4 +1,4 @@
-import type { ProductFilter, ProductFilterFieldsFragment } from '#shopify/storefront'
+import type { ProductFilter } from '#shopify/storefront'
 import type { LocationQuery } from 'vue-router'
 import type { MaybeRefOrGetter } from 'vue'
 

@@ -25,7 +25,11 @@ function isExpired(expiresAt?: number): boolean {
   return Date.now() >= expiresAt - EXPIRY_THRESHOLD_MS
 }
 
-export async function getValidCustomerAccessToken(event: H3Event): Promise<string> {
+export async function getValidCustomerAccessToken(event?: H3Event): Promise<string> {
+  if (!event) {
+    throw createError({ status: 500, statusText: 'Internal Server Error', message: '[shopify] Request event is not available' })
+  }
+
   const { _shopify } = useRuntimeConfig(event)
 
   const customerAccount = _shopify?.clients?.customerAccount

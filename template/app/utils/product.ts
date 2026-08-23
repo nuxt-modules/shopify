@@ -1,4 +1,4 @@
-import type { ProductFieldsFragment, ProductVariantFieldsFragment, MoneyV2 } from '#shopify/storefront'
+import type { MoneyV2 } from '#shopify/storefront'
 
 export const isDiscounted = (price: MoneyV2, compareAtPrice?: MoneyV2 | null) => {
   if (!price || !compareAtPrice) return false

@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import type { ProductFilterFieldsFragment } from '#shopify/storefront'
-
 const props = defineProps<{
   filters?: ProductFilterFieldsFragment['filters']
 }>()

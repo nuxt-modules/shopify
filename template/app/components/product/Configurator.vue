@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { ProductFieldsFragment, ProductVariantFieldsFragment } from '#shopify/storefront'
 import type { FormSubmitEvent } from '#ui/types'
 
 const props = defineProps<{

@@ -11,7 +11,7 @@ vi.mock('@graphql-codegen/cli', () => ({
   generate: (...args: unknown[]) => generate(...args as []),
 }))
 
-const { createIntrospectionGenerator } = await import('#src/utils/codegen')
+const { createIntrospectionGenerator, createOperationsGenerator } = await import('#src/utils/codegen')
 
 const FILENAME = 'schema/storefront.2026-01.schema.json'
 
@@ -92,6 +92,55 @@ describe('introspection source', () => {
     await createIntrospectionGenerator()!(introspectionData())
 
     expect(schemaOfCall(0)).toEqual(MOCK_API_SCHEMA)
+  })
+})
+
+describe('global type declarations', () => {
+  const OPERATIONS_FILE = 'shopify/storefront/storefront.operations.d.ts'
+
+  const operationsData = (autoImport: boolean) => ({
+    nuxt,
+    options: {
+      filename: OPERATIONS_FILE,
+      shopName: 'test-shop',
+      clientType: ShopifyClientType.Storefront,
+      clientConfig: { apiVersion: '2026-01', mock: true, documents: [], codegen: { autoImport } },
+      introspection: pathFor('populated.json'),
+    },
+  }) as never
+
+  const generated = [
+    'export type GetProductQueryVariables = Exact<{ handle: string }>;',
+    'export type GetProductQuery = { product: { id: string } };',
+    'export type ProductFieldsFragment = { id: string };',
+  ].join('\n')
+
+  beforeEach(() => {
+    generate.mockImplementation(() => Promise.resolve([{ content: generated }]))
+  })
+
+  it('declares every operation and fragment type globally', async () => {
+    const contents = await createOperationsGenerator()!(operationsData(true)) as string
+
+    expect(contents).toContain('declare global {')
+    expect(contents).toContain(`type GetProductQuery = import('./storefront.operations.d.ts').GetProductQuery`)
+    expect(contents).toContain(`type GetProductQueryVariables = import('./storefront.operations.d.ts').GetProductQueryVariables`)
+    expect(contents).toContain(`type ProductFieldsFragment = import('./storefront.operations.d.ts').ProductFieldsFragment`)
+  })
+
+  it('leaves the global namespace alone when auto import is disabled', async () => {
+    const contents = await createOperationsGenerator()!(operationsData(false)) as string
+
+    expect(contents).not.toContain('declare global {')
+    expect(contents).toContain('export type GetProductQuery')
+  })
+
+  it('emits no block when the client has no operations', async () => {
+    generate.mockImplementation(() => Promise.resolve([{ content: 'interface GeneratedQueryTypes {}' }]))
+
+    const contents = await createOperationsGenerator()!(operationsData(true)) as string
+
+    expect(contents).not.toContain('declare global {')
   })
 })
 

@@ -5,7 +5,7 @@ import type { ShopifyConfig } from '../types'
 
 import { existsSync, statSync } from 'node:fs'
 import { stat } from 'node:fs/promises'
-import { join } from 'node:path'
+import { basename, join } from 'node:path'
 import { generate } from '@graphql-codegen/cli'
 import { preset, pluckConfig } from '@shopify/graphql-codegen'
 import { LogLevels } from 'consola'
@@ -133,6 +133,22 @@ async function runGenerate<T extends Types.ConfiguredOutput>(
       return reportGenerateFailure(nuxt, options.filename, fallbackError)
     }
   }
+}
+
+const EXPORTED_TYPE_PATTERN = /^export type (\w+) =/gm
+
+function createGlobalDeclarations(contents: string, filename: string): string {
+  const names = [...contents.matchAll(EXPORTED_TYPE_PATTERN)].map(match => match[1]!)
+
+  if (!names.length) return ''
+
+  const specifier = `./${basename(filename)}`
+
+  const declarations = names
+    .map(name => `  type ${name} = import('${specifier}').${name}`)
+    .join('\n')
+
+  return `\ndeclare global {\n${declarations}\n}\n`
 }
 
 export function getInterfaceExtensionFunction(clientType: ShopifyClientType, queryType: string, mutationType: string) {
@@ -323,7 +339,7 @@ export function createOperationsGenerator(): NuxtTemplate<ShopifyTemplateOptions
       config: generatorConfig,
     })
 
-    return runGenerate(data.nuxt, data.options, generatorConfig, config => ({
+    const contents = await runGenerate(data.nuxt, data.options, generatorConfig, config => ({
       overwrite: true,
       silent: useLogger().level < LogLevels.verbose,
       generates: {
@@ -332,6 +348,12 @@ export function createOperationsGenerator(): NuxtTemplate<ShopifyTemplateOptions
       // @ts-expect-error weird behavior
       pluckConfig,
     }))
+
+    if (!contents || !data.options.clientConfig?.codegen || !data.options.clientConfig.codegen.autoImport) {
+      return contents
+    }
+
+    return contents + createGlobalDeclarations(contents, data.options.filename)
   }
 }
 

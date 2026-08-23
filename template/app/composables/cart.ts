@@ -1,5 +1,3 @@
-import type { CartFieldsFragment } from '#shopify/storefront'
-
 export const useCart = () => {
   const storefront = useStorefront()
   const toast = useToast()

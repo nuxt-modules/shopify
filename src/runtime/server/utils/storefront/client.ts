@@ -18,8 +18,15 @@ export function useStorefront(event?: H3Event): StorefrontApiClient {
 
   const nitroApp = useNitroApp()
 
+  try {
+    event ??= useEvent()
+  }
+  catch {
+    // request event not available
+  }
+
   return createStorefrontClient(_shopify!, {
-    event: event ?? useEvent(),
+    event,
 
     onConfigure: params => nitroApp.hooks.callHook('storefront:client:configure', params),
     onCreate: params => nitroApp.hooks.callHook('storefront:client:create', params),

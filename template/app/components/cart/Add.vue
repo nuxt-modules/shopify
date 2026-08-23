@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import type { ProductFieldsFragment } from '#shopify/storefront'
-
 const { add } = useCart()
 
 const props = defineProps<{

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ProductOptionFieldsFragment, SelectedOption } from '#shopify/storefront'
+import type { SelectedOption } from '#shopify/storefront'
 
 const props = defineProps<{
   options: ProductOptionFieldsFragment[]

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { FilterFieldsFragment, ProductFilter } from '#shopify/storefront'
+import type { ProductFilter } from '#shopify/storefront'
 
 const props = defineProps<{
   facet: FilterFieldsFragment

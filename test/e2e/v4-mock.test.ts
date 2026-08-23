@@ -10,7 +10,7 @@ import { expectedGraphqlProject, expectedStorefrontDocuments } from '#test/helpe
 
 const playgroundDir = fileURLToPath(new URL('../../playgrounds/playground-v4-mock', import.meta.url))
 const playgroundBuildDir = fileURLToPath(new URL('../../playgrounds/playground-v4-mock/.nuxt', import.meta.url))
-const playgroundStorefrontTypesDir = fileURLToPath(new URL('../../playgrounds/playground-v4-mock/.nuxt/types/storefront', import.meta.url))
+const playgroundStorefrontTypesDir = fileURLToPath(new URL('../../playgrounds/playground-v4-mock/.nuxt/shopify/storefront', import.meta.url))
 
 describe('test mock.shop integration with nuxt 4', async () => {
   await setup({
@@ -36,10 +36,10 @@ describe('test mock.shop integration with nuxt 4', async () => {
       clients: {
         storefront: {
           apiVersion: process.env.NUXT_SHOPIFY_CLIENTS_STOREFRONT_API_VERSION,
+          mock: true,
           codegen: {
             autoImport: true,
           },
-          mock: true,
           proxy: {
             route: '_proxy/storefront',
           },
@@ -125,7 +125,7 @@ describe('test mock.shop integration with nuxt 4', async () => {
     expect(Object.keys(projects)).toEqual(['default'])
 
     expect(projects).toStrictEqual({
-      default: expectedGraphqlProject(`.nuxt/schema/storefront.${process.env.NUXT_SHOPIFY_CLIENTS_STOREFRONT_API_VERSION}.schema.json`, expectedStorefrontDocuments),
+      default: expectedGraphqlProject(`.nuxt/shopify/schema/storefront.${process.env.NUXT_SHOPIFY_CLIENTS_STOREFRONT_API_VERSION}.schema.json`, expectedStorefrontDocuments),
     })
 
     expect(defaultExport).toEqual({ projects })

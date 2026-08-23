@@ -15,9 +15,9 @@ import {
 
 const playgroundDir = fileURLToPath(new URL('../../playgrounds/playground-v4', import.meta.url))
 const playgroundBuildDir = fileURLToPath(new URL('../../playgrounds/playground-v4/.nuxt', import.meta.url))
-const playgroundStorefrontTypesDir = fileURLToPath(new URL('../../playgrounds/playground-v4/.nuxt/types/storefront', import.meta.url))
-const playgroundCustomerAccountTypesDir = fileURLToPath(new URL('../../playgrounds/playground-v4/.nuxt/types/customer-account', import.meta.url))
-const playgroundAdminTypesDir = fileURLToPath(new URL('../../playgrounds/playground-v4/.nuxt/types/admin', import.meta.url))
+const playgroundStorefrontTypesDir = fileURLToPath(new URL('../../playgrounds/playground-v4/.nuxt/shopify/storefront', import.meta.url))
+const playgroundCustomerAccountTypesDir = fileURLToPath(new URL('../../playgrounds/playground-v4/.nuxt/shopify/customer-account', import.meta.url))
+const playgroundAdminTypesDir = fileURLToPath(new URL('../../playgrounds/playground-v4/.nuxt/shopify/admin', import.meta.url))
 
 describe('test module with nuxt 4', async () => {
   await setup({
@@ -224,6 +224,18 @@ describe('test module with nuxt 4', async () => {
       'GeneratedMutationTypes',
     )
     expect(operationsContent).toContain(interfaceExtension)
+
+    // Operation types are declared globally when `codegen.autoImport` is enabled
+    expect(operationsContent).toContain('declare global {')
+    expect(operationsContent).toContain(`type ProductFieldsFragment = import('./storefront.operations.d.ts').ProductFieldsFragment`)
+  })
+
+  it('should not declare admin operations globally when auto import is disabled', async () => {
+    const path = join(playgroundAdminTypesDir, 'admin.operations.d.ts')
+
+    const operationsContent = await readFile(path, 'utf-8')
+
+    expect(operationsContent).not.toContain('declare global {')
   })
 
   it('should generate admin api operations', async () => {
@@ -277,9 +289,9 @@ describe('test module with nuxt 4', async () => {
     expect(Object.keys(projects)).toEqual(['admin', 'customerAccount', 'default'])
 
     expect(projects).toStrictEqual({
-      admin: expectedGraphqlProject(`.nuxt/schema/admin.${process.env.NUXT_SHOPIFY_CLIENTS_ADMIN_API_VERSION}.schema.json`, expectedAdminDocuments),
-      customerAccount: expectedGraphqlProject(`.nuxt/schema/customer-account.${process.env.NUXT_SHOPIFY_CLIENTS_CUSTOMER_ACCOUNT_API_VERSION}.schema.json`, expectedCustomerAccountDocuments),
-      default: expectedGraphqlProject(`.nuxt/schema/storefront.${process.env.NUXT_SHOPIFY_CLIENTS_STOREFRONT_API_VERSION}.schema.json`, expectedStorefrontDocuments),
+      admin: expectedGraphqlProject(`.nuxt/shopify/schema/admin.${process.env.NUXT_SHOPIFY_CLIENTS_ADMIN_API_VERSION}.schema.json`, expectedAdminDocuments),
+      customerAccount: expectedGraphqlProject(`.nuxt/shopify/schema/customer-account.${process.env.NUXT_SHOPIFY_CLIENTS_CUSTOMER_ACCOUNT_API_VERSION}.schema.json`, expectedCustomerAccountDocuments),
+      default: expectedGraphqlProject(`.nuxt/shopify/schema/storefront.${process.env.NUXT_SHOPIFY_CLIENTS_STOREFRONT_API_VERSION}.schema.json`, expectedStorefrontDocuments),
     })
 
     expect(defaultExport).toEqual({ projects })

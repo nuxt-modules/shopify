@@ -14,8 +14,8 @@ import {
 
 const playgroundDir = fileURLToPath(new URL('../../playgrounds/playground-v3', import.meta.url))
 const playgroundBuildDir = fileURLToPath(new URL('../../playgrounds/playground-v3/.nuxt', import.meta.url))
-const playgroundStorefrontTypesDir = fileURLToPath(new URL('../../playgrounds/playground-v3/.nuxt/types/storefront', import.meta.url))
-const playgroundAdminTypesDir = fileURLToPath(new URL('../../playgrounds/playground-v3/.nuxt/types/admin', import.meta.url))
+const playgroundStorefrontTypesDir = fileURLToPath(new URL('../../playgrounds/playground-v3/.nuxt/shopify/storefront', import.meta.url))
+const playgroundAdminTypesDir = fileURLToPath(new URL('../../playgrounds/playground-v3/.nuxt/shopify/admin', import.meta.url))
 
 describe('test module with nuxt 3', async () => {
   await setup({
@@ -199,8 +199,8 @@ describe('test module with nuxt 3', async () => {
     expect(Object.keys(projects)).toEqual(['admin', 'default'])
 
     expect(projects).toStrictEqual({
-      admin: expectedGraphqlProject(`.nuxt/schema/admin.${process.env.NUXT_SHOPIFY_CLIENTS_ADMIN_API_VERSION}.schema.json`, expectedAdminDocuments),
-      default: expectedGraphqlProject(`.nuxt/schema/storefront.${process.env.NUXT_SHOPIFY_CLIENTS_STOREFRONT_API_VERSION}.schema.json`, expectedStorefrontDocuments),
+      admin: expectedGraphqlProject(`.nuxt/shopify/schema/admin.${process.env.NUXT_SHOPIFY_CLIENTS_ADMIN_API_VERSION}.schema.json`, expectedAdminDocuments),
+      default: expectedGraphqlProject(`.nuxt/shopify/schema/storefront.${process.env.NUXT_SHOPIFY_CLIENTS_STOREFRONT_API_VERSION}.schema.json`, expectedStorefrontDocuments),
     })
 
     expect(defaultExport).toEqual({ projects })

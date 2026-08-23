@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import type { MediaFieldsFragment } from '#shopify/storefront'
-
 defineProps<{
   media: MediaFieldsFragment
   title?: string

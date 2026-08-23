@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import type { ProductFieldsFragment, ProductVariantFieldsFragment } from '#shopify/storefront'
-
 const props = defineProps<{
   product: ProductFieldsFragment
   selectedVariant?: ProductVariantFieldsFragment

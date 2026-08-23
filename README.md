@@ -341,8 +341,8 @@ export default defineNuxtConfig({
 
 Once installed, the module automatically generates your GraphQL types and saves them in:
 
-- .nuxt/types — Type definitions
-- .nuxt/schema — GraphQL schema files
+- .nuxt/shopify/<client> — Type definitions
+- .nuxt/shopify/schema — GraphQL schema files
 
 For IDE support, the module automatically generates a GraphQL config file at `.nuxt/graphql.config.mjs`,
 with a project per configured client. Point your editor's GraphQL plugin at it, or reference it from a root config file:

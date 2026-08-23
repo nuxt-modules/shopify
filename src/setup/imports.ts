@@ -4,30 +4,18 @@ import type { Nuxt } from '@nuxt/schema'
 import type { ShopifyConfig } from '../types'
 
 import { useLogger } from '../utils/log'
-import { getConfiguredClients } from '../utils/clients'
 import {
   registerFragmentImports,
-  registerClientTypeImports,
   registerFunctionImports,
 } from '../utils/imports'
 
 export default function setupImports(nuxt: Nuxt, config: ShopifyConfig, resolver: Resolver) {
   const logger = useLogger()
-  const clients = getConfiguredClients(config)
 
   if (config.fragments?.autoImport) {
     logger.debug(`Auto-importing fragments from \`~/${config.fragments.dirs.join(', ~/')}\``)
 
     registerFragmentImports(nuxt, config)
-  }
-
-  for (const clientType of clients) {
-    const clientConfig = config.clients[clientType]
-
-    if (clientConfig?.codegen && clientConfig.codegen.autoImport) {
-      logger.debug(`Auto-importing ${clientType} types`)
-      registerClientTypeImports(nuxt, config, clientType)
-    }
   }
 
   registerFunctionImports(config, resolver)

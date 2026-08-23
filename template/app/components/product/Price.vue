@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import type { PriceFieldsFragment } from '#shopify/storefront'
-
 const props = defineProps<{
   price: PriceFieldsFragment
   compareAtPrice?: PriceFieldsFragment | null
