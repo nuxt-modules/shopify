@@ -7,16 +7,16 @@
  */
 export const flattenConnection = <T>(
   connection?: {
-    edges?: { node: T }[]
-    nodes?: T[]
+    edges?: ({ node: T } | null)[]
+    nodes?: (T | null)[]
   } | null,
 ): T[] => {
   if (Array.isArray(connection?.edges)) {
-    return connection.edges.map(({ node }) => node)
+    return connection.edges.flatMap(edge => edge?.node == null ? [] : [edge.node])
   }
 
   if (Array.isArray(connection?.nodes)) {
-    return connection.nodes
+    return connection.nodes.flatMap(node => node == null ? [] : [node])
   }
 
   return []

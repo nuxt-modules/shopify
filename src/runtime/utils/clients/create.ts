@@ -137,13 +137,13 @@ export function createClient<
 
     if (import.meta.server && event && definition.tracking) collectTrackingHeaders(event, response.headers)
 
-    if (response.errors) await useErrors(response.errors, throwOnErrors, callbacks.onErrors)
-
     await callbacks.onResponse?.({
       response: response,
       operation: operation as keyof Operations,
       options: options as ShopifyApiClientRequestOptions<keyof Operations, Operations, Cache>,
     })
+
+    if (response.errors) await useErrors(response.errors, throwOnErrors, callbacks.onErrors)
 
     return response
   }

@@ -16,6 +16,15 @@ describe('flattenConnection', () => {
     expect(flattenConnection({ edges: [{ node: { id: 'edge' } }], nodes: [{ id: 'node' }] })).toStrictEqual([{ id: 'edge' }])
   })
 
+  it('drops the nodes Shopify returned as null', () => {
+    expect(flattenConnection({ edges: [{ node: null }, { node: { id: '2' } }] })).toStrictEqual([{ id: '2' }])
+    expect(flattenConnection({ nodes: [null, { id: '2' }] })).toStrictEqual([{ id: '2' }])
+  })
+
+  it('drops null edges', () => {
+    expect(flattenConnection({ edges: [null, { node: { id: '1' } }] })).toStrictEqual([{ id: '1' }])
+  })
+
   it('returns an empty array for empty, missing and null connections', () => {
     expect(flattenConnection({ edges: [] })).toStrictEqual([])
     expect(flattenConnection({})).toStrictEqual([])

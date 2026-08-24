@@ -18,11 +18,11 @@ const statusTexts: Record<number, string> = {
   504: 'Gateway Timeout',
 }
 
-function resolveStatus(networkStatusCode?: number): number {
+export function resolveStatus(networkStatusCode?: number): number {
   return networkStatusCode && networkStatusCode >= 400 ? networkStatusCode : 500
 }
 
-function resolveStatusText(status: number): string {
+export function resolveStatusText(status: number): string {
   return statusTexts[status] ?? 'Internal Server Error'
 }
 

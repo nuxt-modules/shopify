@@ -109,3 +109,37 @@ describe('admin access token', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 })
+
+describe('admin access token failures', () => {
+  it('reports the status Shopify returned instead of a bare error', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(
+      'Missing or invalid client secret',
+      { status: 400, statusText: 'Bad Request' },
+    )))
+
+    await expect(getAdminAccessToken('shop', credentials as never)).rejects.toMatchObject({
+      statusCode: 400,
+      statusMessage: 'Bad Request',
+      message: expect.stringContaining('Missing or invalid client secret'),
+    })
+  })
+
+  it('reports a bad gateway when the token response carries no access token', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(
+      JSON.stringify({ scope: 'read_products' }),
+      { status: 200, headers: { 'content-type': 'application/json' } },
+    )))
+
+    await expect(getAdminAccessToken('shop', credentials as never)).rejects.toMatchObject({
+      statusCode: 502,
+      message: expect.stringContaining('missing `access_token`'),
+    })
+  })
+
+  it('reports incomplete credentials as a server misconfiguration', async () => {
+    await expect(getAdminAccessToken('shop', { clientId: 'client-id' } as never)).rejects.toMatchObject({
+      statusCode: 500,
+      message: expect.stringContaining('missing `clientId` or `clientSecret`'),
+    })
+  })
+})

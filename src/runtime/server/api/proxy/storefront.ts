@@ -5,6 +5,7 @@ import { z } from 'zod'
 
 import { useRuntimeConfig } from '#imports'
 import { assertSameSite } from '../../utils/csrf'
+import { reportUnknownCachePreset } from '../../../utils/clients/cache'
 import { createStorefrontConfig } from '../../../utils/clients/storefront'
 import {
   PRIVATE_TOKEN_HEADER,
@@ -94,6 +95,10 @@ export default defineEventHandler(async (event) => {
       ? cacheConfig.presets[cacheOption]
       : undefined
     : undefined
+
+  if (cacheConfig && !requestCacheConfig) {
+    reportUnknownCachePreset(cacheOption, cacheConfig.presets)
+  }
 
   const cacheBase = typeof cacheConfig?.proxy === 'string'
     ? cacheConfig.proxy

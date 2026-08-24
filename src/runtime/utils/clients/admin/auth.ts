@@ -1,5 +1,8 @@
 import type { AdminTokenSet, ShopifyAuthCallbacks, ShopifyConfig } from '../../../../module'
 
+import { createError } from 'h3'
+
+import { resolveStatus, resolveStatusText } from '../errors'
 import { createStoreDomain } from '../transport'
 
 type AdminConfig = NonNullable<ShopifyConfig['clients']['admin']>
@@ -44,8 +47,13 @@ async function fetchAccessToken(
 
   if (!response.ok) {
     const errorBody = await response.text().catch(() => '')
+    const status = resolveStatus(response.status)
 
-    throw new Error(`[shopify] Failed to obtain admin API access token: HTTP ${response.status}${errorBody ? ` - ${errorBody}` : ''}`)
+    throw createError({
+      status,
+      statusText: resolveStatusText(status),
+      message: `[shopify] Failed to obtain admin API access token: HTTP ${response.status}${errorBody ? ` - ${errorBody}` : ''}`,
+    })
   }
 
   const data = await response.json() as {
@@ -56,7 +64,11 @@ async function fetchAccessToken(
   }
 
   if (!data.access_token) {
-    throw new Error('[shopify] Failed to obtain admin API access token: missing `access_token` in response')
+    throw createError({
+      status: 502,
+      statusText: resolveStatusText(502),
+      message: '[shopify] Failed to obtain admin API access token: missing `access_token` in response',
+    })
   }
 
   return {
@@ -81,7 +93,11 @@ export async function getAdminAccessToken(
   }
 
   if (!clientId || !clientSecret) {
-    throw new Error('[shopify] Failed to obtain admin API access token: missing `clientId` or `clientSecret` (provide both, or an `accessToken`)')
+    throw createError({
+      status: 500,
+      statusText: resolveStatusText(500),
+      message: '[shopify] Failed to obtain admin API access token: missing `clientId` or `clientSecret` (provide both, or an `accessToken`)',
+    })
   }
 
   let storedToken = store ? await getTokenStorage(config).then(storage => storage?.getItem('token')) : undefined

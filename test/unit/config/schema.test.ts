@@ -167,6 +167,32 @@ describe('nitro route file documents', () => {
   })
 })
 
+describe('cache presets', () => {
+  const presetsFor = (presets?: Record<string, unknown>) => configObjectSchema.parse({
+    name: 'shop',
+    clients: { storefront: { ...storefront, ...(presets ? { cache: { presets } } : {}) } },
+  }).clients.storefront!.cache
+
+  it('ships `short` and `long` out of the box', () => {
+    const cache = presetsFor()
+
+    expect(cache && cache.presets).toMatchObject({ short: expect.any(Object), long: expect.any(Object) })
+  })
+
+  it('keeps the built-in presets when a custom one is added', () => {
+    const cache = presetsFor({ tiny: { maxAge: 2, staleMaxAge: 4, swr: true } })
+
+    expect(Object.keys((cache && cache.presets) ?? {}).sort()).toStrictEqual(['long', 'short', 'tiny'])
+  })
+
+  it('lets a custom preset override a built-in one of the same name', () => {
+    const cache = presetsFor({ short: { maxAge: 42, staleMaxAge: 0, swr: false } })
+
+    expect(cache && cache.presets.short).toStrictEqual({ maxAge: 42, staleMaxAge: 0, swr: false })
+    expect(cache && cache.presets.long).toBeDefined()
+  })
+})
+
 describe('customer account client id', () => {
   it('accepts a customer account block without a client id at the type level', () => {
     type Input = z.input<typeof configObjectSchema>

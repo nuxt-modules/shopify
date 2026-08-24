@@ -4,6 +4,10 @@ import { defineCommand } from 'citty'
 import log from 'consola'
 import { downloadTemplate } from 'giget'
 
+import { MODULE_VERSION } from '../runtime/utils/version'
+
+const REPOSITORY = 'gh:nuxt-modules/shopify/template'
+
 export default defineCommand({
   meta: {
     name: 'init',
@@ -19,11 +23,17 @@ export default defineCommand({
   },
 
   run: async ({ args }) => {
-    const template = await downloadTemplate('gh:nuxt-modules/shopify/template', {
-      dir: args.directory ?? '.',
-    }).catch((error) => {
-      log.error('Failed to download template:', error)
-    })
+    const dir = args.directory ?? '.'
+
+    const template = await downloadTemplate(`${REPOSITORY}#v${MODULE_VERSION}`, { dir })
+      .catch(async (error) => {
+        log.warn(`Could not download the template for v${MODULE_VERSION} (${error}), falling back to the latest template.`)
+
+        return await downloadTemplate(REPOSITORY, { dir })
+          .catch((fallbackError) => {
+            log.error('Failed to download template:', fallbackError)
+          })
+      })
 
     if (!template) {
       log.error('Failed to download template.')
@@ -46,6 +56,18 @@ export default defineCommand({
       configContent,
       'utf-8',
     )
+
+    const packagePath = join(template.dir, 'package.json')
+
+    const packageContent = await readFile(packagePath, 'utf-8').catch(() => undefined)
+
+    if (packageContent) {
+      await writeFile(
+        packagePath,
+        packageContent.replace(/("@nuxtjs\/shopify":\s*)"latest"/, `$1"^${MODULE_VERSION}"`),
+        'utf-8',
+      )
+    }
 
     log.success(`Nuxt Shopify Template initialized in ${template.dir}`)
   },

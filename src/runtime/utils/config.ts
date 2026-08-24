@@ -98,7 +98,7 @@ const storageMountSchema = z.any().transform(v => v as StorageMounts[string] | s
 const clientCacheSchema = z.object({
   client: enableable(z.any().transform(v => v as LRUDriverOptions), defaultClientCacheOptions),
   proxy: enableable(storageMountSchema, defaultProxyCacheOptions),
-  presets: z.record(z.string(), z.any().transform(v => v as Pick<CacheOptions, 'maxAge' | 'staleMaxAge' | 'swr'>)).optional().default(defaultCachePresets),
+  presets: z.record(z.string(), z.any().transform(v => v as Pick<CacheOptions, 'maxAge' | 'staleMaxAge' | 'swr'>)).optional().transform(v => ({ ...defaultCachePresets, ...(v ?? {}) })),
 })
 
 const codegenSchema = z.object({

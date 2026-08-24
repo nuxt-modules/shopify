@@ -43,11 +43,19 @@ export const validate = async (event: H3Event) => {
 
   const shopifyHmac = getWebhookHmac(event)
 
-  if (!shopifyHmac?.length) throw unauthorized()
+  if (!shopifyHmac?.length) {
+    createLogger().debug('Rejected a webhook request: the `x-shopify-hmac-sha256` header is missing')
+
+    throw unauthorized()
+  }
 
   const body = await readRawBody(event, false)
 
-  if (!body?.length) throw unauthorized()
+  if (!body?.length) {
+    createLogger().debug('Rejected a webhook request: the request body is empty')
+
+    throw unauthorized()
+  }
 
   if (!hasValidSignature(_shopify.webhooks.secret, body, shopifyHmac)) {
     createLogger().debug('Rejected a webhook request: the HMAC signature does not match')

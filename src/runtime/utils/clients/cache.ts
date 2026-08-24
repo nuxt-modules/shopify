@@ -11,10 +11,41 @@ import { hash } from 'ohash'
 
 import { PROXY_CACHE_HEADER } from './transport'
 
+type CachePresets = Record<string, Pick<CacheOptions, 'maxAge' | 'staleMaxAge' | 'swr'>>
+
+const reportedPresets = new Set<string>()
+
+export function reportUnknownCachePreset(name: string, presets?: CachePresets) {
+  if (name === 'none' || reportedPresets.has(name)) return
+
+  reportedPresets.add(name)
+
+  const available = Object.keys(presets ?? {})
+
+  const message = `Unknown cache preset \`${name}\`, this request is not cached. `
+    + (available.length
+      ? `Available presets: \`${available.join('`, `')}\``
+      : 'No cache presets are configured')
+
+  void import('../log').then(({ createLogger }) => createLogger().warn(message))
+}
+
 function toCacheTtl(maxAge: number, staleMaxAge: number) {
   const ttl = maxAge * 1000 + staleMaxAge * 1000
 
   return ttl > 0 ? { ttl } : undefined
+}
+
+function fromPreset(name: string, cachePresets?: CachePresets) {
+  const preset = cachePresets?.[name]
+
+  if (!preset) {
+    reportUnknownCachePreset(name, cachePresets)
+
+    return undefined
+  }
+
+  return toCacheTtl(preset.maxAge ?? 0, preset.staleMaxAge ?? 0)
 }
 
 function getLRUCacheSettings<
@@ -22,20 +53,14 @@ function getLRUCacheSettings<
   Operations extends AllOperations,
 >(
   options?: ShopifyApiClientRequestOptions<Operation, Operations, true>,
-  cachePresets?: Record<string, Pick<CacheOptions, 'maxAge' | 'staleMaxAge' | 'swr'>>,
+  cachePresets?: CachePresets,
 ) {
-  if (typeof options?.cache === 'string' && cachePresets?.[options.cache]) {
-    const maxAge = cachePresets[options.cache]!.maxAge ?? 0
-    const staleMaxAge = cachePresets[options.cache]!.staleMaxAge ?? 0
-
-    return toCacheTtl(maxAge, staleMaxAge)
+  if (typeof options?.cache === 'string') {
+    return fromPreset(options.cache, cachePresets)
   }
   else if (typeof options?.cache === 'object') {
-    if (typeof options.cache.client === 'string' && cachePresets?.[options.cache.client]) {
-      const maxAge = cachePresets[options.cache.client]!.maxAge ?? 0
-      const staleMaxAge = cachePresets[options.cache.client]!.staleMaxAge ?? 0
-
-      return toCacheTtl(maxAge, staleMaxAge)
+    if (typeof options.cache.client === 'string') {
+      return fromPreset(options.cache.client, cachePresets)
     }
     else if (typeof options.cache.client === 'object') return options.cache.client
   }
@@ -80,7 +105,7 @@ export default async function useCache<
   request: Request,
   operation: Operation,
   options?: ShopifyApiClientRequestOptions<Operation, Operations, true>,
-  cachePresets?: Record<string, Pick<CacheOptions, 'maxAge' | 'staleMaxAge' | 'swr'>>,
+  cachePresets?: CachePresets,
 ): Promise<ClientResponse<ReturnData<Operation, Operations>>> {
   const inMemoryConfig = storage ? getLRUCacheSettings(options, cachePresets) : undefined
   const proxyCacheHeaders = getProxyCacheHeaders(options)

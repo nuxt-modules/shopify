@@ -16,6 +16,12 @@ vi.mock('nitropack/runtime', () => ({
   useRuntimeConfig: () => runtimeConfig,
 }))
 
+const debug = vi.fn()
+
+vi.mock('#src/runtime/server/utils/log', () => ({
+  createLogger: () => ({ debug, warn: vi.fn(), error: vi.fn() }),
+}))
+
 const { validate } = await import('#src/runtime/server/utils/webhooks/validation')
 
 const createEvent = (body: string, hmac?: string) => createTestEvent({
@@ -65,5 +71,33 @@ describe('webhook hmac validation', () => {
     runtimeConfig._shopify = { webhooks: undefined }
 
     await expect(validate(createEvent(body, sign(body)))).rejects.toMatchObject({ statusCode: 401 })
+  })
+})
+
+describe('webhook rejection logging', () => {
+  const body = JSON.stringify({ id: 1, topic: 'orders/create' })
+
+  const rejectionReason = async (event: ReturnType<typeof createEvent>) => {
+    debug.mockClear()
+
+    await validate(event).catch(() => {})
+
+    return debug.mock.calls.map(call => String(call[0])).join('\n')
+  }
+
+  it('says why a request without a signature was rejected', async () => {
+    expect(await rejectionReason(createEvent(body))).toContain('x-shopify-hmac-sha256')
+  })
+
+  it('says why a request with an empty body was rejected', async () => {
+    expect(await rejectionReason(createEvent('', sign('')))).toContain('body is empty')
+  })
+
+  it('says why a request with a bad signature was rejected', async () => {
+    expect(await rejectionReason(createEvent(body, sign(body, 'wrong_secret')))).toContain('does not match')
+  })
+
+  it('stays quiet for a valid request', async () => {
+    expect(await rejectionReason(createEvent(body, sign(body)))).toBe('')
   })
 })
