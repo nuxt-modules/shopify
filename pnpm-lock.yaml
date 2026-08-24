@@ -23,6 +23,9 @@ importers:
       '@graphql-codegen/typescript':
         specifier: ^6.1.0
         version: 6.1.0(graphql@16.14.2)
+      '@graphql-tools/code-file-loader':
+        specifier: ^8.1.34
+        version: 8.1.34(graphql@16.14.2)(supports-color@10.2.2)
       '@graphql-yoga/render-graphiql':
         specifier: ^5.21.3
         version: 5.21.3(graphql-yoga@5.21.3(graphql@16.14.2))
@@ -234,7 +237,7 @@ importers:
         version: 10.6.0(@vue/compiler-dom@3.5.41)(db0@0.3.4(better-sqlite3@12.11.1))(esbuild@0.28.1)(eslint@10.8.1(jiti@2.7.0)(supports-color@10.2.2))(ioredis@5.11.1(supports-color@10.2.2))(magicast@0.5.4)(rolldown@1.2.4)(rollup@4.62.2)(supports-color@10.2.2)(typescript@6.0.3)(vite@8.2.1(@types/node@25.9.5)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.49.0)(yaml@2.9.0))(vue@3.5.41(typescript@6.0.3))
       '@nuxtjs/shopify':
         specifier: latest
-        version: 0.9.3(2b228c3fd24d1a056d87703b17e4c308)
+        version: 0.9.4(2b228c3fd24d1a056d87703b17e4c308)
       '@shopify/hydrogen':
         specifier: ^2026.4.5
         version: 2026.4.5(@react-router/dev@7.16.0(@types/node@25.9.5)(jiti@2.7.0)(lightningcss@1.33.0)(react-router@7.16.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(supports-color@10.2.2)(terser@5.49.0)(typescript@6.0.3)(vite@8.2.1(@types/node@25.9.5)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.49.0)(yaml@2.9.0))(yaml@2.9.0))(react-dom@18.3.1(react@18.3.1))(react-router@7.16.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(three@0.183.2)(vite@8.2.1(@types/node@25.9.5)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.49.0)(yaml@2.9.0))
@@ -2654,14 +2657,14 @@ packages:
       zod:
         optional: true
 
-  '@nuxtjs/shopify@0.9.3':
-    resolution: {integrity: sha512-aBBrLvzZWRsHjY3RmnTOaioIP3auMZEg17nW9HGUHWdfdGOQTMyvhhaTewesvOMB1SgyHstfz6gN7ZFw5x3GOA==}
+  '@nuxtjs/shopify@0.9.4':
+    resolution: {integrity: sha512-9Fub/4ZgHp+q8GRH9+MsoBjYeobCSK1AHccKAcMjLaU8xEqHdPJOKnvSvNBzhPeNZxak5JOmsfYvWo0Y09et3Q==}
     engines: {node: ^20.x || ^22.x || ^24.x}
     hasBin: true
     peerDependencies:
       '@shopify/hydrogen': '*'
       '@shopify/hydrogen-react': '*'
-      vue: ^3
+      vue: ^3.5.41
     peerDependenciesMeta:
       '@shopify/hydrogen':
         optional: true
@@ -4200,19 +4203,12 @@ packages:
   '@shikijs/vscode-textmate@10.0.2':
     resolution: {integrity: sha512-83yeghZ2xxin3Nj8z1NMd/NCuca+gsYXswywDy5bHvwlWL8tpTQmzGeUuHd9FC3E/SBEMvzJRwWEOz5gGes9Qg==}
 
-  '@shopify/api-codegen-preset@2.0.1':
-    resolution: {integrity: sha512-sceMo8f10Vok7o409EVrh4XZcUyZJo25vkMmYR4CB8ERRbuXU+C5Icx+szvczqTciZYC2xkdkCczV6KSNUbdNA==}
-    engines: {node: '>=20.0.0'}
-
   '@shopify/api-codegen-preset@3.0.0':
     resolution: {integrity: sha512-NKv+SUggxhHNeYjWFR+LKxb2PVtTaGlm5YJ7/jIGBr8E2v3yuo2TCp9tpcKqbECEhiQVcQzwnyeamW4LhWp92g==}
     engines: {node: '>=22.0.0'}
 
   '@shopify/graphql-client@1.4.1':
     resolution: {integrity: sha512-/w4Uchx8ueI8gwmJd1ZbbIGndsjfMEFlzmay3P7rya5zj7K308xne/ggIvWDweueIut2qf1A8lI58xQl9Pu22w==}
-
-  '@shopify/graphql-client@1.4.2':
-    resolution: {integrity: sha512-C/fEyx6BZmTGeJv0HSsduhfn5ZbkXk0nePkyo0+xXxorP1I+uvx9pobdFxTfiPnOrh+P6QiKzBgIviksnSo4YA==}
 
   '@shopify/graphql-client@2.0.0':
     resolution: {integrity: sha512-SfIZa6J9Px4ZSMIVdPLNupeSyqznovV6pDVxwC1rmbi0JTVj2q/CCsOf9hLQvsMdBiyJDHVnoVHGpBzlhpwO2Q==}
@@ -15121,7 +15117,7 @@ snapshots:
       - vite
       - vue
 
-  '@nuxtjs/shopify@0.9.3(2b228c3fd24d1a056d87703b17e4c308)':
+  '@nuxtjs/shopify@0.9.4(2b228c3fd24d1a056d87703b17e4c308)':
     dependencies:
       '@graphql-codegen/cli': 7.2.0(@parcel/watcher@2.5.6)(@types/node@25.9.5)(crossws@0.3.5)(graphql@16.14.2)(supports-color@10.2.2)(typescript@6.0.3)
       '@graphql-codegen/import-types-preset': 4.0.1(graphql@16.14.2)
@@ -15130,8 +15126,8 @@ snapshots:
       '@graphql-codegen/typescript': 6.1.0(graphql@16.14.2)
       '@graphql-yoga/render-graphiql': 5.21.3(graphql-yoga@5.21.3(graphql@16.14.2))
       '@nuxt/kit': 4.5.2(magic-string@0.30.21)(magicast@0.5.4)(oxc-parser@0.141.0)(rolldown@1.2.4)(unplugin@3.3.0(esbuild@0.28.1)(rolldown@1.2.4)(rollup@4.62.2)(vite@8.2.1(@types/node@25.9.5)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.49.0)(yaml@2.9.0)))
-      '@shopify/api-codegen-preset': 2.0.1(@types/node@25.9.5)(crossws@0.3.5)(supports-color@10.2.2)(typescript@6.0.3)
-      '@shopify/graphql-client': 1.4.2
+      '@shopify/api-codegen-preset': 3.0.0(@types/node@25.9.5)(crossws@0.3.5)(supports-color@10.2.2)(typescript@6.0.3)
+      '@shopify/graphql-client': 2.0.0
       '@shopify/graphql-codegen': 0.1.0(graphql@16.14.2)
       citty: 0.2.2
       consola: 3.4.2
@@ -16109,25 +16105,6 @@ snapshots:
 
   '@shikijs/vscode-textmate@10.0.2': {}
 
-  '@shopify/api-codegen-preset@2.0.1(@types/node@25.9.5)(crossws@0.3.5)(supports-color@10.2.2)(typescript@6.0.3)':
-    dependencies:
-      '@graphql-codegen/cli': 6.3.1(@parcel/watcher@2.5.6)(@types/node@25.9.5)(crossws@0.3.5)(graphql@16.14.2)(supports-color@10.2.2)(typescript@6.0.3)
-      '@graphql-codegen/introspection': 5.0.2(graphql@16.14.2)
-      '@graphql-codegen/typescript': 5.0.10(graphql@16.14.2)
-      '@parcel/watcher': 2.5.6
-      '@shopify/graphql-codegen': 0.1.0(graphql@16.14.2)
-      graphql: 16.14.2
-    transitivePeerDependencies:
-      - '@fastify/websocket'
-      - '@types/node'
-      - bufferutil
-      - cosmiconfig-toml-loader
-      - crossws
-      - graphql-sock
-      - supports-color
-      - typescript
-      - utf-8-validate
-
   '@shopify/api-codegen-preset@3.0.0(@types/node@25.9.5)(crossws@0.3.5)(supports-color@10.2.2)(typescript@6.0.3)':
     dependencies:
       '@graphql-codegen/cli': 6.3.1(@parcel/watcher@2.5.6)(@types/node@25.9.5)(crossws@0.3.5)(graphql@16.14.2)(supports-color@10.2.2)(typescript@6.0.3)
@@ -16148,8 +16125,6 @@ snapshots:
       - utf-8-validate
 
   '@shopify/graphql-client@1.4.1': {}
-
-  '@shopify/graphql-client@1.4.2': {}
 
   '@shopify/graphql-client@2.0.0': {}
 

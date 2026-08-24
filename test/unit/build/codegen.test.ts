@@ -11,7 +11,7 @@ vi.mock('@graphql-codegen/cli', () => ({
   generate: (...args: unknown[]) => generate(...args as []),
 }))
 
-const { createIntrospectionGenerator, createOperationsGenerator } = await import('#src/utils/codegen')
+const { clearGenerateFailures, createIntrospectionGenerator, createOperationsGenerator, getGenerateFailures } = await import('#src/utils/codegen')
 
 const FILENAME = 'schema/storefront.2026-01.schema.json'
 
@@ -207,5 +207,70 @@ describe('introspection retries', () => {
       .resolves.toBe('')
 
     expect(generate).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('document parse failures', () => {
+  const OPERATIONS_FILE = 'shopify/storefront/storefront.operations.d.ts'
+
+  let root: string
+
+  const operationsData = () => ({
+    nuxt: {
+      options: { dev: false, _prepare: false, rootDir: root },
+      callHook: vi.fn(() => Promise.resolve()),
+    },
+    options: {
+      filename: OPERATIONS_FILE,
+      shopName: 'test-shop',
+      clientType: ShopifyClientType.Storefront,
+      clientConfig: {
+        apiVersion: '2026-01',
+        mock: true,
+        documents: ['**/*.{ts,graphql}', '!node_modules'],
+        codegen: { autoImport: false },
+      },
+      introspection: pathFor('populated.json'),
+    },
+  }) as never
+
+  beforeEach(() => {
+    root = mkdtempSync(join(tmpdir(), 'nuxt-shopify-documents-'))
+
+    clearGenerateFailures()
+
+    generate.mockImplementation(() => Promise.resolve([{ content: 'interface GeneratedQueryTypes {}' }]))
+  })
+
+  afterEach(() => {
+    rmSync(root, { recursive: true, force: true })
+  })
+
+  it('reports an operation that fails to parse instead of dropping it silently', async () => {
+    writeFileSync(join(root, 'good.ts'), 'export const good = `#graphql\n  query Good { shop { name } }\n`\n')
+    writeFileSync(join(root, 'broken.ts'), 'export const broken = `#graphql\n  query Broken { shop { name\n`\n')
+
+    const contents = await createOperationsGenerator()!(operationsData()) as string
+
+    expect(contents).toBe('')
+    expect(generate).not.toHaveBeenCalled()
+
+    const failures = getGenerateFailures()
+
+    expect(failures).toHaveLength(1)
+    expect(failures[0]).toContain(OPERATIONS_FILE)
+    expect(failures[0]).toContain('Syntax Error')
+    expect(failures[0]).toContain('broken.ts')
+  })
+
+  it('generates as usual when every document parses', async () => {
+    writeFileSync(join(root, 'good.ts'), 'export const good = `#graphql\n  query Good { shop { name } }\n`\n')
+    writeFileSync(join(root, 'plain.ts'), 'export const plain = 1\n')
+    writeFileSync(join(root, 'frag.graphql'), 'fragment ShopFields on Shop { name }\n')
+
+    await createOperationsGenerator()!(operationsData())
+
+    expect(generate).toHaveBeenCalledTimes(1)
+    expect(getGenerateFailures()).toHaveLength(0)
   })
 })

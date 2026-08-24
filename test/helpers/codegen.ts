@@ -6,6 +6,8 @@ const IGNORED_DIRS = ['node_modules', 'dist', '.nuxt', '.output']
 
 const ignores = IGNORED_DIRS.map(dir => `!${dir}`)
 
+const routeMethods = ['connect', 'delete', 'get', 'head', 'options', 'patch', 'post', 'put', 'trace'].join(',')
+
 function getExpectedDocuments(clientType: string, { exclude }: { exclude?: boolean } = {}) {
   const clientName = kebabCase(clientType)
   const fileEndings = ['gql', 'graphql', 'ts', 'js', ...(clientType !== ShopifyClientType.Admin ? ['vue'] : [])].join(',')
@@ -13,6 +15,8 @@ function getExpectedDocuments(clientType: string, { exclude }: { exclude?: boole
   return [
     `${exclude ? '!' : ''}**/*.${clientName}.{${fileEndings}}`,
     `${exclude ? '!' : ''}**/${clientName}.{${fileEndings}}`,
+    `${exclude ? '!' : ''}**/*.${clientName}.{${routeMethods}}.{ts,js}`,
+    `${exclude ? '!' : ''}**/${clientName}.{${routeMethods}}.{ts,js}`,
     `${exclude ? '!' : ''}**/${clientName}/**/*.{${fileEndings}}`,
     `${exclude ? '!' : ''}**/${clientName}/*.{${fileEndings}}`,
     `${exclude ? '!' : ''}**/(${clientName})/**/*.{${fileEndings}}`,

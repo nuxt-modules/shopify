@@ -32,6 +32,8 @@ function enableable<S extends z.ZodTypeAny>(schema: S, fallback: z.output<S>, en
 
 const proxyRouteSchema = (route: string) => enableable(z.object({ route: z.string().optional().default(route) }), { route })
 
+const routeMethods = ['connect', 'delete', 'get', 'head', 'options', 'patch', 'post', 'put', 'trace'].join(',')
+
 const getDefaultDocuments = (clientType: string, { exclude }: { exclude?: boolean } = {}) => {
   const clientName = kebabCase(clientType)
   const fileEndings = ['gql', 'graphql', 'ts', 'js', ...(clientType !== ShopifyClientType.Admin ? ['vue'] : [])].join(',')
@@ -39,6 +41,8 @@ const getDefaultDocuments = (clientType: string, { exclude }: { exclude?: boolea
   return [
     `${exclude ? '!' : ''}**/*.${clientName}.{${fileEndings}}`,
     `${exclude ? '!' : ''}**/${clientName}.{${fileEndings}}`,
+    `${exclude ? '!' : ''}**/*.${clientName}.{${routeMethods}}.{ts,js}`,
+    `${exclude ? '!' : ''}**/${clientName}.{${routeMethods}}.{ts,js}`,
     `${exclude ? '!' : ''}**/${clientName}/**/*.{${fileEndings}}`,
     `${exclude ? '!' : ''}**/${clientName}/*.{${fileEndings}}`,
     `${exclude ? '!' : ''}**/(${clientName})/**/*.{${fileEndings}}`,

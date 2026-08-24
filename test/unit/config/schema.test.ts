@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
 
-import { configObjectSchema, publicConfigSchema } from '#src/schemas'
+import { ShopifyClientType, configObjectSchema, publicConfigSchema } from '#src/schemas'
 
 const storefront = { publicAccessToken: 'tok' }
 
@@ -126,5 +126,43 @@ describe('enableable options', () => {
     })
 
     expect(config.clients.admin?.tokenStorage).toBe('redis')
+  })
+})
+
+describe('nitro route file documents', () => {
+  const documentsFor = (client: ShopifyClientType) => {
+    const parsed = configObjectSchema.parse({
+      name: 'test-shop',
+      clients: {
+        storefront: { publicAccessToken: 'token' },
+        admin: { accessToken: 'token' },
+        customerAccount: { clientId: 'client-id' },
+      },
+    })
+
+    return parsed.clients[client]!.documents!
+  }
+
+  it('routes method-suffixed route files to the admin client', () => {
+    const documents = documentsFor(ShopifyClientType.Admin)
+
+    expect(documents).toContain('**/admin.{connect,delete,get,head,options,patch,post,put,trace}.{ts,js}')
+    expect(documents).toContain('**/*.admin.{connect,delete,get,head,options,patch,post,put,trace}.{ts,js}')
+  })
+
+  it('routes method-suffixed route files to the customer account client', () => {
+    const documents = documentsFor(ShopifyClientType.CustomerAccount)
+
+    expect(documents).toContain('**/customer-account.{connect,delete,get,head,options,patch,post,put,trace}.{ts,js}')
+    expect(documents).toContain('**/account.{connect,delete,get,head,options,patch,post,put,trace}.{ts,js}')
+    expect(documents).toContain('**/customer.{connect,delete,get,head,options,patch,post,put,trace}.{ts,js}')
+  })
+
+  it('keeps method-suffixed route files out of the storefront client', () => {
+    const documents = documentsFor(ShopifyClientType.Storefront)
+
+    expect(documents).toContain('!**/admin.{connect,delete,get,head,options,patch,post,put,trace}.{ts,js}')
+    expect(documents).toContain('!**/account.{connect,delete,get,head,options,patch,post,put,trace}.{ts,js}')
+    expect(documents).toContain('!**/customer-account.{connect,delete,get,head,options,patch,post,put,trace}.{ts,js}')
   })
 })

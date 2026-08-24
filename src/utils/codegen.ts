@@ -37,6 +37,8 @@ const INTROSPECTION_RETRY_DELAY = 5000
 
 const TRANSPORT_ERROR_PATTERN = /Failed to load schema|ETIMEDOUT|ECONNREFUSED|ECONNRESET|ENOTFOUND|EAI_AGAIN|socket hang up|network|fetch failed|timeout/i
 
+const GLOB_MAGIC = /[*?[\]{}()]/
+
 const generateFailures = new Set<string>()
 
 type ShopifyTemplateOptions = {
@@ -116,6 +118,41 @@ export function getGenerateFailures(): string[] {
 
 export function clearGenerateFailures() {
   generateFailures.clear()
+}
+
+async function findDocumentParseFailure(documents: string[] | undefined, cwd: string): Promise<Error | undefined> {
+  if (!documents?.length) return undefined
+
+  const include: string[] = []
+  const ignore: string[] = []
+
+  for (const pointer of documents) {
+    if (!pointer.startsWith('!')) {
+      include.push(pointer)
+      continue
+    }
+
+    const pattern = pointer.slice(1)
+
+    ignore.push(GLOB_MAGIC.test(pattern) ? pattern : `${pattern}/**`)
+  }
+
+  if (!include.length) return undefined
+
+  const { CodeFileLoader } = await import('@graphql-tools/code-file-loader')
+
+  const loader = new CodeFileLoader({ pluckConfig })
+
+  for (const pointer of include) {
+    try {
+      await loader.load(pointer, { cwd, ignore, noRequire: true, noSilentErrors: true })
+    }
+    catch (error) {
+      return new Error(String(error))
+    }
+  }
+
+  return undefined
 }
 
 function reportGenerateFailure(nuxt: Nuxt, filename: string, error: unknown): '' {
@@ -364,6 +401,12 @@ export function createOperationsGenerator(): NuxtTemplate<ShopifyTemplateOptions
       nuxt: data.nuxt,
       config: generatorConfig,
     })
+
+    const parseFailure = await findDocumentParseFailure(generatorConfig.documents, data.nuxt.options.rootDir)
+
+    if (parseFailure) {
+      return reportGenerateFailure(data.nuxt, data.options.filename, parseFailure)
+    }
 
     const contents = await runGenerate(data.nuxt, data.options, generatorConfig, config => ({
       overwrite: true,
