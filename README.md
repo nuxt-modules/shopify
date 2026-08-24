@@ -8,9 +8,8 @@
 [![NPM last update][npm-last-update-src]][npm-last-update-href]
 [![License][license-src]][license-href]
 
-Typed fetch clients for the [Storefront API](https://shopify.dev/docs/api/storefront), [Customer Account API](https://shopify.dev/docs/api/customer) and [Admin API](https://shopify.dev/docs/api/admin-graphql).
-Use it on the server and client side with built-in fragment deduplication, proxying, caching, analytics, error handling, retries and automatic,
-hot-reloaded type generation from your GraphQL queries.
+Nuxt integration for the [Storefront API](https://shopify.dev/docs/api/storefront), [Customer Account API](https://shopify.dev/docs/api/customer) and [Admin API](https://shopify.dev/docs/api/admin-graphql).
+Use typed fetch clients on the server and client side with built-in fragment deduplication, proxying, caching, analytics, error handling, retries and automatic, hot-reloaded type generation from your GraphQL queries.
 Fully configurable, works out of the box with [mock.shop](https://mock.shop) for local development.
 
 - 📚 [Documentation](https://shopify.nuxtjs.org)

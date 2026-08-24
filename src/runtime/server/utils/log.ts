@@ -1,13 +1,22 @@
 import type { ConsolaOptions } from 'consola'
+import type { H3Event } from 'h3'
 
-import { useRuntimeConfig } from 'nitropack/runtime'
+import { useEvent, useRuntimeConfig } from 'nitropack/runtime'
 import { createConsola } from 'consola'
 
 export function createLogger() {
+  let event: H3Event | undefined
   let options: Partial<ConsolaOptions> | undefined
 
   try {
-    options = useRuntimeConfig()._shopify?.logger
+    event = useEvent()
+  }
+  catch {
+    event = undefined
+  }
+
+  try {
+    options = useRuntimeConfig(event)._shopify?.logger
   }
   catch {
     options = undefined

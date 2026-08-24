@@ -13,8 +13,8 @@ import {
   DEFAULT_THROW_ERRORS,
   MAX_RETRIES,
   MIN_RETRIES,
-} from '../runtime/utils/clients/defaults'
-import { SESSION_DEFAULT_NAME } from '../runtime/utils/session'
+} from './clients/defaults'
+import { SESSION_DEFAULT_NAME } from './session'
 
 export enum ShopifyClientType {
   Storefront = 'storefront',

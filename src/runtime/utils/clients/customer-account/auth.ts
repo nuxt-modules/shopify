@@ -2,6 +2,8 @@ import type { CustomerAccountTokens, OpenIdConfiguration } from '../../../../mod
 
 import { withQuery } from 'ufo'
 
+import { isVersionedApiUrl, withApiVersion } from '../transport'
+
 const openIdConfigurationCache = new Map<string, Promise<OpenIdConfiguration>>()
 
 export function getOpenIdConfiguration(storeDomain: string): Promise<OpenIdConfiguration> {
@@ -229,4 +231,14 @@ export function buildLogoutURL(configuration: OpenIdConfiguration, params: {
     id_token_hint: params.idToken,
     post_logout_redirect_uri: params.postLogoutRedirectUri,
   })
+}
+
+export async function getCustomerAccountApiUrl(storeDomain: string, apiVersion: string): Promise<string | undefined> {
+  const apiUrl = await fetch(`${storeDomain}/.well-known/customer-account-api`)
+    .then(async response => (await response.json() as { graphql_api?: string }).graphql_api)
+    .catch(() => undefined)
+
+  if (!apiUrl) return undefined
+
+  return isVersionedApiUrl(apiUrl) ? withApiVersion(apiUrl, apiVersion) : apiUrl
 }

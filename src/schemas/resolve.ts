@@ -1,10 +1,11 @@
 import type { Nuxt } from '@nuxt/schema'
 import type { z } from 'zod'
 
-import type { configObjectSchema } from './config'
+import type { configObjectSchema } from '../runtime/utils/config'
 
-import { ShopifyClientType } from './config'
-import { createStoreDomain, isVersionedApiUrl, withApiVersion } from '../runtime/utils/clients/transport'
+import { ShopifyClientType } from '../runtime/utils/config'
+import { createStoreDomain } from '../runtime/utils/clients/transport'
+import { getCustomerAccountApiUrl } from '../runtime/utils/clients/customer-account/auth'
 import { isInstalled } from '../utils/install'
 import { useLogger } from '../utils/log'
 import { SESSION_PASSWORD_ENV, generateSessionPassword, persistSessionPassword } from '../utils/session'
@@ -76,16 +77,12 @@ async function resolveCustomerAccountApiUrl(config: ShopifyConfig) {
     return
   }
 
-  const wellKnownURL = createStoreDomain(config.name) + '/.well-known/customer-account-api'
+  const storeDomain = createStoreDomain(config.name)
 
-  const apiUrl = await fetch(wellKnownURL)
-    .then(async res => (await res.json() as { graphql_api: string }).graphql_api)
-    .catch(() => undefined)
+  const apiUrl = await getCustomerAccountApiUrl(storeDomain, customerAccount.apiVersion)
 
   if (apiUrl) {
-    customerAccount.apiURL = isVersionedApiUrl(apiUrl)
-      ? withApiVersion(apiUrl, customerAccount.apiVersion)
-      : apiUrl
+    customerAccount.apiURL = apiUrl
 
     logger.debug(`Resolved customer account API URL: ${customerAccount.apiURL}`)
 
@@ -93,7 +90,7 @@ async function resolveCustomerAccountApiUrl(config: ShopifyConfig) {
   }
 
   logger.warn(
-    `Could not resolve the customer account API URL from \`${wellKnownURL}\` - `
+    `Could not resolve the customer account API URL from \`${storeDomain}/.well-known/customer-account-api\` - `
     + 'customer account requests will fail (is the Customer Account API enabled for your store?, '
     + 'or set `clients.customerAccount.apiURL` explicitly)',
   )

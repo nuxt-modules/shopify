@@ -34,6 +34,8 @@ import type {
   ShopifyAnalyticsContext,
 } from './analytics'
 
+type DeepPartial<T> = { [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P] }
+
 declare module '@nuxt/schema' {
   interface NuxtConfig {
     shopify?: ModuleOptions
@@ -44,12 +46,12 @@ declare module '@nuxt/schema' {
   }
 
   interface RuntimeConfig {
-    shopify?: ModuleOptions
+    shopify?: DeepPartial<ModuleOptions>
     _shopify?: ShopifyConfig
   }
 
   interface PublicRuntimeConfig {
-    shopify?: PublicModuleOptions
+    shopify?: DeepPartial<PublicModuleOptions>
     _shopify?: PublicShopifyConfig
   }
 
@@ -113,12 +115,12 @@ declare module '@nuxt/schema' {
 
 declare module 'nuxt/schema' {
   interface RuntimeConfig {
-    shopify?: ModuleOptions
+    shopify?: DeepPartial<ModuleOptions>
     _shopify?: ShopifyConfig
   }
 
   interface PublicRuntimeConfig {
-    shopify?: PublicModuleOptions
+    shopify?: DeepPartial<PublicModuleOptions>
     _shopify?: PublicShopifyConfig
   }
 }

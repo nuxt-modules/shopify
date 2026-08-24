@@ -8,6 +8,7 @@ import {
 import { defu } from 'defu'
 import { z } from 'zod'
 
+import setupConfig from './setup/config'
 import setupAnalytics from './setup/analytics'
 import setupClients from './setup/clients'
 import setupCodegen from './setup/codegen'
@@ -19,7 +20,7 @@ import setupExplorer from './setup/explorer'
 import setupVite from './setup/vite'
 import setupWebhooks from './setup/webhooks'
 
-import { configSchema, publicConfigSchema } from './schemas'
+import { configSchema } from './schemas'
 import { getConfiguredClients } from './utils/clients'
 import { initLogger } from './utils/log'
 
@@ -56,16 +57,7 @@ export default defineNuxtModule<ModuleOptions>({
 
       await nuxt.callHook('shopify:config', { nuxt, config })
 
-      const publicConfig = publicConfigSchema.parse(config)
-
-      Object.assign(nuxt.options.runtimeConfig, defu({
-        _shopify: config,
-
-        public: {
-          _shopify: publicConfig,
-        },
-      }, nuxt.options.runtimeConfig))
-
+      setupConfig(nuxt, config, resolver)
       setupClients(nuxt, config, resolver)
       setupCodegen(nuxt, config)
       setupAnalytics(config, resolver)

@@ -6,7 +6,7 @@ import {
   ShopifyClientType,
   configObjectSchema,
   publicConfigSchema,
-} from './config'
+} from '../runtime/utils/config'
 import { resolveConfig } from './resolve'
 
 export const configSchema = configObjectSchema
