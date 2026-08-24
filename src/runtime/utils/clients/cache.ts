@@ -7,6 +7,7 @@ import type {
   ShopifyApiClientRequestOptions,
 } from '../../../module'
 
+import { createConsola } from 'consola'
 import { hash } from 'ohash'
 
 import { PROXY_CACHE_HEADER } from './transport'
@@ -22,12 +23,12 @@ export function reportUnknownCachePreset(name: string, presets?: CachePresets) {
 
   const available = Object.keys(presets ?? {})
 
-  const message = `Unknown cache preset \`${name}\`, this request is not cached. `
+  createConsola().withTag('shopify').warn(
+    `Unknown cache preset \`${name}\`, this request is not cached. `
     + (available.length
       ? `Available presets: \`${available.join('`, `')}\``
-      : 'No cache presets are configured')
-
-  void import('../log').then(({ createLogger }) => createLogger().warn(message))
+      : 'No cache presets are configured'),
+  )
 }
 
 function toCacheTtl(maxAge: number, staleMaxAge: number) {

@@ -8,8 +8,9 @@ import useCache from '#src/runtime/utils/clients/cache'
 
 const warn = vi.fn()
 
-vi.mock('#src/runtime/utils/log', () => ({
-  createLogger: () => ({ warn }),
+vi.mock('consola', async importOriginal => ({
+  ...(await importOriginal<Record<string, unknown>>()),
+  createConsola: () => ({ withTag: () => ({ warn }) }),
 }))
 
 const presets = {
@@ -202,7 +203,7 @@ describe('unknown cache presets', () => {
 
     expect(request).toHaveBeenCalledTimes(2)
 
-    await vi.waitFor(() => expect(warn).toHaveBeenCalledTimes(1))
+    expect(warn).toHaveBeenCalledTimes(1)
 
     expect(String(warn.mock.calls[0]?.[0])).toContain('`typo`')
     expect(String(warn.mock.calls[0]?.[0])).toContain('short')
@@ -214,7 +215,7 @@ describe('unknown cache presets', () => {
 
     await cached(createStorage(), createRequest(), QUERY, { cache: { client: 'other-typo' } })
 
-    await vi.waitFor(() => expect(warn).toHaveBeenCalledTimes(1))
+    expect(warn).toHaveBeenCalledTimes(1)
 
     expect(String(warn.mock.calls[0]?.[0])).toContain('`other-typo`')
   })
@@ -224,8 +225,6 @@ describe('unknown cache presets', () => {
 
     await cached(createStorage(), createRequest(), QUERY, { cache: 'short' })
     await cached(createStorage(), createRequest(), QUERY, { cache: 'none' })
-
-    await new Promise(resolve => setTimeout(resolve, 0))
 
     expect(warn).not.toHaveBeenCalled()
   })

@@ -1,7 +1,8 @@
 // @vitest-environment happy-dom
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { nextTick, watchEffect } from 'vue'
 
-import { parseStoreDomain } from '#src/runtime/utils/analytics/consent'
+import { parseStoreDomain, setupCustomerPrivacy } from '#src/runtime/utils/analytics/consent'
 
 declare global {
   interface Window {
@@ -36,5 +37,97 @@ describe('parseStoreDomain', () => {
 
   it('shares nothing between unrelated domains', () => {
     expect(onHost('shop.example.com', 'checkout.shopify.io')).toBeUndefined()
+  })
+})
+
+type ConsentCallback = (result: { error?: string }) => void
+
+function stubCustomerPrivacy() {
+  let allowed = false
+
+  const api = {
+    analyticsProcessingAllowed: () => allowed,
+    marketingAllowed: () => allowed,
+    saleOfDataAllowed: () => allowed,
+    setTrackingConsent: vi.fn((_consent: unknown, callback?: ConsentCallback) => {
+      allowed = true
+
+      callback?.({})
+    }),
+  }
+
+  ;(window as unknown as { Shopify?: unknown }).Shopify = { customerPrivacy: api }
+
+  return {
+    api,
+    grant: () => {
+      allowed = true
+
+      document.dispatchEvent(new Event('visitorConsentCollected'))
+    },
+  }
+}
+
+function setup() {
+  return setupCustomerPrivacy({
+    checkoutDomain: 'shop.example.com',
+    storefrontAccessToken: 'tok',
+    banner: false,
+  })
+}
+
+afterEach(() => {
+  delete (window as unknown as { Shopify?: unknown }).Shopify
+})
+
+describe('canTrack', () => {
+  it('reports the consent state once the privacy api has loaded', async () => {
+    const { grant } = stubCustomerPrivacy()
+
+    const privacy = setup()
+
+    await privacy.ready
+
+    expect(privacy.canTrack()).toBe(false)
+
+    grant()
+
+    expect(privacy.canTrack()).toBe(true)
+  })
+
+  it('re-renders a template that reads it when consent is collected', async () => {
+    const { grant } = stubCustomerPrivacy()
+
+    const privacy = setup()
+
+    await privacy.ready
+
+    const rendered: boolean[] = []
+
+    watchEffect(() => rendered.push(privacy.canTrack()))
+
+    grant()
+
+    await nextTick()
+
+    expect(rendered).toStrictEqual([false, true])
+  })
+
+  it('re-renders after consent is granted through setTrackingConsent', async () => {
+    stubCustomerPrivacy()
+
+    const privacy = setup()
+
+    await privacy.ready
+
+    const rendered: boolean[] = []
+
+    watchEffect(() => rendered.push(privacy.canTrack()))
+
+    privacy.setTrackingConsent({ analytics: true, marketing: true, preferences: true, sale_of_data: true })
+
+    await nextTick()
+
+    expect(rendered).toStrictEqual([false, true])
   })
 })

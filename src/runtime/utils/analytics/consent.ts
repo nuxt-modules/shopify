@@ -1,5 +1,6 @@
 import type { CustomerPrivacyApi, PrivacyBanner, TrackingConsent } from '../../../module'
 
+import { ref } from 'vue'
 import { useHead } from '#imports'
 
 import { createLogger } from '../log'
@@ -70,7 +71,19 @@ export function setupCustomerPrivacy(config: {
 
   const waitForBanner = () => waitFor(() => getPrivacyWindow().privacyBanner ?? null)
 
+  const trackingAllowed = ref(false)
+
+  const syncTrackingConsent = () => {
+    trackingAllowed.value = getCustomerPrivacy()?.analyticsProcessingAllowed() ?? false
+  }
+
+  if (typeof document !== 'undefined') {
+    document.addEventListener('visitorConsentCollected', syncTrackingConsent)
+  }
+
   const ready = waitFor(getCustomerPrivacy).then((api) => {
+    syncTrackingConsent()
+
     if (api && config.banner) {
       void waitForBanner()
         .then(banner => banner?.loadBanner(bannerConfig))
@@ -83,7 +96,7 @@ export function setupCustomerPrivacy(config: {
 
     cookieDomain: ancestorDomain ? `.${ancestorDomain}` : undefined,
 
-    canTrack: () => getCustomerPrivacy()?.analyticsProcessingAllowed() ?? false,
+    canTrack: () => trackingAllowed.value,
 
     getConsent: () => {
       const api = getCustomerPrivacy()
@@ -102,7 +115,11 @@ export function setupCustomerPrivacy(config: {
     },
 
     setTrackingConsent: (consent: TrackingConsent, callback?: (result: { error?: string }) => void) => {
-      getCustomerPrivacy()?.setTrackingConsent({ ...consentConfig, ...consent }, callback)
+      getCustomerPrivacy()?.setTrackingConsent({ ...consentConfig, ...consent }, (result) => {
+        syncTrackingConsent()
+
+        callback?.(result)
+      })
     },
 
     showPreferences: async () => {
