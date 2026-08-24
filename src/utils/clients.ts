@@ -11,9 +11,10 @@ import {
   addServerImports,
 } from '@nuxt/kit'
 import { kebabCase, pascalCase } from 'scule'
-import { joinURL, withLeadingSlash, withoutHost } from 'ufo'
+import { withLeadingSlash, withoutHost } from 'ufo'
 
 import { ShopifyClientType } from '../schemas'
+import { DEV_ORIGIN_ENV } from '../runtime/utils/clients/customer-account/auth'
 import { onDevServerURL } from './dev'
 import { useLogger } from './log'
 
@@ -72,12 +73,24 @@ export function registerCustomerAccountDevBridge(nuxt: Nuxt, customerAccount: Cu
   })
 
   onDevServerURL(nuxt, (origin) => {
-    const dev = nuxt.options.runtimeConfig._shopify?.clients.customerAccount?.dev
-
-    if (dev) dev.bridgeURL = joinURL(origin, path)
+    globalThis.process.env[DEV_ORIGIN_ENV] = origin
   })
 
   useLogger().debug(`Registered customer account dev bridge at \`${path}\``)
+}
+
+export function warnMissingCustomerAccountTunnel(nuxt: Nuxt, customerAccount: CustomerAccountConfig) {
+  if (customerAccount.dev?.tunnelURL) return
+
+  onDevServerURL(nuxt, (origin) => {
+    if (new URL(origin).protocol === 'https:') return
+
+    useLogger().warn(
+      `The customer account client is configured but the dev server runs on ${origin}. `
+      + 'Shopify rejects a plain HTTP `redirect_uri`, so logging in will fail with a "Something went wrong" page. '
+      + 'Set `clients.customerAccount.dev.tunnelURL` to a public HTTPS tunnel that forwards to this dev server',
+    )
+  })
 }
 
 export function registerCustomerAccountSession(resolver: Resolver) {

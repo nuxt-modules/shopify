@@ -15,8 +15,8 @@ const EXPIRY_THRESHOLD_MS = 5 * 60 * 1000
 
 const pendingRefreshRequests = new Map<string, Promise<CustomerAccountTokenSet>>()
 
-function unauthorized(): ReturnType<typeof createError> {
-  return createError({ status: 401, statusText: 'Unauthorized', message: '[shopify] Customer account session expired' })
+function unauthorized(reason: string): ReturnType<typeof createError> {
+  return createError({ status: 401, statusText: 'Unauthorized', message: `[shopify] ${reason}` })
 }
 
 function isExpired(expiresAt?: number): boolean {
@@ -41,7 +41,7 @@ export async function getValidCustomerAccessToken(event?: H3Event): Promise<stri
   const tokens = await getCustomerAccountTokens(event)
 
   if (!tokens?.accessToken) {
-    throw unauthorized()
+    throw unauthorized('No customer account session: the customer is not logged in')
   }
 
   if (!isExpired(tokens.expiresAt)) {
@@ -49,7 +49,7 @@ export async function getValidCustomerAccessToken(event?: H3Event): Promise<stri
   }
 
   if (!tokens.refreshToken) {
-    throw unauthorized()
+    throw unauthorized('Customer account session expired and cannot be refreshed: no refresh token is stored')
   }
 
   const refreshToken = tokens.refreshToken
@@ -85,7 +85,7 @@ export async function getValidCustomerAccessToken(event?: H3Event): Promise<stri
 
     await clearCustomerAccountSession(event).catch(() => {})
 
-    throw unauthorized()
+    throw unauthorized('Customer account session expired: refreshing the access token failed')
   })
 
   await setCustomerAccountTokens(event, refreshed)

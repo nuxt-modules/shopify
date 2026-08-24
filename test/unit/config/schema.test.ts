@@ -166,3 +166,29 @@ describe('nitro route file documents', () => {
     expect(documents).toContain('!**/customer-account.{connect,delete,get,head,options,patch,post,put,trace}.{ts,js}')
   })
 })
+
+describe('customer account client id', () => {
+  it('accepts a customer account block without a client id at the type level', () => {
+    type Input = z.input<typeof configObjectSchema>
+
+    const config: Input = {
+      name: 'shop',
+      clients: {
+        storefront,
+        customerAccount: { afterLogin: '/account' },
+      },
+    }
+
+    expect(config.clients?.customerAccount).toBeDefined()
+  })
+
+  it('still refuses to parse a customer account client without a client id', () => {
+    expect(issues({ name: 'shop', clients: { storefront, customerAccount: { afterLogin: '/account' } } }))
+      .toContain('Client ID is required for the customer account client')
+  })
+
+  it('still refuses to parse an empty client id', () => {
+    expect(issues({ name: 'shop', clients: { storefront, customerAccount: { clientId: '' } } }))
+      .toContain('Client ID is required for the customer account client')
+  })
+})

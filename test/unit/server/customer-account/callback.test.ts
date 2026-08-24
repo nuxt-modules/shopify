@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { CUSTOMER, UNCONFIGURED_SHOPIFY_CONFIG, createNoopStorage, createShopifyConfig } from '#test/helpers/customer-account'
 import { createTestEvent, getResponseCookies, getResponseHeader, getSetCookieHeaders, toCookieHeader } from '#test/helpers/event'
@@ -480,5 +480,82 @@ describe('provider errors', () => {
     await expect(handler(callbackEvent('?error=server_error'))).rejects.toBeDefined()
 
     expect(hooks.callHook).toHaveBeenCalledWith('customer-account:auth:error', expect.anything())
+  })
+})
+
+describe('dev tunnel bridge', () => {
+  const TUNNEL = 'https://tunnel.example.dev'
+
+  const tunnelEvent = (query = '', headers: Record<string, string> = {}) => createTestEvent({
+    method: 'GET',
+    path: `/_auth/customer-account/callback${query}`,
+    headers: { 'host': 'tunnel.example.dev', 'x-forwarded-proto': 'https', ...headers },
+  })
+
+  async function completeTunnelFlow() {
+    const first = tunnelEvent()
+
+    await handler(first)
+
+    const cookies = getResponseCookies(first)
+
+    exchangeAuthorizationCode.mockResolvedValue({
+      access_token: 'access-token',
+      refresh_token: 'refresh-token',
+      expires_in: 7200,
+      id_token: encodeIdToken({ nonce: cookies[NONCE_COOKIE] }),
+    })
+
+    const second = tunnelEvent(`?code=abc&state=${cookies[STATE_COOKIE]}`, { cookie: toCookieHeader(first) })
+
+    await handler(second)
+
+    return getResponseHeader(second, 'location')
+  }
+
+  beforeEach(() => {
+    vi.stubGlobal('__NUXT_DEV__', true)
+
+    configure({ dev: { tunnelURL: TUNNEL, bridgeURL: '_auth/customer-account/bridge' } })
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+
+    delete process.env.__NUXT_SHOPIFY_DEV_ORIGIN
+  })
+
+  it('hands the session back to the dev server the module resolved at listen time', async () => {
+    process.env.__NUXT_SHOPIFY_DEV_ORIGIN = 'http://localhost:3311/'
+
+    expect(await completeTunnelFlow()).toMatch(/^http:\/\/localhost:3311\/_auth\/customer-account\/bridge\?nonce=/)
+  })
+
+  it('falls back to port 3000 only when the dev server origin is unknown', async () => {
+    expect(await completeTunnelFlow()).toMatch(/^http:\/\/localhost:3000\/_auth\/customer-account\/bridge\?nonce=/)
+  })
+
+  it('prefers an explicitly configured bridge url over the resolved origin', async () => {
+    process.env.__NUXT_SHOPIFY_DEV_ORIGIN = 'http://localhost:3311/'
+
+    configure({ dev: { tunnelURL: TUNNEL, bridgeURL: 'http://localhost:4000/bridge' } })
+
+    expect(await completeTunnelFlow()).toMatch(/^http:\/\/localhost:4000\/bridge\?nonce=/)
+  })
+
+  it('accepts every loopback form the dev server can report', async () => {
+    configure({ dev: { tunnelURL: TUNNEL, bridgeURL: 'http://127.0.0.1:4000/bridge' } })
+
+    expect(await completeTunnelFlow()).toMatch(/^http:\/\/127\.0\.0\.1:4000\/bridge\?nonce=/)
+
+    configure({ dev: { tunnelURL: TUNNEL, bridgeURL: 'http://[::1]:4000/bridge' } })
+
+    expect(await completeTunnelFlow()).toMatch(/^http:\/\/\[::1\]:4000\/bridge\?nonce=/)
+  })
+
+  it('refuses an absolute bridge url pointing away from the dev machine', async () => {
+    configure({ dev: { tunnelURL: TUNNEL, bridgeURL: 'https://evil.example/steal' } })
+
+    expect(await completeTunnelFlow()).toContain('customer_account_error=1')
   })
 })

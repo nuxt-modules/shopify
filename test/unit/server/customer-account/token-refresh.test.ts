@@ -59,9 +59,9 @@ describe('getValidCustomerAccessToken', () => {
       .rejects.toMatchObject({ statusCode: 500 })
   })
 
-  it('rejects an anonymous request as unauthorized', async () => {
+  it('rejects an anonymous request as unauthorized, without claiming a session expired', async () => {
     await expect(getValidCustomerAccessToken(createTestEvent()))
-      .rejects.toMatchObject({ statusCode: 401 })
+      .rejects.toMatchObject({ statusCode: 401, message: expect.stringContaining('not logged in') })
   })
 
   it('returns a token that is not close to expiring without refreshing', async () => {
@@ -188,7 +188,11 @@ describe('getValidCustomerAccessToken', () => {
       refreshToken: undefined,
     }))
 
-    await expect(getValidCustomerAccessToken(event)).rejects.toMatchObject({ statusCode: 401 })
+    await expect(getValidCustomerAccessToken(event)).rejects.toMatchObject({
+      statusCode: 401,
+      message: expect.stringContaining('no refresh token is stored'),
+    })
+
     expect(refreshAccessToken).not.toHaveBeenCalled()
   })
 
@@ -200,7 +204,10 @@ describe('getValidCustomerAccessToken', () => {
       refreshToken: 'rejected-refresh-token',
     }))
 
-    await expect(getValidCustomerAccessToken(event)).rejects.toMatchObject({ statusCode: 401 })
+    await expect(getValidCustomerAccessToken(event)).rejects.toMatchObject({
+      statusCode: 401,
+      message: expect.stringContaining('refreshing the access token failed'),
+    })
 
     const next = createTestEvent({ headers: { cookie: toCookieHeader(event) } })
 

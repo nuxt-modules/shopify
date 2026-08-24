@@ -4,6 +4,10 @@ import { withQuery } from 'ufo'
 
 import { isVersionedApiUrl, withApiVersion } from '../transport'
 
+export const DEV_ORIGIN_ENV = '__NUXT_SHOPIFY_DEV_ORIGIN'
+export const DEV_ORIGIN_FALLBACK = 'http://localhost:3000'
+export const LOCAL_HOSTNAMES = ['localhost', '127.0.0.1', '[::1]', '::1']
+
 const openIdConfigurationCache = new Map<string, Promise<OpenIdConfiguration>>()
 
 export function getOpenIdConfiguration(storeDomain: string): Promise<OpenIdConfiguration> {

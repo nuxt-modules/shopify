@@ -157,7 +157,7 @@ const customerAccountRoutesSchema = z.object({
 const customerAccountClientSchema = clientSchema.extend({
   apiURL: z.string().optional(),
 
-  clientId: z.string(),
+  clientId: z.string().optional().default(''),
   clientSecret: z.string().optional(),
   scope: z.array(z.string()).optional().default(defaultCustomerAccountScope).transform(v => v?.length ? v : defaultCustomerAccountScope),
 

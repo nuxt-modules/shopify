@@ -8,6 +8,9 @@ import { createLogger } from '../../../utils/log'
 import { createBridgeNonce } from '../../../utils/customer-account/bridge'
 import { setCustomerAccountSession } from '../../../utils/customer-account/session'
 import {
+  DEV_ORIGIN_ENV,
+  DEV_ORIGIN_FALLBACK,
+  LOCAL_HOSTNAMES,
   buildAuthorizationParams,
   buildAuthorizationURL,
   exchangeAuthorizationCode,
@@ -33,11 +36,29 @@ const transientCookieOptions: Parameters<typeof setCookie>[3] = {
 }
 
 function localConsumeUrl(bridgeURL: string, nonce: string) {
-  const url = new URL(bridgeURL.includes('://') ? bridgeURL : joinURL('http://localhost:3000', bridgeURL))
+  if (bridgeURL.includes('://')) {
+    const configured = new URL(bridgeURL)
 
-  if (!['localhost', '127.0.0.1'].includes(url.hostname)) {
-    throw createError({ status: 500, statusText: 'Internal Server Error', message: '[shopify] Invalid dev bridge URL for customer account API' })
+    if (!LOCAL_HOSTNAMES.includes(configured.hostname)) {
+      throw createError({
+        status: 500,
+        statusText: 'Internal Server Error',
+        message: `[shopify] Refusing to hand the customer account session to \`${configured.origin}\`: \`clients.customerAccount.dev.bridgeURL\` must point at the local dev server`,
+      })
+    }
+
+    configured.searchParams.set('nonce', nonce)
+
+    return configured.toString()
   }
+
+  const devOrigin = globalThis.process.env[DEV_ORIGIN_ENV]
+
+  if (!devOrigin) {
+    createLogger().warn(`Could not determine the dev server origin, falling back to ${DEV_ORIGIN_FALLBACK}. Set \`clients.customerAccount.dev.bridgeURL\` to an absolute URL if the dev server runs on another port`)
+  }
+
+  const url = new URL(joinURL(devOrigin || DEV_ORIGIN_FALLBACK, bridgeURL))
 
   url.searchParams.set('nonce', nonce)
 

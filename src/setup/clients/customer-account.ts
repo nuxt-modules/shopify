@@ -9,6 +9,7 @@ import {
   registerCustomerAccountAuthRoutes,
   registerCustomerAccountDevBridge,
   registerCustomerAccountSession,
+  warnMissingCustomerAccountTunnel,
 } from '../../utils/clients'
 import { registerStorageMount } from '../../utils/storage'
 
@@ -27,6 +28,8 @@ export default function setupCustomerAccountClient({ nuxt, config, resolver }: S
   registerCustomerAccountAuthRoutes(customerAccount, resolver)
   registerCustomerAccountDevBridge(nuxt, customerAccount, resolver)
   registerCustomerAccountSession(resolver)
+
+  warnMissingCustomerAccountTunnel(nuxt, customerAccount)
 
   registerStorageMount(nuxt, 'customer-account-token', customerAccount.tokenStorage)
 }
