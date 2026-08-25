@@ -33,10 +33,12 @@ const MAX_QUEUED_EVENTS = 20
 const REQUIRED_SHOP_FIELDS = ['shopId', 'acceptedLanguage', 'currency', 'hydrogenSubchannelId'] as const
 const REQUIRED_PRODUCT_FIELDS = ['id', 'title', 'price', 'vendor', 'variantId', 'variantTitle'] as const
 
+const REPORT_LIMIT = 64
+
 const reported = new Set<string>()
 
 function reportOnce(message: string) {
-  if (reported.has(message)) return
+  if (reported.size >= REPORT_LIMIT || reported.has(message)) return
 
   reported.add(message)
 

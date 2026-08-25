@@ -7,29 +7,11 @@ import type {
   ShopifyApiClientRequestOptions,
 } from '../../../module'
 
-import { createConsola } from 'consola'
 import { hash } from 'ohash'
 
 import { PROXY_CACHE_HEADER } from './transport'
 
 type CachePresets = Record<string, Pick<CacheOptions, 'maxAge' | 'staleMaxAge' | 'swr'>>
-
-const reportedPresets = new Set<string>()
-
-export function reportUnknownCachePreset(name: string, presets?: CachePresets) {
-  if (name === 'none' || reportedPresets.has(name)) return
-
-  reportedPresets.add(name)
-
-  const available = Object.keys(presets ?? {})
-
-  createConsola().withTag('shopify').warn(
-    `Unknown cache preset \`${name}\`, this request is not cached. `
-    + (available.length
-      ? `Available presets: \`${available.join('`, `')}\``
-      : 'No cache presets are configured'),
-  )
-}
 
 function toCacheTtl(maxAge: number, staleMaxAge: number) {
   const ttl = maxAge * 1000 + staleMaxAge * 1000
@@ -40,11 +22,7 @@ function toCacheTtl(maxAge: number, staleMaxAge: number) {
 function fromPreset(name: string, cachePresets?: CachePresets) {
   const preset = cachePresets?.[name]
 
-  if (!preset) {
-    reportUnknownCachePreset(name, cachePresets)
-
-    return undefined
-  }
+  if (!preset) return undefined
 
   return toCacheTtl(preset.maxAge ?? 0, preset.staleMaxAge ?? 0)
 }

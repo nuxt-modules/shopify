@@ -1,7 +1,11 @@
 // @vitest-environment happy-dom
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { sendSpy } = vi.hoisted(() => ({ sendSpy: vi.fn().mockResolvedValue(undefined) }))
+const { sendSpy, warn } = vi.hoisted(() => ({ sendSpy: vi.fn().mockResolvedValue(undefined), warn: vi.fn() }))
+
+vi.mock('#src/runtime/utils/log', () => ({
+  createLogger: () => ({ debug: vi.fn(), info: vi.fn(), warn, error: vi.fn() }),
+}))
 
 vi.mock('@shopify/hydrogen-react', () => ({
   sendShopifyAnalytics: sendSpy,
@@ -113,5 +117,26 @@ describe('analytics subscriber consent gate', () => {
       expect.objectContaining({ payload: expect.objectContaining({ url: 'https://shop.test/products/hoodie', path: '/products/hoodie' }) }),
       undefined,
     )
+  })
+})
+
+describe('analytics subscriber warning ledger', () => {
+  it('stops warning once it has reported enough distinct problems', async () => {
+    vi.resetModules()
+
+    const { createEmitter: createFreshEmitter } = await import('#src/runtime/utils/analytics/emitter')
+    const { createShopifySubscriber: createFreshSubscriber } = await import('#src/runtime/utils/analytics/subscriber')
+
+    warn.mockClear()
+
+    const emitter = createFreshEmitter()
+
+    createFreshSubscriber(emitter, { shop: () => shop, canTrack: () => true, whenReady: runReady })
+
+    for (let index = 0; index < 200; index++) {
+      emitter.emit('product_viewed', { products: [{ id: `gid://shopify/Product/${index}` }] as never })
+    }
+
+    expect(warn).toHaveBeenCalledTimes(64)
   })
 })

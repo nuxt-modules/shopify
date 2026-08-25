@@ -6,13 +6,6 @@ import { createStorage as createLruStorage } from 'unstorage'
 import lruCacheDriver from '#src/runtime/utils/lru-driver'
 import useCache from '#src/runtime/utils/clients/cache'
 
-const warn = vi.fn()
-
-vi.mock('consola', async importOriginal => ({
-  ...(await importOriginal<Record<string, unknown>>()),
-  createConsola: () => ({ withTag: () => ({ warn }) }),
-}))
-
 const presets = {
   short: { maxAge: 1, staleMaxAge: 9, swr: true },
   long: { maxAge: 3600, staleMaxAge: 82800, swr: true },
@@ -188,44 +181,5 @@ describe('client cache', () => {
     expect(request).toHaveBeenCalledTimes(1)
     expect(second).not.toBe(first)
     expect(product(second).title).toBe('original')
-  })
-})
-
-describe('unknown cache presets', () => {
-  it('skips caching and names the presets that do exist', async () => {
-    warn.mockClear()
-
-    const storage = createStorage()
-    const request = createRequest()
-
-    await cached(storage, request, QUERY, { cache: 'typo' })
-    await cached(storage, request, QUERY, { cache: 'typo' })
-
-    expect(request).toHaveBeenCalledTimes(2)
-
-    expect(warn).toHaveBeenCalledTimes(1)
-
-    expect(String(warn.mock.calls[0]?.[0])).toContain('`typo`')
-    expect(String(warn.mock.calls[0]?.[0])).toContain('short')
-    expect(String(warn.mock.calls[0]?.[0])).toContain('long')
-  })
-
-  it('reports an unknown preset given as the client half of a cache object', async () => {
-    warn.mockClear()
-
-    await cached(createStorage(), createRequest(), QUERY, { cache: { client: 'other-typo' } })
-
-    expect(warn).toHaveBeenCalledTimes(1)
-
-    expect(String(warn.mock.calls[0]?.[0])).toContain('`other-typo`')
-  })
-
-  it('stays quiet for a known preset and for `none`', async () => {
-    warn.mockClear()
-
-    await cached(createStorage(), createRequest(), QUERY, { cache: 'short' })
-    await cached(createStorage(), createRequest(), QUERY, { cache: 'none' })
-
-    expect(warn).not.toHaveBeenCalled()
   })
 })

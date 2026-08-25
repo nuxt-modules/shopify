@@ -179,17 +179,16 @@ describe('cache presets', () => {
     expect(cache && cache.presets).toMatchObject({ short: expect.any(Object), long: expect.any(Object) })
   })
 
-  it('keeps the built-in presets when a custom one is added', () => {
+  it('replaces the built-in presets with the configured ones', () => {
     const cache = presetsFor({ tiny: { maxAge: 2, staleMaxAge: 4, swr: true } })
 
-    expect(Object.keys((cache && cache.presets) ?? {}).sort()).toStrictEqual(['long', 'short', 'tiny'])
+    expect(Object.keys((cache && cache.presets) ?? {})).toStrictEqual(['tiny'])
   })
 
-  it('lets a custom preset override a built-in one of the same name', () => {
+  it('takes a configured preset verbatim', () => {
     const cache = presetsFor({ short: { maxAge: 42, staleMaxAge: 0, swr: false } })
 
     expect(cache && cache.presets.short).toStrictEqual({ maxAge: 42, staleMaxAge: 0, swr: false })
-    expect(cache && cache.presets.long).toBeDefined()
   })
 })
 

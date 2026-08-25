@@ -61,6 +61,20 @@ describe('customer account dev bridge store', () => {
     expect(consumeBridgeNonce(nonce)).not.toBeNull()
   })
 
+  it('sweeps an expired nonce when the next handoff is created', () => {
+    vi.useFakeTimers()
+
+    const stale = createBridgeNonce(payload)
+
+    vi.advanceTimersByTime(60_001)
+
+    createBridgeNonce(payload)
+
+    vi.setSystemTime(Date.now() - 60_001)
+
+    expect(consumeBridgeNonce(stale)).toBeNull()
+  })
+
   it('drops an expired nonce instead of leaving the tokens in the store', () => {
     vi.useFakeTimers()
 
