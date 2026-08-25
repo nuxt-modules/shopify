@@ -10,6 +10,9 @@ import { withLeadingSlash } from 'ufo'
 
 import { kebabCase } from 'scule'
 
+import { isPublicClient } from './clients'
+import { useLogger } from './log'
+
 export function registerProxy(config: ShopifyConfig, clientType: ShopifyClientType, resolver: Resolver): string | false {
   const clientConfig = config.clients[clientType]
 
@@ -18,6 +21,12 @@ export function registerProxy(config: ShopifyConfig, clientType: ShopifyClientTy
   const route = 'proxy' in clientConfig ? typeof clientConfig.proxy === 'object' ? clientConfig.proxy.route : undefined : undefined
 
   if (!route) return false
+
+  if (!isPublicClient(clientConfig)) {
+    useLogger().debug(`Skipping the ${clientType} proxy: the client has no public credentials.`)
+
+    return false
+  }
 
   addServerHandler({
     handler: resolver.resolve(`./runtime/server/api/proxy/${kebabCase(clientType)}`),
