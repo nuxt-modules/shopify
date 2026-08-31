@@ -4,7 +4,7 @@
   "license": "MIT",
   "type": "module",
   "description": "Easily integrate Shopify with Nuxt 3 and 4 🚀",
-  "packageManager": "pnpm@11.22.0",
+  "packageManager": "pnpm@11.24.0",
   "workspaces": [
     "playgrounds/*",
     "template",
@@ -87,13 +87,13 @@
     "qa:all": "dotenv -e .env -- pnpm run lint && dotenv -e .env -- pnpm run typecheck:all && dotenv -e .env -- pnpm run test"
   },
   "dependencies": {
-    "@graphql-codegen/cli": "^7.2.0",
+    "@graphql-codegen/cli": "^7.3.1",
     "@graphql-codegen/import-types-preset": "^4.0.1",
     "@graphql-codegen/introspection": "^6.1.0",
-    "@graphql-codegen/plugin-helpers": "^7.1.0",
+    "@graphql-codegen/plugin-helpers": "^7.2.1",
     "@graphql-codegen/typescript": "^6.1.0",
-    "@graphql-tools/code-file-loader": "^8.1.34",
-    "@graphql-yoga/render-graphiql": "^5.21.3",
+    "@graphql-tools/code-file-loader": "^8.1.37",
+    "@graphql-yoga/render-graphiql": "^5.22.0",
     "@nuxt/kit": "^4.5.2",
     "@shopify/api-codegen-preset": "^3.0.0",
     "@shopify/graphql-client": "^2.0.0",
@@ -119,26 +119,26 @@
     "@nuxt/eslint-config": "^1.17.0",
     "@nuxt/module-builder": "^1.0.3",
     "@nuxt/schema": "^4.5.2",
-    "@nuxt/test-utils": "^4.1.0",
+    "@nuxt/test-utils": "^4.2.0",
     "@shopify/hydrogen": "^2026.4.5",
     "@shopify/hydrogen-react": "^2026.4.3",
     "@types/node": "^25.9.5",
-    "@vitest/coverage-v8": "^4.1.10",
+    "@vitest/coverage-v8": "^4.1.11",
     "dotenv-cli": "^8.0.0",
-    "eslint": "^10.8.1",
-    "happy-dom": "^20.11.2",
-    "knip": "^6.32.2",
+    "eslint": "^10.9.1",
+    "happy-dom": "^20.11.12",
+    "knip": "^6.32.3",
     "nuxt": "^4.5.2",
     "typescript": "^6.0.3",
     "unbuild": "^3.6.1",
-    "vite": "^8.2.1",
-    "vitest": "^4.1.10",
-    "vue-tsc": "^3.3.10"
+    "vite": "^8.2.2",
+    "vitest": "^4.1.11",
+    "vue-tsc": "^3.3.11"
   },
   "peerDependencies": {
     "@shopify/hydrogen": "*",
     "@shopify/hydrogen-react": "*",
-    "vue": "^3.5.41"
+    "vue": "^3.5.42"
   },
   "peerDependenciesMeta": {
     "@shopify/hydrogen": {
