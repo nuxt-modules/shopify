@@ -124,7 +124,7 @@
     "@shopify/hydrogen-react": "^2026.4.3",
     "@types/node": "^25.9.5",
     "@vitest/coverage-v8": "^4.1.11",
-    "dotenv-cli": "^8.0.0",
+    "dotenv-cli": "^11.0.0",
     "eslint": "^10.9.1",
     "happy-dom": "^20.11.12",
     "knip": "^6.32.3",
