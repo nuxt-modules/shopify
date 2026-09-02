@@ -55,7 +55,7 @@ function localConsumeUrl(bridgeURL: string, nonce: string) {
   const devOrigin = globalThis.process.env[DEV_ORIGIN_ENV]
 
   if (!devOrigin) {
-    createLogger().warn(`Could not determine the dev server origin, falling back to ${DEV_ORIGIN_FALLBACK}. Set \`clients.customerAccount.dev.bridgeURL\` to an absolute URL if the dev server runs on another port`)
+    createLogger().warn(`Could not determine the dev server origin, falling back to ${DEV_ORIGIN_FALLBACK}. Set \`clients.customerAccount.dev.bridgeURL\` to an absolute URL if it runs on another port`)
   }
 
   const url = new URL(joinURL(devOrigin || DEV_ORIGIN_FALLBACK, bridgeURL))

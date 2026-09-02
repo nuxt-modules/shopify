@@ -137,3 +137,55 @@ describe('client selection', () => {
     )
   })
 })
+
+describe('response shape', () => {
+  it('returns only the GraphQL payload', async () => {
+    request.mockResolvedValue({
+      data: { shop: { name: 'Test Shop' } },
+      headers: new Headers({ 'x-request-id': 'abc' }),
+    })
+
+    await expect(handler(explorerEvent('storefront')))
+      .resolves.toStrictEqual({ data: { shop: { name: 'Test Shop' } } })
+  })
+
+  it('keeps extensions alongside the data', async () => {
+    request.mockResolvedValue({
+      data: { shop: { name: 'Test Shop' } },
+      extensions: { cost: { requestedQueryCost: 1 } },
+      headers: new Headers(),
+    })
+
+    await expect(handler(explorerEvent('storefront')))
+      .resolves.toStrictEqual({
+        data: { shop: { name: 'Test Shop' } },
+        extensions: { cost: { requestedQueryCost: 1 } },
+      })
+  })
+
+  it('renders graphql errors as an array', async () => {
+    request.mockResolvedValue({
+      errors: { message: 'GraphQL error', graphQLErrors: [{ message: 'Field `nope` does not exist' }] },
+      headers: new Headers(),
+    })
+
+    await expect(handler(explorerEvent('storefront')))
+      .resolves.toStrictEqual({ errors: [{ message: 'Field `nope` does not exist' }] })
+  })
+
+  it('falls back to the error message when there are no graphql errors', async () => {
+    request.mockResolvedValue({ errors: { message: 'Network request failed' }, headers: new Headers() })
+
+    await expect(handler(explorerEvent('storefront')))
+      .resolves.toStrictEqual({ errors: [{ message: 'Network request failed' }] })
+  })
+
+  it('never lets the client throw so the explorer can render errors', async () => {
+    await handler(explorerEvent('storefront'))
+
+    expect(createShopifyClient).toHaveBeenCalledWith(
+      runtimeConfig._shopify,
+      expect.objectContaining({ throwOnErrors: false }),
+    )
+  })
+})

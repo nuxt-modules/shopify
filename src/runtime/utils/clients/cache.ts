@@ -91,8 +91,10 @@ export default async function useCache<
 
   const cacheKey = storage && inMemoryConfig ? createCacheKey(operation, options) : undefined
 
-  if (storage && cacheKey && await storage.hasItem(cacheKey)) {
-    return detach(await storage.getItemRaw(cacheKey) as ClientResponse<ReturnData<Operation, Operations>>)
+  if (storage && cacheKey) {
+    const cached = await storage.getItemRaw(cacheKey) as ClientResponse<ReturnData<Operation, Operations>> | null
+
+    if (cached) return detach(cached)
   }
 
   const response = await request(operation, {

@@ -77,3 +77,52 @@ describe('client response hook', () => {
     expect(order).toStrictEqual(['response', 'errors'])
   })
 })
+
+describe('caller configuration', () => {
+  it('never writes defaults back into the config it was given', async () => {
+    respondWith({ data: { shop: { name: 'shop' } } })
+
+    const shared = { name: 'shop', clients: { storefront: { publicAccessToken: 'tok' } } }
+    const snapshot = structuredClone(shared)
+
+    await createClient(definition, shared as never, {} as never).request(QUERY as never)
+
+    expect(shared).toStrictEqual(snapshot)
+    expect(shared.clients.storefront).not.toHaveProperty('apiVersion')
+    expect(shared.clients.storefront).not.toHaveProperty('retries')
+  })
+
+  it('still applies the defaults to the client it builds', async () => {
+    respondWith({ data: { shop: { name: 'shop' } } })
+
+    const onConfigure = vi.fn()
+
+    await createClient(
+      definition,
+      { name: 'shop', clients: { storefront: { publicAccessToken: 'tok' } } } as never,
+      { onConfigure } as never,
+    ).request(QUERY as never)
+
+    expect(onConfigure).toHaveBeenCalledWith(
+      expect.objectContaining({ config: expect.objectContaining({ apiVersion: expect.any(String) }) }),
+    )
+  })
+
+  it('leaves a sibling client untouched', async () => {
+    respondWith({ data: { shop: { name: 'shop' } } })
+
+    const shared = {
+      name: 'shop',
+      clients: {
+        storefront: { publicAccessToken: 'tok' },
+        admin: { accessToken: 'shpat_x' },
+      },
+    }
+    const admin = shared.clients.admin
+
+    await createClient(definition, shared as never, {} as never).request(QUERY as never)
+
+    expect(shared.clients.admin).toBe(admin)
+    expect(admin).toStrictEqual({ accessToken: 'shpat_x' })
+  })
+})

@@ -41,6 +41,7 @@ export default defineEventHandler(async (event: H3Event) => {
     case 'storefront':
       client = createShopifyClient(_shopify, {
         client: 'storefront',
+        throwOnErrors: false,
       })
 
       break
@@ -48,12 +49,14 @@ export default defineEventHandler(async (event: H3Event) => {
       client = createShopifyClient(_shopify, {
         client: 'customerAccount',
         auth: () => getValidCustomerAccessToken(event),
+        throwOnErrors: false,
       })
 
       break
     case 'admin':
       client = createShopifyClient(_shopify, {
         client: 'admin',
+        throwOnErrors: false,
       })
 
       break
@@ -65,5 +68,11 @@ export default defineEventHandler(async (event: H3Event) => {
       })
   }
 
-  return await client.request(body.query, { variables: body.variables })
+  const { data, errors, extensions } = await client.request(body.query, { variables: body.variables })
+
+  return {
+    ...(data ? { data } : {}),
+    ...(errors ? { errors: errors.graphQLErrors ?? [{ message: errors.message }] } : {}),
+    ...(extensions ? { extensions } : {}),
+  }
 })

@@ -65,14 +65,15 @@
     "dev:docs": "dotenv -e .env -- pnpm --filter ./docs dev",
     "lint": "eslint .",
     "typecheck": "vue-tsc --noEmit",
-    "typecheck:playgrounds": "pnpm --filter \"./playgrounds/*\" typecheck",
-    "typecheck:playground-v4": "pnpm --filter playground-v4 typecheck",
-    "typecheck:playground-v4-mock": "pnpm --filter playground-v4-mock typecheck",
-    "typecheck:playground-v3": "pnpm --filter playground-v3 typecheck",
+    "typecheck:playgrounds": "dotenv -e .env -- pnpm --filter \"./playgrounds/*\" typecheck",
+    "typecheck:playground-v4": "dotenv -e .env -- pnpm --filter playground-v4 typecheck",
+    "typecheck:playground-v4-mock": "dotenv -e .env -- pnpm --filter playground-v4-mock typecheck",
+    "typecheck:playground-v3": "dotenv -e .env -- pnpm --filter playground-v3 typecheck",
     "typecheck:template": "pnpm --filter ./template typecheck",
     "typecheck:docs": "pnpm --filter ./docs typecheck",
-    "typecheck:all": "vue-tsc --noEmit && pnpm --filter \"./playgrounds/*\" typecheck && pnpm --filter ./template typecheck && pnpm --filter ./docs typecheck",
+    "typecheck:all": "vue-tsc --noEmit && dotenv -e .env -- pnpm --filter \"./playgrounds/*\" typecheck && pnpm --filter ./template typecheck && pnpm --filter ./docs typecheck",
     "knip": "knip",
+    "check:package": "publint --strict && attw --pack . --profile esm-only",
     "test": "pnpm run prepare:playgrounds && dotenv -e .env -- vitest run",
     "test:watch": "dotenv -e .env -- vitest watch",
     "test:coverage": "pnpm run prepare:playgrounds && dotenv -e .env -- vitest run --coverage",
@@ -115,6 +116,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.2",
     "@graphql-tools/graphql-tag-pluck": "^8.3.36",
     "@nuxt/eslint-config": "^1.17.0",
     "@nuxt/module-builder": "^1.0.3",
@@ -124,11 +126,12 @@
     "@shopify/hydrogen-react": "^2026.4.3",
     "@types/node": "^25.9.5",
     "@vitest/coverage-v8": "^4.1.11",
-    "dotenv-cli": "^8.0.0",
+    "dotenv-cli": "^11.0.0",
     "eslint": "^10.9.1",
     "happy-dom": "^20.11.12",
     "knip": "^6.32.3",
     "nuxt": "^4.5.2",
+    "publint": "^0.3.14",
     "typescript": "^6.0.3",
     "unbuild": "^3.6.1",
     "vite": "^8.2.2",
@@ -136,9 +139,9 @@
     "vue-tsc": "^3.3.11"
   },
   "peerDependencies": {
-    "@shopify/hydrogen": "*",
-    "@shopify/hydrogen-react": "*",
-    "vue": "^3.5.42"
+    "@shopify/hydrogen": ">=2024.0.0",
+    "@shopify/hydrogen-react": ">=2024.0.0",
+    "vue": "^3.5.41"
   },
   "peerDependenciesMeta": {
     "@shopify/hydrogen": {
@@ -164,6 +167,6 @@
     "codegen"
   ],
   "engines": {
-    "node": "^20.19.0 || >=22.12.0"
+    "node": "^22.19.0 || ^24.11.0 || >=26.0.0"
   }
 }

@@ -2,7 +2,9 @@ import type { CustomerAccountSession, CustomerAccountUser } from '../../server/u
 
 import { computed } from 'vue'
 import { joinURL, withLeadingSlash, withQuery } from 'ufo'
-import { createError, navigateTo, useRequestFetch, useRuntimeConfig, useState } from '#imports'
+import { createError, navigateTo, useRequestFetch, useRequestHeaders, useRuntimeConfig, useState } from '#imports'
+
+import { SESSION_DEFAULT_NAME } from '../../utils/session'
 
 type LoginOptions = {
   /** Pre-fills the customer's email address on Shopify's login screen. */
@@ -42,10 +44,21 @@ export function useCustomerAccountSession() {
   const session = useState<CustomerAccountSession>('shopify-customer-account-session', emptySession)
   const ready = useState<boolean>('shopify-customer-account-session-ready', () => false)
 
+  const cookieName = customerAccount.session?.name || SESSION_DEFAULT_NAME
+  const requestCookie = import.meta.client ? undefined : useRequestHeaders(['cookie']).cookie
+
+  const hasSessionCookie = () => {
+    if (import.meta.client) return true
+
+    return !!requestCookie?.split(';').some(entry => entry.trimStart().startsWith(`${cookieName}=`))
+  }
+
   const fetch = async () => {
-    session.value = await useRequestFetch()<CustomerAccountSession>(withLeadingSlash(customerAccount.routes.session), {
-      headers: { accept: 'application/json' },
-    }).catch(() => emptySession())
+    session.value = hasSessionCookie()
+      ? await useRequestFetch()<CustomerAccountSession>(withLeadingSlash(customerAccount.routes.session), {
+          headers: { accept: 'application/json' },
+        }).catch(() => emptySession())
+      : emptySession()
 
     ready.value = true
   }

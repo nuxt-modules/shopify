@@ -1,12 +1,21 @@
+import type { WebhookSubscription } from '../utils/webhooks'
+
 import { defineCommand } from 'citty'
 import log from 'consola'
 
 import {
+  WEBHOOK_GID_PREFIX,
   getShopifyConfig,
   getSubscribedWebhooks,
   subscribeWebhook,
   unsubscribeWebhook,
 } from '../utils/webhooks'
+
+const toRow = (subscription: WebhookSubscription) => ({
+  id: subscription.id.replace(WEBHOOK_GID_PREFIX, ''),
+  topic: subscription.topic,
+  uri: subscription.uri,
+})
 
 export default defineCommand({
   meta: {
@@ -37,28 +46,26 @@ export default defineCommand({
 
       log.info(`Found ${webhooks.length} subscribed webhook(s):`)
 
-      console.table(webhooks.map(hook => ({
-        id: (hook as { id: string })?.id?.replace('gid://shopify/WebhookSubscription/', ''),
-        topic: (hook as { topic: string })?.topic,
-        uri: (hook as { endpoint: { callbackUrl: string } })?.endpoint.callbackUrl,
-      })))
+      console.table(webhooks.map(toRow))
     }
     else if (args.action === 'subscribe') {
-      const webhooks = await subscribeWebhook(config)
+      const results = await subscribeWebhook(config)
 
-      if (webhooks.length === 0) {
-        log.info('No new webhooks subscribed.')
+      if (results.length === 0) {
+        log.info('All webhooks are already up to date.')
 
         return
       }
 
-      log.info(`Subscribed to ${webhooks.length} new webhook(s):`)
+      const created = results.filter(result => result.action === 'created').length
+      const updated = results.length - created
 
-      console.table(webhooks.map(hook => ({
-        id: (hook as { id: string })?.id?.replace('gid://shopify/WebhookSubscription/', ''),
-        topic: (hook as { topic: string })?.topic,
-        uri: (hook as { endpoint: { callbackUrl: string } })?.endpoint?.callbackUrl,
-      })))
+      log.info([
+        created ? `Created ${created} webhook(s)` : undefined,
+        updated ? `Updated ${updated} webhook(s)` : undefined,
+      ].filter(Boolean).join(', ') + ':')
+
+      console.table(results.map(({ action, subscription }) => ({ action, ...toRow(subscription) })))
     }
     else if (args.action === 'unsubscribe') {
       const webhooks = await unsubscribeWebhook(config)
@@ -71,11 +78,7 @@ export default defineCommand({
 
       log.info(`Unsubscribed from ${webhooks.length} webhook(s):`)
 
-      console.table(webhooks.map(hook => ({
-        id: (hook as { id: string })?.id?.replace('gid://shopify/WebhookSubscription/', ''),
-        topic: (hook as { topic: string })?.topic,
-        uri: (hook as { endpoint: { callbackUrl: string } })?.endpoint?.callbackUrl,
-      })))
+      console.table(webhooks.map(toRow))
     }
     else {
       log.error(`Unknown webhook action: ${args.action}.`)

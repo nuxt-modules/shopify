@@ -2,12 +2,27 @@ import type { Nuxt } from '@nuxt/schema'
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { DEFAULT_API_VERSION } from '#src/runtime/utils/clients/defaults'
+import { SESSION_DEFAULT_NAME } from '#src/runtime/utils/session'
+
 const installed = new Set<string>()
 const persisted: Array<[string, string]> = []
+
+const warnings: string[] = []
 
 vi.mock('#src/utils/install', () => ({
   isInstalled: (id: string) => installed.has(id),
   isResolvableFrom: () => true,
+}))
+
+vi.mock('#src/utils/log', () => ({
+  initLogger: () => undefined,
+  useLogger: () => ({
+    warn: (message: string) => void warnings.push(message),
+    debug: vi.fn(),
+    info: vi.fn(),
+    error: vi.fn(),
+  }),
 }))
 
 vi.mock('#src/utils/session', async importOriginal => ({
@@ -45,6 +60,7 @@ beforeEach(() => {
   installed.add('@shopify/hydrogen-react')
 
   persisted.length = 0
+  warnings.length = 0
 
   delete process.env.NUXT_SHOPIFY_CLIENTS_CUSTOMER_ACCOUNT_SESSION_PASSWORD
 
@@ -136,6 +152,41 @@ describe('proxy requires a server', () => {
   })
 })
 
+describe('customer account proxy opt-out', () => {
+  it('warns that the browser client cannot authenticate without the proxy', async () => {
+    await resolve({ name: 'shop', clients: { storefront, customerAccount: { clientId: 'cid', proxy: false } } })
+
+    const message = warnings.join('\n')
+
+    expect(message).toContain('customer account proxy is disabled')
+    expect(message).toContain('useCustomerAccount()')
+  })
+
+  it('stays quiet while the proxy is enabled', async () => {
+    await resolve({ name: 'shop', clients: { storefront, customerAccount: { clientId: 'cid' } } })
+
+    expect(warnings.join('\n')).not.toContain('customer account proxy is disabled')
+  })
+
+  it('leaves the static generation warning as the only one when prerendering', async () => {
+    await resolve(
+      { name: 'shop', clients: { storefront, customerAccount: { clientId: 'cid' } } },
+      nuxtStub({ _generate: true }),
+    )
+
+    const matches = warnings.filter(message => message.includes('customer account proxy'))
+
+    expect(matches).toHaveLength(1)
+    expect(matches[0]).toContain('static generation has no server')
+  })
+
+  it('stays quiet when the storefront proxy alone is disabled', async () => {
+    await resolve({ name: 'shop', clients: { storefront: { ...storefront, proxy: false } } })
+
+    expect(warnings.join('\n')).not.toContain('customer account proxy is disabled')
+  })
+})
+
 describe('customer account api url', () => {
   const input = { name: 'shop', clients: { customerAccount: { clientId: 'cid' } } }
 
@@ -221,8 +272,32 @@ describe('customer account session password', () => {
   it('never leaks the password into the public config', async () => {
     const { publicConfig } = await resolve(input, nuxtStub({ dev: true }))
 
-    expect(publicConfig.clients.customerAccount).not.toHaveProperty('session')
+    expect(publicConfig.clients.customerAccount?.session).toStrictEqual({ name: SESSION_DEFAULT_NAME })
     expect(JSON.stringify(publicConfig)).not.toContain(persisted[0]![1])
+  })
+})
+
+describe('api version window', () => {
+  it('warns about a version that left the supported window without failing the build', async () => {
+    const { config } = await resolve({ name: 'shop', clients: { storefront: { ...storefront, apiVersion: '2020-01' } } })
+
+    expect(config.clients.storefront?.apiVersion).toBe('2020-01')
+    expect(warnings.join('\n')).toContain('`2020-01`')
+    expect(warnings.join('\n')).toContain('outside the window')
+    expect(warnings.join('\n')).toContain(DEFAULT_API_VERSION)
+  })
+
+  it('stays quiet for a version inside the window', async () => {
+    const { config } = await resolve({ name: 'shop', clients: { storefront: { ...storefront, apiVersion: DEFAULT_API_VERSION } } })
+
+    expect(config.clients.storefront?.apiVersion).toBe(DEFAULT_API_VERSION)
+    expect(warnings.join('\n')).not.toContain('outside the window')
+  })
+
+  it('names the client that carries the stale version', async () => {
+    await resolve({ name: 'shop', clients: { customerAccount: { clientId: 'cid', apiVersion: '2020-01' } } })
+
+    expect(warnings.join('\n')).toContain('customer-account client')
   })
 })
 

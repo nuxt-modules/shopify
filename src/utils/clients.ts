@@ -86,9 +86,8 @@ export function warnMissingCustomerAccountTunnel(nuxt: Nuxt, customerAccount: Cu
     if (new URL(origin).protocol === 'https:') return
 
     useLogger().warn(
-      `The customer account client is configured but the dev server runs on ${origin}. `
-      + 'Shopify rejects a plain HTTP `redirect_uri`, so logging in will fail with a "Something went wrong" page. '
-      + 'Set `clients.customerAccount.dev.tunnelURL` to a public HTTPS tunnel that forwards to this dev server',
+      `The dev server runs on ${origin}, but Shopify rejects a plain HTTP \`redirect_uri\`, so customer account login will fail. `
+      + 'Set `clients.customerAccount.dev.tunnelURL` to an HTTPS tunnel that forwards here',
     )
   })
 }
