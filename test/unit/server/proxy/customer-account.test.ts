@@ -114,3 +114,41 @@ describe('customer account proxy', () => {
     await expect(handler(proxyEvent())).rejects.toBeDefined()
   })
 })
+
+describe('upstream failures', () => {
+  const fetchError = (status: number, data: unknown) =>
+    Object.assign(new Error(`[POST] "https://shopify.com/…": ${status}`), { status, statusCode: status, data })
+
+  it('keeps the upstream status instead of collapsing to 500', async () => {
+    upstream.mockRejectedValue(fetchError(401, { errors: [{ message: 'Unauthorized' }] }))
+
+    await expect(handler(proxyEvent())).rejects.toMatchObject({ statusCode: 401 })
+  })
+
+  it('passes the upstream body through as data', async () => {
+    upstream.mockRejectedValue(fetchError(429, { errors: [{ message: 'Throttled' }] }))
+
+    await expect(handler(proxyEvent())).rejects.toMatchObject({
+      statusCode: 429,
+      data: { errors: [{ message: 'Throttled' }] },
+    })
+  })
+
+  it('reports a connection failure as a bad gateway', async () => {
+    upstream.mockRejectedValue(new Error('connect ECONNREFUSED'))
+
+    await expect(handler(proxyEvent())).rejects.toMatchObject({ statusCode: 502 })
+  })
+
+  it('never marks the error unhandled, so production keeps the detail', async () => {
+    upstream.mockRejectedValue(fetchError(401, { errors: [{ message: 'nope' }] }))
+
+    await expect(handler(proxyEvent())).rejects.toMatchObject({ unhandled: false, fatal: false })
+  })
+
+  it('names the customer account API in the message', async () => {
+    upstream.mockRejectedValue(fetchError(403, { errors: [{ message: 'Forbidden' }] }))
+
+    await expect(handler(proxyEvent())).rejects.toThrow(/customer account API/)
+  })
+})

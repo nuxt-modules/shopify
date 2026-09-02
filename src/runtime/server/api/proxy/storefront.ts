@@ -12,6 +12,7 @@ import { useRuntimeConfig } from '#imports'
 import { assertSameSite } from '../../utils/csrf'
 import { createStorefrontConfig } from '../../../utils/clients/storefront'
 import { API_VERSION_PATTERN } from '../../../utils/clients/defaults'
+import { createUpstreamError } from '../../../utils/clients/errors'
 import {
   PRIVATE_TOKEN_HEADER,
   PROXY_API_VERSION_HEADER,
@@ -93,6 +94,8 @@ function useCachedRequest(base: string | undefined, preset: ResolvedCachePreset)
         method: request.method,
         headers: request.headers,
         body: request.body,
+      }).catch((error) => {
+        throw createUpstreamError('storefront', error)
       })
 
       collect(response.headers)
@@ -196,6 +199,8 @@ export default defineEventHandler(async (event) => {
     method: event.method,
     headers,
     body,
+  }).catch((error) => {
+    throw createUpstreamError('storefront', error)
   })
 
   forwardTrackingHeaders(event, response.headers)

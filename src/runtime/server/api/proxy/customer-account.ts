@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { useRuntimeConfig } from '#imports'
 import { assertSameSite } from '../../utils/csrf'
 import { createCustomerAccountConfig } from '../../../utils/clients/customer-account'
+import { createUpstreamError } from '../../../utils/clients/errors'
 import { getValidCustomerAccessToken } from '../../utils/customer-account/auth'
 
 export default defineEventHandler(async (event) => {
@@ -29,5 +30,7 @@ export default defineEventHandler(async (event) => {
       'Authorization': accessToken,
     },
     body,
+  }).catch((error) => {
+    throw createUpstreamError('customer account', error)
   })
 })

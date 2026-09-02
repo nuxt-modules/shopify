@@ -332,3 +332,100 @@ describe('mock mode', () => {
     expect(lastCall().url).toContain('mock.shop')
   })
 })
+
+describe('upstream failures', () => {
+  const fetchError = (status: number, data: unknown, statusText?: string) =>
+    Object.assign(new Error(`[POST] "https://shop.myshopify.com/api/graphql.json": ${status}`), {
+      status,
+      statusCode: status,
+      statusText,
+      data,
+    })
+
+  it('keeps the upstream status instead of collapsing to 500', async () => {
+    upstream.mockRejectedValue(fetchError(401, '{"errors":[{"message":"","extensions":{"code":"UNAUTHORIZED"}}]}', 'Unauthorized'))
+
+    await expect(handler(proxyEvent())).rejects.toMatchObject({ statusCode: 401 })
+  })
+
+  it('passes the upstream body through as data', async () => {
+    upstream.mockRejectedValue(fetchError(429, { errors: [{ message: 'Throttled', extensions: { code: 'THROTTLED' } }] }))
+
+    await expect(handler(proxyEvent())).rejects.toMatchObject({
+      statusCode: 429,
+      data: { errors: [{ message: 'Throttled', extensions: { code: 'THROTTLED' } }] },
+    })
+  })
+
+  it('parses a JSON string body so the client sees an object', async () => {
+    upstream.mockRejectedValue(fetchError(400, '{"errors":[{"message":"Online Store channel is locked."}]}'))
+
+    await expect(handler(proxyEvent())).rejects.toMatchObject({
+      data: { errors: [{ message: 'Online Store channel is locked.' }] },
+    })
+  })
+
+  it('names the upstream reason in the message', async () => {
+    upstream.mockRejectedValue(fetchError(429, { errors: [{ message: 'Throttled' }] }))
+
+    await expect(handler(proxyEvent())).rejects.toThrow(/Throttled/)
+  })
+
+  it('falls back to the error code when the upstream message is empty', async () => {
+    upstream.mockRejectedValue(fetchError(401, { errors: [{ message: '', extensions: { code: 'UNAUTHORIZED' } }] }))
+
+    await expect(handler(proxyEvent())).rejects.toThrow(/UNAUTHORIZED/)
+  })
+
+  it('reports a connection failure as a bad gateway', async () => {
+    upstream.mockRejectedValue(Object.assign(new Error('connect ECONNREFUSED'), { data: undefined }))
+
+    await expect(handler(proxyEvent())).rejects.toMatchObject({ statusCode: 502 })
+  })
+
+  it('never marks the error unhandled, so production keeps the detail', async () => {
+    upstream.mockRejectedValue(fetchError(401, { errors: [{ message: 'nope' }] }))
+
+    await expect(handler(proxyEvent())).rejects.toMatchObject({ unhandled: false, fatal: false })
+  })
+
+  it('surfaces a failure raised inside the cached path', async () => {
+    runtimeConfig._shopify = {
+      name: 'test-shop',
+      clients: {
+        storefront: {
+          apiVersion: '2026-01',
+          publicAccessToken: 'public-token',
+          cache: { proxy: true, presets: { long: { maxAge: 60 } } },
+        },
+      },
+    }
+
+    upstream.mockRejectedValue(fetchError(423, { errors: [{ message: 'Shop is locked' }] }))
+
+    await expect(handler(proxyEvent({ 'x-shopify-proxy-cache': 'long' })))
+      .rejects.toMatchObject({ statusCode: 423, data: { errors: [{ message: 'Shop is locked' }] } })
+  })
+
+  it('never caches a failure', async () => {
+    runtimeConfig._shopify = {
+      name: 'test-shop',
+      clients: {
+        storefront: {
+          apiVersion: '2026-01',
+          publicAccessToken: 'public-token',
+          cache: { proxy: true, presets: { long: { maxAge: 60 } } },
+        },
+      },
+    }
+
+    upstream.mockRejectedValueOnce(fetchError(503, { errors: [{ message: 'down' }] }))
+
+    await expect(handler(proxyEvent({ 'x-shopify-proxy-cache': 'long' }))).rejects.toMatchObject({ statusCode: 503 })
+
+    upstream.mockResolvedValue({ _data: { data: { shop: { name: 'Test Shop' } } }, headers: new Headers() })
+
+    await expect(handler(proxyEvent({ 'x-shopify-proxy-cache': 'long' })))
+      .resolves.toStrictEqual({ data: { shop: { name: 'Test Shop' } } })
+  })
+})
