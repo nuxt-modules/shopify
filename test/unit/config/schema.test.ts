@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
 
 import { ShopifyClientType, configObjectSchema, publicConfigSchema } from '#src/schemas'
+import { isSupportedApiVersion } from '#src/runtime/utils/clients/defaults'
+import { SESSION_DEFAULT_NAME } from '#src/runtime/utils/session'
 
 const storefront = { publicAccessToken: 'tok' }
 
@@ -36,11 +38,23 @@ describe('clients', () => {
 })
 
 describe('api version', () => {
-  it('names the invalid version in the error', () => {
-    const message = issues({ name: 'shop', clients: { storefront: { ...storefront, apiVersion: '1999-01' } } })
+  it.each([
+    ['2026-1'],
+    ['26-01'],
+    ['latest'],
+    ['../../admin/api/2026-01/graphql.json'],
+  ])('names the malformed version %s in the error', (apiVersion) => {
+    const message = issues({ name: 'shop', clients: { storefront: { ...storefront, apiVersion } } })
 
-    expect(message).toContain('Unsupported API version "1999-01"')
+    expect(message).toContain(`Malformed API version "${apiVersion}"`)
     expect(message).not.toContain('[object Object]')
+  })
+
+  it('accepts a well formed version that left the supported window', () => {
+    const config = configObjectSchema.parse({ name: 'shop', clients: { storefront: { ...storefront, apiVersion: '2020-01' } } })
+
+    expect(config.clients.storefront?.apiVersion).toBe('2020-01')
+    expect(isSupportedApiVersion('2020-01')).toBe(false)
   })
 })
 
@@ -86,7 +100,7 @@ describe('public config', () => {
     expect(JSON.stringify(config)).not.toContain('private')
   })
 
-  it('never carries customer account secrets or session config', () => {
+  it('carries only the session cookie name, never customer account secrets', () => {
     const config = publicConfigSchema.parse({
       name: 'shop',
       clients: {
@@ -99,7 +113,7 @@ describe('public config', () => {
     })
 
     expect(config.clients.customerAccount).not.toHaveProperty('clientSecret')
-    expect(config.clients.customerAccount).not.toHaveProperty('session')
+    expect(config.clients.customerAccount?.session).toStrictEqual({ name: SESSION_DEFAULT_NAME })
     expect(JSON.stringify(config)).not.toContain('secret')
     expect(JSON.stringify(config)).not.toContain('superlongsessionpassword')
   })

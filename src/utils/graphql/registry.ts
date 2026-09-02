@@ -4,6 +4,7 @@ import { readFile, readdir } from 'node:fs/promises'
 import { join, relative, sep } from 'node:path'
 
 import { collectSpreads, scanDefinitions } from '../../runtime/utils/graphql/scanner'
+import { useLogger } from '../log'
 import { findGraphqlLiterals } from './literals'
 
 const SCANNABLE = /\.(?:ts|js|mjs|cjs|mts|cts|vue|gql|graphql)$/
@@ -84,12 +85,32 @@ function expandProvidesThroughInterpolations(links: Map<string, BindingLink>) {
   }
 }
 
+interface FragmentCollision {
+  name: string
+  kept: string
+  ignored: string
+}
+
+function warnCollisions(collisions: FragmentCollision[]) {
+  if (!collisions.length) return
+
+  const logger = useLogger()
+
+  for (const { name, kept, ignored } of collisions) {
+    logger.warn(
+      `Fragment \`${name}\` is defined in more than one file. Injecting the one from \`${toPosix(relative(process.cwd(), kept))}\` `
+      + `and ignoring \`${toPosix(relative(process.cwd(), ignored))}\`.`,
+    )
+  }
+}
+
 export async function scanFragments(
   dirs: string[],
   routeFile: (file: string) => string | undefined,
 ): Promise<Map<string, FragmentRegistry>> {
   const registries = new Map<string, FragmentRegistry>()
   const links = new Map<string, BindingLink>()
+  const collisions: FragmentCollision[] = []
 
   for (const dir of dirs) {
     for (const file of await listFiles(dir)) {
@@ -118,13 +139,18 @@ export async function scanFragments(
 
           provided.add(fragment.name)
 
-          if (!registry.fragments.has(fragment.name)) {
+          const existing = registry.fragments.get(fragment.name)
+
+          if (!existing) {
             registry.fragments.set(fragment.name, {
               name: fragment.name,
               text: fragment.text,
               spreads: [...collectSpreads(fragment.text)],
               file,
             })
+          }
+          else if (existing.file !== file) {
+            collisions.push({ name: fragment.name, kept: existing.file, ignored: file })
           }
         }
 
@@ -138,6 +164,8 @@ export async function scanFragments(
   }
 
   expandProvidesThroughInterpolations(links)
+
+  warnCollisions(collisions)
 
   return registries
 }

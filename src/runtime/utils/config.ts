@@ -3,7 +3,6 @@ import type { ConsolaOptions } from 'consola'
 import type { CacheOptions, StorageMounts } from 'nitropack'
 import type { LRUDriverOptions } from 'unstorage/drivers/lru-cache'
 
-import { getCurrentSupportedApiVersions } from '@shopify/graphql-client'
 import { kebabCase } from 'scule'
 import { z } from 'zod'
 
@@ -13,6 +12,7 @@ import {
   DEFAULT_THROW_ERRORS,
   MAX_RETRIES,
   MIN_RETRIES,
+  isApiVersion,
 } from './clients/defaults'
 import { SESSION_DEFAULT_NAME } from './session'
 
@@ -109,8 +109,8 @@ const codegenSchema = z.object({
 })
 
 const clientSchema = z.object({
-  apiVersion: z.string().refine(v => getCurrentSupportedApiVersions().includes(v), {
-    error: issue => `Unsupported API version "${issue.input}". Supported versions are: ${getCurrentSupportedApiVersions().join(', ')}`,
+  apiVersion: z.string().refine(isApiVersion, {
+    error: issue => `Malformed API version "${issue.input}". Expected a quarterly version such as "${DEFAULT_API_VERSION}", or "unstable"`,
   }).optional().default(DEFAULT_API_VERSION),
   headers: z.record(z.string(), z.string()).optional(),
   retries: z.number().int().min(MIN_RETRIES).max(MAX_RETRIES).optional().default(DEFAULT_RETRIES),
@@ -141,6 +141,10 @@ const customerAccountSessionSchema = z.object({
     secure: z.boolean().optional(),
   }).optional(),
 })
+
+const publicCustomerAccountSessionSchema = z.object({
+  name: z.string().optional().default(SESSION_DEFAULT_NAME),
+}).optional().default({ name: SESSION_DEFAULT_NAME })
 
 const defaultCustomerAccountRoutes = {
   callback: '_auth/customer-account/callback',
@@ -296,6 +300,7 @@ export const publicConfigSchema = configObjectSchema.omit({ clients: true, fragm
       afterLogout: true,
     }).extend({
       proxy: proxyRouteSchema('_proxy/customer-account'),
+      session: publicCustomerAccountSessionSchema,
     }).optional(),
   }).optional().default({}),
 

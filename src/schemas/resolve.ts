@@ -3,7 +3,11 @@ import type { z } from 'zod'
 
 import type { configObjectSchema } from '../runtime/utils/config'
 
+import { getCurrentSupportedApiVersions } from '@shopify/graphql-client'
+import { kebabCase } from 'scule'
+
 import { ShopifyClientType } from '../runtime/utils/config'
+import { isSupportedApiVersion } from '../runtime/utils/clients/defaults'
 import { createStoreDomain } from '../runtime/utils/clients/transport'
 import { getCustomerAccountApiUrl } from '../runtime/utils/clients/customer-account/auth'
 import { isInstalled } from '../utils/install'
@@ -40,6 +44,21 @@ function resolveRequirements(config: ShopifyConfig) {
     logger.error('Analytics is enabled but no public storefront access token is set. Set `clients.storefront.publicAccessToken` or `analytics.consent.storefrontAccessToken`. Disabling analytics.')
 
     config.analytics = false
+  }
+}
+
+function warnUnsupportedApiVersions(config: ShopifyConfig) {
+  const logger = useLogger()
+
+  for (const clientType of Object.values(ShopifyClientType)) {
+    const client = config.clients[clientType]
+
+    if (!client || isSupportedApiVersion(client.apiVersion)) continue
+
+    logger.warn(
+      `The ${kebabCase(clientType)} client is using API version \`${client.apiVersion}\`, which is outside the window Shopify supports `
+      + `(${getCurrentSupportedApiVersions().join(', ')}).`,
+    )
   }
 }
 
@@ -127,6 +146,7 @@ export async function resolveConfig(config: ShopifyConfig, nuxt?: Nuxt): Promise
   if (!nuxt) return config
 
   resolveRequirements(config)
+  warnUnsupportedApiVersions(config)
   resolveProxies(config, nuxt)
 
   await resolveCustomerAccountApiUrl(config)

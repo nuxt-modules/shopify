@@ -19,12 +19,20 @@ export default defineNitroPlugin((nitroApp) => {
 
   const resolved = resolveApiUrl(parsed.data, base._shopify, logger)
     .then(shopify => ({ shopify, publicShopify: publicConfigSchema.parse(shopify) }))
+    .catch((error) => {
+      logger.warn(`Failed to resolve the runtime module configuration, keeping built config: ${error}`)
+
+      return undefined
+    })
 
   nitroApp.hooks.hook('request', async (event) => {
-    const { shopify, publicShopify } = await resolved
+    const config = await resolved
+
+    if (!config) return
+
     const runtimeConfig = useRuntimeConfig(event)
 
-    runtimeConfig._shopify = shopify
-    runtimeConfig.public._shopify = publicShopify
+    runtimeConfig._shopify = config.shopify
+    runtimeConfig.public._shopify = config.publicShopify
   })
 })

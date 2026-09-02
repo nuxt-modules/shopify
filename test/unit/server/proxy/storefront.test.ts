@@ -11,8 +11,25 @@ vi.mock('#imports', async () => ({
   useRuntimeConfig: () => runtimeConfig,
 }))
 
+const cacheStore = new Map<string, unknown>()
+
+let definitions = 0
+
 vi.mock('nitropack/runtime', () => ({
-  defineCachedFunction: (fn: unknown) => fn,
+  defineCachedFunction: (
+    fn: (...args: never[]) => Promise<unknown>,
+    options: { getKey: (...args: never[]) => string },
+  ) => {
+    definitions++
+
+    return async (...args: never[]) => {
+      const key = options.getKey(...args)
+
+      if (!cacheStore.has(key)) cacheStore.set(key, await fn(...args))
+
+      return cacheStore.get(key)
+    }
+  },
 }))
 
 const handler = (await import('#src/runtime/server/api/proxy/storefront')).default
@@ -156,6 +173,150 @@ describe('api version override', () => {
     await handler(proxyEvent({ 'x-shopify-proxy-api-version': version }))
 
     expect(lastCall().url).toContain('/api/2026-01/')
+  })
+})
+
+describe('proxy cache', () => {
+  const cacheable = {
+    proxy: { driver: 'lru-cache' },
+    presets: { short: { maxAge: 1, staleMaxAge: 9, swr: true }, long: { maxAge: 3600, staleMaxAge: 82800, swr: true } },
+  }
+
+  beforeEach(() => {
+    cacheStore.clear()
+
+    runtimeConfig._shopify = {
+      name: 'test-shop',
+      clients: {
+        storefront: {
+          apiVersion: '2026-01',
+          publicAccessToken: 'public-token',
+          cache: cacheable,
+        },
+      },
+    }
+  })
+
+  it('goes upstream once for a repeated cacheable request', async () => {
+    await handler(proxyEvent({ 'x-shopify-proxy-cache': 'short' }))
+    await handler(proxyEvent({ 'x-shopify-proxy-cache': 'short' }))
+
+    expect(upstream).toHaveBeenCalledTimes(1)
+  })
+
+  it('never caches a request without a known preset', async () => {
+    await handler(proxyEvent({ 'x-shopify-proxy-cache': 'bogus' }))
+    await handler(proxyEvent({ 'x-shopify-proxy-cache': 'bogus' }))
+    await handler(proxyEvent())
+
+    expect(upstream).toHaveBeenCalledTimes(3)
+  })
+
+  it('keys separately per preset', async () => {
+    await handler(proxyEvent({ 'x-shopify-proxy-cache': 'short' }))
+    await handler(proxyEvent({ 'x-shopify-proxy-cache': 'long' }))
+
+    expect(upstream).toHaveBeenCalledTimes(2)
+  })
+
+  it('keys separately per access token', async () => {
+    await handler(proxyEvent({ 'x-shopify-proxy-cache': 'short', 'x-shopify-storefront-access-token': 'tenant-a' }))
+    await handler(proxyEvent({ 'x-shopify-proxy-cache': 'short', 'x-shopify-storefront-access-token': 'tenant-b' }))
+
+    expect(upstream).toHaveBeenCalledTimes(2)
+
+    await handler(proxyEvent({ 'x-shopify-proxy-cache': 'short', 'x-shopify-storefront-access-token': 'tenant-a' }))
+
+    expect(upstream).toHaveBeenCalledTimes(2)
+  })
+
+  it('keys separately per private access token', async () => {
+    await handler(proxyEvent({ 'x-shopify-proxy-cache': 'short', 'shopify-storefront-private-token': 'private-a' }))
+    await handler(proxyEvent({ 'x-shopify-proxy-cache': 'short', 'shopify-storefront-private-token': 'private-b' }))
+
+    expect(upstream).toHaveBeenCalledTimes(2)
+  })
+
+  it('ignores headers that cannot change the response', async () => {
+    await handler(proxyEvent({ 'x-shopify-proxy-cache': 'short', 'user-agent': 'one' }))
+    await handler(proxyEvent({ 'x-shopify-proxy-cache': 'short', 'user-agent': 'two' }))
+
+    expect(upstream).toHaveBeenCalledTimes(1)
+  })
+
+  it('builds the cached function once per preset instead of once per request', async () => {
+    vi.resetModules()
+
+    definitions = 0
+    cacheStore.clear()
+
+    const fresh = (await import('#src/runtime/server/api/proxy/storefront')).default
+
+    for (let request = 0; request < 4; request++) {
+      await fresh(proxyEvent({ 'x-shopify-proxy-cache': 'short', 'x-shopify-storefront-access-token': `tenant-${request}` }))
+    }
+
+    expect(upstream).toHaveBeenCalledTimes(4)
+    expect(definitions).toBe(1)
+
+    await fresh(proxyEvent({ 'x-shopify-proxy-cache': 'long' }))
+
+    expect(definitions).toBe(2)
+  })
+
+  it('never grows its cached function registry from request supplied preset names', async () => {
+    vi.resetModules()
+
+    definitions = 0
+
+    const fresh = (await import('#src/runtime/server/api/proxy/storefront')).default
+
+    const hostile = [
+      '__proto__',
+      'constructor',
+      'prototype',
+      'toString',
+      'hasOwnProperty',
+      ...Array.from({ length: 500 }, (_, index) => `preset-${index}`),
+    ]
+
+    for (const name of hostile) {
+      await fresh(proxyEvent({ 'x-shopify-proxy-cache': name }))
+    }
+
+    expect(definitions).toBe(0)
+
+    await fresh(proxyEvent({ 'x-shopify-proxy-cache': 'short' }))
+    await fresh(proxyEvent({ 'x-shopify-proxy-cache': 'long' }))
+
+    expect(definitions).toBe(2)
+  })
+
+  it('never treats an inherited object property as a configured preset', async () => {
+    await handler(proxyEvent({ 'x-shopify-proxy-cache': 'toString' }))
+    await handler(proxyEvent({ 'x-shopify-proxy-cache': 'toString' }))
+
+    expect(upstream).toHaveBeenCalledTimes(2)
+  })
+
+  it('forwards tracking headers on a miss but never replays them on a hit', async () => {
+    upstream.mockResolvedValue({
+      _data: { data: {} },
+      headers: new Headers({ 'server-timing': '_y;desc=abc, _s;desc=def' }),
+    })
+
+    const miss = proxyEvent({ 'x-shopify-proxy-cache': 'short' })
+
+    await handler(miss)
+
+    expect(miss.node.res.getHeader('server-timing')).toBeTruthy()
+
+    const hit = proxyEvent({ 'x-shopify-proxy-cache': 'short' })
+
+    await handler(hit)
+
+    expect(upstream).toHaveBeenCalledTimes(1)
+    expect(hit.node.res.getHeader('server-timing')).toBeFalsy()
   })
 })
 

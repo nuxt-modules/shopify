@@ -1,3 +1,8 @@
+import type { HTTPMethod } from 'h3'
+import type { CacheOptions } from 'nitropack'
+
+import type { ShopifyConfig } from '../../../../module'
+
 import { defineEventHandler, readValidatedBody, getRequestHeaders } from 'h3'
 import { defineCachedFunction } from 'nitropack/runtime'
 import { hash } from 'ohash'
@@ -6,6 +11,7 @@ import { z } from 'zod'
 import { useRuntimeConfig } from '#imports'
 import { assertSameSite } from '../../utils/csrf'
 import { createStorefrontConfig } from '../../../utils/clients/storefront'
+import { API_VERSION_PATTERN } from '../../../utils/clients/defaults'
 import {
   PRIVATE_TOKEN_HEADER,
   PROXY_API_VERSION_HEADER,
@@ -24,8 +30,6 @@ import {
   forwardTrackingHeaders,
 } from '../../utils/tracking'
 
-const API_VERSION_PATTERN = /^(?:unstable|2\d{3}-\d{2})$/
-
 const FORWARDED_HEADERS = [
   'accept',
   'accept-language',
@@ -42,6 +46,78 @@ const FORWARDED_HEADERS = [
   SDK_VARIANT_HEADER,
   SDK_VERSION_HEADER,
 ].map(header => header.toLowerCase())
+
+const CREDENTIAL_HEADERS = [
+  PUBLIC_TOKEN_HEADER,
+  PRIVATE_TOKEN_HEADER,
+].map(header => header.toLowerCase())
+
+type ProxyCacheConfig = NonNullable<Exclude<NonNullable<ShopifyConfig['clients']['storefront']>['cache'], false>>
+
+type ResolvedCachePreset = {
+  name: string
+  options: Pick<CacheOptions, 'maxAge' | 'staleMaxAge' | 'swr'>
+}
+
+type ProxyRequest = {
+  url: string
+  method: HTTPMethod
+  headers: Record<string, string>
+  body: Record<string, unknown>
+  cache: string
+  credentials: string[]
+}
+
+type CollectHeaders = (headers: Headers) => void
+
+type CachedRequest = (request: ProxyRequest, collect: CollectHeaders) => Promise<object | undefined>
+
+function resolveCachePreset(cacheConfig: ProxyCacheConfig | undefined, requested: string): ResolvedCachePreset | undefined {
+  const options = cacheConfig?.presets && Object.hasOwn(cacheConfig.presets, requested)
+    ? cacheConfig.presets[requested]
+    : undefined
+
+  return options ? { name: requested, options } : undefined
+}
+
+const cachedRequests = new Map<string, CachedRequest>()
+
+function useCachedRequest(base: string | undefined, preset: ResolvedCachePreset): CachedRequest {
+  const id = `${base ?? ''}:${preset.name}`
+
+  let cached = cachedRequests.get(id)
+
+  if (!cached) {
+    cached = defineCachedFunction(async (request: ProxyRequest, collect: CollectHeaders) => {
+      const response = await $fetch.raw<object>(request.url, {
+        method: request.method,
+        headers: request.headers,
+        body: request.body,
+      })
+
+      collect(response.headers)
+
+      return response._data
+    }, {
+      name: 'storefront-proxy',
+
+      getKey: (request: ProxyRequest) => hash({
+        url: request.url,
+        method: request.method,
+        body: request.body,
+        cache: request.cache,
+        credentials: request.credentials,
+      }),
+
+      ...(base ? { base } : {}),
+      ...preset.options,
+    })
+
+    cachedRequests.set(id, cached)
+  }
+
+  return cached
+}
 
 function createUpstreamHeaders(headers: Record<string, string>): Record<string, string> {
   const upstream: Record<string, string> = {}
@@ -89,11 +165,7 @@ export default defineEventHandler(async (event) => {
   const cacheConfig = storefrontConfig?.cache && storefrontConfig.cache.proxy ? storefrontConfig.cache : undefined
   const cacheOption = requestHeaders[PROXY_CACHE_HEADER.toLowerCase()] ?? 'none'
 
-  const requestCacheConfig = cacheConfig?.presets
-    ? Object.hasOwn(cacheConfig.presets, cacheOption)
-      ? cacheConfig.presets[cacheOption]
-      : undefined
-    : undefined
+  const preset = resolveCachePreset(cacheConfig, cacheOption)
 
   const cacheBase = typeof cacheConfig?.proxy === 'string'
     ? cacheConfig.proxy
@@ -101,29 +173,23 @@ export default defineEventHandler(async (event) => {
       ? 'storefront-proxy'
       : undefined
 
-  const cachedProxyRequest = defineCachedFunction(async (
-    url: string,
-    method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 'OPTIONS' | 'CONNECT' | 'TRACE',
-    headers: Record<string, string>,
-    body: Record<string, unknown> | string,
-  ) => {
-    const response = await $fetch.raw<object>(url, { method, headers, body })
+  if (preset) {
+    let upstreamHeaders: Headers | undefined
 
-    forwardTrackingHeaders(event, response.headers)
+    const data = await useCachedRequest(cacheBase, preset)({
+      url,
+      method: event.method,
+      headers,
+      body,
+      cache: preset.name,
+      credentials: CREDENTIAL_HEADERS.map(header => headers[header] ?? ''),
+    }, (responseHeaders) => {
+      upstreamHeaders = responseHeaders
+    })
 
-    return response._data
-  }, {
-    name: 'storefront-proxy',
+    if (upstreamHeaders) forwardTrackingHeaders(event, upstreamHeaders)
 
-    shouldBypassCache: () => !requestCacheConfig,
-    getKey: (url, method, _headers, body) => hash({ url, method, cache: cacheOption, body }),
-
-    ...(cacheBase ? { base: cacheBase } : {}),
-    ...requestCacheConfig,
-  })
-
-  if (requestCacheConfig) {
-    return await cachedProxyRequest(url, event.method, headers, body)
+    return data
   }
 
   const response = await $fetch.raw<object>(url, {
