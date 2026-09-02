@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { ShopifyApiClient } from '../module'
+import type { ShopifyApiClient } from '../module.js'
 
 export interface AdminQueries {
   [key: string]: {
