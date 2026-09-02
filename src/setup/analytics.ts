@@ -17,7 +17,7 @@ export default function setupAnalytics(config: ShopifyConfig, resolver: Resolver
   }
 
   if (!config.clients[ShopifyClientType.Storefront]?.proxy) {
-    logger.warn('Analytics is enabled but the storefront proxy is disabled. Shopify only exposes visitor tracking identifiers on same-origin responses, so events will be reported without them.')
+    logger.warn('The storefront proxy is disabled, so Shopify cannot expose visitor tracking identifiers. Analytics events will be reported without them')
   }
 
   addServerPlugin(resolver.resolve('./runtime/server/plugins/tracking'))

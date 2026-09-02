@@ -152,6 +152,41 @@ describe('proxy requires a server', () => {
   })
 })
 
+describe('customer account proxy opt-out', () => {
+  it('warns that the browser client cannot authenticate without the proxy', async () => {
+    await resolve({ name: 'shop', clients: { storefront, customerAccount: { clientId: 'cid', proxy: false } } })
+
+    const message = warnings.join('\n')
+
+    expect(message).toContain('customer account proxy is disabled')
+    expect(message).toContain('useCustomerAccount()')
+  })
+
+  it('stays quiet while the proxy is enabled', async () => {
+    await resolve({ name: 'shop', clients: { storefront, customerAccount: { clientId: 'cid' } } })
+
+    expect(warnings.join('\n')).not.toContain('customer account proxy is disabled')
+  })
+
+  it('leaves the static generation warning as the only one when prerendering', async () => {
+    await resolve(
+      { name: 'shop', clients: { storefront, customerAccount: { clientId: 'cid' } } },
+      nuxtStub({ _generate: true }),
+    )
+
+    const matches = warnings.filter(message => message.includes('customer account proxy'))
+
+    expect(matches).toHaveLength(1)
+    expect(matches[0]).toContain('static generation has no server')
+  })
+
+  it('stays quiet when the storefront proxy alone is disabled', async () => {
+    await resolve({ name: 'shop', clients: { storefront: { ...storefront, proxy: false } } })
+
+    expect(warnings.join('\n')).not.toContain('customer account proxy is disabled')
+  })
+})
+
 describe('customer account api url', () => {
   const input = { name: 'shop', clients: { customerAccount: { clientId: 'cid' } } }
 

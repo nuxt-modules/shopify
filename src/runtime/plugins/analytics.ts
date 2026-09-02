@@ -38,7 +38,7 @@ export default defineNuxtPlugin({
       || _shopify.clients.storefront?.publicAccessToken
 
     if (!storefrontAccessToken) {
-      createLogger().warn('Analytics is enabled but no public storefront access token is available at runtime. Analytics will not be initialized')
+      createLogger().warn('No public storefront access token is available at runtime. Analytics will not be initialized')
 
       return
     }

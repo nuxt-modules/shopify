@@ -9,8 +9,79 @@ import { flattenConnection } from '../runtime/utils/functions/flattenConnection'
 
 const PAGE_SIZE = 250
 
+export const WEBHOOK_GID_PREFIX = 'gid://shopify/WebhookSubscription/'
+
+type WebhookConfig = NonNullable<NonNullable<ShopifyConfig['webhooks']>['hooks']>[number]
+
+type MetafieldIdentifier = {
+  key: string
+  namespace?: string | null
+}
+
+export interface WebhookSubscription {
+  id: string
+  topic: string
+  uri: string
+  format: 'JSON' | 'XML'
+  filter?: string | null
+  includeFields: string[]
+  metafieldNamespaces: string[]
+  metafields: MetafieldIdentifier[]
+}
+
+interface WebhookSubscriptionResult {
+  action: 'created' | 'updated'
+  subscription: WebhookSubscription
+}
+
+const SUBSCRIPTION_FIELDS = `
+  id
+  topic
+  uri
+  format
+  filter
+  includeFields
+  metafieldNamespaces
+  metafields {
+    key
+    namespace
+  }
+`
+
+const toInput = (hook: WebhookConfig) => ({
+  uri: hook.uri,
+  format: hook.format ?? 'JSON',
+  filter: hook.filter,
+  includeFields: hook.includeFields,
+  metafieldNamespaces: hook.metafieldNamespaces,
+  metafields: hook.metafields,
+})
+
+function sameList(left: readonly string[] = [], right: readonly string[] = []) {
+  if (left.length !== right.length) return false
+
+  const sortedLeft = [...left].sort()
+  const sortedRight = [...right].sort()
+
+  return sortedLeft.every((value, index) => value === sortedRight[index])
+}
+
+const metafieldKeys = (metafields: readonly MetafieldIdentifier[] = []) =>
+  metafields.map(({ namespace, key }) => `${namespace ?? ''}/${key}`)
+
+function isUpToDate(subscription: WebhookSubscription, hook: WebhookConfig) {
+  return subscription.format === (hook.format ?? 'JSON')
+    && (subscription.filter ?? undefined) === hook.filter
+    && sameList(subscription.includeFields, hook.includeFields)
+    && sameList(subscription.metafieldNamespaces, hook.metafieldNamespaces)
+    && sameList(metafieldKeys(subscription.metafields), metafieldKeys(hook.metafields))
+}
+
+const matches = (subscription: WebhookSubscription, hook: WebhookConfig) =>
+  subscription.topic === hook.topic && subscription.uri === hook.uri
+
 const fetchSubscriptions = async (client: AdminApiClient) => {
-  const subscriptions: ReturnType<typeof flattenConnection> = []
+  const subscriptions: WebhookSubscription[] = []
 
   let after: string | undefined
 
@@ -20,14 +91,7 @@ const fetchSubscriptions = async (client: AdminApiClient) => {
         webhookSubscriptions(first: $first, after: $after) {
           edges {
             node {
-              id
-              topic
-              endpoint {
-                __typename
-                ... on WebhookHttpEndpoint {
-                  callbackUrl
-                }
-              }
+              ${SUBSCRIPTION_FIELDS}
             }
           }
           pageInfo {
@@ -47,7 +111,7 @@ const fetchSubscriptions = async (client: AdminApiClient) => {
       throw new Error(`[shopify] Failed to fetch webhook subscriptions: ${JSON.stringify(errors, null, 2)}`)
     }
 
-    subscriptions.push(...flattenConnection(data?.webhookSubscriptions))
+    subscriptions.push(...flattenConnection<WebhookSubscription>(data?.webhookSubscriptions))
 
     const pageInfo = data?.webhookSubscriptions?.pageInfo
 
@@ -57,7 +121,7 @@ const fetchSubscriptions = async (client: AdminApiClient) => {
   return subscriptions
 }
 
-const createSubscription = async (client: AdminApiClient, hook: NonNullable<NonNullable<ShopifyConfig['webhooks']>['hooks']>[number]) => {
+const createSubscription = async (client: AdminApiClient, hook: WebhookConfig) => {
   const { data, errors } = await client.request(`#graphql
     mutation WebhookSubscriptionCreate(
       $topic: WebhookSubscriptionTopic!,
@@ -68,14 +132,7 @@ const createSubscription = async (client: AdminApiClient, hook: NonNullable<NonN
         webhookSubscription: $webhookSubscription
       ) {
         webhookSubscription {
-          id
-          topic
-          endpoint {
-            __typename
-            ... on WebhookHttpEndpoint {
-              callbackUrl
-            }
-          }
+          ${SUBSCRIPTION_FIELDS}
         }
         userErrors {
           field
@@ -86,14 +143,7 @@ const createSubscription = async (client: AdminApiClient, hook: NonNullable<NonN
   `, {
     variables: {
       topic: hook.topic,
-      webhookSubscription: {
-        callbackUrl: hook.uri,
-        format: hook.format,
-        filter: hook.filter,
-        includeFields: hook.includeFields,
-        metafields: hook.metafields,
-        metafieldNamespaces: hook.metafieldNamespaces,
-      },
+      webhookSubscription: toInput(hook),
     },
   })
 
@@ -105,12 +155,49 @@ const createSubscription = async (client: AdminApiClient, hook: NonNullable<NonN
     throw new Error(`[shopify] Failed to create webhook subscription: ${JSON.stringify(data.webhookSubscriptionCreate.userErrors, null, 2)}`)
   }
 
-  return data?.webhookSubscriptionCreate
+  return data?.webhookSubscriptionCreate.webhookSubscription as WebhookSubscription | undefined
+}
+
+const updateSubscription = async (client: AdminApiClient, id: string, hook: WebhookConfig) => {
+  const { data, errors } = await client.request(`#graphql
+    mutation WebhookSubscriptionUpdate(
+      $id: ID!,
+      $webhookSubscription: WebhookSubscriptionInput!
+    ) {
+      webhookSubscriptionUpdate(
+        id: $id,
+        webhookSubscription: $webhookSubscription
+      ) {
+        webhookSubscription {
+          ${SUBSCRIPTION_FIELDS}
+        }
+        userErrors {
+          field
+          message
+        }
+      }
+    }
+  `, {
+    variables: {
+      id,
+      webhookSubscription: toInput(hook),
+    },
+  })
+
+  if (errors) {
+    throw new Error(`[shopify] Failed to update webhook subscription: ${JSON.stringify(errors, null, 2)}`)
+  }
+
+  if (data?.webhookSubscriptionUpdate.userErrors.length) {
+    throw new Error(`[shopify] Failed to update webhook subscription: ${JSON.stringify(data.webhookSubscriptionUpdate.userErrors, null, 2)}`)
+  }
+
+  return data?.webhookSubscriptionUpdate.webhookSubscription as WebhookSubscription | undefined
 }
 
 const deleteSubscription = async (client: AdminApiClient, id: string) => {
   const { data, errors } = await client.request(`#graphql
-    mutation webhookSubscriptionDelete($id: ID!) {
+    mutation WebhookSubscriptionDelete($id: ID!) {
       webhookSubscriptionDelete(id: $id) {
         deletedWebhookSubscriptionId
         userErrors {
@@ -151,9 +238,7 @@ export const getShopifyConfig = async () => {
 export const getSubscribedWebhooks = async (config: ShopifyConfig) => {
   const client = createAdminClient(config)
 
-  const subscriptions = await fetchSubscriptions(client)
-
-  return subscriptions
+  return await fetchSubscriptions(client)
 }
 
 export const subscribeWebhook = async (config: ShopifyConfig) => {
@@ -161,19 +246,24 @@ export const subscribeWebhook = async (config: ShopifyConfig) => {
 
   const subscriptions = await fetchSubscriptions(client)
 
-  const results = []
+  const results: WebhookSubscriptionResult[] = []
 
   for (const hook of config.webhooks?.hooks || []) {
-    if (subscriptions.some(subscription =>
-      (subscription as { topic: string })?.topic === hook.topic
-      && (subscription as { endpoint: { callbackUrl: string } })?.endpoint.callbackUrl === hook.uri,
-    )) {
+    const existing = subscriptions.find(subscription => matches(subscription, hook))
+
+    if (!existing) {
+      const created = await createSubscription(client, hook)
+
+      if (created) results.push({ action: 'created', subscription: created })
+
       continue
     }
 
-    const result = await createSubscription(client, hook)
+    if (isUpToDate(existing, hook)) continue
 
-    results.push(result?.webhookSubscription)
+    const updated = await updateSubscription(client, existing.id, hook)
+
+    if (updated) results.push({ action: 'updated', subscription: updated })
   }
 
   return results
@@ -184,25 +274,16 @@ export const unsubscribeWebhook = async (config: ShopifyConfig) => {
 
   const subscriptions = await fetchSubscriptions(client)
 
-  const results = []
+  const results: WebhookSubscription[] = []
 
   for (const hook of config.webhooks?.hooks || []) {
-    const subscription = subscriptions.find(subscription =>
-      (subscription as { topic: string })?.topic === hook.topic
-      && (subscription as { endpoint: { callbackUrl: string } })?.endpoint.callbackUrl === hook.uri,
-    )
+    const subscription = subscriptions.find(subscription => matches(subscription, hook))
 
-    if (!subscription) {
-      continue
-    }
+    if (!subscription) continue
 
-    const result = await deleteSubscription(client, (subscription as { id: string })?.id)
+    await deleteSubscription(client, subscription.id)
 
-    results.push({
-      id: result?.deletedWebhookSubscriptionId?.replace('gid://shopify/WebhookSubscription/', '') || '',
-      topic: hook.topic,
-      endpoint: { callbackUrl: hook.uri },
-    })
+    results.push(subscription)
   }
 
   return results

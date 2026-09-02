@@ -98,8 +98,8 @@ function warnCollisions(collisions: FragmentCollision[]) {
 
   for (const { name, kept, ignored } of collisions) {
     logger.warn(
-      `Fragment \`${name}\` is defined in more than one file. Injecting the one from \`${toPosix(relative(process.cwd(), kept))}\` `
-      + `and ignoring \`${toPosix(relative(process.cwd(), ignored))}\`.`,
+      `Fragment \`${name}\` is defined in more than one file. `
+      + `Using \`${toPosix(relative(process.cwd(), kept))}\`, ignoring \`${toPosix(relative(process.cwd(), ignored))}\``,
     )
   }
 }

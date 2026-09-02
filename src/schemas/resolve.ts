@@ -25,13 +25,13 @@ function resolveRequirements(config: ShopifyConfig) {
   const logger = useLogger()
 
   if (config.clients[ShopifyClientType.CustomerAccount] && !isInstalled(HYDROGEN)) {
-    logger.warn(`The customer account client is configured but \`${HYDROGEN}\` is not installed. Install it (e.g. \`npm i ${HYDROGEN}\`) or remove \`shopify.clients.customerAccount\`. Disabling customer account client.`)
+    logger.warn(`Disabling the customer account client: \`${HYDROGEN}\` is not installed. Install it, or remove \`shopify.clients.customerAccount\``)
 
     config.clients[ShopifyClientType.CustomerAccount] = undefined
   }
 
   if (config.analytics && !isInstalled(HYDROGEN_REACT)) {
-    logger.warn(`Analytics is enabled but \`${HYDROGEN_REACT}\` is not installed. Install it (e.g. \`npm i ${HYDROGEN_REACT}\`) or disable \`shopify.analytics\`. Disabling analytics.`)
+    logger.warn(`Disabling analytics: \`${HYDROGEN_REACT}\` is not installed. Install it, or disable \`shopify.analytics\``)
 
     config.analytics = false
   }
@@ -41,9 +41,13 @@ function resolveRequirements(config: ShopifyConfig) {
     && !config.clients[ShopifyClientType.Storefront]?.publicAccessToken
     && !config.analytics.consent?.storefrontAccessToken
   ) {
-    logger.error('Analytics is enabled but no public storefront access token is set. Set `clients.storefront.publicAccessToken` or `analytics.consent.storefrontAccessToken`. Disabling analytics.')
+    logger.error('Disabling analytics: no public storefront access token is set. Set `clients.storefront.publicAccessToken` or `analytics.consent.storefrontAccessToken`')
 
     config.analytics = false
+  }
+
+  if (config.clients[ShopifyClientType.CustomerAccount]?.proxy === false) {
+    logger.warn('The customer account proxy is disabled, so `useCustomerAccount()` cannot authenticate from the browser. Remove `clients.customerAccount.proxy: false`, or only call the client on the server')
   }
 }
 
@@ -56,8 +60,8 @@ function warnUnsupportedApiVersions(config: ShopifyConfig) {
     if (!client || isSupportedApiVersion(client.apiVersion)) continue
 
     logger.warn(
-      `The ${kebabCase(clientType)} client is using API version \`${client.apiVersion}\`, which is outside the window Shopify supports `
-      + `(${getCurrentSupportedApiVersions().join(', ')}).`,
+      `The ${kebabCase(clientType)} client uses API version \`${client.apiVersion}\`, `
+      + `outside the window Shopify supports (${getCurrentSupportedApiVersions().join(', ')})`,
     )
   }
 }
@@ -73,10 +77,10 @@ function resolveProxies(config: ShopifyConfig, nuxt: Nuxt) {
     if (!client?.proxy) continue
 
     if (clientType === ShopifyClientType.CustomerAccount) {
-      logger.warn('Disabling the customer account proxy: static generation has no server to proxy through. The customer account client cannot authenticate browser requests without the proxy, so prerendered pages must not call it')
+      logger.warn('Disabling the customer account proxy: static generation has no server, so prerendered pages must not call the customer account client')
     }
     else {
-      logger.info(`Disabling the ${clientType} proxy: static generation has no server to proxy through, requests are sent to Shopify directly`)
+      logger.info(`Disabling the ${clientType} proxy: static generation has no server, so requests go to Shopify directly`)
     }
 
     client.proxy = false
@@ -109,9 +113,8 @@ async function resolveCustomerAccountApiUrl(config: ShopifyConfig) {
   }
 
   logger.warn(
-    `Could not resolve the customer account API URL from \`${storeDomain}/.well-known/customer-account-api\` - `
-    + 'customer account requests will fail (is the Customer Account API enabled for your store?, '
-    + 'or set `clients.customerAccount.apiURL` explicitly)',
+    `Could not resolve the customer account API URL from \`${storeDomain}/.well-known/customer-account-api\`. `
+    + 'Enable the Customer Account API for your store, or set `clients.customerAccount.apiURL` explicitly',
   )
 }
 

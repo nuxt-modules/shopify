@@ -34,22 +34,29 @@ function isFullConfig(config: ShopifyClientConfig): config is ShopifyConfig | Pu
 }
 
 function normalizeConfig(kind: ShopifyClientKind, config: ShopifyClientConfig): ShopifyConfig {
-  const normalized = isFullConfig(config)
-    ? { ...config }
+  const base = (isFullConfig(config)
+    ? config
     : (() => {
         const { name, logger, errors, ...clientConfig } = config ?? {} as ShopifyInlineConfig
 
         return { name, logger, errors, clients: { [kind]: clientConfig } }
-      })()
+      })()) as ShopifyConfig
 
-  const clientConfig = (normalized as ShopifyConfig).clients?.[kind]
+  const clientConfig = base.clients?.[kind]
 
-  if (clientConfig) {
-    clientConfig.apiVersion ??= DEFAULT_API_VERSION
-    clientConfig.retries ??= DEFAULT_RETRIES
-  }
+  if (!clientConfig) return base
 
-  return normalized as ShopifyConfig
+  return {
+    ...base,
+    clients: {
+      ...base.clients,
+      [kind]: {
+        ...clientConfig,
+        apiVersion: clientConfig.apiVersion ?? DEFAULT_API_VERSION,
+        retries: clientConfig.retries ?? DEFAULT_RETRIES,
+      },
+    },
+  } as ShopifyConfig
 }
 
 export function createClient<
