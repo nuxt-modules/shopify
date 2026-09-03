@@ -3,6 +3,8 @@ packages:
   - template
   - docs
 
+linkWorkspacePackages: true
+
 allowBuilds:
   "@parcel/watcher": true
   better-sqlite3: true

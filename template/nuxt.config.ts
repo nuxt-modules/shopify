@@ -1,9 +1,7 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  extends: ['../dev'],
-
   modules: [
-    '../src/module',
+    '@nuxtjs/shopify',
     './modules/markets',
     '@nuxtjs/critters',
     '@nuxtjs/i18n',

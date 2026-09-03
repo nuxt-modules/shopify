@@ -1,6 +1,7 @@
 import { fileURLToPath } from 'node:url'
 
 const alias = {
+  '@nuxtjs/shopify': fileURLToPath(new URL('../src/module.ts', import.meta.url)),
   '@nuxtjs/shopify/storefront': fileURLToPath(new URL('../src/clients/storefront.d.ts', import.meta.url)),
   '@nuxtjs/shopify/customer-account': fileURLToPath(new URL('../src/clients/customer-account.d.ts', import.meta.url)),
   '@nuxtjs/shopify/admin': fileURLToPath(new URL('../src/clients/admin.d.ts', import.meta.url)),
