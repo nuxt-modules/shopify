@@ -99,30 +99,9 @@ jobs:
       - name: Run tests
         run: pnpm run prepare && pnpm run prepare:playgrounds && pnpm run test:coverage
 
-  package:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7.0.1
-        with:
-          persist-credentials: false
-      - uses: pnpm/action-setup@v6.0.10
-      - uses: actions/setup-node@v7.0.0
-        with:
-          node-version: 24.20.0
-          cache: pnpm
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile --ignore-scripts
-
-      - name: Build
-        run: pnpm run prepare && pnpm run build
-
-      - name: Check the published package and its type resolution
-        run: pnpm run check:package
-
   build:
     runs-on: ubuntu-latest
-    needs: [lint, typecheck, knip, test, package]
+    needs: [lint, typecheck, knip, test]
     steps:
       - uses: actions/checkout@v7.0.1
         with:
@@ -136,5 +115,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
 
-      - name: Build
+      - name: Build module package
         run: pnpm run prepare && pnpm run build
+
+      - name: Check built package
+        run: pnpm run check:package

@@ -16,7 +16,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  dependency-review:
+  review:
     runs-on: ubuntu-latest
 
     steps:

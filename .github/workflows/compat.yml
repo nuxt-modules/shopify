@@ -71,7 +71,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile --ignore-scripts
 
-      - name: Pin the hydrogen peers
+      - name: Pin hydrogen peers
         run: pnpm add -D -w "@shopify/hydrogen@${{ matrix.hydrogen }}" "@shopify/hydrogen-react@${{ matrix.hydrogen }}"
 
       - name: Run tests
