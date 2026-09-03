@@ -4,7 +4,7 @@ seo:
   description: Easily integrate and use Shopify in your Nuxt 3 or 4 app.
 ---
 
-::products-marquee
+::product-marquee
 ::
 
 ::u-page-hero
@@ -45,7 +45,7 @@ title: Minimal API for your Storefront
 #component
 ::product-image
 ---
-handle: hoodie-old
+handle: hoodie
 sizes: xs:545px sm:545px md:545px lg:392px xl:392px
 class: w-full aspect-square
 ---
@@ -374,7 +374,7 @@ Build your Shopify store with Nuxt
   :::u-page-feature
   ---
   icon: i-lucide-wand-sparkles
-  to: /essentials/codegen
+  to: /going-further/codegen
   ---
   #title
   Zero-config [Code Generation]{.text-primary}

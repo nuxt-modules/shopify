@@ -86,7 +86,7 @@ onMounted(() => {
         {{ product?.description }}
       </p>
 
-      <VariantSelector
+      <ProductVariantSelector
         v-if="product"
         v-model="selected"
         :options="product.options"

@@ -245,7 +245,7 @@ Notice how we can use the `graphql` directive inside the event handler, this is 
 the standard module configuration all `.gql`, `.graphql`, `.ts`, `.js` and `.vue` files are automatically
 processed for the storefront API, as long as they don't match the admin patterns (e.g. `.admin.ts`) or the
 customer account patterns (e.g. `.customer-account.ts`, `.customer.ts`, `.account.ts`).
-Read more about the [codegen configuration](https://shopify.nuxtjs.org/essentials/codegen).
+Read more about the [codegen configuration](https://shopify.nuxtjs.org/going-further/codegen).
 
 Now we can call the API at `/api/products` to obtain the first three products:
 

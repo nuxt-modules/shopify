@@ -8,15 +8,6 @@ export default defineNuxtConfig({
     'motion-v/nuxt',
   ],
 
-  components: {
-    dirs: [
-      {
-        path: '~/components',
-        pathPrefix: false,
-      },
-    ],
-  },
-
   app: {
     head: {
       link: [
@@ -48,48 +39,27 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     shopify: {
-      name: 'nuxt-shopify-docs',
+      name: 'nuxt-module-store',
 
       clients: {
         storefront: {
           proxy: false,
-          mock: true,
+          publicAccessToken: '40d025de5a3421a960e8d7970b922901',
         },
       },
     },
   },
 
   routeRules: {
+    '/essentials/codegen': { redirect: '/going-further/codegen' },
     '/essentials/webhooks': { redirect: '/going-further/webhooks' },
     '/going-further/sandbox': { redirect: '/going-further/explorer' },
-  },
-
-  vite: {
-    build: {
-      rollupOptions: {
-        output: {
-          manualChunks: (id) => {
-            if (id.includes('vaul-vue')) return 'vaul-vue'
-            if (id.includes('reka-ui')) return 'reka-ui'
-          },
-        },
-      },
-    },
-    optimizeDeps: {
-      include: ['vaul-vue', 'reka-ui'],
-    },
-  },
-
-  hooks: {
-    'prepare:types'({ references }) {
-      const resolvesToDocusNuxtConfig = (reference: typeof references[number]) =>
-        'types' in reference && reference.types === 'docus'
-
-      const usableReferences = references.filter(reference => !resolvesToDocusNuxtConfig(reference))
-
-      references.length = 0
-      references.push(...usableReferences)
-    },
+    '/recipes/navigation-tree': { redirect: '/examples/navigation-tree' },
+    '/recipes/collection-page': { redirect: '/examples/collection-page' },
+    '/recipes/collection-filters': { redirect: '/examples/collection-filters' },
+    '/recipes/product-page': { redirect: '/examples/product-page' },
+    '/recipes/cart': { redirect: '/examples/cart' },
+    '/recipes': { redirect: '/examples' },
   },
 
   image: {
