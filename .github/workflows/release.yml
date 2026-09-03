@@ -22,7 +22,7 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-      - uses: danielroe/uppt/pr@09882a5a0a1a20a0e802613a77ad59fcb1c1611c # v0.6.9
+      - uses: danielroe/uppt/pr@v0.6.9
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -40,7 +40,7 @@ jobs:
       contents: write
       actions: write
     steps:
-      - uses: danielroe/uppt/release@09882a5a0a1a20a0e802613a77ad59fcb1c1611c # v0.6.9
+      - uses: danielroe/uppt/release@v0.6.9
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -55,7 +55,7 @@ jobs:
       files: ${{ steps.pack.outputs.files }}
     steps:
       - id: pack
-        uses: danielroe/uppt/pack@09882a5a0a1a20a0e802613a77ad59fcb1c1611c # v0.6.9
+        uses: danielroe/uppt/pack@v0.6.9
 
   publish:
     if: |
@@ -71,7 +71,7 @@ jobs:
       id-token: write
     environment: npm
     steps:
-      - uses: danielroe/uppt/publish@09882a5a0a1a20a0e802613a77ad59fcb1c1611c # v0.6.9
+      - uses: danielroe/uppt/publish@v0.6.9
         with:
           files: ${{ needs.pack.outputs.files }}
 
@@ -87,7 +87,7 @@ jobs:
     permissions:
       actions: write
     steps:
-      - name: Dispatch docs and template deployments
+      - name: Dispatch docs, template and compatibility workflows
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
@@ -95,3 +95,4 @@ jobs:
         run: |
           gh workflow run docs.yml --ref "$TAG"
           gh workflow run template.yml --ref "$TAG"
+          gh workflow run compat.yml --ref "$TAG"
