@@ -84,7 +84,7 @@ importers:
         specifier: ^1.17.5
         version: 1.17.5(db0@0.3.4(better-sqlite3@13.0.3))(ioredis@5.11.1(supports-color@10.2.2))
       vue:
-        specifier: ^3.5.41
+        specifier: '>=3.5.0'
         version: 3.5.42(typescript@6.0.3)
       zod:
         specifier: ^4.4.3
@@ -242,7 +242,7 @@ importers:
         specifier: ^10.6.0
         version: 10.6.0(@vue/compiler-dom@3.5.42)(db0@0.4.0)(esbuild@0.28.1)(eslint@10.9.1(jiti@2.7.0)(supports-color@10.2.2))(ioredis@5.11.1(supports-color@10.2.2))(magicast@0.5.4)(rolldown@1.2.4)(rollup@4.62.2)(supports-color@10.2.2)(typescript@6.0.3)(vite@8.2.2(@types/node@25.9.5)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.49.0)(yaml@2.9.0))(vue@3.5.42(typescript@6.0.3))
       '@nuxtjs/shopify':
-        specifier: ^0.9
+        specifier: '>=0.9'
         version: link:..
       '@shopify/hydrogen':
         specifier: ^2026.4.5

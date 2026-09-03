@@ -71,7 +71,6 @@
     "typecheck:playground-v3": "dotenv -e .env -- pnpm --filter playground-v3 typecheck",
     "typecheck:template": "pnpm --filter ./template typecheck",
     "typecheck:docs": "pnpm --filter ./docs typecheck",
-    "typecheck:all": "vue-tsc --noEmit && dotenv -e .env -- pnpm --filter \"./playgrounds/*\" typecheck && pnpm --filter ./template typecheck && pnpm --filter ./docs typecheck",
     "knip": "knip",
     "check:package": "publint --strict && attw --pack . --profile esm-only",
     "test": "pnpm run prepare:playgrounds && dotenv -e .env -- vitest run",
@@ -83,9 +82,7 @@
     "prepare:dev": "nuxt-module-build --filter={./playgrounds/*,./template} prepare",
     "prepare:playgrounds": "dotenv -e .env -- pnpm --filter \"./playgrounds/*\" prepare",
     "prepare:template": "pnpm run build && pnpm --filter ./template prepare",
-    "prepare:docs": "pnpm --filter ./docs prepare",
-    "prepare:all": "nuxt-module-build prepare && pnpm run build && dotenv -e .env -- pnpm --filter \"./playgrounds/*\" --filter ./template --filter ./docs prepare",
-    "qa:all": "dotenv -e .env -- pnpm run lint && dotenv -e .env -- pnpm run typecheck:all && dotenv -e .env -- pnpm run test"
+    "prepare:docs": "pnpm --filter ./docs prepare"
   },
   "dependencies": {
     "@graphql-codegen/cli": "^7.3.1",
@@ -141,7 +138,7 @@
   "peerDependencies": {
     "@shopify/hydrogen": ">=2024.0.0",
     "@shopify/hydrogen-react": ">=2024.0.0",
-    "vue": "^3.5.41"
+    "vue": ">=3.5.0"
   },
   "peerDependenciesMeta": {
     "@shopify/hydrogen": {
