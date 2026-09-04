@@ -92,7 +92,7 @@ onMounted(() => {
         :options="product.options"
       />
 
-      <div class="flex items-end gap-4">
+      <div class="flex items-end gap-4 justify-between">
         <div>
           <p class="mb-2 text-sm font-semibold text-muted">
             Quantity

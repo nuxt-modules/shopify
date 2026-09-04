@@ -35,21 +35,21 @@ const customerAccount = {
 
 describe('withApiVersion', () => {
   it('replaces the version segment of every Shopify API url shape', () => {
-    expect(withApiVersion('https://shop.myshopify.com/api/2026-04/graphql.json', '2026-01'))
-      .toBe('https://shop.myshopify.com/api/2026-01/graphql.json')
+    expect(withApiVersion('https://shop.myshopify.com/api/2026-04/graphql.json', '2026-04'))
+      .toBe('https://shop.myshopify.com/api/2026-04/graphql.json')
 
-    expect(withApiVersion('https://shop.myshopify.com/admin/api/2026-04/graphql.json', '2026-01'))
-      .toBe('https://shop.myshopify.com/admin/api/2026-01/graphql.json')
+    expect(withApiVersion('https://shop.myshopify.com/admin/api/2026-04/graphql.json', '2026-04'))
+      .toBe('https://shop.myshopify.com/admin/api/2026-04/graphql.json')
 
-    expect(withApiVersion('https://shopify.com/1234/account/customer/api/2026-04/graphql', '2026-01'))
-      .toBe('https://shopify.com/1234/account/customer/api/2026-01/graphql')
+    expect(withApiVersion('https://shopify.com/1234/account/customer/api/2026-04/graphql', '2026-04'))
+      .toBe('https://shopify.com/1234/account/customer/api/2026-04/graphql')
 
-    expect(withApiVersion('https://mock.shop/api/2026-04/graphql.json', '2026-01'))
-      .toBe('https://mock.shop/api/2026-01/graphql.json')
+    expect(withApiVersion('https://mock.shop/api/2026-04/graphql.json', '2026-04'))
+      .toBe('https://mock.shop/api/2026-04/graphql.json')
   })
 
   it('leaves a proxy url untouched', () => {
-    expect(withApiVersion('http://localhost:3000/_proxy/storefront', '2026-01'))
+    expect(withApiVersion('http://localhost:3000/_proxy/storefront', '2026-04'))
       .toBe('http://localhost:3000/_proxy/storefront')
 
     expect(isVersionedApiUrl('http://localhost:3000/_proxy/storefront')).toBe(false)
@@ -62,25 +62,25 @@ describe('per-request apiVersion override', () => {
     const transport = createTransport(createStorefrontConfig(storefront as never))
 
     expect(transport.getApiUrl()).toBe('https://shop.myshopify.com/api/2026-04/graphql.json')
-    expect(transport.getApiUrl('2026-01')).toBe('https://shop.myshopify.com/api/2026-01/graphql.json')
+    expect(transport.getApiUrl('2026-04')).toBe('https://shop.myshopify.com/api/2026-04/graphql.json')
   })
 
   it('keeps the admin prefix', () => {
     const transport = createTransport(createAdminConfig(admin as never))
 
-    expect(transport.getApiUrl('2026-01')).toBe('https://shop.myshopify.com/admin/api/2026-01/graphql.json')
+    expect(transport.getApiUrl('2026-04')).toBe('https://shop.myshopify.com/admin/api/2026-04/graphql.json')
   })
 
   it('keeps the customer account host', () => {
     const transport = createTransport(createCustomerAccountConfig(customerAccount as never))
 
-    expect(transport.getApiUrl('2026-01')).toBe('https://shopify.com/1234/account/customer/api/2026-01/graphql')
+    expect(transport.getApiUrl('2026-04')).toBe('https://shopify.com/1234/account/customer/api/2026-04/graphql')
   })
 
   it('keeps the mock storefront host', () => {
     const transport = createTransport(createStorefrontConfig(mock as never))
 
-    expect(transport.getApiUrl('2026-01')).toBe('https://mock.shop/api/2026-01/graphql.json')
+    expect(transport.getApiUrl('2026-04')).toBe('https://mock.shop/api/2026-04/graphql.json')
   })
 })
 
@@ -88,20 +88,20 @@ describe('client-level apiVersion option', () => {
   const definition = { kind: 'storefront', createConfig: createStorefrontConfig, cache: true } as never
 
   it('rewrites the request url, not just the reported version', () => {
-    const client = createClient(definition, storefront as never, { apiVersion: '2026-01' } as never)
+    const client = createClient(definition, storefront as never, { apiVersion: '2026-04' } as never)
 
-    expect(client.config.apiVersion).toBe('2026-01')
-    expect(client.config.apiUrl).toBe('https://shop.myshopify.com/api/2026-01/graphql.json')
+    expect(client.config.apiVersion).toBe('2026-04')
+    expect(client.config.apiUrl).toBe('https://shop.myshopify.com/api/2026-04/graphql.json')
   })
 
   it('asks the proxy for the version instead of bypassing it', () => {
     const client = createClient(definition, proxiedStorefront as never, {
-      apiVersion: '2026-01',
+      apiVersion: '2026-04',
       origin: 'http://localhost:3000',
     } as never)
 
     expect(client.config.apiUrl).toBe('http://localhost:3000/_proxy/storefront')
-    expect(client.config.headers[PROXY_API_VERSION_HEADER]).toBe('2026-01')
+    expect(client.config.headers[PROXY_API_VERSION_HEADER]).toBe('2026-04')
   })
 
   it('does not set the proxy version header when no override is given', () => {

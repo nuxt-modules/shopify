@@ -41,9 +41,9 @@ beforeEach(() => {
     name: 'test-shop',
     clients: {
       customerAccount: {
-        apiVersion: '2026-01',
+        apiVersion: '2026-04',
         clientId: 'client-id',
-        apiURL: 'https://shopify.com/1/account/customer/api/2026-01/graphql',
+        apiURL: 'https://shopify.com/1/account/customer/api/2026-04/graphql',
       },
     },
   }
@@ -99,7 +99,7 @@ describe('customer account proxy', () => {
   it('targets the configured customer account api url', async () => {
     await handler(proxyEvent())
 
-    expect(lastCall().url).toBe('https://shopify.com/1/account/customer/api/2026-01/graphql')
+    expect(lastCall().url).toBe('https://shopify.com/1/account/customer/api/2026-04/graphql')
   })
 
   it('forwards the query and variables', async () => {

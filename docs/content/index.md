@@ -90,7 +90,7 @@ ProductImage.vue
       clients: {
         storefront: {
           publicAccessToken: 'public-access-token',
-          apiVersion: '2026-01',
+          apiVersion: '2026-04',
         },
       },
     },
@@ -188,7 +188,7 @@ CustomerAccount.vue
 
       clients: {
         customerAccount: {
-          apiVersion: '2026-01',
+          apiVersion: '2026-04',
           clientId: 'your-client-id',
         },
       },
@@ -288,7 +288,7 @@ Markets.vue
 
       clients: {
         admin: {
-          apiVersion: '2026-01',
+          apiVersion: '2026-04',
           clientId: 'your-app-client-id',
           clientSecret: 'your-app-client-secret',
         },

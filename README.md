@@ -81,19 +81,19 @@ export default defineNuxtConfig({
 
     clients: {
       storefront: {
-        apiVersion: "2026-01",
-        publicAccessToken: "YOUR_ACCESS_TOKEN",
+        apiVersion: "2026-04",
+        publicAccessToken: "...",
       },
 
       admin: {
-        apiVersion: "2026-01",
-        clientId: "YOUR_APP_CLIENT_ID",
-        clientSecret: "YOUR_APP_CLIENT_SECRET",
+        apiVersion: "2026-04",
+        clientId: "...",
+        clientSecret: "...",
       },
 
       customerAccount: {
-        apiVersion: "2026-01",
-        clientId: "YOUR_CLIENT_ID",
+        apiVersion: "2026-04",
+        clientId: "...",
       },
     },
   },
@@ -315,7 +315,7 @@ export default defineNuxtConfig({
       storefront: {
         mock: true,
 
-        apiVersion: "2026-01",
+        apiVersion: "2026-04",
       },
     },
   },

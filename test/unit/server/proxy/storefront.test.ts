@@ -57,7 +57,7 @@ beforeEach(() => {
     name: 'test-shop',
     clients: {
       storefront: {
-        apiVersion: '2026-01',
+        apiVersion: '2026-04',
         publicAccessToken: 'public-token',
       },
     },
@@ -149,7 +149,7 @@ describe('api version override', () => {
   it('targets the configured api version by default', async () => {
     await handler(proxyEvent())
 
-    expect(lastCall().url).toContain('/api/2026-01/')
+    expect(lastCall().url).toContain('/api/2026-04/')
   })
 
   it('accepts a valid requested api version', async () => {
@@ -165,14 +165,14 @@ describe('api version override', () => {
   })
 
   it.each([
-    ['../../admin/api/2026-01/graphql.json'],
+    ['../../admin/api/2026-04/graphql.json'],
     ['2026-1'],
     ['https://evil.example'],
     ['26-01'],
   ])('ignores the malformed api version %s', async (version) => {
     await handler(proxyEvent({ 'x-shopify-proxy-api-version': version }))
 
-    expect(lastCall().url).toContain('/api/2026-01/')
+    expect(lastCall().url).toContain('/api/2026-04/')
   })
 })
 
@@ -189,7 +189,7 @@ describe('proxy cache', () => {
       name: 'test-shop',
       clients: {
         storefront: {
-          apiVersion: '2026-01',
+          apiVersion: '2026-04',
           publicAccessToken: 'public-token',
           cache: cacheable,
         },
@@ -324,7 +324,7 @@ describe('mock mode', () => {
   it('targets mock.shop when the client is mocked', async () => {
     runtimeConfig._shopify = {
       name: 'test-shop',
-      clients: { storefront: { apiVersion: '2026-01', mock: true } },
+      clients: { storefront: { apiVersion: '2026-04', mock: true } },
     }
 
     await handler(proxyEvent())
@@ -394,7 +394,7 @@ describe('upstream failures', () => {
       name: 'test-shop',
       clients: {
         storefront: {
-          apiVersion: '2026-01',
+          apiVersion: '2026-04',
           publicAccessToken: 'public-token',
           cache: { proxy: true, presets: { long: { maxAge: 60 } } },
         },
@@ -412,7 +412,7 @@ describe('upstream failures', () => {
       name: 'test-shop',
       clients: {
         storefront: {
-          apiVersion: '2026-01',
+          apiVersion: '2026-04',
           publicAccessToken: 'public-token',
           cache: { proxy: true, presets: { long: { maxAge: 60 } } },
         },

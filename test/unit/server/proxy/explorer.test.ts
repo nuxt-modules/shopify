@@ -41,9 +41,9 @@ beforeEach(() => {
   runtimeConfig._shopify = {
     name: 'test-shop',
     clients: {
-      storefront: { apiVersion: '2026-01', publicAccessToken: 'public-token' },
-      admin: { apiVersion: '2026-01', clientId: 'id', clientSecret: 'secret' },
-      customerAccount: { apiVersion: '2026-01', clientId: 'id' },
+      storefront: { apiVersion: '2026-04', publicAccessToken: 'public-token' },
+      admin: { apiVersion: '2026-04', clientId: 'id', clientSecret: 'secret' },
+      customerAccount: { apiVersion: '2026-04', clientId: 'id' },
     },
   }
 })

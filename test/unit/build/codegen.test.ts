@@ -13,7 +13,7 @@ vi.mock('@graphql-codegen/cli', () => ({
 
 const { clearGenerateFailures, createIntrospectionGenerator, createOperationsGenerator, getGenerateFailures } = await import('#src/utils/codegen')
 
-const FILENAME = 'schema/storefront.2026-01.schema.json'
+const FILENAME = 'schema/storefront.2026-04.schema.json'
 
 let dir: string
 
@@ -31,7 +31,7 @@ function introspectionData(introspection?: string) {
       filename: FILENAME,
       shopName: 'test-shop',
       clientType: ShopifyClientType.Storefront,
-      clientConfig: { apiVersion: '2026-01', mock: true },
+      clientConfig: { apiVersion: '2026-04', mock: true },
       introspection,
     },
   } as never
@@ -104,7 +104,7 @@ describe('global type declarations', () => {
       filename: OPERATIONS_FILE,
       shopName: 'test-shop',
       clientType: ShopifyClientType.Storefront,
-      clientConfig: { apiVersion: '2026-01', mock: true, documents: [], codegen: { autoImport } },
+      clientConfig: { apiVersion: '2026-04', mock: true, documents: [], codegen: { autoImport } },
       introspection: pathFor('populated.json'),
     },
   }) as never
@@ -225,7 +225,7 @@ describe('document parse failures', () => {
       shopName: 'test-shop',
       clientType: ShopifyClientType.Storefront,
       clientConfig: {
-        apiVersion: '2026-01',
+        apiVersion: '2026-04',
         mock: true,
         documents: ['**/*.{ts,graphql}', '!node_modules'],
         codegen: { autoImport: false },

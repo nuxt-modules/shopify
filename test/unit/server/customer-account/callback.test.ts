@@ -86,7 +86,7 @@ async function completeFlow(
 
 function configure(customerAccount: Record<string, unknown> = {}) {
   runtimeConfig._shopify = createShopifyConfig({
-    apiURL: 'https://shopify.com/1/account/customer/api/2026-01/graphql',
+    apiURL: 'https://shopify.com/1/account/customer/api/2026-04/graphql',
     scope: ['openid', 'email'],
     afterLogin: '/',
     afterLogout: '/',

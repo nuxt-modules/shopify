@@ -204,10 +204,10 @@ describe('customer account api url', () => {
   it('pins the resolved url to the configured api version', async () => {
     const { config, publicConfig } = await resolve({
       name: 'shop',
-      clients: { customerAccount: { clientId: 'cid', apiVersion: '2026-01' } },
+      clients: { customerAccount: { clientId: 'cid', apiVersion: '2026-04' } },
     })
 
-    const expected = 'https://shopify.com/1234/account/customer/api/2026-01/graphql'
+    const expected = 'https://shopify.com/1234/account/customer/api/2026-04/graphql'
 
     expect(config.clients.customerAccount?.apiURL).toBe(expected)
     expect(publicConfig.clients.customerAccount?.apiURL).toBe(expected)

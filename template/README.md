@@ -53,16 +53,16 @@ npm install
 Create a `.env` file in the root of the project and add your Shopify credentials:
 
 ```sh
-NUXT_SHOPIFY_NAME="YOUR_SHOP_NAME"
-NUXT_SHOPIFY_CLIENTS_STOREFRONT_API_VERSION="2026-01"
-NUXT_SHOPIFY_CLIENTS_STOREFRONT_PUBLIC_ACCESS_TOKEN="YOUR_PUBLIC_ACCESS_TOKEN"
+NUXT_SHOPIFY_NAME="..."
+NUXT_SHOPIFY_CLIENTS_STOREFRONT_API_VERSION="2026-04"
+NUXT_SHOPIFY_CLIENTS_STOREFRONT_PUBLIC_ACCESS_TOKEN="..."
 ```
 
 To enable the customer account (login, profile and order history), add your [Customer Account API](https://shopify.nuxtjs.org/essentials/customer-account) credentials as well:
 
 ```sh
-NUXT_SHOPIFY_CLIENTS_CUSTOMER_ACCOUNT_CLIENT_ID="YOUR_CUSTOMER_ACCOUNT_CLIENT_ID"
-NUXT_SHOPIFY_CLIENTS_CUSTOMER_ACCOUNT_CLIENT_SECRET="YOUR_CUSTOMER_ACCOUNT_CLIENT_SECRET"
+NUXT_SHOPIFY_CLIENTS_CUSTOMER_ACCOUNT_CLIENT_ID="..."
+NUXT_SHOPIFY_CLIENTS_CUSTOMER_ACCOUNT_CLIENT_SECRET="..."
 ```
 
 The OAuth flow needs a publicly reachable URL, so in development point it at a tunnel via the `dev.tunnelURL` option in `nuxt.config.ts`. See the [Customer Account API guide](https://shopify.nuxtjs.org/essentials/customer-account) for details.

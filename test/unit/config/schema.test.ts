@@ -42,7 +42,7 @@ describe('api version', () => {
     ['2026-1'],
     ['26-01'],
     ['latest'],
-    ['../../admin/api/2026-01/graphql.json'],
+    ['../../admin/api/2026-04/graphql.json'],
   ])('names the malformed version %s in the error', (apiVersion) => {
     const message = issues({ name: 'shop', clients: { storefront: { ...storefront, apiVersion } } })
 
