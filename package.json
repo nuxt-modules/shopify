@@ -1,6 +1,6 @@
 {
   "name": "@nuxtjs/shopify",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "license": "MIT",
   "type": "module",
   "description": "Easily integrate Shopify with Nuxt 3 and 4 🚀",
