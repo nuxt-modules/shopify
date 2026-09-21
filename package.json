@@ -136,7 +136,7 @@
     "vue-tsc": "^3.3.11"
   },
   "peerDependencies": {
-    "@shopify/hydrogen": ">=2024.10.2",
+    "@shopify/hydrogen": ">=2026.4.5",
     "@shopify/hydrogen-react": ">=2024.10.2",
     "vue": ">=3.5.42"
   },
