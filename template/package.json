@@ -12,7 +12,7 @@
         "lint": "eslint ."
     },
     "dependencies": {
-        "@iconify-json/lucide": "^1.2.131",
+        "@iconify-json/lucide": "^1.2.134",
         "@nuxt/icon": "^2.5.1",
         "@nuxt/image": "^2.1.0",
         "@nuxt/ui": "^4.11.1",
@@ -23,11 +23,11 @@
         "@shopify/hydrogen-react": "^2026.4.3",
         "@tailwindcss/typography": "^0.5.20",
         "nuxt": "^4.5.2",
-        "zod": "^4.6.2"
+        "zod": "^4.6.5"
     },
     "devDependencies": {
         "@nuxt/eslint-config": "^1.17.0",
-        "eslint": "^10.10.0",
+        "eslint": "^10.11.0",
         "typescript": "^6.0.3",
         "vue-tsc": "^3.3.11"
     }
