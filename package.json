@@ -137,7 +137,7 @@
   },
   "peerDependencies": {
     "@shopify/hydrogen": ">=2026.4.5",
-    "@shopify/hydrogen-react": ">=2024.10.2",
+    "@shopify/hydrogen-react": ">=2026.4.3",
     "vue": ">=3.5.43"
   },
   "peerDependenciesMeta": {
