@@ -12,10 +12,10 @@
         "lint": "eslint ."
     },
     "dependencies": {
-        "@iconify-json/lucide": "^1.2.134",
+        "@iconify-json/lucide": "^1.2.137",
         "@nuxt/icon": "^2.5.1",
         "@nuxt/image": "^2.1.0",
-        "@nuxt/ui": "^4.11.1",
+        "@nuxt/ui": "^4.11.2",
         "@nuxtjs/critters": "^0.10.1",
         "@nuxtjs/i18n": "^10.6.0",
         "@nuxtjs/shopify": ">=1.0.0",
