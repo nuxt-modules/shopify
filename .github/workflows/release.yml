@@ -22,7 +22,7 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-      - uses: danielroe/uppt/pr@v0.6.9
+      - uses: danielroe/uppt/pr@v0.6.10
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -40,7 +40,7 @@ jobs:
       contents: write
       actions: write
     steps:
-      - uses: danielroe/uppt/release@v0.6.9
+      - uses: danielroe/uppt/release@v0.6.10
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -55,7 +55,7 @@ jobs:
       files: ${{ steps.pack.outputs.files }}
     steps:
       - id: pack
-        uses: danielroe/uppt/pack@v0.6.9
+        uses: danielroe/uppt/pack@v0.6.10
 
   publish:
     if: |
@@ -71,7 +71,7 @@ jobs:
       id-token: write
     environment: npm
     steps:
-      - uses: danielroe/uppt/publish@v0.6.9
+      - uses: danielroe/uppt/publish@v0.6.10
         with:
           files: ${{ needs.pack.outputs.files }}
 
