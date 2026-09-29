@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -24,13 +24,13 @@ const nuxt = {
   callHook: vi.fn(() => Promise.resolve()),
 } as never
 
-function introspectionData(introspection?: string) {
+function introspectionData(introspection?: string, clientType = ShopifyClientType.Storefront) {
   return {
     nuxt,
     options: {
       filename: FILENAME,
       shopName: 'test-shop',
-      clientType: ShopifyClientType.Storefront,
+      clientType,
       clientConfig: { apiVersion: '2026-04', mock: true },
       introspection,
     },
@@ -42,7 +42,7 @@ function schemaOfCall(index: number) {
 }
 
 const succeeds = () => Promise.resolve([{ content: '{"__schema":{}}' }])
-const fails = () => Promise.reject(new Error('connect ETIMEDOUT 23.227.38.74:443'))
+const fails = () => Promise.reject(new Error('Failed to load schema from https://mock.shop/api:\nconnect ETIMEDOUT 23.227.38.74:443'))
 
 const MOCK_API_SCHEMA = [{ 'https://mock.shop/api': { headers: {} } }]
 
@@ -92,6 +92,13 @@ describe('introspection source', () => {
     await createIntrospectionGenerator()!(introspectionData())
 
     expect(schemaOfCall(0)).toEqual(MOCK_API_SCHEMA)
+  })
+
+  it('reads the customer account schema from the installed hydrogen package', async () => {
+    await createIntrospectionGenerator()!(introspectionData(undefined, ShopifyClientType.CustomerAccount))
+
+    expect(schemaOfCall(0)).toEqual([expect.stringContaining('customer-account.schema.json')])
+    expect(existsSync(schemaOfCall(0)[0])).toBe(true)
   })
 })
 
@@ -170,6 +177,7 @@ describe('introspection retries', () => {
     await expect(result).resolves.toBe('')
     expect(generate).toHaveBeenCalledTimes(4)
     expect(schemaOfCall(-1)).toEqual([expect.stringContaining('storefront.schema.json')])
+    expect(existsSync(schemaOfCall(-1)[0])).toBe(true)
   })
 
   it('does not retry an error the api will keep returning', async () => {
@@ -179,7 +187,7 @@ describe('introspection retries', () => {
 
     await expect(createIntrospectionGenerator()!(introspectionData())).resolves.toBe('')
 
-    expect(generate).toHaveBeenCalledTimes(2)
+    expect(generate).toHaveBeenCalledTimes(1)
   })
 
   it('retries an error that wraps a transport failure', async () => {
@@ -207,6 +215,37 @@ describe('introspection retries', () => {
       .resolves.toBe('')
 
     expect(generate).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('hydrogen fallback', () => {
+  const OPERATIONS_FILE = 'shopify/storefront/storefront.operations.d.ts'
+
+  const operationsData = () => ({
+    nuxt: {
+      options: { dev: false, _prepare: false },
+      callHook: vi.fn(() => Promise.resolve()),
+    },
+    options: {
+      filename: OPERATIONS_FILE,
+      shopName: 'test-shop',
+      clientType: ShopifyClientType.Storefront,
+      clientConfig: { apiVersion: '2026-04', mock: true, documents: [], codegen: { autoImport: false } },
+      introspection: pathFor('missing.json'),
+    },
+  }) as never
+
+  beforeEach(() => {
+    clearGenerateFailures()
+  })
+
+  it('reports a document error instead of retrying it against the hydrogen schema', async () => {
+    generate.mockImplementation(() => Promise.reject(new Error('GraphQL Document Validation failed with 1 errors;\n  Error 0: Cannot query field "customers" on type "QueryRoot".')))
+
+    await expect(createOperationsGenerator()!(operationsData())).resolves.toBe('')
+
+    expect(generate).toHaveBeenCalledTimes(1)
+    expect(getGenerateFailures()).toEqual([expect.stringContaining('Cannot query field "customers" on type "QueryRoot"')])
   })
 })
 
@@ -272,5 +311,65 @@ describe('document parse failures', () => {
 
     expect(generate).toHaveBeenCalledTimes(1)
     expect(getGenerateFailures()).toHaveLength(0)
+  })
+})
+
+describe('document globs', () => {
+  const OPERATIONS_FILE = 'shopify/storefront/storefront.operations.d.ts'
+  const DOCUMENTS = ['**/*.{ts,graphql}', '!**/admin/*.ts', '!node_modules']
+
+  type OperationsHook = (hook: string, payload: { config: { documents: string[] } }) => Promise<void>
+
+  let root: string
+
+  const operationsData = (callHook: OperationsHook = () => Promise.resolve()) => ({
+    nuxt: {
+      options: { dev: false, _prepare: true, rootDir: root },
+      callHook,
+    },
+    options: {
+      filename: OPERATIONS_FILE,
+      shopName: 'test-shop',
+      clientType: ShopifyClientType.Storefront,
+      clientConfig: {
+        apiVersion: '2026-04',
+        mock: true,
+        documents: [...DOCUMENTS],
+        codegen: { autoImport: false },
+      },
+      introspection: pathFor('populated.json'),
+    },
+  })
+
+  beforeEach(() => {
+    root = mkdtempSync(join(tmpdir(), 'nuxt-shopify-globs-'))
+
+    generate.mockImplementation(() => Promise.resolve([{ content: 'interface GeneratedQueryTypes {}' }]))
+  })
+
+  afterEach(() => {
+    rmSync(root, { recursive: true, force: true })
+  })
+
+  it('hands codegen the configured globs to resolve from the project root', async () => {
+    await createOperationsGenerator()!(operationsData() as never)
+
+    const [input] = generate.mock.calls[0]!
+
+    expect(input.cwd).toBe(root)
+    expect(input.generates[OPERATIONS_FILE].documents).toEqual(DOCUMENTS)
+  })
+
+  it('keeps hook changes to the document list out of the client config', async () => {
+    const data = operationsData((_hook, { config }) => {
+      config.documents.push('extra/**/*.ts')
+
+      return Promise.resolve()
+    })
+
+    await createOperationsGenerator()!(data as never)
+    await createOperationsGenerator()!(data as never)
+
+    expect(data.options.clientConfig.documents).toEqual(DOCUMENTS)
   })
 })
