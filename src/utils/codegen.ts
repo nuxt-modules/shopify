@@ -5,7 +5,8 @@ import type { ShopifyConfig } from '../types'
 
 import { existsSync, statSync } from 'node:fs'
 import { stat } from 'node:fs/promises'
-import { basename, join } from 'node:path'
+import { basename } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { generate } from '@graphql-codegen/cli'
 import { preset, pluckConfig } from '@shopify/graphql-codegen'
 import { LogLevels } from 'consola'
@@ -37,9 +38,13 @@ const INTROSPECTION_RETRY_DELAY = 5000
 
 const TRANSPORT_ERROR_PATTERN = /Failed to load schema|ETIMEDOUT|ECONNREFUSED|ECONNRESET|ENOTFOUND|EAI_AGAIN|socket hang up|network|fetch failed|timeout/i
 
+const SCHEMA_LOAD_ERROR_PATTERN = /Failed to load schema/
+
 const GLOB_MAGIC = /[*?[\]{}()]/
 
 const generateFailures = new Set<string>()
+
+type GenerateInput = Types.Config & { cwd?: string }
 
 type ShopifyTemplateOptions = {
   filename: string
@@ -54,6 +59,10 @@ type InterfaceExtensionsParams = {
   mutationType: string
 }
 
+function resolveSchemaPath(schemaId: string) {
+  return fileURLToPath(import.meta.resolve(schemaId))
+}
+
 function getHydrogenSchema(clientType: ShopifyClientType) {
   const schemaId = HYDROGEN_SCHEMAS[clientType]
 
@@ -61,7 +70,7 @@ function getHydrogenSchema(clientType: ShopifyClientType) {
     return undefined
   }
 
-  return [import.meta.resolve(schemaId)]
+  return [resolveSchemaPath(schemaId)]
 }
 
 function isRemoteSchema(schema: Types.ConfiguredOutput['schema']) {
@@ -92,9 +101,13 @@ function isTransportError(error: unknown): boolean {
   return TRANSPORT_ERROR_PATTERN.test(collectErrorMessages(error))
 }
 
+function isSchemaLoadError(error: unknown): boolean {
+  return SCHEMA_LOAD_ERROR_PATTERN.test(collectErrorMessages(error))
+}
+
 async function generateWithRetry<T extends Types.ConfiguredOutput>(
   generatorConfig: T,
-  createConfig: (generatorConfig: T) => Types.Config,
+  createConfig: (generatorConfig: T) => GenerateInput,
 ) {
   for (let attempt = 1; ; attempt++) {
     try {
@@ -171,7 +184,7 @@ async function runGenerate<T extends Types.ConfiguredOutput>(
   nuxt: Nuxt,
   options: ShopifyTemplateOptions,
   generatorConfig: T,
-  createConfig: (generatorConfig: T) => Types.Config,
+  createConfig: (generatorConfig: T) => GenerateInput,
 ) {
   const logger = useLogger()
 
@@ -179,7 +192,7 @@ async function runGenerate<T extends Types.ConfiguredOutput>(
     return await generateWithRetry(generatorConfig, createConfig)
   }
   catch (error) {
-    const fallbackSchema = isRemoteSchema(generatorConfig.schema)
+    const fallbackSchema = isRemoteSchema(generatorConfig.schema) && isSchemaLoadError(error)
       ? getHydrogenSchema(options.clientType)
       : undefined
 
@@ -264,7 +277,7 @@ async function getIntrospection(options: ShopifyTemplateOptions) {
     }
   }
   else if (clientType === ShopifyClientType.CustomerAccount) {
-    return [import.meta.resolve(HYDROGEN_CUSTOMER_ACCOUNT_SCHEMA)]
+    return [resolveSchemaPath(HYDROGEN_CUSTOMER_ACCOUNT_SCHEMA)]
   }
   else if (clientType === ShopifyClientType.Admin) {
     const adminConfig = clientConfig as NonNullable<ShopifyConfig['clients']['admin']>
@@ -374,13 +387,7 @@ export function createOperationsGenerator(): NuxtTemplate<ShopifyTemplateOptions
     const generatorConfig = {
       schema: await getIntrospection(data.options),
       preset,
-      documents: data.options.clientConfig?.documents?.map((d) => {
-        if (d.startsWith('!')) {
-          return '!' + join(data.nuxt.options.rootDir, d.replace('!', ''))
-        }
-
-        return join(data.nuxt.options.rootDir, d)
-      }),
+      documents: data.options.clientConfig?.documents?.slice(),
       presetConfig: {
         importTypes: {
           namespace: `${upperFirst(data.options.clientType)}Types`,
@@ -409,6 +416,7 @@ export function createOperationsGenerator(): NuxtTemplate<ShopifyTemplateOptions
     }
 
     const contents = await runGenerate(data.nuxt, data.options, generatorConfig, config => ({
+      cwd: data.nuxt.options.rootDir,
       overwrite: true,
       ignoreNoDocuments: true,
       silent: useLogger().level < LogLevels.verbose,
