@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -10,7 +10,7 @@ import { ShopifyClientType } from '#src/schemas'
 import { clearGenerateFailures, createOperationsGenerator, getGenerateFailures } from '#src/utils/codegen'
 import { expectedAdminDocuments, expectedStorefrontDocuments } from '#test/helpers/codegen'
 
-const STOREFRONT_SCHEMA = fileURLToPath(import.meta.resolve('@shopify/hydrogen/storefront.schema.json'))
+const HYDROGEN_STOREFRONT_SCHEMA = fileURLToPath(import.meta.resolve('@shopify/hydrogen/storefront.schema.json'))
 
 const ADMIN_SDL = `
   type Query {
@@ -29,7 +29,6 @@ const ADMIN_SDL = `
 const CODEGEN_TIMEOUT = 30_000
 
 let root: string
-let schemas: string
 
 function writeProjectFile(path: string, contents: string) {
   const file = join(root, path)
@@ -38,7 +37,11 @@ function writeProjectFile(path: string, contents: string) {
   writeFileSync(file, contents)
 }
 
-function operationsData(clientType: ShopifyClientType, documents: string[], introspection: string) {
+function introspectionFile(clientType: ShopifyClientType) {
+  return `.nuxt/shopify/schema/${kebabCase(clientType)}.2026-04.schema.json`
+}
+
+function operationsData(clientType: ShopifyClientType, documents: string[]) {
   const client = kebabCase(clientType)
 
   return {
@@ -51,16 +54,16 @@ function operationsData(clientType: ShopifyClientType, documents: string[], intr
       shopName: 'test-shop',
       clientType,
       clientConfig: { apiVersion: '2026-04', documents, codegen: { autoImport: false } },
-      introspection,
+      introspection: join(root, introspectionFile(clientType)),
     },
   } as never
 }
 
 beforeAll(() => {
   root = mkdtempSync(join(tmpdir(), 'nuxt-shopify-routing-'))
-  schemas = mkdtempSync(join(tmpdir(), 'nuxt-shopify-schemas-'))
 
-  writeFileSync(join(schemas, 'admin.schema.json'), JSON.stringify(introspectionFromSchema(buildSchema(ADMIN_SDL))))
+  writeProjectFile(introspectionFile(ShopifyClientType.Storefront), readFileSync(HYDROGEN_STOREFRONT_SCHEMA, 'utf8'))
+  writeProjectFile(introspectionFile(ShopifyClientType.Admin), JSON.stringify(introspectionFromSchema(buildSchema(ADMIN_SDL))))
 
   writeProjectFile('server/utils/admin/customers.ts', 'export const customers = `#graphql\n  query AdminCustomers { customers(first: 5) { nodes { id } } }\n`\n')
   writeProjectFile('app/queries/shop.ts', 'export const shop = `#graphql\n  query ShopName { shop { name } }\n`\n')
@@ -68,7 +71,6 @@ beforeAll(() => {
 
 afterAll(() => {
   rmSync(root, { recursive: true, force: true })
-  rmSync(schemas, { recursive: true, force: true })
 })
 
 beforeEach(() => {
@@ -78,7 +80,7 @@ beforeEach(() => {
 describe('document routing', () => {
   it('keeps admin operations out of the storefront types', async () => {
     const generateOperations = createOperationsGenerator()!
-    const contents = await generateOperations(operationsData(ShopifyClientType.Storefront, expectedStorefrontDocuments, STOREFRONT_SCHEMA))
+    const contents = await generateOperations(operationsData(ShopifyClientType.Storefront, expectedStorefrontDocuments))
 
     expect(getGenerateFailures()).toEqual([])
     expect(contents).toContain('export type ShopNameQuery =')
@@ -87,7 +89,7 @@ describe('document routing', () => {
 
   it('types admin operations against the admin schema only', async () => {
     const generateOperations = createOperationsGenerator()!
-    const contents = await generateOperations(operationsData(ShopifyClientType.Admin, expectedAdminDocuments, join(schemas, 'admin.schema.json')))
+    const contents = await generateOperations(operationsData(ShopifyClientType.Admin, expectedAdminDocuments))
 
     expect(getGenerateFailures()).toEqual([])
     expect(contents).toContain('export type AdminCustomersQuery =')
