@@ -15,6 +15,6 @@
         "nuxt": "^4.5.2"
     },
     "devDependencies": {
-        "@shopify/hydrogen": "^2026.4.5"
+        "@shopify/hydrogen": "^2026.4.6"
     }
 }
