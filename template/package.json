@@ -12,15 +12,15 @@
         "lint": "eslint ."
     },
     "dependencies": {
-        "@iconify-json/lucide": "^1.2.137",
+        "@iconify-json/lucide": "^1.2.138",
         "@nuxt/icon": "^2.5.1",
         "@nuxt/image": "^2.1.0",
-        "@nuxt/ui": "^4.11.2",
+        "@nuxt/ui": "^4.11.3",
         "@nuxtjs/critters": "^0.10.1",
         "@nuxtjs/i18n": "^10.6.0",
-        "@nuxtjs/shopify": ">=1.0.0",
-        "@shopify/hydrogen": "^2026.4.5",
-        "@shopify/hydrogen-react": "^2026.4.3",
+        "@nuxtjs/shopify": ">=1.0.1",
+        "@shopify/hydrogen": "^2026.4.6",
+        "@shopify/hydrogen-react": "^2026.4.4",
         "@tailwindcss/typography": "^0.5.20",
         "nuxt": "^4.5.2",
         "zod": "^4.6.5"
