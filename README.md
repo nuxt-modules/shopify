@@ -485,7 +485,7 @@ See the [caching documentation](https://shopify.nuxtjs.org/essentials/caching) f
 ### Using Analytics
 
 The module can send Shopify headless analytics, powering the reports and live view in your admin.
-Install `@shopify/hydrogen-react` and enable the `analytics` option, then report views with the drop-in components
+Install `@shopify/hydrogen` (`2026.10.0` or newer) and enable the `analytics` option with your `shopId`, then report views with the drop-in components
 or publish events manually with the `useShopifyAnalytics` composable:
 
 ```html
