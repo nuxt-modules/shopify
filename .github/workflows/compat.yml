@@ -57,7 +57,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        hydrogen: ["2024", "2026"]
+        hydrogen: ["2026.10.0", "2026"]
     steps:
       - uses: actions/checkout@v7.0.1
         with:
@@ -72,7 +72,7 @@ jobs:
         run: pnpm install --no-frozen-lockfile --ignore-scripts
 
       - name: Pin hydrogen peers
-        run: pnpm add -D -w "@shopify/hydrogen@${{ matrix.hydrogen }}" "@shopify/hydrogen-react@${{ matrix.hydrogen }}"
+        run: pnpm add -D -w "@shopify/hydrogen@${{ matrix.hydrogen }}"
 
       - name: Run tests
         run: pnpm run prepare && pnpm run prepare:playgrounds && pnpm run test

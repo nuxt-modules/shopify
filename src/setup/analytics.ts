@@ -2,7 +2,7 @@ import type { Resolver } from '@nuxt/kit'
 
 import type { ShopifyConfig } from '../types'
 
-import { addComponentsDir, addImports, addPlugin, addServerPlugin } from '@nuxt/kit'
+import { addComponentsDir, addImports, addPlugin, addServerHandler, addServerPlugin } from '@nuxt/kit'
 
 import { ShopifyClientType } from '../schemas'
 import { useLogger } from '../utils/log'
@@ -22,7 +22,18 @@ export default function setupAnalytics(config: ShopifyConfig, resolver: Resolver
 
   addServerPlugin(resolver.resolve('./runtime/server/plugins/tracking'))
 
-  addPlugin({ src: resolver.resolve('./runtime/plugins/analytics'), mode: 'client' })
+  if (config.clients[ShopifyClientType.Storefront]?.publicAccessToken) {
+    addServerHandler({
+      route: '/api/:version/graphql.json',
+      method: 'post',
+      handler: resolver.resolve('./runtime/server/api/storefront-graphql'),
+    })
+  }
+  else {
+    logger.warn('Shopify\'s consent scripts need `clients.storefront.publicAccessToken` to sync visitor consent. Analytics events will stay blocked')
+  }
+
+  addPlugin({ src: resolver.resolve('./runtime/plugins/analytics') })
 
   addComponentsDir({
     path: resolver.resolve('./runtime/components/analytics'),

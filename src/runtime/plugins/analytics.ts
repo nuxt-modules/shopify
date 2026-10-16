@@ -4,139 +4,126 @@ import type {
   ShopifyAnalyticsContext,
 } from '../../module'
 
-import { ref, watch } from 'vue'
+import type { ShopifyScriptsI18n } from '@shopify/hydrogen'
+
+import { getShopifyScriptTags, initializeShopifyScripts, trackCartAnalytics } from '@shopify/hydrogen'
+import { ref } from 'vue'
 import defu from 'defu'
 import {
   defineNuxtPlugin,
-  useRouter,
+  useHead,
   useRuntimeConfig,
 } from '#imports'
 
 import { createLogger } from '../utils/log'
-import { createCartTracker } from '../utils/analytics/cart'
-import { createEmitter } from '../utils/analytics/emitter'
-import { clearTrackingTokens } from '../utils/analytics/cookies'
-import { setupCustomerPrivacy } from '../utils/analytics/consent'
-import { createPageViewTracker } from '../utils/analytics/page-view'
-import { createShopResolver } from '../utils/analytics/shop'
-import { createShopifySubscriber } from '../utils/analytics/subscriber'
+import { createCartAnalyticsStore } from '../utils/analytics/cart'
+import { getBus, publishToBus, subscribeToBus } from '../utils/analytics/bus'
+import { canTrack, setTrackingConsent, showPreferences } from '../utils/analytics/privacy'
 import { ensureTrackingValues } from '../utils/analytics/tracking'
+
+const ANALYTICS_EVENTS = [
+  'page_viewed',
+  'product_viewed',
+  'collection_viewed',
+  'search_viewed',
+  'cart_viewed',
+  'cart_updated',
+  'product_added_to_cart',
+  'product_removed_from_cart',
+] as const
 
 export default defineNuxtPlugin({
   name: 'shopify:analytics',
 
-  async setup(nuxtApp) {
+  setup(nuxtApp) {
     const { _shopify } = useRuntimeConfig().public
 
-    const analytics = _shopify?.analytics
+    if (!_shopify) return
 
-    if (!analytics) return
+    const analytics = _shopify.analytics
 
-    const host = analytics.domain || `${_shopify.name}.myshopify.com`
+    if (!analytics || !analytics.shopId) return
 
-    const storefrontAccessToken = analytics.consent?.storefrontAccessToken
-      || _shopify.clients.storefront?.publicAccessToken
+    const { shopId } = analytics
 
-    if (!storefrontAccessToken) {
-      createLogger().warn('No public storefront access token is available at runtime. Analytics will not be initialized')
+    const consent = { mode: analytics.consent?.banner ? 'default-banner' : 'no-banner' } as const
 
-      return
-    }
+    const country = (analytics.country?.toUpperCase() || 'US') as ShopifyScriptsI18n['country']
+    const language = (analytics.language?.toUpperCase() || 'EN') as ShopifyScriptsI18n['language']
 
-    const emitter = createEmitter()
-    const shop = ref<ShopAnalytics | null>(null)
-    const cart = ref<ShopifyAnalyticsCart | null>(null)
-
-    const privacy = setupCustomerPrivacy({
-      checkoutDomain: analytics.consent?.checkoutDomain || host,
-      storefrontAccessToken,
-      banner: analytics.consent?.banner && {
-        country: analytics.consent.banner.country,
-        locale: analytics.consent.banner.language || analytics.language,
+    const tags = getShopifyScriptTags({
+      consent,
+      analytics: { channel: 'headless' },
+      i18n: { country, language, currency: analytics.currency },
+      shop: {
+        shopId,
+        storefrontId: analytics.storefrontId || '0',
+        myshopifyDomain: `${_shopify.name}.myshopify.com`,
       },
     })
 
-    const resolveShop = createShopResolver({
-      shopId: analytics.shopId,
-      currency: analytics.currency,
-      language: analytics.language,
-      storefrontId: analytics.storefrontId,
+    useHead({
+      link: tags.links.map((link, index) => ({ key: `shopify-link-${index}`, ...link.attributes })) as never,
+      script: tags.scripts.map((script, index) => ({
+        key: `shopify-script-${index}`,
+        ...script.attributes,
+        ...(script.innerHTML ? { innerHTML: script.innerHTML } : {}),
+      })) as never,
     })
 
-    const applyShop = (resolved: ShopAnalytics | null) => {
-      if (resolved) shop.value = resolved
-
-      return resolved
-    }
-
-    const shopResolved = resolveShop().then(applyShop)
-
-    const trackingResolved = _shopify.clients.storefront?.proxy
-      ? ensureTrackingValues()
-      : Promise.resolve()
-
-    const ready = Promise.all([shopResolved, privacy.ready, trackingResolved])
-      .catch(error => createLogger().debug('Analytics initialization did not complete cleanly:', error))
-
-    const whenReady = (callback: () => void) => {
-      void ready
-        .then(callback)
-        .catch(error => createLogger().debug('Analytics callback failed:', error))
-    }
-
-    createShopifySubscriber(emitter, {
-      shop: () => shop.value,
-      domain: host,
-      cookieDomain: privacy.cookieDomain,
-      canTrack: privacy.canTrack,
-      getConsent: privacy.getConsent,
-      whenReady,
+    const shop = ref<ShopAnalytics | null>({
+      shopId,
+      acceptedLanguage: language,
+      currency: analytics.currency?.toUpperCase() || '',
+      hydrogenSubchannelId: analytics.storefrontId || '0',
     })
 
-    const dropTokensWithoutConsent = () => {
-      if (!privacy.canTrack()) clearTrackingTokens(privacy.cookieDomain)
-    }
-
-    document.addEventListener('visitorConsentCollected', dropTokensWithoutConsent)
-
-    whenReady(() => {
-      if (!analytics.consent?.banner) dropTokensWithoutConsent()
-
-      createLogger().debug('Analytics initialized:', shop.value)
-
-      void Promise.resolve(nuxtApp.callHook('analytics:ready', { shop: shop.value }))
-        .catch(error => createLogger().debug('Analytics ready hook failed:', error))
-    })
+    const cart = ref<ShopifyAnalyticsCart | null>(null)
 
     const context: ShopifyAnalyticsContext = {
       shop,
       cart,
       setCart: value => (cart.value = value),
-      canTrack: privacy.canTrack,
-      setTrackingConsent: privacy.setTrackingConsent,
-      showPreferences: privacy.showPreferences,
-      setShopContext: context => resolveShop(context).then(applyShop),
+      canTrack,
+      setTrackingConsent,
+      showPreferences,
+      setShopContext: () => Promise.resolve(shop.value),
 
-      publish: (event, payload) => {
-        void Promise.resolve(nuxtApp.callHook('analytics:publish', { event, payload }))
-          .catch(error => createLogger().debug('Analytics publish hook failed:', error))
+      publish: (event, payload) => publishToBus(event, payload, analytics.currency),
 
-        emitter.emit(event, payload)
-      },
-
-      subscribe: emitter.on,
+      subscribe: subscribeToBus,
     }
 
-    watch(cart, createCartTracker({ publish: context.publish }))
+    if (import.meta.client) {
+      nuxtApp.hook('app:mounted', () => {
+        getBus()?.addDestination({
+          name: 'nuxt-shopify:hook',
+          setup: ({ subscribe }) => {
+            const stops = ANALYTICS_EVENTS.map(event => subscribe(event, (payload) => {
+              void Promise.resolve(nuxtApp.callHook('analytics:publish', { event, payload }))
+                .catch(error => createLogger().debug('Analytics publish hook failed:', error))
+            }))
 
-    if (analytics.autoPageView) {
-      const trackPageView = createPageViewTracker({
-        router: useRouter(),
-        shop: () => shop.value,
-        publish: url => context.publish('page_viewed', { url }),
+            return () => stops.forEach(stop => stop())
+          },
+        })
+
+        try {
+          trackCartAnalytics(createCartAnalyticsStore(cart, analytics.currency?.toUpperCase()))
+        }
+        catch (error) {
+          createLogger().debug('Cart analytics did not start:', error)
+        }
+
+        const trackingResolved = _shopify.clients.storefront?.proxy
+          ? nuxtApp.runWithContext(ensureTrackingValues)
+          : Promise.resolve()
+
+        void trackingResolved
+          .then(() => initializeShopifyScripts({ consent }))
+          .then(() => nuxtApp.callHook('analytics:ready', { shop: shop.value }))
+          .catch(error => createLogger().debug('Analytics initialization did not complete cleanly:', error))
       })
-
-      whenReady(trackPageView)
     }
 
     const shopifyContext = nuxtApp.$shopify as { analytics?: ShopifyAnalyticsContext } ?? {}

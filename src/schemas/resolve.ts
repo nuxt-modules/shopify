@@ -17,7 +17,6 @@ import { SESSION_PASSWORD_ENV, generateSessionPassword, persistSessionPassword }
 type ShopifyConfig = z.output<typeof configObjectSchema>
 
 const HYDROGEN = '@shopify/hydrogen'
-const HYDROGEN_REACT = '@shopify/hydrogen-react'
 
 const proxyableClients = [ShopifyClientType.Storefront, ShopifyClientType.CustomerAccount] as const
 
@@ -30,18 +29,14 @@ function resolveRequirements(config: ShopifyConfig) {
     config.clients[ShopifyClientType.CustomerAccount] = undefined
   }
 
-  if (config.analytics && !isInstalled(HYDROGEN_REACT)) {
-    logger.warn(`Disabling analytics: \`${HYDROGEN_REACT}\` is not installed. Install it, or disable \`shopify.analytics\``)
+  if (config.analytics && !isInstalled(HYDROGEN)) {
+    logger.warn(`Disabling analytics: \`${HYDROGEN}\` is not installed. Install it, or disable \`shopify.analytics\``)
 
     config.analytics = false
   }
 
-  if (
-    config.analytics
-    && !config.clients[ShopifyClientType.Storefront]?.publicAccessToken
-    && !config.analytics.consent?.storefrontAccessToken
-  ) {
-    logger.error('Disabling analytics: no public storefront access token is set. Set `clients.storefront.publicAccessToken` or `analytics.consent.storefrontAccessToken`')
+  if (config.analytics && !config.analytics.shopId) {
+    logger.error('Disabling analytics: no shop ID is set. Set `analytics.shopId` to your numeric Shopify shop ID')
 
     config.analytics = false
   }

@@ -39,6 +39,8 @@ export default defineNuxtConfig({
       },
 
       analytics: {
+        shopId: '',
+
         consent: {
           banner: true,
         },

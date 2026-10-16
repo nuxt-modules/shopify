@@ -119,8 +119,7 @@
     "@nuxt/module-builder": "^1.0.3",
     "@nuxt/schema": "^4.5.2",
     "@nuxt/test-utils": "^4.3.2",
-    "@shopify/hydrogen": "^2026.4.6",
-    "@shopify/hydrogen-react": "^2026.4.4",
+    "@shopify/hydrogen": "^2026.10.0",
     "@types/node": "^25.9.9",
     "@vitest/coverage-v8": "^4.1.11",
     "dotenv-cli": "^11.0.0",
@@ -136,15 +135,11 @@
     "vue-tsc": "^3.3.11"
   },
   "peerDependencies": {
-    "@shopify/hydrogen": ">=2026.4.6",
-    "@shopify/hydrogen-react": ">=2026.4.4",
+    "@shopify/hydrogen": ">=2026.10.0",
     "vue": ">=3.5.43"
   },
   "peerDependenciesMeta": {
     "@shopify/hydrogen": {
-      "optional": true
-    },
-    "@shopify/hydrogen-react": {
       "optional": true
     }
   },

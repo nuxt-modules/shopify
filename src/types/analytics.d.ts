@@ -1,3 +1,4 @@
+import type { AnalyticsEventName as BusEventName, PayloadFor } from '@shopify/hydrogen'
 import type { Ref } from 'vue'
 
 export type StandardAnalyticsEvent
@@ -28,6 +29,7 @@ export interface AnalyticsProductInput {
   id: string
   title: string
   price: string
+  currencyCode?: string
   vendor: string
   variantId?: string
   variantTitle?: string
@@ -43,7 +45,7 @@ export interface ShopifyAnalyticsCartLine {
     id: string
     title: string
     sku?: string
-    price: { amount: string }
+    price: { amount: string, currencyCode?: string }
     product: {
       id: string
       title: string
@@ -87,13 +89,11 @@ export interface AnalyticsEventPayloads {
 export type AnalyticsEventPayload<E extends AnalyticsEventName>
   = E extends keyof AnalyticsEventPayloads ? AnalyticsEventPayloads[E] : Record<string, unknown>
 
+/**
+ * Receives the payload exactly as it was put on the Shopify analytics bus.
+ */
 export type AnalyticsSubscriber<E extends AnalyticsEventName = AnalyticsEventName>
-  = (payload: AnalyticsEventPayload<E>) => void
-
-export interface AnalyticsEmitter {
-  on: <E extends AnalyticsEventName>(event: E, listener: AnalyticsSubscriber<E>) => () => void
-  emit: <E extends AnalyticsEventName>(event: E, payload: AnalyticsEventPayload<E>) => void
-}
+  = (payload: E extends BusEventName ? PayloadFor<E> : Record<string, unknown>) => void
 
 export interface CustomerPrivacyApi {
   analyticsProcessingAllowed: () => boolean

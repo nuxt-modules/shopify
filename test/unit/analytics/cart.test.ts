@@ -1,9 +1,11 @@
 // @vitest-environment happy-dom
 import type { ShopifyAnalyticsCart, ShopifyAnalyticsCartLine } from '#src/types'
 
+import { trackCartAnalytics } from '@shopify/hydrogen'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { nextTick, ref } from 'vue'
 
-import { createCartTracker } from '#src/runtime/utils/analytics/cart'
+import { createCartAnalyticsStore } from '#src/runtime/utils/analytics/cart'
 
 function line(id: string, quantity: number): ShopifyAnalyticsCartLine {
   return {
@@ -26,117 +28,101 @@ function cart(updatedAt: string, lines: ShopifyAnalyticsCartLine[]): ShopifyAnal
   return { id: 'gid://shopify/Cart/1', updatedAt, lines }
 }
 
-function setup() {
-  const publish = vi.fn()
+const publish = vi.fn()
 
-  return { publish, track: createCartTracker({ publish }) }
+function setup(currency?: string) {
+  const current = ref<ShopifyAnalyticsCart | null>(null)
+
+  trackCartAnalytics(createCartAnalyticsStore(current, currency))
+
+  const update = async (next: ShopifyAnalyticsCart | null) => {
+    current.value = next
+
+    await nextTick()
+  }
+
+  return { update }
 }
 
-function events(publish: ReturnType<typeof vi.fn>, name: string) {
+function events(name: string) {
   return publish.mock.calls.filter(([event]) => event === name).map(([, payload]) => payload)
 }
 
 beforeEach(() => {
   localStorage.clear()
+
+  publish.mockClear()
+
+  Reflect.set(window, 'Shopify', { analytics: { publish, getConfig: () => ({ shop: { shopId: '1' } }) } })
 })
 
-describe('analytics cart events', () => {
-  it('publishes nothing without an updated cart', () => {
-    const { publish, track } = setup()
+describe('cart analytics store', () => {
+  it('publishes the cart update and an add for each new line', async () => {
+    const { update } = setup('usd')
 
-    track(null)
-    track({ id: 'gid://shopify/Cart/1', lines: [] })
+    await update(cart('2026-01-01T00:00:00Z', [line('1', 1), line('2', 2)]))
+
+    expect(events('cart_updated')).toHaveLength(1)
+    expect(events('product_added_to_cart')).toHaveLength(2)
+    expect(events('product_removed_from_cart')).toHaveLength(0)
+  })
+
+  it('does not publish again when the cart has not changed', async () => {
+    const { update } = setup()
+
+    const first = cart('2026-01-01T00:00:00Z', [line('1', 1)])
+
+    await update(first)
+    await update({ ...first })
+
+    expect(events('cart_updated')).toHaveLength(1)
+  })
+
+  it('publishes an add when a quantity goes up', async () => {
+    const { update } = setup()
+
+    await update(cart('2026-01-01T00:00:00Z', [line('1', 1)]))
+
+    publish.mockClear()
+
+    await update(cart('2026-01-01T00:01:00Z', [line('1', 3)]))
+
+    expect(events('product_added_to_cart')).toHaveLength(1)
+    expect(events('product_added_to_cart')[0]).toMatchObject({
+      prevLine: { quantity: 1 },
+      currentLine: { quantity: 3 },
+    })
+  })
+
+  it('publishes a removal when a quantity goes down or a line goes away', async () => {
+    const { update } = setup()
+
+    await update(cart('2026-01-01T00:00:00Z', [line('1', 3), line('2', 1)]))
+
+    publish.mockClear()
+
+    await update(cart('2026-01-01T00:01:00Z', [line('1', 1)]))
+
+    expect(events('product_removed_from_cart')).toHaveLength(2)
+  })
+
+  it('gives each line a currency from the configured one when the cart has none', async () => {
+    const { update } = setup('cad')
+
+    await update(cart('2026-01-01T00:00:00Z', [line('1', 1)]))
+
+    expect(events('product_added_to_cart')[0].currentLine.merchandise.price).toMatchObject({ amount: '10.00', currencyCode: 'cad' })
+  })
+
+  it('ignores a cleared cart', async () => {
+    const { update } = setup()
+
+    await update(cart('2026-01-01T00:00:00Z', [line('1', 1)]))
+
+    publish.mockClear()
+
+    await update(null)
 
     expect(publish).not.toHaveBeenCalled()
-  })
-
-  it('publishes an update when the cart changes', () => {
-    const { publish, track } = setup()
-
-    track(cart('1', [line('a', 1)]))
-
-    expect(events(publish, 'cart_updated')).toHaveLength(1)
-  })
-
-  it('ignores a cart that has not changed since the last event', () => {
-    const { publish, track } = setup()
-
-    track(cart('1', [line('a', 1)]))
-    publish.mockClear()
-
-    track(cart('1', [line('a', 1)]))
-
-    expect(publish).not.toHaveBeenCalled()
-  })
-
-  it('does not replay the stored cart on a fresh load', () => {
-    const first = setup()
-    first.track(cart('1', [line('a', 1)]))
-
-    const second = setup()
-    second.track(cart('1', [line('a', 1)]))
-
-    expect(second.publish).not.toHaveBeenCalled()
-  })
-
-  it('reports a new line as added', () => {
-    const { publish, track } = setup()
-
-    track(cart('1', []))
-    track(cart('2', [line('a', 1)]))
-
-    const added = events(publish, 'product_added_to_cart')
-
-    expect(added).toHaveLength(1)
-    expect(added[0].currentLine.id).toBe('a')
-  })
-
-  it('reports a raised quantity as added', () => {
-    const { publish, track } = setup()
-
-    track(cart('1', [line('a', 1)]))
-    publish.mockClear()
-
-    track(cart('2', [line('a', 3)]))
-
-    const added = events(publish, 'product_added_to_cart')
-
-    expect(added).toHaveLength(1)
-    expect(added[0].prevLine.quantity).toBe(1)
-    expect(added[0].currentLine.quantity).toBe(3)
-  })
-
-  it('reports a lowered quantity as removed', () => {
-    const { publish, track } = setup()
-
-    track(cart('1', [line('a', 3)]))
-    track(cart('2', [line('a', 1)]))
-
-    expect(events(publish, 'product_removed_from_cart')).toHaveLength(1)
-  })
-
-  it('reports a dropped line as removed without a current line', () => {
-    const { publish, track } = setup()
-
-    track(cart('1', [line('a', 1), line('b', 1)]))
-    track(cart('2', [line('a', 1)]))
-
-    const removed = events(publish, 'product_removed_from_cart')
-
-    expect(removed).toHaveLength(1)
-    expect(removed[0].prevLine.id).toBe('b')
-    expect(removed[0].currentLine).toBeUndefined()
-  })
-
-  it('reports each line of a multi line change', () => {
-    const { publish, track } = setup()
-
-    track(cart('1', [line('a', 1), line('b', 1)]))
-    publish.mockClear()
-
-    track(cart('2', [line('a', 2), line('c', 1)]))
-
-    expect(events(publish, 'product_added_to_cart')).toHaveLength(2)
-    expect(events(publish, 'product_removed_from_cart')).toHaveLength(1)
   })
 })
