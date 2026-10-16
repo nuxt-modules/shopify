@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { configObjectSchema } from '#src/schemas'
 import { createAdminConfig } from '#src/runtime/utils/clients/admin'
@@ -102,6 +102,34 @@ describe('client-level apiVersion option', () => {
 
     expect(client.config.apiUrl).toBe('http://localhost:3000/_proxy/storefront')
     expect(client.config.headers[PROXY_API_VERSION_HEADER]).toBe('2026-04')
+  })
+
+  it('calls Shopify directly when no origin is given, as on the server', () => {
+    const client = createClient(definition, proxiedStorefront as never, {} as never)
+
+    expect(client.config.apiUrl).toBe('https://shop.myshopify.com/api/2026-04/graphql.json')
+  })
+
+  it('does not send the proxy cache header when it calls Shopify directly', async () => {
+    const fetchMock = vi.fn(async (..._args: unknown[]) => new Response(JSON.stringify({ data: {} }), { status: 200, headers: { 'Content-Type': 'application/json' } }))
+
+    vi.stubGlobal('fetch', fetchMock)
+
+    try {
+      const client = createClient(definition, proxiedStorefront as never, {} as never)
+
+      await client.request('query X { a }', { cache: 'preset' } as never)
+
+      expect(fetchMock).toHaveBeenCalled()
+
+      const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit]
+
+      expect(url).toBe('https://shop.myshopify.com/api/2026-04/graphql.json')
+      expect(init.headers).not.toHaveProperty('X-Shopify-Proxy-Cache')
+    }
+    finally {
+      vi.unstubAllGlobals()
+    }
   })
 
   it('does not set the proxy version header when no override is given', () => {

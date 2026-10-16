@@ -127,6 +127,15 @@ describe('client cache', () => {
     expect(requestOptions(request)).toMatchObject({ headers: { 'X-Shopify-Proxy-Cache': 'long' } })
   })
 
+  it('omits the proxy cache header when the request does not go through the proxy', async () => {
+    const request = createRequest()
+
+    await useCache(createStorage(), request as never, QUERY as never, { cache: 'long' } as never, presets, false)
+
+    expect(requestOptions(request)).toMatchObject({ headers: {} })
+    expect((requestOptions(request) as { headers: object }).headers).not.toHaveProperty('X-Shopify-Proxy-Cache')
+  })
+
   it('caches a request that carries an abort signal', async () => {
     const storage = createStorage()
     const request = createRequest()

@@ -139,7 +139,7 @@ export function createClient<
     }
 
     const response = definition.cache
-      ? await useCache(cache, transport.request as any, operation, options, cacheConfig?.presets)
+      ? await useCache(cache, transport.request as any, operation, options, cacheConfig?.presets, Boolean(origin && proxy))
       : await transport.request(operation, options)
 
     if (import.meta.server && event && definition.tracking) collectTrackingHeaders(event, response.headers)

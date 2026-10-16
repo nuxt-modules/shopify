@@ -85,9 +85,10 @@ export default async function useCache<
   operation: Operation,
   options?: ShopifyApiClientRequestOptions<Operation, Operations, true>,
   cachePresets?: CachePresets,
+  useProxy = true,
 ): Promise<ClientResponse<ReturnData<Operation, Operations>>> {
   const inMemoryConfig = storage ? getLRUCacheSettings(options, cachePresets) : undefined
-  const proxyCacheHeaders = getProxyCacheHeaders(options)
+  const proxyCacheHeaders = useProxy ? getProxyCacheHeaders(options) : undefined
 
   const cacheKey = storage && inMemoryConfig ? createCacheKey(operation, options) : undefined
 

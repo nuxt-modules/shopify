@@ -18,7 +18,7 @@ export function useStorefront(event?: H3Event): StorefrontApiClient<true> {
 
   return createStorefrontClient<true>(_shopify!, {
     event: event ?? (import.meta.server ? useRequestEvent() : undefined),
-    origin: nuxtApp.payload.prerenderedAt ? undefined : useRequestURL().origin,
+    origin: import.meta.client && !nuxtApp.payload.prerenderedAt ? useRequestURL().origin : undefined,
     cache: nuxtApp.$shopify?.cache?.storefront,
 
     onConfigure: params => nuxtApp.hooks.callHook('storefront:client:configure', params),
