@@ -57,7 +57,6 @@ const storefront = { publicAccessToken: 'tok' }
 beforeEach(() => {
   installed.clear()
   installed.add('@shopify/hydrogen')
-  installed.add('@shopify/hydrogen-react')
 
   persisted.length = 0
   warnings.length = 0
@@ -68,41 +67,27 @@ beforeEach(() => {
 })
 
 describe('peer dependency requirements', () => {
-  it('keeps analytics enabled when its dependencies and token are present', async () => {
-    const { config, publicConfig } = await resolve({ name: 'shop', clients: { storefront }, analytics: { storefrontId: '1' } })
+  it('keeps analytics enabled when hydrogen is installed and a shop ID is set', async () => {
+    const { config, publicConfig } = await resolve({ name: 'shop', clients: { storefront }, analytics: { shopId: '42', storefrontId: '1' } })
 
-    expect(config.analytics).toMatchObject({ storefrontId: '1' })
-    expect(publicConfig.analytics).toMatchObject({ storefrontId: '1' })
+    expect(config.analytics).toMatchObject({ shopId: '42', storefrontId: '1' })
+    expect(publicConfig.analytics).toMatchObject({ shopId: '42', storefrontId: '1' })
   })
 
-  it('disables analytics in both configs when hydrogen-react is missing', async () => {
-    installed.delete('@shopify/hydrogen-react')
+  it('disables analytics in both configs when hydrogen is missing', async () => {
+    installed.delete('@shopify/hydrogen')
 
+    const { config, publicConfig } = await resolve({ name: 'shop', clients: { storefront }, analytics: { shopId: '42' } })
+
+    expect(config.analytics).toBe(false)
+    expect(publicConfig.analytics).toBe(false)
+  })
+
+  it('disables analytics in both configs when no shop ID is set', async () => {
     const { config, publicConfig } = await resolve({ name: 'shop', clients: { storefront }, analytics: true })
 
     expect(config.analytics).toBe(false)
     expect(publicConfig.analytics).toBe(false)
-  })
-
-  it('disables analytics in both configs when no public storefront token is available', async () => {
-    const { config, publicConfig } = await resolve({
-      name: 'shop',
-      clients: { storefront: { privateAccessToken: 'private' } },
-      analytics: true,
-    })
-
-    expect(config.analytics).toBe(false)
-    expect(publicConfig.analytics).toBe(false)
-  })
-
-  it('accepts a consent token in place of the storefront token', async () => {
-    const { config } = await resolve({
-      name: 'shop',
-      clients: { storefront: { privateAccessToken: 'private' } },
-      analytics: { consent: { storefrontAccessToken: 'consent-token' } },
-    })
-
-    expect(config.analytics).toMatchObject({ consent: { storefrontAccessToken: 'consent-token' } })
   })
 
   it('disables the customer account client in both configs when hydrogen is missing', async () => {
@@ -313,7 +298,7 @@ describe('without a nuxt instance', () => {
 
     expect(fetch).not.toHaveBeenCalled()
     expect(persisted).toHaveLength(0)
-    expect(config.analytics).toMatchObject({ autoPageView: true })
+    expect(config.analytics).toStrictEqual({})
     expect(config.clients.customerAccount).toBeDefined()
     expect(config.clients.storefront?.proxy).toEqual({ route: '_proxy/storefront' })
   })

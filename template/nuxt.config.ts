@@ -32,7 +32,7 @@ export default defineNuxtConfig({
       },
 
       analytics: {
-        storefrontId: '187932',
+        shopId: '',
 
         consent: {
           banner: true,

@@ -17,7 +17,7 @@ describe('analytics config', () => {
   })
 
   it('treats `true` as the default enabled config', () => {
-    expect(parseAnalytics(true)).toStrictEqual({ autoPageView: true })
+    expect(parseAnalytics(true)).toStrictEqual({})
   })
 
   it('disables when set to `false`', () => {
@@ -25,7 +25,7 @@ describe('analytics config', () => {
   })
 
   it('enables with an empty config object', () => {
-    expect(parseAnalytics({})).toStrictEqual({ autoPageView: true })
+    expect(parseAnalytics({})).toStrictEqual({})
   })
 
   it('keeps an explicit config object and defaults its options', () => {
@@ -35,9 +35,9 @@ describe('analytics config', () => {
   })
 
   it('defaults the privacy banner off inside consent', () => {
-    const analytics = parseAnalytics({ consent: { checkoutDomain: 'checkout.shop.com' } })
+    const analytics = parseAnalytics({ consent: {} })
 
-    expect(analytics).toMatchObject({ consent: { checkoutDomain: 'checkout.shop.com', banner: false } })
+    expect(analytics).toMatchObject({ consent: { banner: false } })
   })
 
   it('turns a numeric storefrontId into a string', () => {
