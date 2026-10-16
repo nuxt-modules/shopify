@@ -1,84 +1,66 @@
-import type {
-  AnalyticsEventName,
-  AnalyticsEventPayload,
-  ShopifyAnalyticsCart,
-  ShopifyAnalyticsCartLine,
-} from '../../../module'
+import type { trackCartAnalytics } from '@shopify/hydrogen'
+import type { Ref } from 'vue'
 
-const STORAGE_KEY = 'cartLastUpdatedAt'
+import type { ShopifyAnalyticsCart } from '../../../module'
 
-type StoredUpdate = { id?: string, updatedAt?: string }
+import { watch } from 'vue'
 
-export interface CartTrackerOptions {
-  publish: <E extends AnalyticsEventName>(event: E, payload: AnalyticsEventPayload<E>) => void
+type CartAnalyticsStore = Parameters<typeof trackCartAnalytics>[0]
+
+export function toBusCart(cart: ShopifyAnalyticsCart | null | undefined, currency?: string) {
+  if (!cart?.id) return null
+
+  const currencyCode = cart.cost?.totalAmount?.currencyCode || currency || ''
+
+  return {
+    id: cart.id,
+    updatedAt: cart.updatedAt,
+    cost: cart.cost,
+    lines: {
+      nodes: cart.lines.map(line => ({
+        id: line.id,
+        quantity: line.quantity,
+        merchandise: {
+          ...line.merchandise,
+          price: { amount: line.merchandise.price.amount, currencyCode: line.merchandise.price.currencyCode || currencyCode },
+        },
+      })),
+    },
+  } as never
 }
 
-function readStoredUpdate(): StoredUpdate | null {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '') as StoredUpdate
-  }
-  catch {
-    return null
+function toCartState(cart: ShopifyAnalyticsCart | null, currency?: string) {
+  const currencyCode = cart?.cost?.totalAmount?.currencyCode || currency || ''
+
+  return {
+    data: {
+      id: cart?.id,
+      updatedAt: cart?.updatedAt,
+      cost: cart?.cost,
+      lines: {
+        nodes: (cart?.lines ?? []).map(line => ({
+          id: line.id,
+          quantity: line.quantity,
+          cost: {
+            amountPerQuantity: {
+              amount: line.merchandise.price.amount,
+              currencyCode: line.merchandise.price.currencyCode || currencyCode,
+            },
+          },
+          merchandise: line.merchandise,
+        })),
+      },
+    },
+    pending: { lines: new Set(), discountCodes: new Set() },
+    revalidating: false,
   }
 }
 
-function storeUpdate(cart: ShopifyAnalyticsCart): void {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ id: cart.id, updatedAt: cart.updatedAt }))
-  }
-  catch {
-    return
-  }
-}
+export function createCartAnalyticsStore(cart: Ref<ShopifyAnalyticsCart | null>, currency?: string): CartAnalyticsStore {
+  const getState = () => toCartState(cart.value, currency)
 
-export function createCartTracker({ publish }: CartTrackerOptions) {
-  let prevCart: ShopifyAnalyticsCart | null = null
-
-  const diffLines = (cart: ShopifyAnalyticsCart, previousLines: ShopifyAnalyticsCartLine[]) => {
-    const currentLines = cart.lines ?? []
-
-    for (const prevLine of previousLines) {
-      const currentLine = currentLines.find(line => line.id === prevLine.id)
-
-      if (!currentLine) {
-        publish('product_removed_from_cart', { cart, prevLine })
-      }
-      else if (prevLine.quantity < currentLine.quantity) {
-        publish('product_added_to_cart', { cart, prevLine, currentLine })
-      }
-      else if (prevLine.quantity > currentLine.quantity) {
-        publish('product_removed_from_cart', { cart, prevLine, currentLine })
-      }
-    }
-
-    for (const currentLine of currentLines) {
-      if (!previousLines.some(prevLine => prevLine.id === currentLine.id)) {
-        publish('product_added_to_cart', { cart, currentLine })
-      }
-    }
-  }
-
-  return (cart: ShopifyAnalyticsCart | null) => {
-    if (!cart?.id || !cart.updatedAt) return
-    if (cart.updatedAt === prevCart?.updatedAt) return
-
-    const stored = readStoredUpdate()
-
-    if (stored?.id === cart.id && stored?.updatedAt === cart.updatedAt) {
-      prevCart = cart
-
-      return
-    }
-
-    const previousLines = prevCart?.lines ?? []
-    const previous = prevCart
-
-    prevCart = cart
-
-    publish('cart_updated', { cart, prevCart: previous })
-
-    storeUpdate(cart)
-
-    diffLines(cart, previousLines)
-  }
+  return {
+    getState,
+    subscribe: (listener: (state: ReturnType<typeof getState>) => void) => watch(cart, () => listener(getState())),
+  } as unknown as CartAnalyticsStore
 }

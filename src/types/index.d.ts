@@ -135,7 +135,7 @@ declare module '#app' {
     'analytics:ready': ({ shop }: ShopifyAnalyticsReadyHookParams) => HookResult
 
     /**
-     * Called whenever an analytics event is published, before it is dispatched to subscribers
+     * Called whenever an event is delivered by the Shopify analytics bus, once consent allows tracking
      */
     'analytics:publish': ({ event, payload }: ShopifyAnalyticsPublishHookParams) => HookResult
 
@@ -357,7 +357,6 @@ export type {
 
 export type {
   AnalyticsConsentFlags,
-  AnalyticsEmitter,
   AnalyticsEventName,
   AnalyticsEventPayload,
   AnalyticsProductInput,

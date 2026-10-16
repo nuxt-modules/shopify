@@ -6,8 +6,8 @@ import type {
 
 import type { ShopifyScriptsI18n } from '@shopify/hydrogen'
 
-import { getShopifyScriptTags, initializeShopifyScripts } from '@shopify/hydrogen'
-import { ref, watch } from 'vue'
+import { getShopifyScriptTags, initializeShopifyScripts, trackCartAnalytics } from '@shopify/hydrogen'
+import { ref } from 'vue'
 import defu from 'defu'
 import {
   defineNuxtPlugin,
@@ -16,11 +16,21 @@ import {
 } from '#imports'
 
 import { createLogger } from '../utils/log'
-import { createCartTracker } from '../utils/analytics/cart'
-import { forwardToBus } from '../utils/analytics/bus'
-import { createEmitter } from '../utils/analytics/emitter'
+import { createCartAnalyticsStore } from '../utils/analytics/cart'
+import { getBus, publishToBus, subscribeToBus } from '../utils/analytics/bus'
 import { canTrack, setTrackingConsent, showPreferences } from '../utils/analytics/privacy'
 import { ensureTrackingValues } from '../utils/analytics/tracking'
+
+const ANALYTICS_EVENTS = [
+  'page_viewed',
+  'product_viewed',
+  'collection_viewed',
+  'search_viewed',
+  'cart_viewed',
+  'cart_updated',
+  'product_added_to_cart',
+  'product_removed_from_cart',
+] as const
 
 export default defineNuxtPlugin({
   name: 'shopify:analytics',
@@ -61,10 +71,6 @@ export default defineNuxtPlugin({
       })) as never,
     })
 
-    const emitter = createEmitter()
-
-    forwardToBus(emitter, { currency: analytics.currency })
-
     const shop = ref<ShopAnalytics | null>({
       shopId,
       acceptedLanguage: language,
@@ -83,20 +89,32 @@ export default defineNuxtPlugin({
       showPreferences,
       setShopContext: () => Promise.resolve(shop.value),
 
-      publish: (event, payload) => {
-        void Promise.resolve(nuxtApp.callHook('analytics:publish', { event, payload }))
-          .catch(error => createLogger().debug('Analytics publish hook failed:', error))
+      publish: (event, payload) => publishToBus(event, payload, analytics.currency),
 
-        emitter.emit(event, payload)
-      },
-
-      subscribe: emitter.on,
+      subscribe: subscribeToBus,
     }
-
-    watch(cart, createCartTracker({ publish: context.publish }))
 
     if (import.meta.client) {
       nuxtApp.hook('app:mounted', () => {
+        getBus()?.addDestination({
+          name: 'nuxt-shopify:hook',
+          setup: ({ subscribe }) => {
+            const stops = ANALYTICS_EVENTS.map(event => subscribe(event, (payload) => {
+              void Promise.resolve(nuxtApp.callHook('analytics:publish', { event, payload }))
+                .catch(error => createLogger().debug('Analytics publish hook failed:', error))
+            }))
+
+            return () => stops.forEach(stop => stop())
+          },
+        })
+
+        try {
+          trackCartAnalytics(createCartAnalyticsStore(cart, analytics.currency?.toUpperCase()))
+        }
+        catch (error) {
+          createLogger().debug('Cart analytics did not start:', error)
+        }
+
         const trackingResolved = _shopify.clients.storefront?.proxy
           ? nuxtApp.runWithContext(ensureTrackingValues)
           : Promise.resolve()
