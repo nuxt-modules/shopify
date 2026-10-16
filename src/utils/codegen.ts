@@ -40,6 +40,8 @@ const TRANSPORT_ERROR_PATTERN = /Failed to load schema|ETIMEDOUT|ECONNREFUSED|EC
 
 const SCHEMA_LOAD_ERROR_PATTERN = /Failed to load schema/
 
+const INVALID_SCHEMA_ERROR_PATTERN = /must define one or more/
+
 const GLOB_MAGIC = /[*?[\]{}()]/
 
 const generateFailures = new Set<string>()
@@ -103,6 +105,10 @@ function isTransportError(error: unknown): boolean {
 
 function isSchemaLoadError(error: unknown): boolean {
   return SCHEMA_LOAD_ERROR_PATTERN.test(collectErrorMessages(error))
+}
+
+function isInvalidSchemaError(error: unknown): boolean {
+  return INVALID_SCHEMA_ERROR_PATTERN.test(collectErrorMessages(error))
 }
 
 async function generateWithRetry<T extends Types.ConfiguredOutput>(
@@ -192,7 +198,7 @@ async function runGenerate<T extends Types.ConfiguredOutput>(
     return await generateWithRetry(generatorConfig, createConfig)
   }
   catch (error) {
-    const fallbackSchema = isRemoteSchema(generatorConfig.schema) && isSchemaLoadError(error)
+    const fallbackSchema = isRemoteSchema(generatorConfig.schema) && (isSchemaLoadError(error) || isInvalidSchemaError(error))
       ? getHydrogenSchema(options.clientType)
       : undefined
 
@@ -200,7 +206,7 @@ async function runGenerate<T extends Types.ConfiguredOutput>(
       return reportGenerateFailure(nuxt, options.filename, error)
     }
 
-    logger.warn(`Failed to introspect the ${kebabCase(options.clientType)} API, falling back to the schema from \`@shopify/hydrogen\`.`)
+    logger.warn(`Failed to introspect the ${kebabCase(options.clientType)} API, falling back to the schema from \`@shopify/hydrogen\`: ${(error as Error).message}`)
 
     try {
       return await extractResult(generate(createConfig({ ...generatorConfig, schema: fallbackSchema }), false))

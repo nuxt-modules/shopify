@@ -247,6 +247,20 @@ describe('hydrogen fallback', () => {
     expect(generate).toHaveBeenCalledTimes(1)
     expect(getGenerateFailures()).toEqual([expect.stringContaining('Cannot query field "customers" on type "QueryRoot"')])
   })
+
+  it('uses the hydrogen schema when the api returns an invalid schema', async () => {
+    const invalid = () => Promise.reject(new AggregateError(
+      [new Error('Type GiftCard must define one or more fields.')],
+      'Type GiftCard must define one or more fields.',
+    ))
+
+    generate.mockImplementationOnce(invalid).mockImplementation(succeeds)
+
+    await expect(createIntrospectionGenerator()!(introspectionData())).resolves.toBe('{"__schema":{}}')
+
+    expect(generate).toHaveBeenCalledTimes(2)
+    expect(schemaOfCall(-1)).toEqual([expect.stringContaining('storefront.schema.json')])
+  })
 })
 
 describe('document parse failures', () => {
