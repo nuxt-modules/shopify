@@ -28,6 +28,7 @@ export interface AnalyticsProductInput {
   id: string
   title: string
   price: string
+  currencyCode?: string
   vendor: string
   variantId?: string
   variantTitle?: string

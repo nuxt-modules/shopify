@@ -17,6 +17,7 @@ import {
 
 import { createLogger } from '../utils/log'
 import { createCartTracker } from '../utils/analytics/cart'
+import { forwardToBus } from '../utils/analytics/bus'
 import { createEmitter } from '../utils/analytics/emitter'
 import { canTrack, setTrackingConsent, showPreferences } from '../utils/analytics/privacy'
 import { ensureTrackingValues } from '../utils/analytics/tracking'
@@ -61,6 +62,8 @@ export default defineNuxtPlugin({
     })
 
     const emitter = createEmitter()
+
+    forwardToBus(emitter, { currency: analytics.currency })
 
     const shop = ref<ShopAnalytics | null>({
       shopId,
