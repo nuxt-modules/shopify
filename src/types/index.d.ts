@@ -37,14 +37,6 @@ import type {
 type DeepPartial<T> = { [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P] }
 
 declare module '@nuxt/schema' {
-  interface NuxtConfig {
-    shopify?: ModuleOptions
-  }
-
-  interface NuxtOptions {
-    shopify?: ModuleOptions
-  }
-
   interface RuntimeConfig {
     shopify?: DeepPartial<ModuleOptions>
     _shopify?: ShopifyConfig

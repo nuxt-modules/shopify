@@ -13,5 +13,16 @@
     "postUpdateOptions": ["pnpmDedupe"],
     "lockFileMaintenance": {
         "enabled": true
-    }
+    },
+    "packageRules": [
+        {
+            "matchDepTypes": ["peerDependencies"],
+            "rangeStrategy": "widen"
+        },
+        {
+            "matchPackageNames": ["vitest", "@vitest/**"],
+            "matchUpdateTypes": ["major"],
+            "groupName": "vitest"
+        }
+    ]
 }
