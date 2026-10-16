@@ -66,42 +66,40 @@ export function registerTemplates(
   const introspectionFilename = getIntrospectionFilename(clientType, clientConfig.apiVersion)
   const introspectionPath = join(nuxt.options.buildDir, introspectionFilename)
 
-  const introspection = addTemplate<ShopifyTemplateOptions>({
+  const introspection = createIntrospectionGenerator({
     filename: introspectionFilename,
-    getContents: createIntrospectionGenerator(),
-    options: {
-      filename: introspectionFilename,
-      shopName: config.name,
-      clientType,
-      clientConfig,
-      introspection: introspectionPath,
-    },
+    shopName: config.name,
+    clientType,
+    clientConfig,
+  }, introspectionPath)
+
+  addTemplate({
+    filename: introspectionFilename,
+    getContents: introspection.getContents,
     write: true,
   })
 
   const typesFilename = `${OUTPUT_DIR}/${kebabCase(clientType)}/${kebabCase(clientType)}.types`
   const types = addTypeTemplate<ShopifyTemplateOptions>({
     filename: `${typesFilename}.d.ts`,
-    getContents: createTypesGenerator(),
+    getContents: createTypesGenerator(introspection),
     options: {
       filename: `${typesFilename}.d.ts`,
       shopName: config.name,
       clientType,
       clientConfig,
-      introspection: introspection.dst,
     },
   })
 
   const operationsFilename = `${OUTPUT_DIR}/${kebabCase(clientType)}/${kebabCase(clientType)}.operations`
   const operations = addTypeTemplate<ShopifyTemplateOptions>({
     filename: `${operationsFilename}.d.ts`,
-    getContents: createOperationsGenerator(),
+    getContents: createOperationsGenerator(introspection),
     options: {
       filename: `${operationsFilename}.d.ts`,
       shopName: config.name,
       clientType,
       clientConfig,
-      introspection: introspection.dst,
     },
   })
 

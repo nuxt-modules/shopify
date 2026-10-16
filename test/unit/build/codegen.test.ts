@@ -1,7 +1,7 @@
 import { existsSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { ShopifyClientType } from '#src/schemas'
 
@@ -11,7 +11,13 @@ vi.mock('@graphql-codegen/cli', () => ({
   generate: (...args: unknown[]) => generate(...args as []),
 }))
 
-const { clearGenerateFailures, createIntrospectionGenerator, createOperationsGenerator, getGenerateFailures } = await import('#src/utils/codegen')
+const {
+  clearGenerateFailures,
+  createIntrospectionGenerator,
+  createOperationsGenerator,
+  createTypesGenerator,
+  getGenerateFailures,
+} = await import('#src/utils/codegen')
 
 const FILENAME = 'schema/storefront.2026-04.schema.json'
 
@@ -24,45 +30,56 @@ const nuxt = {
   callHook: vi.fn(() => Promise.resolve()),
 } as never
 
-function introspectionData(introspection?: string, clientType = ShopifyClientType.Storefront) {
-  return {
-    nuxt,
-    options: {
-      filename: FILENAME,
-      shopName: 'test-shop',
-      clientType,
-      clientConfig: { apiVersion: '2026-04', mock: true },
-      introspection,
-    },
-  } as never
+function createIntrospection(path: string, clientType = ShopifyClientType.Storefront) {
+  return createIntrospectionGenerator({
+    filename: FILENAME,
+    shopName: 'test-shop',
+    clientType,
+    clientConfig: { apiVersion: '2026-04', mock: true },
+  } as never, path)
+}
+
+function introspect(path: string, clientType?: ShopifyClientType) {
+  return createIntrospection(path, clientType).getContents({ nuxt })
+}
+
+function storedSchema(path: string) {
+  return { getSchema: () => Promise.resolve(path) }
+}
+
+function generateOperations(data: never) {
+  return createOperationsGenerator(storedSchema(pathFor('populated.json')))!(data)
 }
 
 function schemaOfCall(index: number) {
   return generate.mock.calls.at(index)![0].generates[FILENAME].schema
 }
 
+function schemasFor(filename: string) {
+  return generate.mock.calls
+    .map(([input]) => input.generates[filename]?.schema)
+    .filter(Boolean)
+}
+
 const succeeds = () => Promise.resolve([{ content: '{"__schema":{}}' }])
 const fails = () => Promise.reject(new Error('Failed to load schema from https://mock.shop/api:\nconnect ETIMEDOUT 23.227.38.74:443'))
+const invalid = () => Promise.reject(new Error('Type Shop must define one or more fields.'))
 
 const MOCK_API_SCHEMA = [{ 'https://mock.shop/api': { headers: {} } }]
 
-beforeAll(() => {
+beforeEach(() => {
+  vi.clearAllMocks()
+
   dir = mkdtempSync(join(tmpdir(), 'nuxt-shopify-codegen-'))
 
   writeFileSync(pathFor('empty.json'), '')
   writeFileSync(pathFor('populated.json'), JSON.stringify({ __schema: { types: [] } }))
 })
 
-afterAll(() => {
-  rmSync(dir, { recursive: true, force: true })
-})
-
-beforeEach(() => {
-  vi.clearAllMocks()
-})
-
 afterEach(() => {
   vi.useRealTimers()
+
+  rmSync(dir, { recursive: true, force: true })
 })
 
 describe('introspection source', () => {
@@ -71,34 +88,92 @@ describe('introspection source', () => {
   })
 
   it('uses a stored introspection file that has content', async () => {
-    await createIntrospectionGenerator()!(introspectionData(pathFor('populated.json')))
+    await introspect(pathFor('populated.json'))
 
     expect(schemaOfCall(0)).toBe(pathFor('populated.json'))
   })
 
   it('asks the api when a failed fetch left the file empty', async () => {
-    await createIntrospectionGenerator()!(introspectionData(pathFor('empty.json')))
+    await introspect(pathFor('empty.json'))
 
     expect(schemaOfCall(0)).toEqual(MOCK_API_SCHEMA)
   })
 
   it('asks the api when the file does not exist', async () => {
-    await createIntrospectionGenerator()!(introspectionData(pathFor('missing.json')))
-
-    expect(schemaOfCall(0)).toEqual(MOCK_API_SCHEMA)
-  })
-
-  it('asks the api when no file is configured', async () => {
-    await createIntrospectionGenerator()!(introspectionData())
+    await introspect(pathFor('missing.json'))
 
     expect(schemaOfCall(0)).toEqual(MOCK_API_SCHEMA)
   })
 
   it('reads the customer account schema from the installed hydrogen package', async () => {
-    await createIntrospectionGenerator()!(introspectionData(undefined, ShopifyClientType.CustomerAccount))
+    await introspect(pathFor('missing.json'), ShopifyClientType.CustomerAccount)
 
     expect(schemaOfCall(0)).toEqual([expect.stringContaining('customer-account.schema.json')])
     expect(existsSync(schemaOfCall(0)[0])).toBe(true)
+  })
+})
+
+describe('shared schema', () => {
+  const TYPES_FILE = 'shopify/storefront/storefront.types.d.ts'
+  const OPERATIONS_FILE = 'shopify/storefront/storefront.operations.d.ts'
+
+  const build = {
+    options: { dev: false, _prepare: false },
+    callHook: vi.fn(() => Promise.resolve()),
+  } as never
+
+  const generatorData = (filename: string) => ({
+    nuxt: build,
+    options: {
+      filename,
+      shopName: 'test-shop',
+      clientType: ShopifyClientType.Storefront,
+      clientConfig: { apiVersion: '2026-04', mock: true, documents: [], codegen: { autoImport: false } },
+    },
+  }) as never
+
+  function generateAll(path: string) {
+    const introspection = createIntrospection(path)
+
+    return Promise.all([
+      createTypesGenerator(introspection)!(generatorData(TYPES_FILE)),
+      createOperationsGenerator(introspection)!(generatorData(OPERATIONS_FILE)),
+      introspection.getContents({ nuxt: build }),
+    ])
+  }
+
+  beforeEach(() => {
+    clearGenerateFailures()
+  })
+
+  it('generates types and operations from the introspected schema instead of asking the api again', async () => {
+    generate.mockImplementation(succeeds)
+
+    await generateAll(pathFor('missing.json'))
+
+    expect(schemasFor(FILENAME)).toEqual([MOCK_API_SCHEMA])
+    expect(schemasFor(TYPES_FILE)).toEqual([pathFor('missing.json')])
+    expect(schemasFor(OPERATIONS_FILE)).toEqual([pathFor('missing.json')])
+  })
+
+  it('generates types and operations from the hydrogen schema when the api cannot be introspected', async () => {
+    generate.mockImplementationOnce(invalid).mockImplementation(succeeds)
+
+    await generateAll(pathFor('missing.json'))
+
+    expect(schemasFor(FILENAME)).toEqual([MOCK_API_SCHEMA, [expect.stringContaining('storefront.schema.json')]])
+    expect(schemasFor(TYPES_FILE)).toEqual([pathFor('missing.json')])
+    expect(schemasFor(OPERATIONS_FILE)).toEqual([pathFor('missing.json')])
+  })
+
+  it('reports one failure and leaves types and operations empty when no schema could be introspected', async () => {
+    generate.mockImplementation(invalid)
+
+    await expect(generateAll(pathFor('missing.json'))).resolves.toEqual(['', '', ''])
+
+    expect(schemasFor(TYPES_FILE)).toEqual([])
+    expect(schemasFor(OPERATIONS_FILE)).toEqual([])
+    expect(getGenerateFailures()).toHaveLength(1)
   })
 })
 
@@ -112,7 +187,6 @@ describe('global type declarations', () => {
       shopName: 'test-shop',
       clientType: ShopifyClientType.Storefront,
       clientConfig: { apiVersion: '2026-04', mock: true, documents: [], codegen: { autoImport } },
-      introspection: pathFor('populated.json'),
     },
   }) as never
 
@@ -127,7 +201,7 @@ describe('global type declarations', () => {
   })
 
   it('declares every operation and fragment type globally', async () => {
-    const contents = await createOperationsGenerator()!(operationsData(true)) as string
+    const contents = await generateOperations(operationsData(true)) as string
 
     expect(contents).toContain('declare global {')
     expect(contents).toContain(`type GetProductQuery = import('./storefront.operations.d.ts').GetProductQuery`)
@@ -136,7 +210,7 @@ describe('global type declarations', () => {
   })
 
   it('leaves the global namespace alone when auto import is disabled', async () => {
-    const contents = await createOperationsGenerator()!(operationsData(false)) as string
+    const contents = await generateOperations(operationsData(false)) as string
 
     expect(contents).not.toContain('declare global {')
     expect(contents).toContain('export type GetProductQuery')
@@ -145,7 +219,7 @@ describe('global type declarations', () => {
   it('emits no block when the client has no operations', async () => {
     generate.mockImplementation(() => Promise.resolve([{ content: 'interface GeneratedQueryTypes {}' }]))
 
-    const contents = await createOperationsGenerator()!(operationsData(true)) as string
+    const contents = await generateOperations(operationsData(true)) as string
 
     expect(contents).not.toContain('declare global {')
   })
@@ -157,7 +231,7 @@ describe('introspection retries', () => {
 
     generate.mockImplementationOnce(fails).mockImplementation(succeeds)
 
-    const result = createIntrospectionGenerator()!(introspectionData())
+    const result = introspect(pathFor('missing.json'))
 
     await vi.advanceTimersByTimeAsync(60_000)
 
@@ -170,7 +244,7 @@ describe('introspection retries', () => {
 
     generate.mockImplementation(fails)
 
-    const result = createIntrospectionGenerator()!(introspectionData())
+    const result = introspect(pathFor('missing.json'))
 
     await vi.advanceTimersByTimeAsync(60_000)
 
@@ -180,14 +254,13 @@ describe('introspection retries', () => {
     expect(existsSync(schemaOfCall(-1)[0])).toBe(true)
   })
 
-  it('does not retry an error the api will keep returning', async () => {
-    const invalid = () => Promise.reject(new Error('GraphQL Document Validation failed with 1 errors;\n  Error 0: Cannot query field "nope" on type "Shop".'))
+  it('uses the hydrogen schema without retrying an error the api will keep returning', async () => {
+    generate.mockImplementationOnce(invalid).mockImplementation(succeeds)
 
-    generate.mockImplementation(invalid)
+    await expect(introspect(pathFor('missing.json'))).resolves.toBe('{"__schema":{}}')
 
-    await expect(createIntrospectionGenerator()!(introspectionData())).resolves.toBe('')
-
-    expect(generate).toHaveBeenCalledTimes(1)
+    expect(generate).toHaveBeenCalledTimes(2)
+    expect(schemaOfCall(-1)).toEqual([expect.stringContaining('storefront.schema.json')])
   })
 
   it('retries an error that wraps a transport failure', async () => {
@@ -200,7 +273,7 @@ describe('introspection retries', () => {
 
     generate.mockImplementationOnce(aggregate).mockImplementation(succeeds)
 
-    const result = createIntrospectionGenerator()!(introspectionData())
+    const result = introspect(pathFor('missing.json'))
 
     await vi.advanceTimersByTimeAsync(60_000)
 
@@ -211,7 +284,7 @@ describe('introspection retries', () => {
   it('does not retry a local schema file', async () => {
     generate.mockImplementation(fails)
 
-    await expect(createIntrospectionGenerator()!(introspectionData(pathFor('populated.json'))))
+    await expect(introspect(pathFor('populated.json')))
       .resolves.toBe('')
 
     expect(generate).toHaveBeenCalledTimes(1)
@@ -231,7 +304,6 @@ describe('hydrogen fallback', () => {
       shopName: 'test-shop',
       clientType: ShopifyClientType.Storefront,
       clientConfig: { apiVersion: '2026-04', mock: true, documents: [], codegen: { autoImport: false } },
-      introspection: pathFor('missing.json'),
     },
   }) as never
 
@@ -242,24 +314,10 @@ describe('hydrogen fallback', () => {
   it('reports a document error instead of retrying it against the hydrogen schema', async () => {
     generate.mockImplementation(() => Promise.reject(new Error('GraphQL Document Validation failed with 1 errors;\n  Error 0: Cannot query field "customers" on type "QueryRoot".')))
 
-    await expect(createOperationsGenerator()!(operationsData())).resolves.toBe('')
+    await expect(generateOperations(operationsData())).resolves.toBe('')
 
     expect(generate).toHaveBeenCalledTimes(1)
     expect(getGenerateFailures()).toEqual([expect.stringContaining('Cannot query field "customers" on type "QueryRoot"')])
-  })
-
-  it('uses the hydrogen schema when the api returns an invalid schema', async () => {
-    const invalid = () => Promise.reject(new AggregateError(
-      [new Error('Type GiftCard must define one or more fields.')],
-      'Type GiftCard must define one or more fields.',
-    ))
-
-    generate.mockImplementationOnce(invalid).mockImplementation(succeeds)
-
-    await expect(createIntrospectionGenerator()!(introspectionData())).resolves.toBe('{"__schema":{}}')
-
-    expect(generate).toHaveBeenCalledTimes(2)
-    expect(schemaOfCall(-1)).toEqual([expect.stringContaining('storefront.schema.json')])
   })
 })
 
@@ -283,7 +341,6 @@ describe('document parse failures', () => {
         documents: ['**/*.{ts,graphql}', '!node_modules'],
         codegen: { autoImport: false },
       },
-      introspection: pathFor('populated.json'),
     },
   }) as never
 
@@ -303,7 +360,7 @@ describe('document parse failures', () => {
     writeFileSync(join(root, 'good.ts'), 'export const good = `#graphql\n  query Good { shop { name } }\n`\n')
     writeFileSync(join(root, 'broken.ts'), 'export const broken = `#graphql\n  query Broken { shop { name\n`\n')
 
-    const contents = await createOperationsGenerator()!(operationsData()) as string
+    const contents = await generateOperations(operationsData()) as string
 
     expect(contents).toBe('')
     expect(generate).not.toHaveBeenCalled()
@@ -321,7 +378,7 @@ describe('document parse failures', () => {
     writeFileSync(join(root, 'plain.ts'), 'export const plain = 1\n')
     writeFileSync(join(root, 'frag.graphql'), 'fragment ShopFields on Shop { name }\n')
 
-    await createOperationsGenerator()!(operationsData())
+    await generateOperations(operationsData())
 
     expect(generate).toHaveBeenCalledTimes(1)
     expect(getGenerateFailures()).toHaveLength(0)
@@ -351,7 +408,6 @@ describe('document globs', () => {
         documents: [...DOCUMENTS],
         codegen: { autoImport: false },
       },
-      introspection: pathFor('populated.json'),
     },
   })
 
@@ -366,7 +422,7 @@ describe('document globs', () => {
   })
 
   it('hands codegen the configured globs to resolve from the project root', async () => {
-    await createOperationsGenerator()!(operationsData() as never)
+    await generateOperations(operationsData() as never)
 
     const [input] = generate.mock.calls[0]!
 
@@ -381,8 +437,8 @@ describe('document globs', () => {
       return Promise.resolve()
     })
 
-    await createOperationsGenerator()!(data as never)
-    await createOperationsGenerator()!(data as never)
+    await generateOperations(data as never)
+    await generateOperations(data as never)
 
     expect(data.options.clientConfig.documents).toEqual(DOCUMENTS)
   })

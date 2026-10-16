@@ -4,8 +4,8 @@ import type { Nuxt, NuxtTemplate } from '@nuxt/schema'
 import type { ShopifyConfig } from '../types'
 
 import { existsSync, statSync } from 'node:fs'
-import { stat } from 'node:fs/promises'
-import { basename } from 'node:path'
+import { mkdir, stat, writeFile } from 'node:fs/promises'
+import { basename, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { generate } from '@graphql-codegen/cli'
 import { preset, pluckConfig } from '@shopify/graphql-codegen'
@@ -38,10 +38,6 @@ const INTROSPECTION_RETRY_DELAY = 5000
 
 const TRANSPORT_ERROR_PATTERN = /Failed to load schema|ETIMEDOUT|ECONNREFUSED|ECONNRESET|ENOTFOUND|EAI_AGAIN|socket hang up|network|fetch failed|timeout/i
 
-const SCHEMA_LOAD_ERROR_PATTERN = /Failed to load schema/
-
-const INVALID_SCHEMA_ERROR_PATTERN = /must define one or more/
-
 const GLOB_MAGIC = /[*?[\]{}()]/
 
 const generateFailures = new Set<string>()
@@ -53,7 +49,11 @@ type ShopifyTemplateOptions = {
   shopName: string
   clientType: ShopifyClientType
   clientConfig: ShopifyConfig['clients'][ShopifyClientType]
-  introspection?: string
+}
+
+type IntrospectionGenerator = {
+  getContents: (data: { nuxt: Nuxt }) => Promise<string>
+  getSchema: (nuxt: Nuxt) => Promise<string | undefined>
 }
 
 type InterfaceExtensionsParams = {
@@ -101,14 +101,6 @@ function collectErrorMessages(error: unknown): string {
 
 function isTransportError(error: unknown): boolean {
   return TRANSPORT_ERROR_PATTERN.test(collectErrorMessages(error))
-}
-
-function isSchemaLoadError(error: unknown): boolean {
-  return SCHEMA_LOAD_ERROR_PATTERN.test(collectErrorMessages(error))
-}
-
-function isInvalidSchemaError(error: unknown): boolean {
-  return INVALID_SCHEMA_ERROR_PATTERN.test(collectErrorMessages(error))
 }
 
 async function generateWithRetry<T extends Types.ConfiguredOutput>(
@@ -192,13 +184,25 @@ async function runGenerate<T extends Types.ConfiguredOutput>(
   generatorConfig: T,
   createConfig: (generatorConfig: T) => GenerateInput,
 ) {
-  const logger = useLogger()
+  try {
+    return await extractResult(generate(createConfig(generatorConfig), false))
+  }
+  catch (error) {
+    return reportGenerateFailure(nuxt, options.filename, error)
+  }
+}
 
+async function runIntrospection<T extends Types.ConfiguredOutput>(
+  nuxt: Nuxt,
+  options: ShopifyTemplateOptions,
+  generatorConfig: T,
+  createConfig: (generatorConfig: T) => GenerateInput,
+) {
   try {
     return await generateWithRetry(generatorConfig, createConfig)
   }
   catch (error) {
-    const fallbackSchema = isRemoteSchema(generatorConfig.schema) && (isSchemaLoadError(error) || isInvalidSchemaError(error))
+    const fallbackSchema = isRemoteSchema(generatorConfig.schema)
       ? getHydrogenSchema(options.clientType)
       : undefined
 
@@ -206,14 +210,9 @@ async function runGenerate<T extends Types.ConfiguredOutput>(
       return reportGenerateFailure(nuxt, options.filename, error)
     }
 
-    logger.warn(`Failed to introspect the ${kebabCase(options.clientType)} API, falling back to the schema from \`@shopify/hydrogen\`: ${(error as Error).message}`)
+    useLogger().warn(`Failed to introspect the ${kebabCase(options.clientType)} API, falling back to the schema from \`@shopify/hydrogen\`: ${(error as Error).message}`)
 
-    try {
-      return await extractResult(generate(createConfig({ ...generatorConfig, schema: fallbackSchema }), false))
-    }
-    catch (fallbackError) {
-      return reportGenerateFailure(nuxt, options.filename, fallbackError)
-    }
+    return runGenerate(nuxt, options, { ...generatorConfig, schema: fallbackSchema }, createConfig)
   }
 }
 
@@ -243,22 +242,16 @@ declare module '@nuxtjs/shopify/${kebabCase(clientType)}' {
 `
 }
 
-async function getIntrospectionCacheKey(options: ShopifyTemplateOptions): Promise<string | undefined> {
-  if (!hasStoredIntrospection(options.introspection)) return undefined
-
-  const { mtimeMs, size } = await stat(options.introspection).catch(() => ({ mtimeMs: 0, size: 0 }))
+async function getIntrospectionCacheKey(path: string): Promise<string | undefined> {
+  const { mtimeMs, size } = await stat(path).catch(() => ({ mtimeMs: 0, size: 0 }))
 
   if (!size) return undefined
 
-  return `${options.introspection}:${mtimeMs}:${size}`
+  return `${path}:${mtimeMs}:${size}`
 }
 
-async function getIntrospection(options: ShopifyTemplateOptions) {
-  const { shopName, clientType, clientConfig, introspection } = options
-
-  if (hasStoredIntrospection(introspection)) {
-    return introspection
-  }
+async function getIntrospectionSource(options: ShopifyTemplateOptions) {
+  const { shopName, clientType, clientConfig } = options
 
   const apiVersion = clientConfig?.apiVersion
   const headers: Record<string, string> = { ...(clientConfig?.headers as Record<string, string>) }
@@ -324,45 +317,78 @@ function getTypescriptPluginConfig(config: ShopifyConfig['clients'][ShopifyClien
   })
 }
 
-export function createIntrospectionGenerator(): NuxtTemplate<ShopifyTemplateOptions>['getContents'] {
-  return async (data) => {
-    const generatorConfig = {
-      schema: await getIntrospection(data.options),
-      plugins: [{
-        introspection: {
-          minify: true,
-        },
-      }],
-    } satisfies Types.ConfiguredOutput
+async function generateIntrospection(nuxt: Nuxt, options: ShopifyTemplateOptions, path: string) {
+  const stored = hasStoredIntrospection(path)
 
-    await data.nuxt.callHook(`${kebabCase(data.options.clientType)}:generate:introspection`, {
-      nuxt: data.nuxt,
-      config: generatorConfig,
-    })
-
-    return runGenerate(data.nuxt, data.options, generatorConfig, config => ({
-      overwrite: true,
-      ignoreNoDocuments: true,
-      silent: useLogger().level < LogLevels.verbose,
-      generates: {
-        [data.options.filename]: config,
+  const generatorConfig = {
+    schema: stored ? path : await getIntrospectionSource(options),
+    plugins: [{
+      introspection: {
+        minify: true,
       },
-    }))
+    }],
+  } satisfies Types.ConfiguredOutput
+
+  await nuxt.callHook(`${kebabCase(options.clientType)}:generate:introspection`, {
+    nuxt,
+    config: generatorConfig,
+  })
+
+  const contents = await runIntrospection(nuxt, options, generatorConfig, config => ({
+    overwrite: true,
+    ignoreNoDocuments: true,
+    silent: useLogger().level < LogLevels.verbose,
+    generates: {
+      [options.filename]: config,
+    },
+  }))
+
+  if (contents && !stored) {
+    await mkdir(dirname(path), { recursive: true })
+    await writeFile(path, contents)
   }
+
+  return contents
 }
 
-export function createTypesGenerator(): NuxtTemplate<ShopifyTemplateOptions>['getContents'] {
+export function createIntrospectionGenerator(options: ShopifyTemplateOptions, path: string): IntrospectionGenerator {
+  let pending: Promise<string> | undefined
+
+  function getContents({ nuxt }: { nuxt: Nuxt }) {
+    pending ??= generateIntrospection(nuxt, options, path).finally(() => {
+      pending = undefined
+    })
+
+    return pending
+  }
+
+  async function getSchema(nuxt: Nuxt) {
+    if (pending || !hasStoredIntrospection(path)) {
+      await getContents({ nuxt })
+    }
+
+    return hasStoredIntrospection(path) ? path : undefined
+  }
+
+  return { getContents, getSchema }
+}
+
+export function createTypesGenerator(introspection: Pick<IntrospectionGenerator, 'getSchema'>): NuxtTemplate<ShopifyTemplateOptions>['getContents'] {
   let cached: { key: string, contents: string } | undefined
 
   return async (data) => {
-    const cacheKey = await getIntrospectionCacheKey(data.options)
+    const schema = await introspection.getSchema(data.nuxt)
+
+    if (!schema) return ''
+
+    const cacheKey = await getIntrospectionCacheKey(schema)
 
     if (cacheKey && cached?.key === cacheKey) {
       return cached.contents
     }
 
     const generatorConfig = {
-      schema: await getIntrospection(data.options),
+      schema,
       plugins: [getTypescriptPluginConfig(data.options.clientConfig)],
     } satisfies Types.ConfiguredOutput
 
@@ -388,10 +414,14 @@ export function createTypesGenerator(): NuxtTemplate<ShopifyTemplateOptions>['ge
   }
 }
 
-export function createOperationsGenerator(): NuxtTemplate<ShopifyTemplateOptions>['getContents'] {
+export function createOperationsGenerator(introspection: Pick<IntrospectionGenerator, 'getSchema'>): NuxtTemplate<ShopifyTemplateOptions>['getContents'] {
   return async (data) => {
+    const schema = await introspection.getSchema(data.nuxt)
+
+    if (!schema) return ''
+
     const generatorConfig = {
-      schema: await getIntrospection(data.options),
+      schema,
       preset,
       documents: data.options.clientConfig?.documents?.slice(),
       presetConfig: {

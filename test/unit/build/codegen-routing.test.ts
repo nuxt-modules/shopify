@@ -54,9 +54,14 @@ function operationsData(clientType: ShopifyClientType, documents: string[]) {
       shopName: 'test-shop',
       clientType,
       clientConfig: { apiVersion: '2026-04', documents, codegen: { autoImport: false } },
-      introspection: join(root, introspectionFile(clientType)),
     },
   } as never
+}
+
+function storedSchema(clientType: ShopifyClientType) {
+  const schema = join(root, introspectionFile(clientType))
+
+  return { getSchema: () => Promise.resolve(schema) }
 }
 
 beforeAll(() => {
@@ -79,7 +84,7 @@ beforeEach(() => {
 
 describe('document routing', () => {
   it('keeps admin operations out of the storefront types', async () => {
-    const generateOperations = createOperationsGenerator()!
+    const generateOperations = createOperationsGenerator(storedSchema(ShopifyClientType.Storefront))!
     const contents = await generateOperations(operationsData(ShopifyClientType.Storefront, expectedStorefrontDocuments))
 
     expect(getGenerateFailures()).toEqual([])
@@ -88,7 +93,7 @@ describe('document routing', () => {
   }, CODEGEN_TIMEOUT)
 
   it('types admin operations against the admin schema only', async () => {
-    const generateOperations = createOperationsGenerator()!
+    const generateOperations = createOperationsGenerator(storedSchema(ShopifyClientType.Admin))!
     const contents = await generateOperations(operationsData(ShopifyClientType.Admin, expectedAdminDocuments))
 
     expect(getGenerateFailures()).toEqual([])
