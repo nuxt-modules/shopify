@@ -15,6 +15,7 @@ import { createGraphqlTransformPlugin } from '../utils/graphql/transform'
 import { getConfiguredClients } from '../utils/clients'
 import { scanFragments } from '../utils/graphql/registry'
 import { useLogger } from '../utils/log'
+import { toPosix } from '../utils/codegen'
 
 const ROUTING_ORDER = [
   ShopifyClientType.Admin,
@@ -23,8 +24,6 @@ const ROUTING_ORDER = [
 ]
 
 const AUTO_IMPORT_CHANGING_EVENTS = ['add', 'unlink'] as const
-
-const toPosix = (path: string) => path.split(sep).join('/')
 
 const within = (dirs: string[], path: string) =>
   dirs.some(dir => path === dir || path.startsWith(dir + sep))

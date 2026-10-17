@@ -4,6 +4,7 @@ export const useCart = () => {
   const { t } = useI18n()
 
   const analytics = useShopifyAnalytics()
+  const { params: localization } = useLocalization()
 
   const cart = useState<CartFieldsFragment | undefined>('shopify-cart', () => undefined)
   const loading = useState('shopify-cart-loading', () => ref(false))
@@ -77,6 +78,7 @@ export const useCart = () => {
           quantity,
         },
       ],
+      ...localization.value,
     }),
   })).then(({ data }) => {
     id.value = data?.cartCreate?.cart?.id
@@ -101,6 +103,7 @@ export const useCart = () => {
     `, {
       variables: cartGetInputSchema.parse({
         id: id.value,
+        ...localization.value,
       }),
     })).then(({ data }) => {
       if (!data?.cart) id.value = undefined
@@ -137,6 +140,7 @@ export const useCart = () => {
             quantity,
           },
         ],
+        ...localization.value,
       }),
     })).then(({ data }) =>
       notifyAdded(variantId, data?.cartLinesAdd?.cart ?? undefined),
@@ -168,6 +172,7 @@ export const useCart = () => {
           quantity,
         },
       ],
+      ...localization.value,
     }),
   })).then(({ data }) => {
     setCart(data?.cartLinesUpdate?.cart ?? undefined)
@@ -203,6 +208,7 @@ export const useCart = () => {
     variables: cartRemoveInputSchema.parse({
       cartId: id.value,
       lineIds: [variantId],
+      ...localization.value,
     }),
   })).then(({ data }) => {
     setCart(data?.cartLinesRemove?.cart ?? undefined)

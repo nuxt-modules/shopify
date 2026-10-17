@@ -2,7 +2,7 @@ import type { Nuxt } from '@nuxt/schema'
 
 import type { ShopifyConfig } from '../types'
 
-import { relative, sep } from 'node:path'
+import { relative } from 'node:path'
 
 import { addTemplate } from '@nuxt/kit'
 
@@ -10,6 +10,7 @@ import { ShopifyClientType } from '../schemas'
 import { getConfiguredClients } from '../utils/clients'
 import { getIntrospectionFilename } from '../utils/templates'
 import { useLogger } from '../utils/log'
+import { toPosix } from '../utils/codegen'
 
 const PROJECT_ORDER = [
   ShopifyClientType.Admin,
@@ -18,8 +19,6 @@ const PROJECT_ORDER = [
 ]
 
 const DIR_IGNORES = ['node_modules', 'dist', '.nuxt', '.output']
-
-const toPosix = (path: string) => path.split(sep).join('/')
 
 interface GraphqlProject {
   schema: string

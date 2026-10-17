@@ -5,8 +5,7 @@ import type { ShopifyConfig } from '../types'
 
 import { existsSync, statSync } from 'node:fs'
 import { mkdir, stat, writeFile } from 'node:fs/promises'
-import { basename, dirname } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { basename, dirname, sep } from 'node:path'
 import { generate } from '@graphql-codegen/cli'
 import { preset, pluckConfig } from '@shopify/graphql-codegen'
 import { LogLevels } from 'consola'
@@ -16,7 +15,7 @@ import { joinURL } from 'ufo'
 
 import { ShopifyClientType } from '../schemas'
 import { useLogger } from './log'
-import { isInstalled } from './install'
+import { getInstalledVersion, resolveInstalledPath } from './install'
 import { getAdminAccessToken } from '../runtime/utils/clients/admin/auth'
 import {
   ADMIN_TOKEN_HEADER,
@@ -25,12 +24,11 @@ import {
   PUBLIC_TOKEN_HEADER,
 } from '../runtime/utils/clients/transport'
 
-const HYDROGEN_STOREFRONT_SCHEMA = '@shopify/hydrogen/storefront.schema.json'
-const HYDROGEN_CUSTOMER_ACCOUNT_SCHEMA = '@shopify/hydrogen/customer-account.schema.json'
+const HYDROGEN = '@shopify/hydrogen'
 
 const HYDROGEN_SCHEMAS: Partial<Record<ShopifyClientType, string>> = {
-  [ShopifyClientType.Storefront]: HYDROGEN_STOREFRONT_SCHEMA,
-  [ShopifyClientType.CustomerAccount]: HYDROGEN_CUSTOMER_ACCOUNT_SCHEMA,
+  [ShopifyClientType.Storefront]: `${HYDROGEN}/storefront.schema.json`,
+  [ShopifyClientType.CustomerAccount]: `${HYDROGEN}/customer-account.schema.json`,
 }
 
 const INTROSPECTION_ATTEMPTS = 3
@@ -61,18 +59,43 @@ type InterfaceExtensionsParams = {
   mutationType: string
 }
 
-function resolveSchemaPath(schemaId: string) {
-  return fileURLToPath(import.meta.resolve(schemaId))
-}
+export const toPosix = (path: string) => path.split(sep).join('/')
 
 function getHydrogenSchema(clientType: ShopifyClientType) {
   const schemaId = HYDROGEN_SCHEMAS[clientType]
+  const schemaPath = schemaId && resolveInstalledPath(schemaId)
 
-  if (!schemaId || !isInstalled(schemaId)) {
-    return undefined
-  }
+  return schemaPath ? [schemaPath] : undefined
+}
 
-  return [resolveSchemaPath(schemaId)]
+function isHydrogenSchema(schema: Types.ConfiguredOutput['schema'], clientType: ShopifyClientType) {
+  const [hydrogenSchema] = getHydrogenSchema(clientType) ?? []
+
+  return !!hydrogenSchema && [schema].flat().includes(hydrogenSchema)
+}
+
+async function getHydrogenSchemaApiVersion() {
+  const version = await getInstalledVersion(HYDROGEN)
+  const [year, month] = version?.split('.').map(Number) ?? []
+
+  if (!year || !month) return undefined
+
+  const apiReleaseMonth = month - ((month - 1) % 3)
+
+  return `${year}-${String(apiReleaseMonth).padStart(2, '0')}`
+}
+
+async function warnOnHydrogenSchemaMismatch({ clientType, clientConfig }: ShopifyTemplateOptions) {
+  const schemaApiVersion = await getHydrogenSchemaApiVersion()
+  const apiVersion = clientConfig?.apiVersion
+
+  if (!schemaApiVersion || !apiVersion || schemaApiVersion === apiVersion) return
+
+  useLogger().warn(
+    `The ${kebabCase(clientType)} types are generated from the \`${HYDROGEN}\` schema for API version \`${schemaApiVersion}\`, `
+    + `but the client uses \`${apiVersion}\`. Set \`clients.${clientType}.apiVersion\` to \`${schemaApiVersion}\`, `
+    + `or install the matching \`${HYDROGEN}\` release`,
+  )
 }
 
 function isRemoteSchema(schema: Types.ConfiguredOutput['schema']) {
@@ -276,7 +299,7 @@ async function getIntrospectionSource(options: ShopifyTemplateOptions) {
     }
   }
   else if (clientType === ShopifyClientType.CustomerAccount) {
-    return [resolveSchemaPath(HYDROGEN_CUSTOMER_ACCOUNT_SCHEMA)]
+    return getHydrogenSchema(clientType)
   }
   else if (clientType === ShopifyClientType.Admin) {
     const adminConfig = clientConfig as NonNullable<ShopifyConfig['clients']['admin']>
@@ -333,6 +356,10 @@ async function generateIntrospection(nuxt: Nuxt, options: ShopifyTemplateOptions
     nuxt,
     config: generatorConfig,
   })
+
+  if (isHydrogenSchema(generatorConfig.schema, options.clientType)) {
+    await warnOnHydrogenSchemaMismatch(options)
+  }
 
   const contents = await runIntrospection(nuxt, options, generatorConfig, config => ({
     overwrite: true,

@@ -6,9 +6,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ShopifyClientType } from '#src/schemas'
 
 const generate = vi.fn()
+const installedVersions = new Map<string, string>()
 
 vi.mock('@graphql-codegen/cli', () => ({
   generate: (...args: unknown[]) => generate(...args as []),
+}))
+
+vi.mock('#src/utils/install', async importOriginal => ({
+  ...await importOriginal<typeof import('#src/utils/install')>(),
+  getInstalledVersion: (id: string) => Promise.resolve(installedVersions.get(id)),
 }))
 
 const {
@@ -18,6 +24,10 @@ const {
   createTypesGenerator,
   getGenerateFailures,
 } = await import('#src/utils/codegen')
+
+const { useLogger } = await import('#src/utils/log')
+
+const warn = vi.spyOn(useLogger(), 'warn')
 
 const FILENAME = 'schema/storefront.2026-04.schema.json'
 
@@ -79,6 +89,8 @@ beforeEach(() => {
 afterEach(() => {
   vi.useRealTimers()
 
+  installedVersions.clear()
+
   rmSync(dir, { recursive: true, force: true })
 })
 
@@ -110,6 +122,53 @@ describe('introspection source', () => {
 
     expect(schemaOfCall(0)).toEqual([expect.stringContaining('customer-account.schema.json')])
     expect(existsSync(schemaOfCall(0)[0])).toBe(true)
+  })
+})
+
+describe('hydrogen schema version', () => {
+  beforeEach(() => {
+    generate.mockImplementation(succeeds)
+  })
+
+  it('warns when the customer account types follow another api version than the client', async () => {
+    installedVersions.set('@shopify/hydrogen', '2026.10.1')
+
+    await introspect(pathFor('missing.json'), ShopifyClientType.CustomerAccount)
+
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('API version `2026-10`, but the client uses `2026-04`'))
+  })
+
+  it('stays quiet when both use the same api version', async () => {
+    installedVersions.set('@shopify/hydrogen', '2026.4.6')
+
+    await introspect(pathFor('missing.json'), ShopifyClientType.CustomerAccount)
+
+    expect(warn).not.toHaveBeenCalled()
+  })
+
+  it('reads a hydrogen release between api releases as the api version before it', async () => {
+    installedVersions.set('@shopify/hydrogen', '2025.5.0')
+
+    await introspect(pathFor('missing.json'), ShopifyClientType.CustomerAccount)
+
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('API version `2025-04`'))
+  })
+
+  it('stays quiet when a hook replaced the hydrogen schema', async () => {
+    installedVersions.set('@shopify/hydrogen', '2026.10.1')
+
+    const replacing = {
+      options: { dev: false, _prepare: true },
+      callHook: (_hook: string, { config }: { config: { schema: unknown } }) => {
+        config.schema = pathFor('populated.json')
+
+        return Promise.resolve()
+      },
+    } as never
+
+    await createIntrospection(pathFor('missing.json'), ShopifyClientType.CustomerAccount).getContents({ nuxt: replacing })
+
+    expect(warn).not.toHaveBeenCalled()
   })
 })
 

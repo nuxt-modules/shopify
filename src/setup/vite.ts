@@ -19,10 +19,6 @@ export default function setupVite(nuxt: Nuxt, config: ShopifyConfig) {
     deps.push('@shopify/graphql-client')
   }
 
-  if (config.clients?.customerAccount) {
-    deps.push('@shopify/hydrogen')
-  }
-
   if (config.analytics) {
     deps.push('@shopify/hydrogen-react')
   }
