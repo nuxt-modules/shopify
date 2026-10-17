@@ -1,6 +1,5 @@
 import type {
   ShopAnalytics,
-  ShopifyAnalyticsCart,
   ShopifyAnalyticsContext,
 } from '../../module'
 
@@ -12,6 +11,7 @@ import {
   useRuntimeConfig,
 } from '#imports'
 
+import { useAnalyticsCart } from '../composables/analytics/client'
 import { createLogger } from '../utils/log'
 import { createCartTracker } from '../utils/analytics/cart'
 import { createEmitter } from '../utils/analytics/emitter'
@@ -45,7 +45,7 @@ export default defineNuxtPlugin({
 
     const emitter = createEmitter()
     const shop = ref<ShopAnalytics | null>(null)
-    const cart = ref<ShopifyAnalyticsCart | null>(null)
+    const cart = useAnalyticsCart()
 
     const privacy = setupCustomerPrivacy({
       checkoutDomain: analytics.consent?.checkoutDomain || host,
@@ -127,7 +127,7 @@ export default defineNuxtPlugin({
       subscribe: emitter.on,
     }
 
-    watch(cart, createCartTracker({ publish: context.publish }))
+    watch(cart, createCartTracker({ publish: context.publish, initialCart: cart.value }))
 
     if (analytics.autoPageView) {
       const trackPageView = createPageViewTracker({

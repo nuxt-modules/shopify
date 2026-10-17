@@ -11,6 +11,7 @@ type StoredUpdate = { id?: string, updatedAt?: string }
 
 export interface CartTrackerOptions {
   publish: <E extends AnalyticsEventName>(event: E, payload: AnalyticsEventPayload<E>) => void
+  initialCart?: ShopifyAnalyticsCart | null
 }
 
 function readStoredUpdate(): StoredUpdate | null {
@@ -31,8 +32,8 @@ function storeUpdate(cart: ShopifyAnalyticsCart): void {
   }
 }
 
-export function createCartTracker({ publish }: CartTrackerOptions) {
-  let prevCart: ShopifyAnalyticsCart | null = null
+export function createCartTracker({ publish, initialCart = null }: CartTrackerOptions) {
+  let prevCart = initialCart
 
   const diffLines = (cart: ShopifyAnalyticsCart, previousLines: ShopifyAnalyticsCartLine[]) => {
     const currentLines = cart.lines ?? []

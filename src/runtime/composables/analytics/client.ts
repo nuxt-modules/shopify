@@ -1,13 +1,19 @@
-import type { ShopifyAnalyticsContext } from '../../../module'
+import type { ShopifyAnalyticsCart, ShopifyAnalyticsContext } from '../../../module'
 
 import { ref } from 'vue'
-import { useNuxtApp } from '#imports'
+import { useNuxtApp, useState } from '#imports'
 
-function createNoopContext(): ShopifyAnalyticsContext {
+export function useAnalyticsCart() {
+  return useState<ShopifyAnalyticsCart | null>('shopify-analytics-cart', () => null)
+}
+
+function createInactiveContext(): ShopifyAnalyticsContext {
+  const cart = useAnalyticsCart()
+
   return {
     shop: ref(null),
-    cart: ref(null),
-    setCart: () => {},
+    cart,
+    setCart: value => (cart.value = value),
     canTrack: () => false,
     publish: () => {},
     subscribe: () => () => {},
@@ -23,5 +29,5 @@ function createNoopContext(): ShopifyAnalyticsContext {
  * @returns the analytics context with the current shop, cart and consent state
  */
 export function useShopifyAnalytics(): ShopifyAnalyticsContext {
-  return useNuxtApp().$shopify?.analytics ?? createNoopContext()
+  return useNuxtApp().$shopify?.analytics ?? createInactiveContext()
 }

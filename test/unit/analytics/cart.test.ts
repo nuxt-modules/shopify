@@ -26,10 +26,10 @@ function cart(updatedAt: string, lines: ShopifyAnalyticsCartLine[]): ShopifyAnal
   return { id: 'gid://shopify/Cart/1', updatedAt, lines }
 }
 
-function setup() {
+function setup(initialCart?: ShopifyAnalyticsCart) {
   const publish = vi.fn()
 
-  return { publish, track: createCartTracker({ publish }) }
+  return { publish, track: createCartTracker({ publish, initialCart }) }
 }
 
 function events(publish: ReturnType<typeof vi.fn>, name: string) {
@@ -77,6 +77,26 @@ describe('analytics cart events', () => {
     second.track(cart('1', [line('a', 1)]))
 
     expect(second.publish).not.toHaveBeenCalled()
+  })
+
+  it('compares the first change against the starting cart', () => {
+    const { publish, track } = setup(cart('1', [line('a', 1)]))
+
+    track(cart('2', [line('a', 1), line('b', 1)]))
+
+    const added = events(publish, 'product_added_to_cart')
+
+    expect(added).toHaveLength(1)
+    expect(added[0].currentLine.id).toBe('b')
+    expect(events(publish, 'cart_updated')[0].prevCart.updatedAt).toBe('1')
+  })
+
+  it('ignores the starting cart when it is set again', () => {
+    const { publish, track } = setup(cart('1', [line('a', 1)]))
+
+    track(cart('1', [line('a', 1)]))
+
+    expect(publish).not.toHaveBeenCalled()
   })
 
   it('reports a new line as added', () => {
