@@ -100,8 +100,8 @@ importers:
         specifier: ^0.18.5
         version: 0.18.5
       '@graphql-tools/graphql-tag-pluck':
-        specifier: ^8.3.39
-        version: 8.3.39(graphql@16.14.2)(supports-color@10.2.2)
+        specifier: ^9.0.7
+        version: 9.0.7(graphql@16.14.2)
       '@nuxt/eslint-config':
         specifier: ^1.17.0
         version: 1.17.0(@typescript-eslint/utils@8.67.0(eslint@10.11.0(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)(typescript@6.0.3))(@vue/compiler-sfc@3.5.43)(eslint@10.11.0(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)(typescript@6.0.3)
