@@ -1,6 +1,7 @@
 import type { CustomerAccountSession, CustomerAccountUser } from '../../server/utils/customer-account/session'
 
 import { computed } from 'vue'
+import { parse } from 'cookie-es'
 import { joinURL, withLeadingSlash, withQuery } from 'ufo'
 import { createError, navigateTo, useRequestFetch, useRequestHeaders, useRuntimeConfig, useState } from '#imports'
 
@@ -50,7 +51,7 @@ export function useCustomerAccountSession() {
   const hasSessionCookie = () => {
     if (import.meta.client) return true
 
-    return !!requestCookie?.split(';').some(entry => entry.trimStart().startsWith(`${cookieName}=`))
+    return !!requestCookie && cookieName in parse(requestCookie)
   }
 
   const fetch = async () => {

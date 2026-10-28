@@ -17,7 +17,7 @@ import type {
 import { getRequestHeader, getRequestIP } from 'h3'
 import { joinURL } from 'ufo'
 
-import { createTrackingHeaders, collectTrackingHeaders } from '../../server/utils/tracking'
+import { pickShopifyCookies } from '../../server/utils/cookies'
 import {
   BUYER_IP_HEADER,
   PRIVATE_TOKEN_HEADER,
@@ -95,14 +95,13 @@ export function createClient<
   }
 
   if (import.meta.server && event) {
-    if (definition.tracking) {
-      Object.assign(apiClientConfig.headers, createTrackingHeaders(event, getRequestHeader(event, 'cookie')))
-    }
-    else if (definition.cookies && proxy) {
-      const cookie = getRequestHeader(event, 'cookie')
+    const cookie = getRequestHeader(event, 'cookie')
 
-      if (cookie) apiClientConfig.headers['Cookie'] = cookie
-    }
+    const forwardedCookie = definition.shopifyCookies
+      ? pickShopifyCookies(cookie)
+      : definition.cookies && proxy ? cookie : undefined
+
+    if (forwardedCookie) apiClientConfig.headers['Cookie'] = forwardedCookie
   }
 
   if (buyerIp !== false && apiClientConfig.headers[PRIVATE_TOKEN_HEADER]) {
@@ -141,8 +140,6 @@ export function createClient<
     const response = definition.cache
       ? await useCache(cache, transport.request as any, operation, options, cacheConfig?.presets, Boolean(origin && proxy))
       : await transport.request(operation, options)
-
-    if (import.meta.server && event && definition.tracking) collectTrackingHeaders(event, response.headers)
 
     await callbacks.onResponse?.({
       response: response,

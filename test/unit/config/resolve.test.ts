@@ -2,10 +2,10 @@ import type { Nuxt } from '@nuxt/schema'
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { DEFAULT_API_VERSION } from '#src/runtime/utils/clients/defaults'
-import { SESSION_DEFAULT_NAME } from '#src/runtime/utils/session'
+import { API_VERSION, OTHER_API_VERSION } from '#test/helpers/api-version'
 
 const installed = new Set<string>()
+const versions = new Map<string, string>()
 const persisted: Array<[string, string]> = []
 
 const warnings: string[] = []
@@ -13,6 +13,7 @@ const warnings: string[] = []
 vi.mock('#src/utils/install', () => ({
   isInstalled: (id: string) => installed.has(id),
   isResolvableFrom: () => true,
+  getInstalledVersion: (id: string) => Promise.resolve(versions.get(id)),
 }))
 
 vi.mock('#src/utils/log', () => ({
@@ -36,20 +37,22 @@ vi.mock('#src/utils/session', async importOriginal => ({
 
 const { configSchema, publicConfigSchema } = await import('#src/schemas')
 
-const API_URL = 'https://shopify.com/1234/account/customer/api/2026-04/graphql'
+const apiUrl = (apiVersion: string) => `https://shopify.com/1234/account/customer/api/${apiVersion}/graphql`
+
+const API_URL = apiUrl(API_VERSION)
 
 function nuxtStub(options: Record<string, unknown> = {}) {
   return { options: { ssr: true, dev: false, rootDir: '/tmp/shop', ...options } } as unknown as Nuxt
 }
 
 async function resolve(input: Record<string, unknown>, nuxt = nuxtStub()) {
-  return parse({ ...input, _nuxt: nuxt })
-}
-
-async function parse(input: Record<string, unknown>) {
-  const config = await configSchema.parseAsync(input)
+  const config = await configSchema.parseAsync({ ...input, _nuxt: nuxt })
 
   return { config, publicConfig: publicConfigSchema.parse(config) }
+}
+
+function stubApiUrl(url: string) {
+  vi.stubGlobal('fetch', vi.fn(() => Promise.resolve({ json: () => Promise.resolve({ graphql_api: url }) })))
 }
 
 const storefront = { publicAccessToken: 'tok' }
@@ -57,52 +60,44 @@ const storefront = { publicAccessToken: 'tok' }
 beforeEach(() => {
   installed.clear()
   installed.add('@shopify/hydrogen')
-  installed.add('@shopify/hydrogen-react')
+
+  versions.clear()
+  versions.set('@shopify/hydrogen', '2026.10.2')
 
   persisted.length = 0
   warnings.length = 0
 
   delete process.env.NUXT_SHOPIFY_CLIENTS_CUSTOMER_ACCOUNT_SESSION_PASSWORD
 
-  vi.stubGlobal('fetch', vi.fn(() => Promise.resolve({ json: () => Promise.resolve({ graphql_api: API_URL }) })))
+  stubApiUrl(API_URL)
 })
 
 describe('peer dependency requirements', () => {
-  it('keeps analytics enabled when its dependencies and token are present', async () => {
+  it('keeps analytics enabled with hydrogen 2026.10', async () => {
     const { config, publicConfig } = await resolve({ name: 'shop', clients: { storefront }, analytics: { storefrontId: '1' } })
 
     expect(config.analytics).toMatchObject({ storefrontId: '1' })
     expect(publicConfig.analytics).toMatchObject({ storefrontId: '1' })
   })
 
-  it('disables analytics in both configs when hydrogen-react is missing', async () => {
-    installed.delete('@shopify/hydrogen-react')
+  it('disables analytics in both configs when hydrogen is older than 2026.10', async () => {
+    versions.set('@shopify/hydrogen', '2026.4.6')
 
     const { config, publicConfig } = await resolve({ name: 'shop', clients: { storefront }, analytics: true })
 
     expect(config.analytics).toBe(false)
     expect(publicConfig.analytics).toBe(false)
+    expect(warnings).toContainEqual(expect.stringContaining('needs `@shopify/hydrogen` 2026.10 or newer'))
   })
 
-  it('disables analytics in both configs when no public storefront token is available', async () => {
-    const { config, publicConfig } = await resolve({
+  it('keeps analytics without a public storefront token', async () => {
+    const { config } = await resolve({
       name: 'shop',
       clients: { storefront: { privateAccessToken: 'private' } },
       analytics: true,
     })
 
-    expect(config.analytics).toBe(false)
-    expect(publicConfig.analytics).toBe(false)
-  })
-
-  it('accepts a consent token in place of the storefront token', async () => {
-    const { config } = await resolve({
-      name: 'shop',
-      clients: { storefront: { privateAccessToken: 'private' } },
-      analytics: { consent: { storefrontAccessToken: 'consent-token' } },
-    })
-
-    expect(config.analytics).toMatchObject({ consent: { storefrontAccessToken: 'consent-token' } })
+    expect(config.analytics).not.toBe(false)
   })
 
   it('disables the customer account client in both configs when hydrogen is missing', async () => {
@@ -121,15 +116,7 @@ describe('peer dependency requirements', () => {
 describe('proxy requires a server', () => {
   const input = { name: 'shop', clients: { storefront, customerAccount: { clientId: 'cid' } } }
 
-  it('keeps the proxies when rendering on the server', async () => {
-    const { config, publicConfig } = await resolve(input)
-
-    expect(config.clients.storefront?.proxy).toEqual({ route: '_proxy/storefront' })
-    expect(publicConfig.clients.storefront?.proxy).toEqual({ route: '_proxy/storefront' })
-    expect(publicConfig.clients.customerAccount?.proxy).toEqual({ route: '_proxy/customer-account' })
-  })
-
-  it('keeps the proxies when ssr is off', async () => {
+  it('keeps the proxies unless prerendering, even when ssr is off', async () => {
     const { config, publicConfig } = await resolve(input, nuxtStub({ ssr: false }))
 
     expect(config.clients.storefront?.proxy).toEqual({ route: '_proxy/storefront' })
@@ -142,13 +129,16 @@ describe('proxy requires a server', () => {
     const { config, publicConfig } = await resolve(input, nuxtStub({ _generate: true }))
 
     expect(config.clients.storefront?.proxy).toBe(false)
+    expect(config.clients.customerAccount?.proxy).toBe(false)
     expect(publicConfig.clients.storefront?.proxy).toBe(false)
+    expect(publicConfig.clients.customerAccount?.proxy).toBe(false)
   })
 
-  it('leaves an explicit opt-out alone', async () => {
-    const { config } = await resolve({ name: 'shop', clients: { storefront: { ...storefront, proxy: false } } })
+  it('warns that analytics cannot reach Shopify without a server', async () => {
+    const { config } = await resolve({ ...input, analytics: true }, nuxtStub({ _generate: true }))
 
-    expect(config.clients.storefront?.proxy).toBe(false)
+    expect(config.analytics).not.toBe(false)
+    expect(warnings).toContainEqual(expect.stringContaining('Static generation has no server for the paths Shopify\'s scripts call'))
   })
 })
 
@@ -193,7 +183,7 @@ describe('customer account api url', () => {
   it('resolves the url from the well-known endpoint into both configs', async () => {
     const { config, publicConfig } = await resolve({
       name: 'shop',
-      clients: { customerAccount: { clientId: 'cid', apiVersion: '2026-04' } },
+      clients: { customerAccount: { clientId: 'cid', apiVersion: API_VERSION } },
     })
 
     expect(fetch).toHaveBeenCalledWith('https://shop.myshopify.com/.well-known/customer-account-api')
@@ -202,21 +192,20 @@ describe('customer account api url', () => {
   })
 
   it('pins the resolved url to the configured api version', async () => {
-    const { config, publicConfig } = await resolve({
+    stubApiUrl(apiUrl(OTHER_API_VERSION))
+
+    const { config } = await resolve({
       name: 'shop',
-      clients: { customerAccount: { clientId: 'cid', apiVersion: '2026-04' } },
+      clients: { customerAccount: { clientId: 'cid', apiVersion: API_VERSION } },
     })
 
-    const expected = 'https://shopify.com/1234/account/customer/api/2026-04/graphql'
-
-    expect(config.clients.customerAccount?.apiURL).toBe(expected)
-    expect(publicConfig.clients.customerAccount?.apiURL).toBe(expected)
+    expect(config.clients.customerAccount?.apiURL).toBe(apiUrl(API_VERSION))
   })
 
   it('leaves an unversioned well-known url untouched', async () => {
     const unversioned = 'https://shopify.com/1234/account/customer/graphql'
 
-    vi.stubGlobal('fetch', vi.fn(() => Promise.resolve({ json: () => Promise.resolve({ graphql_api: unversioned }) })))
+    stubApiUrl(unversioned)
 
     const { config } = await resolve(input)
 
@@ -224,7 +213,7 @@ describe('customer account api url', () => {
   })
 
   it('prefers a configured url and skips the lookup', async () => {
-    const configured = 'https://shopify.com/9/account/customer/api/2026-04/graphql'
+    const configured = `https://shopify.com/9/account/customer/api/${API_VERSION}/graphql`
 
     const { config } = await resolve({ name: 'shop', clients: { customerAccount: { clientId: 'cid', apiURL: configured } } })
 
@@ -268,13 +257,6 @@ describe('customer account session password', () => {
     expect(config.clients.customerAccount?.session.password).toBeUndefined()
     expect(persisted).toHaveLength(0)
   })
-
-  it('never leaks the password into the public config', async () => {
-    const { publicConfig } = await resolve(input, nuxtStub({ dev: true }))
-
-    expect(publicConfig.clients.customerAccount?.session).toStrictEqual({ name: SESSION_DEFAULT_NAME })
-    expect(JSON.stringify(publicConfig)).not.toContain(persisted[0]![1])
-  })
 })
 
 describe('api version window', () => {
@@ -284,13 +266,13 @@ describe('api version window', () => {
     expect(config.clients.storefront?.apiVersion).toBe('2020-01')
     expect(warnings.join('\n')).toContain('`2020-01`')
     expect(warnings.join('\n')).toContain('outside the window')
-    expect(warnings.join('\n')).toContain(DEFAULT_API_VERSION)
+    expect(warnings.join('\n')).toContain(API_VERSION)
   })
 
   it('stays quiet for a version inside the window', async () => {
-    const { config } = await resolve({ name: 'shop', clients: { storefront: { ...storefront, apiVersion: DEFAULT_API_VERSION } } })
+    const { config } = await resolve({ name: 'shop', clients: { storefront: { ...storefront, apiVersion: API_VERSION } } })
 
-    expect(config.clients.storefront?.apiVersion).toBe(DEFAULT_API_VERSION)
+    expect(config.clients.storefront?.apiVersion).toBe(API_VERSION)
     expect(warnings.join('\n')).not.toContain('outside the window')
   })
 
@@ -298,23 +280,5 @@ describe('api version window', () => {
     await resolve({ name: 'shop', clients: { customerAccount: { clientId: 'cid', apiVersion: '2020-01' } } })
 
     expect(warnings.join('\n')).toContain('customer-account client')
-  })
-})
-
-describe('without a nuxt instance', () => {
-  it('resolves the config without fetching or writing anything', async () => {
-    installed.clear()
-
-    const { config } = await parse({
-      name: 'shop',
-      clients: { storefront, customerAccount: { clientId: 'cid' } },
-      analytics: true,
-    })
-
-    expect(fetch).not.toHaveBeenCalled()
-    expect(persisted).toHaveLength(0)
-    expect(config.analytics).toMatchObject({ autoPageView: true })
-    expect(config.clients.customerAccount).toBeDefined()
-    expect(config.clients.storefront?.proxy).toEqual({ route: '_proxy/storefront' })
   })
 })

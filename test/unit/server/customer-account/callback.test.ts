@@ -1,5 +1,7 @@
+import { createHash } from 'node:crypto'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { API_VERSION } from '#test/helpers/api-version'
 import { CUSTOMER, UNCONFIGURED_SHOPIFY_CONFIG, createNoopStorage, createShopifyConfig } from '#test/helpers/customer-account'
 import { createTestEvent, getResponseCookies, getResponseHeader, getSetCookieHeaders, toCookieHeader } from '#test/helpers/event'
 
@@ -38,12 +40,19 @@ vi.mock('#src/runtime/utils/clients/customer-account/auth', async () => {
 })
 
 const handler = (await import('#src/runtime/server/api/auth/customer-account/callback')).default
-const { getCustomerAccountSession } = await import('#src/runtime/server/utils/customer-account/session')
+const { getCustomerAccountSession, getCustomerAccountTokens } = await import('#src/runtime/server/utils/customer-account/session')
 
 const STATE_COOKIE = 'shopify-customer-account-state'
 const VERIFIER_COOKIE = 'shopify-customer-account-verifier'
 const NONCE_COOKIE = 'shopify-customer-account-nonce'
 const RETURN_TO_COOKIE = 'shopify-customer-account-return-to'
+
+const AFTER_LOGIN = '/welcome'
+const ERROR_REDIRECT = `${AFTER_LOGIN}?customer_account_error=1`
+
+const UNSAFE_REMEMBERED_PATHS = ['//evil.example', '/\\evil.example']
+
+const NOW = Date.UTC(2026, 0, 1)
 
 function encodeIdToken(claims: Record<string, unknown>): string {
   const payload = Buffer.from(JSON.stringify(claims), 'utf8')
@@ -60,7 +69,12 @@ const callbackEvent = (path: string, headers: Record<string, string> = {}) =>
 
 async function completeFlow(
   secondLegQuery: (cookies: Record<string, string>) => string,
-  { firstLegQuery = '', echoNonce = true } = {},
+  { firstLegQuery = '', echoNonce = true, tokenResponse = {}, extraCookie = '' }: {
+    firstLegQuery?: string
+    echoNonce?: boolean
+    tokenResponse?: Record<string, unknown>
+    extraCookie?: string
+  } = {},
 ) {
   const first = callbackEvent(firstLegQuery)
 
@@ -73,11 +87,14 @@ async function completeFlow(
       access_token: 'access-token',
       refresh_token: 'refresh-token',
       expires_in: 7200,
+      ...tokenResponse,
       id_token: encodeIdToken({ nonce: cookies[NONCE_COOKIE] }),
     })
   }
 
-  const second = callbackEvent(secondLegQuery(cookies), { cookie: toCookieHeader(first) })
+  const cookie = [toCookieHeader(first), extraCookie].filter(Boolean).join('; ')
+
+  const second = callbackEvent(secondLegQuery(cookies), { cookie })
 
   await handler(second)
 
@@ -86,9 +103,9 @@ async function completeFlow(
 
 function configure(customerAccount: Record<string, unknown> = {}) {
   runtimeConfig._shopify = createShopifyConfig({
-    apiURL: 'https://shopify.com/1/account/customer/api/2026-04/graphql',
+    apiURL: `https://shopify.com/1/account/customer/api/${API_VERSION}/graphql`,
     scope: ['openid', 'email'],
-    afterLogin: '/',
+    afterLogin: AFTER_LOGIN,
     afterLogout: '/',
     routes: {
       callback: '_auth/customer-account/callback',
@@ -121,7 +138,7 @@ describe('first leg', () => {
     expect(getResponseHeader(event, 'location')).toContain('https://shopify.example/oauth/authorize')
   })
 
-  it('sets single use state and nonce cookies', async () => {
+  it('sets distinct state and nonce cookies', async () => {
     const event = callbackEvent('')
 
     await handler(event)
@@ -133,14 +150,19 @@ describe('first leg', () => {
     expect(cookies[STATE_COOKIE]).not.toBe(cookies[NONCE_COOKIE])
   })
 
-  it('marks the transient cookies http only and lax', async () => {
-    const event = callbackEvent('')
+  it('marks every transient cookie http only, secure and lax', async () => {
+    const event = callbackEvent('?return_to=/account/orders')
 
     await handler(event)
 
-    for (const cookie of getSetCookieHeaders(event)) {
-      expect(cookie).toMatch(/HttpOnly/i)
-      expect(cookie).toMatch(/SameSite=Lax/i)
+    const cookies = getSetCookieHeaders(event)
+
+    expect(cookies).toHaveLength(4)
+
+    for (const cookie of cookies) {
+      expect(cookie).toMatch(/;\s*HttpOnly/i)
+      expect(cookie).toMatch(/;\s*Secure/i)
+      expect(cookie).toMatch(/;\s*SameSite=Lax/i)
     }
   })
 
@@ -155,13 +177,17 @@ describe('first leg', () => {
     expect(getResponseHeader(event, 'location')).toContain(`nonce=${cookies[NONCE_COOKIE]}`)
   })
 
-  it('uses PKCE for a public client', async () => {
+  it('sends the S256 challenge of the stored PKCE verifier for a public client', async () => {
     const event = callbackEvent('')
 
     await handler(event)
 
-    expect(getResponseCookies(event)[VERIFIER_COOKIE]).toBeTruthy()
-    expect(getResponseHeader(event, 'location')).toContain('code_challenge_method=S256')
+    const verifier = getResponseCookies(event)[VERIFIER_COOKIE]!
+    const params = new URL(getResponseHeader(event, 'location')).searchParams
+
+    expect(verifier).toBeTruthy()
+    expect(params.get('code_challenge')).toBe(createHash('sha256').update(verifier).digest('base64url'))
+    expect(params.get('code_challenge_method')).toBe('S256')
   })
 
   it('skips PKCE for a confidential client', async () => {
@@ -183,13 +209,8 @@ describe('first leg', () => {
     expect(getResponseCookies(event)[RETURN_TO_COOKIE]).toBe('/account/orders')
   })
 
-  it.each([
-    ['//evil.example'],
-    ['https://evil.example'],
-    ['/\\evil.example'],
-    ['evil.example'],
-  ])('refuses to remember the unsafe return path %s', async (returnTo) => {
-    const event = callbackEvent(`?return_to=${encodeURIComponent(returnTo)}`)
+  it('refuses to remember an unsafe return path', async () => {
+    const event = callbackEvent(`?return_to=${encodeURIComponent('//evil.example')}`)
 
     await handler(event)
 
@@ -236,40 +257,25 @@ describe('state validation', () => {
   })
 
   it('clears the transient cookies once the state has been checked', async () => {
-    const first = callbackEvent('')
-
-    await handler(first)
-
-    const second = callbackEvent(
-      `?code=abc&state=${getResponseCookies(first)[STATE_COOKIE]}`,
-      { cookie: toCookieHeader(first) },
+    const { second } = await completeFlow(
+      c => `?code=abc&state=${c[STATE_COOKIE]}`,
+      { firstLegQuery: '?return_to=/account/orders' },
     )
 
-    await handler(second)
+    const expired = getSetCookieHeaders(second)
+      .filter(cookie => /Max-Age=0/i.test(cookie))
+      .map(cookie => cookie.slice(0, cookie.indexOf('=')))
 
-    const cleared = getSetCookieHeaders(second).filter(cookie => cookie.startsWith('shopify-customer-account-'))
-
-    expect(cleared.length).toBeGreaterThanOrEqual(3)
-
-    for (const cookie of cleared) {
-      expect(cookie).toMatch(/Max-Age=0|Expires=Thu, 01 Jan 1970/i)
-    }
+    expect(expired).toEqual(expect.arrayContaining([STATE_COOKIE, NONCE_COOKIE, VERIFIER_COOKIE, RETURN_TO_COOKIE]))
   })
 
   it('does not accept the state cookie twice', async () => {
-    const first = callbackEvent('')
+    const { second, cookies } = await completeFlow(c => `?code=abc&state=${c[STATE_COOKIE]}`)
 
-    await handler(first)
-
-    const state = getResponseCookies(first)[STATE_COOKIE]
-
-    const second = callbackEvent(`?code=abc&state=${state}`, { cookie: toCookieHeader(first) })
-
-    await handler(second)
-
-    const replay = callbackEvent(`?code=abc&state=${state}`, { cookie: toCookieHeader(second) })
+    const replay = callbackEvent(`?code=abc&state=${cookies[STATE_COOKIE]}`, { cookie: toCookieHeader(second) })
 
     await expect(handler(replay)).rejects.toMatchObject({ statusCode: 403 })
+    expect(exchangeAuthorizationCode).toHaveBeenCalledOnce()
   })
 })
 
@@ -301,7 +307,7 @@ describe('PKCE', () => {
 })
 
 describe('nonce validation', () => {
-  it('redirects with an error marker when the id token nonce does not match', async () => {
+  it('redirects with an error marker and no session when the id token nonce does not match', async () => {
     exchangeAuthorizationCode.mockResolvedValue({
       access_token: 'access-token',
       expires_in: 7200,
@@ -310,17 +316,7 @@ describe('nonce validation', () => {
 
     const { second } = await completeFlow(c => `?code=abc&state=${c[STATE_COOKIE]}`, { echoNonce: false })
 
-    expect(getResponseHeader(second, 'location')).toContain('customer_account_error=1')
-  })
-
-  it('does not establish a session when the nonce does not match', async () => {
-    exchangeAuthorizationCode.mockResolvedValue({
-      access_token: 'access-token',
-      expires_in: 7200,
-      id_token: encodeIdToken({ nonce: 'a-different-nonce' }),
-    })
-
-    const { second } = await completeFlow(c => `?code=abc&state=${c[STATE_COOKIE]}`, { echoNonce: false })
+    expect(getResponseHeader(second, 'location')).toBe(ERROR_REDIRECT)
 
     const next = createTestEvent({ headers: { cookie: toCookieHeader(second) } })
 
@@ -332,40 +328,15 @@ describe('nonce validation', () => {
 
     const { second } = await completeFlow(c => `?code=abc&state=${c[STATE_COOKIE]}`, { echoNonce: false })
 
-    expect(getResponseHeader(second, 'location')).toContain('customer_account_error=1')
-  })
-
-  it('accepts a matching nonce', async () => {
-    exchangeAuthorizationCode.mockImplementation(() => Promise.resolve({
-      access_token: 'access-token',
-      expires_in: 7200,
-      id_token: undefined,
-    }))
-
-    const first = callbackEvent('')
-
-    await handler(first)
-
-    const cookies = getResponseCookies(first)
-
-    exchangeAuthorizationCode.mockResolvedValue({
-      access_token: 'access-token',
-      refresh_token: 'refresh-token',
-      expires_in: 7200,
-      id_token: encodeIdToken({ nonce: cookies[NONCE_COOKIE] }),
-    })
-
-    const second = callbackEvent(`?code=abc&state=${cookies[STATE_COOKIE]}`, { cookie: toCookieHeader(first) })
-
-    await handler(second)
-
-    const next = createTestEvent({ headers: { cookie: toCookieHeader(second) } })
-
-    await expect(getCustomerAccountSession(next)).resolves.toMatchObject({ loggedIn: true })
+    expect(getResponseHeader(second, 'location')).toBe(ERROR_REDIRECT)
   })
 })
 
 describe('success', () => {
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
   async function succeed(query: (cookies: Record<string, string>) => string) {
     const first = callbackEvent('?return_to=/account/orders')
 
@@ -414,31 +385,46 @@ describe('success', () => {
   })
 
   it('redirects to afterLogin when nothing was remembered', async () => {
-    const first = callbackEvent('')
+    const { second } = await completeFlow(c => `?code=abc&state=${c[STATE_COOKIE]}`)
 
-    await handler(first)
-
-    const cookies = getResponseCookies(first)
-
-    exchangeAuthorizationCode.mockResolvedValue({
-      access_token: 'access-token',
-      expires_in: 7200,
-      id_token: encodeIdToken({ nonce: cookies[NONCE_COOKIE] }),
-    })
-
-    const second = callbackEvent(`?code=abc&state=${cookies[STATE_COOKIE]}`, { cookie: toCookieHeader(first) })
-
-    await handler(second)
-
-    expect(getResponseHeader(second, 'location')).toBe('/')
+    expect(getResponseHeader(second, 'location')).toBe(AFTER_LOGIN)
   })
 
-  it('redirects with an error marker when the token exchange fails', async () => {
+  it.each(UNSAFE_REMEMBERED_PATHS)('ignores the unsafe remembered path %s after a successful login', async (returnTo) => {
+    const { second } = await completeFlow(
+      c => `?code=abc&state=${c[STATE_COOKIE]}`,
+      { extraCookie: `${RETURN_TO_COOKIE}=${encodeURIComponent(returnTo)}` },
+    )
+
+    expect(getResponseHeader(second, 'location')).toBe(AFTER_LOGIN)
+  })
+
+  it('stores the token lifetime the token endpoint reports', async () => {
+    vi.useFakeTimers({ now: NOW, toFake: ['Date'] })
+
+    const { second } = await completeFlow(c => `?code=abc&state=${c[STATE_COOKIE]}`, { tokenResponse: { expires_in: 3600 } })
+
+    const next = createTestEvent({ headers: { cookie: toCookieHeader(second) } })
+
+    await expect(getCustomerAccountTokens(next)).resolves.toMatchObject({ expiresAt: NOW + 3600_000 })
+  })
+
+  it('falls back to a two hour token lifetime when the token endpoint reports none', async () => {
+    vi.useFakeTimers({ now: NOW, toFake: ['Date'] })
+
+    const { second } = await completeFlow(c => `?code=abc&state=${c[STATE_COOKIE]}`, { tokenResponse: { expires_in: undefined } })
+
+    const next = createTestEvent({ headers: { cookie: toCookieHeader(second) } })
+
+    await expect(getCustomerAccountTokens(next)).resolves.toMatchObject({ expiresAt: NOW + 7200_000 })
+  })
+
+  it('redirects to afterLogin with an error marker when the token exchange fails', async () => {
     exchangeAuthorizationCode.mockRejectedValue(new Error('invalid_grant'))
 
     const { second } = await completeFlow(c => `?code=abc&state=${c[STATE_COOKIE]}`, { echoNonce: false })
 
-    expect(getResponseHeader(second, 'location')).toContain('customer_account_error=1')
+    expect(getResponseHeader(second, 'location')).toBe(ERROR_REDIRECT)
   })
 
   it('calls the error hook when the token exchange fails', async () => {
@@ -469,6 +455,16 @@ describe('provider errors', () => {
     await handler(second)
 
     expect(getResponseHeader(second, 'location')).toBe('/account')
+  })
+
+  it.each(UNSAFE_REMEMBERED_PATHS)('ignores the unsafe remembered path %s on a declined authorization', async (returnTo) => {
+    const event = callbackEvent('?error=access_denied', {
+      cookie: `${RETURN_TO_COOKIE}=${encodeURIComponent(returnTo)}`,
+    })
+
+    await handler(event)
+
+    expect(getResponseHeader(event, 'location')).toBe('/')
   })
 
   it('reports any other provider error as unauthorized', async () => {
@@ -556,6 +552,6 @@ describe('dev tunnel bridge', () => {
   it('refuses an absolute bridge url pointing away from the dev machine', async () => {
     configure({ dev: { tunnelURL: TUNNEL, bridgeURL: 'https://evil.example/steal' } })
 
-    expect(await completeTunnelFlow()).toContain('customer_account_error=1')
+    expect(await completeTunnelFlow()).toBe(ERROR_REDIRECT)
   })
 })

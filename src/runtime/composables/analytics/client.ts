@@ -12,12 +12,14 @@ function createInactiveContext(): ShopifyAnalyticsContext {
 
   return {
     shop: ref(null),
+    i18n: ref(null),
     cart,
     setCart: value => (cart.value = value),
-    canTrack: () => false,
     publish: () => {},
-    subscribe: () => () => {},
-    setTrackingConsent: () => {},
+    addDestination: () => () => {},
+    canTrack: () => false,
+    shouldShowBanner: () => false,
+    setTrackingConsent: () => Promise.resolve(),
     showPreferences: () => Promise.resolve(),
     setShopContext: () => Promise.resolve(null),
   }

@@ -24,5 +24,6 @@ const decline = () => analytics.setTrackingConsent({
     :decline="decline"
     :set-consent="analytics.setTrackingConsent"
     :can-track="analytics.canTrack"
+    :should-show-banner="analytics.shouldShowBanner"
   />
 </template>

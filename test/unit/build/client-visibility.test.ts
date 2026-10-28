@@ -21,10 +21,6 @@ describe('isPublicClient', () => {
   it('does not treat a private-token-only storefront as public', () => {
     expect(isPublicClient({ privateAccessToken: 'private' } as never)).toBe(false)
   })
-
-  it('does not treat an admin client as public', () => {
-    expect(isPublicClient({ accessToken: 'shpat_x' } as never)).toBe(false)
-  })
 })
 
 describe('hasPublicClient', () => {
@@ -44,8 +40,8 @@ describe('hasPublicClient', () => {
     expect(hasPublicClient({ clients: { customerAccount: { clientId: 'cid' } } } as never)).toBe(true)
   })
 
-  it('is false when only an admin client is configured', () => {
-    expect(hasPublicClient({ clients: { admin: { accessToken: 'shpat_x' } } } as never)).toBe(false)
+  it('is false when only an admin client with a client id is configured', () => {
+    expect(hasPublicClient({ clients: { admin: { clientId: 'cid', clientSecret: 'secret' } } } as never)).toBe(false)
   })
 })
 

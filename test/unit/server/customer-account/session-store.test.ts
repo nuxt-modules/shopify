@@ -1,3 +1,4 @@
+import { getSession } from 'h3'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { CUSTOMER, SESSION_PASSWORD, createShopifyConfig, createTokenSet } from '#test/helpers/customer-account'
@@ -43,7 +44,6 @@ const {
   requireCustomerAccountSession,
   setCustomerAccountSession,
   setCustomerAccountTokens,
-  usesExternalTokenStorage,
 } = await import('#src/runtime/server/utils/customer-account/session')
 
 const TOKENS = createTokenSet()
@@ -115,18 +115,6 @@ describe('getSessionConfig', () => {
   })
 })
 
-describe('usesExternalTokenStorage', () => {
-  it('is false when no token storage is configured', () => {
-    expect(usesExternalTokenStorage(runtimeConfig._shopify as never)).toBe(false)
-  })
-
-  it('is true once a token storage mount is configured', () => {
-    configure({ tokenStorage: 'my-mount' })
-
-    expect(usesExternalTokenStorage(runtimeConfig._shopify as never)).toBe(true)
-  })
-})
-
 describe('session lifecycle', () => {
   it('reports a logged out session when no cookie is present', async () => {
     await expect(getCustomerAccountSession(createTestEvent())).resolves.toEqual({
@@ -136,10 +124,11 @@ describe('session lifecycle', () => {
     })
   })
 
-  it('does not read a session for a request without the session cookie', async () => {
+  it('neither reads nor starts a session for a request without the session cookie', async () => {
     const event = createTestEvent({ headers: { cookie: 'unrelated=1' } })
 
     await expect(getCustomerAccountSession(event)).resolves.toMatchObject({ loggedIn: false })
+    expect(getSetCookieHeaders(event)).toEqual([])
   })
 
   it('persists the customer and reads it back on a later request', async () => {
@@ -221,7 +210,20 @@ describe('token storage', () => {
 
     const event = createTestEvent({ headers: { cookie: toCookieHeader(login) } })
 
+    const { data } = await getSession(event, getSessionConfig(runtimeConfig._shopify as never))
+
+    expect(data).toMatchObject({ user: CUSTOMER })
+    expect(data).not.toHaveProperty('tokens')
+
     await expect(getCustomerAccountTokens(event)).resolves.toEqual(TOKENS)
+  })
+
+  it('uses the default token storage mount for a storage driver config', async () => {
+    configure({ tokenStorage: { driver: 'memory' } })
+
+    await setCustomerAccountSession(createTestEvent({ method: 'POST' }), { user: CUSTOMER, tokens: TOKENS, loggedInAt: 1 })
+
+    expect(useTokenStorage('customer-account-token').setItem).toHaveBeenCalledWith(expect.any(String), TOKENS, undefined)
   })
 
   it('applies the session max age as the token storage ttl', async () => {
@@ -261,6 +263,20 @@ describe('token storage', () => {
   })
 
   it('replaces the tokens of an existing session', async () => {
+    const event = await loggedInEvent({ method: 'POST' })
+
+    const rotated = { ...TOKENS, accessToken: 'rotated-access-token' }
+
+    await setCustomerAccountTokens(event, rotated)
+
+    const next = createTestEvent({ headers: { cookie: toCookieHeader(event) } })
+
+    await expect(getCustomerAccountTokens(next)).resolves.toEqual(rotated)
+  })
+
+  it('replaces the stored tokens when a token storage is configured', async () => {
+    configure({ tokenStorage: 'customer-account-token' })
+
     const event = await loggedInEvent({ method: 'POST' })
 
     const rotated = { ...TOKENS, accessToken: 'rotated-access-token' }

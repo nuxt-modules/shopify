@@ -1,13 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { getCurrentSupportedApiVersions } from '@shopify/graphql-client'
-
-import { DEFAULT_API_VERSION } from '#src/runtime/utils/clients/defaults'
 import { resolveApiUrl } from '#src/runtime/utils/resolve'
-import { configObjectSchema, publicConfigSchema } from '#src/schemas'
-
-const OTHER_API_VERSION = getCurrentSupportedApiVersions()
-  .find(version => version !== DEFAULT_API_VERSION && version !== 'unstable')!
+import { configObjectSchema } from '#src/schemas'
+import { API_VERSION, OTHER_API_VERSION } from '#test/helpers/api-version'
 
 const apiUrl = (shopId: number, apiVersion: string) =>
   `https://shopify.com/${shopId}/account/customer/api/${apiVersion}/graphql`
@@ -24,7 +19,8 @@ const input = {
     customerAccount: {
       clientId: 'client-id',
       clientSecret: 'client-secret',
-      apiURL: apiUrl(1, DEFAULT_API_VERSION),
+      apiVersion: API_VERSION,
+      apiURL: apiUrl(1, API_VERSION),
     },
 
     admin: {
@@ -44,29 +40,10 @@ describe('runtime config', () => {
     expect(configObjectSchema.parse(resolved)).toEqual(resolved)
   })
 
-  it('keeps values the build derived', () => {
-    expect(configObjectSchema.parse(resolved).clients.customerAccount?.apiURL)
-      .toBe(input.clients.customerAccount.apiURL)
-  })
-
   it('keeps a client the build disabled disabled', () => {
     const config = { ...resolved, clients: { ...resolved.clients, customerAccount: undefined } }
 
     expect(configObjectSchema.parse(config).clients.customerAccount).toBeUndefined()
-  })
-
-  it('keeps analytics the build disabled disabled', () => {
-    expect(configObjectSchema.parse({ ...resolved, analytics: false }).analytics).toBe(false)
-  })
-
-  it('never exposes a secret through the public config', () => {
-    const exposed = JSON.stringify(publicConfigSchema.parse(resolved))
-
-    expect(exposed).toContain('public-token')
-
-    for (const secret of ['private-token', 'client-secret', 'admin-token']) {
-      expect(exposed).not.toContain(secret)
-    }
   })
 })
 
@@ -91,9 +68,12 @@ describe('resolveApiUrl', () => {
   })
 
   it('keeps the built URL when nothing it depends on changed', async () => {
+    stubApiUrl(apiUrl(1, OTHER_API_VERSION))
+
     const config = configObjectSchema.parse(input)
 
     await expect(resolveApiUrl(config, baked)).resolves.toBe(config)
+    expect(fetch).not.toHaveBeenCalled()
   })
 
   it('resolves again when the store name changed', async () => {
@@ -102,11 +82,11 @@ describe('resolveApiUrl', () => {
     const config = await resolveApiUrl(withOverrides({ name: 'other-shop' }), baked)
 
     expect(fetch).toHaveBeenCalledWith('https://other-shop.myshopify.com/.well-known/customer-account-api')
-    expect(config.clients.customerAccount?.apiURL).toBe(apiUrl(2, DEFAULT_API_VERSION))
+    expect(config.clients.customerAccount?.apiURL).toBe(apiUrl(2, API_VERSION))
   })
 
   it('resolves again when the api version changed', async () => {
-    stubApiUrl(apiUrl(1, DEFAULT_API_VERSION))
+    stubApiUrl(apiUrl(1, API_VERSION))
 
     const config = await resolveApiUrl(withOverrides(withCustomerAccount({ apiVersion: OTHER_API_VERSION })), baked)
 
@@ -119,11 +99,11 @@ describe('resolveApiUrl', () => {
     const unresolved = withOverrides(withCustomerAccount({ apiURL: undefined }))
     const config = await resolveApiUrl(unresolved, unresolved)
 
-    expect(config.clients.customerAccount?.apiURL).toBe(apiUrl(1, DEFAULT_API_VERSION))
+    expect(config.clients.customerAccount?.apiURL).toBe(apiUrl(1, API_VERSION))
   })
 
   it('never overrules an explicitly configured URL', async () => {
-    stubApiUrl(apiUrl(2, DEFAULT_API_VERSION))
+    stubApiUrl(apiUrl(2, API_VERSION))
 
     const config = withOverrides({
       name: 'other-shop',

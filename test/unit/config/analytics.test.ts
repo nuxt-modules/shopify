@@ -17,7 +17,7 @@ describe('analytics config', () => {
   })
 
   it('treats `true` as the default enabled config', () => {
-    expect(parseAnalytics(true)).toStrictEqual({ autoPageView: true })
+    expect(parseAnalytics(true)).toStrictEqual({ autoPageView: true, consent: { mode: 'no-banner' } })
   })
 
   it('disables when set to `false`', () => {
@@ -25,19 +25,16 @@ describe('analytics config', () => {
   })
 
   it('enables with an empty config object', () => {
-    expect(parseAnalytics({})).toStrictEqual({ autoPageView: true })
+    expect(parseAnalytics({})).toStrictEqual({ autoPageView: true, consent: { mode: 'no-banner' } })
   })
 
-  it('keeps an explicit config object and defaults its options', () => {
-    const analytics = parseAnalytics({ storefrontId: '1234567' })
-
-    expect(analytics).toMatchObject({ storefrontId: '1234567' })
+  it('loads no banner unless a consent mode is chosen', () => {
+    expect(parseAnalytics({ consent: {} })).toMatchObject({ consent: { mode: 'no-banner' } })
   })
 
-  it('defaults the privacy banner off inside consent', () => {
-    const analytics = parseAnalytics({ consent: { checkoutDomain: 'checkout.shop.com' } })
-
-    expect(analytics).toMatchObject({ consent: { checkoutDomain: 'checkout.shop.com', banner: false } })
+  it('accepts Shopify\'s consent modes only', () => {
+    expect(parseAnalytics({ consent: { mode: 'custom-banner' } })).toMatchObject({ consent: { mode: 'custom-banner' } })
+    expect(() => parseAnalytics({ consent: { mode: 'banner' } })).toThrow()
   })
 
   it('turns a numeric storefrontId into a string', () => {

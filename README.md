@@ -485,8 +485,8 @@ See the [caching documentation](https://shopify.nuxtjs.org/essentials/caching) f
 ### Using Analytics
 
 The module can send Shopify headless analytics, powering the reports and live view in your admin.
-Install `@shopify/hydrogen-react` and enable the `analytics` option, then report views with the drop-in components
-or publish events manually with the `useShopifyAnalytics` composable:
+Install `@shopify/hydrogen` 2026.10 or newer, whose scripts send the events, and enable the `analytics` option.
+Then report views with the drop-in components or publish events manually with the `useShopifyAnalytics` composable:
 
 ```html
 <!-- ~/pages/product.vue -->
@@ -498,9 +498,10 @@ or publish events manually with the `useShopifyAnalytics` composable:
         id: product.id,
         title: product.title,
         vendor: product.vendor,
-        price: variant.price.amount,
+        price: variant.price,
         variantId: variant.id,
         variantTitle: variant.title,
+        quantity: 1,
       }],
     }"
   />
@@ -510,17 +511,20 @@ or publish events manually with the `useShopifyAnalytics` composable:
 ```ts
 const analytics = useShopifyAnalytics()
 
-// Cart events are derived from cart state
+// Shopify derives the cart events from the cart
 analytics.setCart(cart)
 
-analytics.subscribe("product_added_to_cart", (payload) => {
-  // e.g. forward to GA4 or Meta
+analytics.addDestination({
+  name: "ga4",
+  setup: ({ subscribe }) => subscribe("product_added_to_cart", (payload) => {
+    // e.g. forward to GA4 or Meta
+  }),
 })
 ```
 
-All events are gated on Shopify's Customer Privacy API, so nothing is sent without the visitor's consent where consent is required.
+All events are gated on Shopify's Customer Privacy API, so nothing is delivered without the visitor's consent where consent is required.
 
-See the [analytics documentation](https://shopify.nuxtjs.org/essentials/analytics) for view components, custom events, and consent configuration.
+See the [analytics documentation](https://shopify.nuxtjs.org/essentials/analytics) for view components, destinations, and consent configuration.
 
 ### Subscribing / Unsubscribing webhooks
 

@@ -20,7 +20,7 @@ export default function setupVite(nuxt: Nuxt, config: ShopifyConfig) {
   }
 
   if (config.analytics) {
-    deps.push('@shopify/hydrogen-react')
+    deps.push('@shopify/hydrogen')
   }
 
   const storefrontCache = config.clients?.storefront?.cache

@@ -1,6 +1,6 @@
 import type { CustomerAccountTokenSet } from '#src/types/auth'
 
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { CUSTOMER, UNCONFIGURED_SHOPIFY_CONFIG, createNoopStorage, createShopifyConfig, createTokenSet } from '#test/helpers/customer-account'
 import { createTestEvent, toCookieHeader } from '#test/helpers/event'
@@ -32,6 +32,8 @@ const { getValidCustomerAccessToken } = await import('#src/runtime/server/utils/
 const { getCustomerAccountSession, getCustomerAccountTokens, setCustomerAccountSession }
   = await import('#src/runtime/server/utils/customer-account/session')
 
+const NOW = Date.UTC(2026, 0, 1)
+
 async function sessionWith(tokens: CustomerAccountTokenSet) {
   const login = createTestEvent({ method: 'POST' })
 
@@ -46,6 +48,10 @@ beforeEach(() => {
   runtimeConfig._shopify = createShopifyConfig()
 })
 
+afterEach(() => {
+  vi.useRealTimers()
+})
+
 describe('getValidCustomerAccessToken', () => {
   it('reports a missing request event instead of failing on a cookie read', async () => {
     await expect(getValidCustomerAccessToken(undefined))
@@ -56,7 +62,7 @@ describe('getValidCustomerAccessToken', () => {
     runtimeConfig._shopify = UNCONFIGURED_SHOPIFY_CONFIG
 
     await expect(getValidCustomerAccessToken(createTestEvent()))
-      .rejects.toMatchObject({ statusCode: 500 })
+      .rejects.toMatchObject({ statusCode: 500, message: expect.stringContaining('Customer account client is not configured') })
   })
 
   it('rejects an anonymous request as unauthorized, without claiming a session expired', async () => {
@@ -88,17 +94,6 @@ describe('getValidCustomerAccessToken', () => {
 
     await expect(getValidCustomerAccessToken(event)).resolves.toBe('fresh-access-token')
     expect(refreshAccessToken).toHaveBeenCalledOnce()
-  })
-
-  it('refreshes an already expired token', async () => {
-    refreshAccessToken.mockResolvedValue({ access_token: 'fresh-access-token', expires_in: 7200 })
-
-    const event = await sessionWith(createTokenSet({
-      expiresAt: Date.now() - 1000,
-      refreshToken: 'expired-refresh-token',
-    }))
-
-    await expect(getValidCustomerAccessToken(event)).resolves.toBe('fresh-access-token')
   })
 
   it('passes the client credentials and refresh token to the token endpoint', async () => {
@@ -161,9 +156,38 @@ describe('getValidCustomerAccessToken', () => {
     const next = createTestEvent({ headers: { cookie: toCookieHeader(event) } })
 
     await expect(getCustomerAccountTokens(next)).resolves.toMatchObject({
+      accessToken: 'fresh-access-token',
       refreshToken: 'retained-refresh-token',
       idToken: 'retained-id-token',
     })
+  })
+
+  it('stores the token lifetime the refresh response reports', async () => {
+    vi.useFakeTimers({ now: NOW, toFake: ['Date'] })
+
+    refreshAccessToken.mockResolvedValue({ access_token: 'fresh-access-token', expires_in: 1800 })
+
+    const event = await sessionWith(createTokenSet({ expiresAt: NOW - 1000, refreshToken: 'lifetime-refresh-token' }))
+
+    await getValidCustomerAccessToken(event)
+
+    const next = createTestEvent({ headers: { cookie: toCookieHeader(event) } })
+
+    await expect(getCustomerAccountTokens(next)).resolves.toMatchObject({ expiresAt: NOW + 1800_000 })
+  })
+
+  it('falls back to a two hour token lifetime when the refresh response reports none', async () => {
+    vi.useFakeTimers({ now: NOW, toFake: ['Date'] })
+
+    refreshAccessToken.mockResolvedValue({ access_token: 'fresh-access-token' })
+
+    const event = await sessionWith(createTokenSet({ expiresAt: NOW - 1000, refreshToken: 'fallback-refresh-token' }))
+
+    await getValidCustomerAccessToken(event)
+
+    const next = createTestEvent({ headers: { cookie: toCookieHeader(event) } })
+
+    await expect(getCustomerAccountTokens(next)).resolves.toMatchObject({ expiresAt: NOW + 7200_000 })
   })
 
   it('calls the refresh hook with the new token set', async () => {

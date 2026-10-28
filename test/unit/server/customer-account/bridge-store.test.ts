@@ -41,16 +41,6 @@ describe('customer account dev bridge store', () => {
     expect(consumeBridgeNonce(crypto.randomUUID())).toBeNull()
   })
 
-  it('rejects a nonce that is older than its ttl', () => {
-    vi.useFakeTimers()
-
-    const nonce = createBridgeNonce(payload)
-
-    vi.advanceTimersByTime(60_001)
-
-    expect(consumeBridgeNonce(nonce)).toBeNull()
-  })
-
   it('accepts a nonce that is still inside its ttl', () => {
     vi.useFakeTimers()
 

@@ -124,9 +124,10 @@ watch(selectedVariant, (variant) => {
           id: product.id,
           title: product.title,
           vendor: product.vendor,
-          price: selectedVariant.price.amount,
+          price: selectedVariant.price,
           variantId: selectedVariant.id,
           variantTitle: selectedVariant.title,
+          quantity: 1,
         }],
       }"
     />

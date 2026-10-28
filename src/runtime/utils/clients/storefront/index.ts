@@ -71,7 +71,7 @@ export const createStorefrontConfig = (config?: ShopifyConfig | PublicShopifyCon
 const definition: ShopifyClientDefinition<'storefront'> = {
   kind: 'storefront',
   createConfig: createStorefrontConfig,
-  tracking: true,
+  shopifyCookies: true,
   cache: true,
 }
 

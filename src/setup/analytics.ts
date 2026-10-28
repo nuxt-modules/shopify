@@ -2,9 +2,8 @@ import type { Resolver } from '@nuxt/kit'
 
 import type { ShopifyConfig } from '../types'
 
-import { addComponentsDir, addImports, addPlugin, addServerPlugin } from '@nuxt/kit'
+import { addComponentsDir, addImports, addPlugin, addServerHandler } from '@nuxt/kit'
 
-import { ShopifyClientType } from '../schemas'
 import { useLogger } from '../utils/log'
 
 export default function setupAnalytics(config: ShopifyConfig, resolver: Resolver) {
@@ -13,16 +12,12 @@ export default function setupAnalytics(config: ShopifyConfig, resolver: Resolver
   const logger = useLogger()
 
   if (!config.analytics.storefrontId) {
-    logger.debug('Analytics is enabled but no `analytics.storefrontId` set. Events are attributed to the default storefront ("0").')
+    logger.debug('Analytics is enabled but no `analytics.storefrontId` set. Events are attributed to the Headless channel.')
   }
 
-  if (!config.clients[ShopifyClientType.Storefront]?.proxy) {
-    logger.warn('The storefront proxy is disabled, so Shopify cannot expose visitor tracking identifiers. Analytics events will be reported without them')
-  }
+  addServerHandler({ middleware: true, handler: resolver.resolve('./runtime/server/middleware/shopify-routes') })
 
-  addServerPlugin(resolver.resolve('./runtime/server/plugins/tracking'))
-
-  addPlugin({ src: resolver.resolve('./runtime/plugins/analytics'), mode: 'client' })
+  addPlugin(resolver.resolve('./runtime/plugins/shopify-scripts'))
 
   addComponentsDir({
     path: resolver.resolve('./runtime/components/analytics'),
@@ -35,5 +30,5 @@ export default function setupAnalytics(config: ShopifyConfig, resolver: Resolver
     name: 'useShopifyAnalytics',
   }])
 
-  logger.debug('Registered analytics plugin, components and `useShopifyAnalytics` composable')
+  logger.debug('Registered Shopify\'s scripts, the analytics components and `useShopifyAnalytics` composable')
 }

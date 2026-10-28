@@ -55,12 +55,12 @@ describe('duplicate fragment names', () => {
     expect(message).toContain('legacy.ts')
   })
 
-  it('stays quiet when the same file is the only definition', async () => {
+  it('stays quiet when overlapping fragment directories scan the same file twice', async () => {
     const dir = await createFragmentDir({
-      'product.ts': 'export const product = `#graphql\n  fragment ProductCard on Product { id }\n  fragment ProductPrice on Product { handle }\n`',
+      'fragments/product.ts': 'export const product = `#graphql\n  fragment ProductCard on Product { id }\n  fragment ProductPrice on Product { handle }\n`',
     })
 
-    const registries = await scanFragments([dir], toStorefront)
+    const registries = await scanFragments([dir, join(dir, 'fragments')], toStorefront)
 
     expect(registries.get('storefront')?.fragments.size).toBe(2)
     expect(warnings).toHaveLength(0)

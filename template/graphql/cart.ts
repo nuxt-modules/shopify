@@ -5,12 +5,14 @@ export const CART_LINE_FRAGMENT = `#graphql
     merchandise {
       ... on ProductVariant {
         ...ProductVariantFields
+        sku
 
         product {
           id
           handle
           title
           vendor
+          productType
         }
       }
     }
@@ -28,11 +30,8 @@ export const CART_LINE_FRAGMENT = `#graphql
 
 export const CART_LINE_CONNECTION_FRAGMENT = `#graphql
   fragment CartLineConnectionFields on BaseCartLineConnection {
-    edges {
-      cursor
-      node {
-        ...CartLineFields
-      }
+    nodes {
+      ...CartLineFields
     }
   }
 `

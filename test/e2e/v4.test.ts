@@ -1,299 +1,190 @@
 import { describe, expect, it } from 'vitest'
-import { setup, $fetch } from '@nuxt/test-utils'
-import { access, readFile } from 'node:fs/promises'
+import { setup, $fetch, fetch, useTestContext } from '@nuxt/test-utils'
+import { createHmac } from 'node:crypto'
+import { existsSync } from 'node:fs'
+import { readFile } from 'node:fs/promises'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { join } from 'node:path'
 
-import { ShopifyClientType } from '#src/schemas'
-import { getInterfaceExtensionFunction } from '#src/utils/codegen'
-import {
-  expectedAdminDocuments,
-  expectedCustomerAccountDocuments,
-  expectedGraphqlProject,
-  expectedStorefrontDocuments,
-} from '#test/helpers/codegen'
-
 const playgroundDir = fileURLToPath(new URL('../../playgrounds/playground-v4', import.meta.url))
-const playgroundBuildDir = fileURLToPath(new URL('../../playgrounds/playground-v4/.nuxt', import.meta.url))
-const playgroundStorefrontTypesDir = fileURLToPath(new URL('../../playgrounds/playground-v4/.nuxt/shopify/storefront', import.meta.url))
-const playgroundCustomerAccountTypesDir = fileURLToPath(new URL('../../playgrounds/playground-v4/.nuxt/shopify/customer-account', import.meta.url))
-const playgroundAdminTypesDir = fileURLToPath(new URL('../../playgrounds/playground-v4/.nuxt/shopify/admin', import.meta.url))
+
+const WEBHOOK_SECRET = 'e2e-webhook-secret'
+const WEBHOOK_BODY = JSON.stringify({ id: 1 })
+
+const product = { id: expect.stringMatching(/^gid:\/\/shopify\/Product\/\d+$/) }
+
+function readBuildFile(path: string) {
+  return readFile(join(useTestContext().nuxt!.options.buildDir, path), 'utf-8')
+}
+
+function sendWebhook(secret: string) {
+  return fetch('/api/webhooks/test', {
+    method: 'POST',
+    body: WEBHOOK_BODY,
+    headers: {
+      'content-type': 'application/json',
+      'x-shopify-hmac-sha256': createHmac('sha256', secret).update(WEBHOOK_BODY).digest('base64'),
+    },
+  })
+}
 
 describe('test module with nuxt 4', async () => {
   await setup({
     server: true,
     rootDir: playgroundDir,
+    env: {
+      NUXT_SHOPIFY_WEBHOOKS_SECRET: WEBHOOK_SECRET,
+    },
   })
 
-  it('should correctly validate the module configuration', async () => {
-    const json = await $fetch('/api/config')
+  it('should hand the module configuration over to the server runtime', async () => {
+    const config = await $fetch('/api/config') as { clients: { customerAccount: { apiURL: string } } }
 
-    expect(json).toMatchObject({
+    expect(config).toMatchObject({
       name: process.env.NUXT_SHOPIFY_NAME,
-      errors: {
-        throw: true,
-      },
-      fragments: {
-        autoImport: true,
-        dirs: ['graphql'],
-      },
-      graphql: {
-        generateConfig: true,
-      },
       clients: {
         storefront: {
           apiVersion: process.env.NUXT_SHOPIFY_CLIENTS_STOREFRONT_API_VERSION,
-          codegen: {
-            autoImport: true,
-          },
-          proxy: {
-            route: '_proxy/storefront',
-          },
           publicAccessToken: process.env.NUXT_SHOPIFY_CLIENTS_STOREFRONT_PUBLIC_ACCESS_TOKEN,
-          retries: 0,
-          explorer: true,
-          documents: expectedStorefrontDocuments,
-          cache: {
-            client: {
-              ttl: 10000,
-            },
-            presets: {
-              long: {
-                maxAge: 3600,
-                staleMaxAge: 82800,
-                swr: true,
-              },
-              short: {
-                maxAge: 1,
-                staleMaxAge: 9,
-                swr: true,
-              },
-            },
-            proxy: {
-              driver: 'lru-cache',
-            },
-          },
         },
         admin: {
           apiVersion: process.env.NUXT_SHOPIFY_CLIENTS_ADMIN_API_VERSION,
-          clientId: '<admin_client_id>',
-          clientSecret: '<admin_client_secret>',
-          retries: 0,
-          explorer: true,
-          tokenStorage: {
-            driver: 'memory',
-          },
-          documents: expectedAdminDocuments,
         },
         customerAccount: {
           apiVersion: process.env.NUXT_SHOPIFY_CLIENTS_CUSTOMER_ACCOUNT_API_VERSION,
           clientId: process.env.NUXT_SHOPIFY_CLIENTS_CUSTOMER_ACCOUNT_CLIENT_ID,
-          documents: expectedCustomerAccountDocuments,
-          routes: {
-            callback: '_auth/customer-account/callback',
-            logout: '_auth/customer-account/logout',
-            session: '_auth/customer-account/session',
-          },
-          afterLogin: '/',
-          afterLogout: '/',
-          proxy: {
-            route: '_proxy/customer-account',
-          },
-          retries: 0,
-          explorer: true,
         },
-      },
-      webhooks: {
-        hooks: [
-          {
-            topic: 'ORDERS_CREATE',
-            uri: 'https://shopify.nuxtjs.org/api/webhooks/orders-create',
-            format: 'JSON',
-          },
-        ],
-
-        secret: '<webhooks_secret>',
       },
     })
 
-    expect((json as {
-      clients: {
-        customerAccount: {
-          apiURL: string
-        }
-      }
-    }).clients.customerAccount.apiURL).toContain('/account/customer/api/')
+    expect(config.clients.customerAccount.apiURL).toContain('/account/customer/api/')
   })
 
   it('should create a working server side storefront fetch client', async () => {
     const html = await $fetch('/')
 
-    // Check that we get 3 products
     expect(html).toContain('<p>Product count: 3</p>')
   })
 
-  it('should create a working client side storefront fetch client', async () => {
+  it('should render app storefront requests with injected fragments on the server', async () => {
     const html = await $fetch('/client')
 
-    // Check that we get 5 products
     expect(html).toContain('<p>Product count: 5</p>')
   })
 
   it('should create a working async storefront client call', async () => {
     const html = await $fetch('/async')
 
-    // Check that we get 3 products
     expect(html).toContain('<p>Product count: 3</p>')
   })
 
   it('should create a working admin fetch client', async () => {
     const html = await $fetch('/admin')
 
-    // Check that we get 3 markets
     expect(html).toContain('<p>Market count: 3</p>')
   })
 
   it('should error when given invalid input', async () => {
-    const error = await $fetch('/errors').catch(error => error) as { statusCode?: number, statusMessage?: string, data?: { message?: string } }
+    const error = await $fetch('/errors').catch(error => error) as { statusCode?: number, data?: { message?: string } }
 
     expect(error.statusCode).toBe(500)
 
-    expect(error.statusMessage).toBe('Internal Server Error')
     expect(error.data?.message).toContain('[shopify] GraphQL error:')
     expect(error.data?.message).toContain('(at `products`)')
   })
 
-  it('should generate storefront api types', async () => {
-    const path = join(playgroundStorefrontTypesDir, 'storefront.types.d.ts')
+  it('should proxy storefront requests to the store', async () => {
+    const response = await $fetch('/_proxy/storefront', {
+      method: 'POST',
+      headers: {
+        'X-Shopify-Storefront-Access-Token': process.env.NUXT_SHOPIFY_CLIENTS_STOREFRONT_PUBLIC_ACCESS_TOKEN!,
+      },
+      body: { query: '{ products(first: 2) { nodes { id } } }' },
+    }) as { data: { products: { nodes: unknown[] } } }
 
-    expect(await access(path).then(() => true).catch(() => false)).toBe(true)
-
-    // Read the types file content
-    const typesContent = await readFile(path, 'utf-8')
-
-    // Check that the types file exists and is not empty
-    expect(typesContent).toBeDefined()
-    expect(typesContent.length).toBeGreaterThan(0)
+    expect(response.data.products.nodes).toEqual([product, product])
   })
 
-  it('should generate admin api types', async () => {
-    const path = join(playgroundAdminTypesDir, 'admin.types.d.ts')
+  it('should report a logged out customer account session without a session cookie', async () => {
+    const session = await $fetch('/_auth/customer-account/session')
 
-    expect(await access(path).then(() => true).catch(() => false)).toBe(true)
-
-    // Read the types file content
-    const typesContent = await readFile(path, 'utf-8')
-
-    // Check that the types file exists and is not empty
-    expect(typesContent).toBeDefined()
-    expect(typesContent.length).toBeGreaterThan(0)
+    expect(session).toEqual({ loggedIn: false, user: null, loggedInAt: null })
   })
 
-  it('should generate customer account api types', async () => {
-    const path = join(playgroundCustomerAccountTypesDir, 'customer-account.types.d.ts')
+  it('should accept a webhook signed with the runtime webhook secret', async () => {
+    const response = await sendWebhook(WEBHOOK_SECRET)
 
-    expect(await access(path).then(() => true).catch(() => false)).toBe(true)
+    expect(response.status).toBe(200)
+    expect(await response.json()).toEqual({ success: true })
+  })
 
-    const typesContent = await readFile(path, 'utf-8')
+  it('should reject a webhook with a wrong signature', async () => {
+    const response = await sendWebhook('wrong-secret')
 
-    expect(typesContent).toBeDefined()
-    expect(typesContent.length).toBeGreaterThan(0)
+    expect(response.status).toBe(401)
   })
 
   it('should generate storefront api operations', async () => {
-    const path = join(playgroundStorefrontTypesDir, 'storefront.operations.d.ts')
+    const operations = await readBuildFile('shopify/storefront/storefront.operations.d.ts')
 
-    expect(await access(path).then(() => true).catch(() => false)).toBe(true)
+    expect(operations).toContain('export type FetchAsyncProductsQuery =')
+    expect(operations).toContain('export type FetchProductsQuery =')
+    expect(operations).toContain('export type FetchFirstThreeProductsQuery =')
+    expect(operations).toContain('export type FetchProductsWithErrorQuery =')
+    expect(operations).toContain('export type ProductFieldsFragment =')
 
-    // Read the operations file content
-    const operationsContent = await readFile(path, 'utf-8')
+    expect(operations).toContain([
+      `declare module '@nuxtjs/shopify/storefront' {`,
+      '  type InputMaybe<T> = StorefrontTypes.InputMaybe<T>',
+      '  interface StorefrontQueries extends GeneratedQueryTypes {}',
+      '  interface StorefrontMutations extends GeneratedMutationTypes {}',
+      '}',
+    ].join('\n'))
 
-    // Check that it contains expected GraphQL operations
-    expect(operationsContent).toContain('FetchAsyncProductsQuery')
-    expect(operationsContent).toContain('FetchProductsQuery')
-    expect(operationsContent).toContain('FetchFirstThreeProductsQuery')
-    expect(operationsContent).toContain('FetchProductsWithError')
-
-    // Check that it contains expected GraphQL fragments
-    expect(operationsContent).toContain('ProductFieldsFragment')
-
-    // Check that it performs the necessary module type augmentation
-    const interfaceExtension = getInterfaceExtensionFunction(
-      ShopifyClientType.Storefront,
-      'GeneratedQueryTypes',
-      'GeneratedMutationTypes',
-    )
-    expect(operationsContent).toContain(interfaceExtension)
-
-    // Operation types are declared globally when `codegen.autoImport` is enabled
-    expect(operationsContent).toContain('declare global {')
-    expect(operationsContent).toContain(`type ProductFieldsFragment = import('./storefront.operations.d.ts').ProductFieldsFragment`)
-  })
-
-  it('should not declare admin operations globally when auto import is disabled', async () => {
-    const path = join(playgroundAdminTypesDir, 'admin.operations.d.ts')
-
-    const operationsContent = await readFile(path, 'utf-8')
-
-    expect(operationsContent).not.toContain('declare global {')
+    expect(operations).toContain('declare global {')
   })
 
   it('should generate admin api operations', async () => {
-    const path = join(playgroundAdminTypesDir, 'admin.operations.d.ts')
+    const operations = await readBuildFile('shopify/admin/admin.operations.d.ts')
 
-    expect(await access(path).then(() => true).catch(() => false)).toBe(true)
+    expect(operations).toContain('export type FetchMarketsQuery =')
+    expect(operations).toContain('export type MarketFieldsFragment =')
 
-    // Read the operations file content
-    const operationsContent = await readFile(path, 'utf-8')
-
-    // Check that it contains expected GraphQL operations
-    expect(operationsContent).toContain('FetchMarketsQuery')
-
-    // Check that it contains expected GraphQL fragments
-    expect(operationsContent).toContain('MarketFieldsFragment')
-
-    // Check that it performs the necessary module type augmentation
-    const interfaceExtension = getInterfaceExtensionFunction(
-      ShopifyClientType.Admin,
-      'GeneratedQueryTypes',
-      'GeneratedMutationTypes',
-    )
-    expect(operationsContent).toContain(interfaceExtension)
+    expect(operations).toContain([
+      `declare module '@nuxtjs/shopify/admin' {`,
+      '  type InputMaybe<T> = AdminTypes.InputMaybe<T>',
+      '  interface AdminQueries extends GeneratedQueryTypes {}',
+      '  interface AdminMutations extends GeneratedMutationTypes {}',
+      '}',
+    ].join('\n'))
   })
 
   it('should generate customer account api operations', async () => {
-    const path = join(playgroundCustomerAccountTypesDir, 'customer-account.operations.d.ts')
+    const operations = await readBuildFile('shopify/customer-account/customer-account.operations.d.ts')
 
-    expect(await access(path).then(() => true).catch(() => false)).toBe(true)
+    expect(operations).toContain('export type CustomerDetailsQuery =')
+    expect(operations).toContain('export type CustomerFieldsFragment =')
 
-    const operationsContent = await readFile(path, 'utf-8')
-
-    expect(operationsContent).toContain('CustomerDetailsQuery')
-    expect(operationsContent).toContain('CustomerFieldsFragment')
-
-    const interfaceExtension = getInterfaceExtensionFunction(
-      ShopifyClientType.CustomerAccount,
-      'GeneratedQueryTypes',
-      'GeneratedMutationTypes',
-    )
-    expect(operationsContent).toContain(interfaceExtension)
+    expect(operations).toContain([
+      `declare module '@nuxtjs/shopify/customer-account' {`,
+      '  type InputMaybe<T> = CustomerAccountTypes.InputMaybe<T>',
+      '  interface CustomerAccountQueries extends GeneratedQueryTypes {}',
+      '  interface CustomerAccountMutations extends GeneratedMutationTypes {}',
+      '}',
+    ].join('\n'))
   })
 
-  it('should generate a graphql config for IDE support', async () => {
-    const path = join(playgroundBuildDir, 'graphql.config.mjs')
+  it('should point the graphql config at the schemas the build introspected', async () => {
+    const { rootDir, buildDir } = useTestContext().nuxt!.options
 
-    expect(await access(path).then(() => true).catch(() => false)).toBe(true)
+    const { default: graphqlConfig } = await import(/* @vite-ignore */ pathToFileURL(join(buildDir, 'graphql.config.mjs')).href)
 
-    const { projects, default: defaultExport } = await import(/* @vite-ignore */ pathToFileURL(path).href)
+    const projects = Object.entries<{ schema: string }>(graphqlConfig.projects)
 
-    expect(Object.keys(projects)).toEqual(['admin', 'customerAccount', 'default'])
-
-    expect(projects).toStrictEqual({
-      admin: expectedGraphqlProject(`.nuxt/shopify/schema/admin.${process.env.NUXT_SHOPIFY_CLIENTS_ADMIN_API_VERSION}.schema.json`, expectedAdminDocuments),
-      customerAccount: expectedGraphqlProject(`.nuxt/shopify/schema/customer-account.${process.env.NUXT_SHOPIFY_CLIENTS_CUSTOMER_ACCOUNT_API_VERSION}.schema.json`, expectedCustomerAccountDocuments),
-      default: expectedGraphqlProject(`.nuxt/shopify/schema/storefront.${process.env.NUXT_SHOPIFY_CLIENTS_STOREFRONT_API_VERSION}.schema.json`, expectedStorefrontDocuments),
+    expect(Object.fromEntries(projects.map(([name, { schema }]) => [name, existsSync(join(rootDir, schema))]))).toEqual({
+      admin: true,
+      customerAccount: true,
+      default: true,
     })
-
-    expect(defaultExport).toEqual({ projects })
   })
 })

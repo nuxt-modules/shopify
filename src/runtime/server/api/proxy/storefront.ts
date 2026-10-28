@@ -22,14 +22,7 @@ import {
   SDK_VERSION_HEADER,
   withApiVersion,
 } from '../../../utils/clients/transport'
-import {
-  LEGACY_UNIQUE_TOKEN_HEADER,
-  LEGACY_VISIT_TOKEN_HEADER,
-  UNIQUE_TOKEN_HEADER,
-  VISIT_TOKEN_HEADER,
-  forwardableCookie,
-  forwardTrackingHeaders,
-} from '../../utils/tracking'
+import { forwardShopifySessionCookies, pickShopifyCookies } from '../../utils/cookies'
 
 const FORWARDED_HEADERS = [
   'accept',
@@ -40,10 +33,6 @@ const FORWARDED_HEADERS = [
   'user-agent',
   PUBLIC_TOKEN_HEADER,
   PRIVATE_TOKEN_HEADER,
-  UNIQUE_TOKEN_HEADER,
-  VISIT_TOKEN_HEADER,
-  LEGACY_UNIQUE_TOKEN_HEADER,
-  LEGACY_VISIT_TOKEN_HEADER,
   SDK_VARIANT_HEADER,
   SDK_VERSION_HEADER,
 ].map(header => header.toLowerCase())
@@ -131,7 +120,7 @@ function createUpstreamHeaders(headers: Record<string, string>): Record<string, 
     }
   }
 
-  const cookie = forwardableCookie(headers.cookie ?? '')
+  const cookie = pickShopifyCookies(headers.cookie)
 
   if (cookie) upstream.cookie = cookie
 
@@ -190,7 +179,7 @@ export default defineEventHandler(async (event) => {
       upstreamHeaders = responseHeaders
     })
 
-    if (upstreamHeaders) forwardTrackingHeaders(event, upstreamHeaders)
+    if (upstreamHeaders) forwardShopifySessionCookies(event, upstreamHeaders)
 
     return data
   }
@@ -203,7 +192,7 @@ export default defineEventHandler(async (event) => {
     throw createUpstreamError('storefront', error)
   })
 
-  forwardTrackingHeaders(event, response.headers)
+  forwardShopifySessionCookies(event, response.headers)
 
   return response._data
 })

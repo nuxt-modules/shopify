@@ -24,7 +24,7 @@ function createNuxt({ dev = true } = {}) {
   const hooks: Record<string, Array<(...args: never[]) => unknown>> = {}
 
   return {
-    options: { dev, devServer: { url: 'http://localhost:3000' } },
+    options: { dev, devServer: { url: 'http://localhost:4123' } },
 
     hook(name: string, handler: (...args: never[]) => unknown) {
       (hooks[name] ??= []).push(handler)
@@ -55,6 +55,14 @@ describe('customer account dev bridge registration', () => {
     registerCustomerAccountDevBridge(createNuxt() as never, { dev: devConfig() } as never, resolver)
 
     expect(addServerHandler).toHaveBeenCalledWith(expect.objectContaining({ route: '/_auth/customer-account/bridge' }))
+  })
+
+  it('registers only the path of an absolute bridge url', () => {
+    addServerHandler.mockClear()
+
+    registerCustomerAccountDevBridge(createNuxt() as never, { dev: devConfig('http://localhost:4000/bridge') } as never, resolver)
+
+    expect(addServerHandler).toHaveBeenCalledWith(expect.objectContaining({ route: '/bridge' }))
   })
 
   it('does nothing outside dev, or without a tunnel', () => {
@@ -89,16 +97,6 @@ describe('customer account dev bridge registration', () => {
 
     await listen(nuxt, {})
 
-    expect(process.env[DEV_ORIGIN_ENV]).toBe('http://localhost:3000')
-  })
-
-  it('publishes nothing outside dev', async () => {
-    const nuxt = createNuxt({ dev: false })
-
-    registerCustomerAccountDevBridge(nuxt as never, { dev: devConfig() } as never, resolver)
-
-    await listen(nuxt, { url: 'http://localhost:3311/' })
-
-    expect(process.env[DEV_ORIGIN_ENV]).toBe('')
+    expect(process.env[DEV_ORIGIN_ENV]).toBe('http://localhost:4123')
   })
 })

@@ -29,7 +29,7 @@
     },
     "playgrounds/playground-v3": {
       "entry": [
-        "app/**/*.{ts,vue}",
+        "pages/**/*.vue",
         "server/**/*.ts",
         "graphql/**/*.ts"
       ],

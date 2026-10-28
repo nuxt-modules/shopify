@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { CUSTOMER, UNCONFIGURED_SHOPIFY_CONFIG, createNoopStorage, createShopifyConfig, createTokenSet } from '#test/helpers/customer-account'
 import { createTestEvent, getResponseHeader, toCookieHeader } from '#test/helpers/event'
@@ -55,6 +55,10 @@ beforeEach(() => {
   })
 })
 
+afterEach(() => {
+  vi.unstubAllGlobals()
+})
+
 describe('customer account logout', () => {
   it('rejects a cross-site fetch', async () => {
     await expect(handler(logoutEvent({ 'sec-fetch-site': 'cross-site' })))
@@ -69,21 +73,7 @@ describe('customer account logout', () => {
     expect(getResponseHeader(event, 'location')).toBe('/goodbye')
   })
 
-  it('allows a same-origin request', async () => {
-    const event = logoutEvent({ 'sec-fetch-site': 'same-origin' })
-
-    await handler(event)
-
-    expect(getResponseHeader(event, 'location')).toBe('/goodbye')
-  })
-
-  it('fails when the customer account client is not configured', async () => {
-    runtimeConfig._shopify = UNCONFIGURED_SHOPIFY_CONFIG
-
-    await expect(handler(logoutEvent())).rejects.toMatchObject({ statusCode: 500 })
-  })
-
-  it('does not run the csrf check before the configuration check', async () => {
+  it('fails when the customer account client is not configured, before running the csrf check', async () => {
     runtimeConfig._shopify = UNCONFIGURED_SHOPIFY_CONFIG
 
     await expect(handler(logoutEvent({ 'sec-fetch-site': 'cross-site' })))
@@ -112,14 +102,14 @@ describe('customer account logout', () => {
     expect(target.searchParams.get('post_logout_redirect_uri')).toMatch(/\/goodbye$/)
   })
 
-  it('clears the local session before handing off to shopify', async () => {
+  it('returns straight to afterLogout without ending the shopify session while developing', async () => {
+    vi.stubGlobal('__NUXT_DEV__', true)
+
     const event = await loggedInLogoutEvent()
 
     await handler(event)
 
-    const next = createTestEvent({ headers: { cookie: toCookieHeader(event) } })
-
-    await expect(getCustomerAccountSession(next)).resolves.toMatchObject({ loggedIn: false })
+    expect(getResponseHeader(event, 'location')).toBe('/goodbye')
   })
 
   it('calls the logout hook with the customer and id token', async () => {

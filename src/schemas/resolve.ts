@@ -10,18 +10,16 @@ import { ShopifyClientType } from '../runtime/utils/config'
 import { isSupportedApiVersion } from '../runtime/utils/clients/defaults'
 import { createStoreDomain } from '../runtime/utils/clients/transport'
 import { getCustomerAccountApiUrl } from '../runtime/utils/clients/customer-account/auth'
+import { HYDROGEN, supportsShopifyScripts } from '../utils/hydrogen'
 import { isInstalled } from '../utils/install'
 import { useLogger } from '../utils/log'
 import { SESSION_PASSWORD_ENV, generateSessionPassword, persistSessionPassword } from '../utils/session'
 
 type ShopifyConfig = z.output<typeof configObjectSchema>
 
-const HYDROGEN = '@shopify/hydrogen'
-const HYDROGEN_REACT = '@shopify/hydrogen-react'
-
 const proxyableClients = [ShopifyClientType.Storefront, ShopifyClientType.CustomerAccount] as const
 
-function resolveRequirements(config: ShopifyConfig) {
+async function resolveRequirements(config: ShopifyConfig) {
   const logger = useLogger()
 
   if (config.clients[ShopifyClientType.CustomerAccount] && !isInstalled(HYDROGEN)) {
@@ -30,18 +28,8 @@ function resolveRequirements(config: ShopifyConfig) {
     config.clients[ShopifyClientType.CustomerAccount] = undefined
   }
 
-  if (config.analytics && !isInstalled(HYDROGEN_REACT)) {
-    logger.warn(`Disabling analytics: \`${HYDROGEN_REACT}\` is not installed. Install it, or disable \`shopify.analytics\``)
-
-    config.analytics = false
-  }
-
-  if (
-    config.analytics
-    && !config.clients[ShopifyClientType.Storefront]?.publicAccessToken
-    && !config.analytics.consent?.storefrontAccessToken
-  ) {
-    logger.error('Disabling analytics: no public storefront access token is set. Set `clients.storefront.publicAccessToken` or `analytics.consent.storefrontAccessToken`')
+  if (config.analytics && !await supportsShopifyScripts()) {
+    logger.warn(`Disabling analytics: it needs \`${HYDROGEN}\` 2026.10 or newer. Install it, or disable \`shopify.analytics\``)
 
     config.analytics = false
   }
@@ -66,10 +54,14 @@ function warnUnsupportedApiVersions(config: ShopifyConfig) {
   }
 }
 
-function resolveProxies(config: ShopifyConfig, nuxt: Nuxt) {
+function resolveStaticGeneration(config: ShopifyConfig, nuxt: Nuxt) {
   if (!(nuxt.options as { _generate?: boolean })._generate) return
 
   const logger = useLogger()
+
+  if (config.analytics) {
+    logger.warn('Static generation has no server for the paths Shopify\'s scripts call, so analytics events only reach Shopify if your host forwards them to your store')
+  }
 
   for (const clientType of proxyableClients) {
     const client = config.clients[clientType]
@@ -148,9 +140,9 @@ async function resolveSessionPassword(config: ShopifyConfig, nuxt: Nuxt) {
 export async function resolveConfig(config: ShopifyConfig, nuxt?: Nuxt): Promise<ShopifyConfig> {
   if (!nuxt) return config
 
-  resolveRequirements(config)
+  await resolveRequirements(config)
   warnUnsupportedApiVersions(config)
-  resolveProxies(config, nuxt)
+  resolveStaticGeneration(config, nuxt)
 
   await resolveCustomerAccountApiUrl(config)
   await resolveSessionPassword(config, nuxt)

@@ -1,19 +1,20 @@
 <script setup lang="ts">
-import type { CartViewPayload } from '../../../module'
+import type { ShopifyAnalyticsCart } from '../../../module'
 
 import { onMounted } from 'vue'
 import { useShopifyAnalytics } from '../../composables/analytics/client'
+import { toAnalyticsCart } from '../../utils/analytics/cart'
 
 const props = defineProps<{
-  data?: CartViewPayload
+  cart?: ShopifyAnalyticsCart | null
 }>()
 
 const analytics = useShopifyAnalytics()
 
 onMounted(() => {
-  if (props.data?.cart) analytics.setCart(props.data.cart)
+  const cart = props.cart ?? analytics.cart.value
 
-  analytics.publish('cart_viewed', props.data ?? {})
+  analytics.publish('cart_viewed', { cart: cart ? toAnalyticsCart(cart) : null })
 })
 </script>
 

@@ -1,9 +1,10 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, expectTypeOf, it } from 'vitest'
 import { z } from 'zod'
 
-import { ShopifyClientType, configObjectSchema, publicConfigSchema } from '#src/schemas'
-import { isSupportedApiVersion } from '#src/runtime/utils/clients/defaults'
+import { configObjectSchema, publicConfigSchema } from '#src/schemas'
+import { DEFAULT_API_VERSION } from '#src/runtime/utils/clients/defaults'
 import { SESSION_DEFAULT_NAME } from '#src/runtime/utils/session'
+import { API_VERSION } from '#test/helpers/api-version'
 
 const storefront = { publicAccessToken: 'tok' }
 
@@ -29,11 +30,153 @@ describe('clients', () => {
 
     expect(config.clients).toStrictEqual({})
   })
+})
 
-  it('parses the public schema without a clients block', () => {
-    const config = publicConfigSchema.parse({ name: 'shop' })
+describe('defaults', () => {
+  const { clients } = configObjectSchema.parse({
+    name: 'shop',
+    clients: { storefront, admin: { accessToken: 'shpat_x' }, customerAccount: { clientId: 'cid' } },
+  })
 
-    expect(config.clients).toStrictEqual({})
+  it('fills in the documented global defaults, whether a block is omitted or empty', () => {
+    const webhooks = { secret: 'secret', hooks: [{ uri: 'https://shop.example/webhooks/orders-create', topic: 'ORDERS_CREATE' }] }
+
+    for (const blocks of [{}, { errors: {}, fragments: {}, graphql: {} }]) {
+      expect(configObjectSchema.parse({ name: 'shop', ...blocks, webhooks })).toMatchObject({
+        errors: { throw: true },
+        fragments: { dirs: ['graphql'], autoImport: true },
+        graphql: { generateConfig: true, normalize: true, injectFragments: true },
+        webhooks: { hooks: [{ format: 'JSON' }] },
+      })
+    }
+  })
+
+  it('fills in the documented defaults for every client', () => {
+    expect(clients).toMatchObject({
+      storefront: {
+        apiVersion: DEFAULT_API_VERSION,
+        retries: 0,
+        explorer: true,
+        codegen: { autoImport: true },
+        cache: { proxy: { driver: 'lru-cache' } },
+      },
+      admin: {
+        apiVersion: DEFAULT_API_VERSION,
+        retries: 0,
+        explorer: true,
+        tokenStorage: { driver: 'memory' },
+      },
+      customerAccount: {
+        apiVersion: DEFAULT_API_VERSION,
+        retries: 0,
+        explorer: true,
+        codegen: { autoImport: false },
+        scope: ['openid', 'email', 'customer-account-api:full'],
+        routes: {
+          callback: '_auth/customer-account/callback',
+          logout: '_auth/customer-account/logout',
+          session: '_auth/customer-account/session',
+        },
+        afterLogin: '/',
+        session: { name: 'shopify-customer-account', maxAge: 604800 },
+        dev: { bridgeURL: '_auth/customer-account/bridge' },
+      },
+    })
+
+    const customerAccount = configObjectSchema.parse({
+      name: 'shop',
+      clients: { customerAccount: { clientId: 'cid', afterLogin: '/account' } },
+    }).clients.customerAccount
+
+    expect(customerAccount?.afterLogout).toBe('/account')
+  })
+
+  it('scans the documented default globs for every client, nitro route files included', () => {
+    expect(clients.storefront?.documents).toStrictEqual([
+      '**/*.{gql,graphql,ts,js,vue}',
+      '!**/*.admin.{gql,graphql,ts,js}',
+      '!**/admin.{gql,graphql,ts,js}',
+      '!**/*.admin.{connect,delete,get,head,options,patch,post,put,trace}.{ts,js}',
+      '!**/admin.{connect,delete,get,head,options,patch,post,put,trace}.{ts,js}',
+      '!**/admin/**/*.{gql,graphql,ts,js}',
+      '!**/admin/*.{gql,graphql,ts,js}',
+      '!**/(admin)/**/*.{gql,graphql,ts,js}',
+      '!**/(admin)/*.{gql,graphql,ts,js}',
+      '!**/*.customer-account.{gql,graphql,ts,js,vue}',
+      '!**/customer-account.{gql,graphql,ts,js,vue}',
+      '!**/*.customer-account.{connect,delete,get,head,options,patch,post,put,trace}.{ts,js}',
+      '!**/customer-account.{connect,delete,get,head,options,patch,post,put,trace}.{ts,js}',
+      '!**/customer-account/**/*.{gql,graphql,ts,js,vue}',
+      '!**/customer-account/*.{gql,graphql,ts,js,vue}',
+      '!**/(customer-account)/**/*.{gql,graphql,ts,js,vue}',
+      '!**/(customer-account)/*.{gql,graphql,ts,js,vue}',
+      '!**/*.customer.{gql,graphql,ts,js,vue}',
+      '!**/customer.{gql,graphql,ts,js,vue}',
+      '!**/*.customer.{connect,delete,get,head,options,patch,post,put,trace}.{ts,js}',
+      '!**/customer.{connect,delete,get,head,options,patch,post,put,trace}.{ts,js}',
+      '!**/customer/**/*.{gql,graphql,ts,js,vue}',
+      '!**/customer/*.{gql,graphql,ts,js,vue}',
+      '!**/(customer)/**/*.{gql,graphql,ts,js,vue}',
+      '!**/(customer)/*.{gql,graphql,ts,js,vue}',
+      '!**/*.account.{gql,graphql,ts,js,vue}',
+      '!**/account.{gql,graphql,ts,js,vue}',
+      '!**/*.account.{connect,delete,get,head,options,patch,post,put,trace}.{ts,js}',
+      '!**/account.{connect,delete,get,head,options,patch,post,put,trace}.{ts,js}',
+      '!**/account/**/*.{gql,graphql,ts,js,vue}',
+      '!**/account/*.{gql,graphql,ts,js,vue}',
+      '!**/(account)/**/*.{gql,graphql,ts,js,vue}',
+      '!**/(account)/*.{gql,graphql,ts,js,vue}',
+      '!node_modules',
+      '!dist',
+      '!.nuxt',
+      '!.output',
+    ])
+
+    expect(clients.admin?.documents).toStrictEqual([
+      '**/*.admin.{gql,graphql,ts,js}',
+      '**/admin.{gql,graphql,ts,js}',
+      '**/*.admin.{connect,delete,get,head,options,patch,post,put,trace}.{ts,js}',
+      '**/admin.{connect,delete,get,head,options,patch,post,put,trace}.{ts,js}',
+      '**/admin/**/*.{gql,graphql,ts,js}',
+      '**/admin/*.{gql,graphql,ts,js}',
+      '**/(admin)/**/*.{gql,graphql,ts,js}',
+      '**/(admin)/*.{gql,graphql,ts,js}',
+      '!node_modules',
+      '!dist',
+      '!.nuxt',
+      '!.output',
+    ])
+
+    expect(clients.customerAccount?.documents).toStrictEqual([
+      '**/*.customer-account.{gql,graphql,ts,js,vue}',
+      '**/customer-account.{gql,graphql,ts,js,vue}',
+      '**/*.customer-account.{connect,delete,get,head,options,patch,post,put,trace}.{ts,js}',
+      '**/customer-account.{connect,delete,get,head,options,patch,post,put,trace}.{ts,js}',
+      '**/customer-account/**/*.{gql,graphql,ts,js,vue}',
+      '**/customer-account/*.{gql,graphql,ts,js,vue}',
+      '**/(customer-account)/**/*.{gql,graphql,ts,js,vue}',
+      '**/(customer-account)/*.{gql,graphql,ts,js,vue}',
+      '**/*.customer.{gql,graphql,ts,js,vue}',
+      '**/customer.{gql,graphql,ts,js,vue}',
+      '**/*.customer.{connect,delete,get,head,options,patch,post,put,trace}.{ts,js}',
+      '**/customer.{connect,delete,get,head,options,patch,post,put,trace}.{ts,js}',
+      '**/customer/**/*.{gql,graphql,ts,js,vue}',
+      '**/customer/*.{gql,graphql,ts,js,vue}',
+      '**/(customer)/**/*.{gql,graphql,ts,js,vue}',
+      '**/(customer)/*.{gql,graphql,ts,js,vue}',
+      '**/*.account.{gql,graphql,ts,js,vue}',
+      '**/account.{gql,graphql,ts,js,vue}',
+      '**/*.account.{connect,delete,get,head,options,patch,post,put,trace}.{ts,js}',
+      '**/account.{connect,delete,get,head,options,patch,post,put,trace}.{ts,js}',
+      '**/account/**/*.{gql,graphql,ts,js,vue}',
+      '**/account/*.{gql,graphql,ts,js,vue}',
+      '**/(account)/**/*.{gql,graphql,ts,js,vue}',
+      '**/(account)/*.{gql,graphql,ts,js,vue}',
+      '!node_modules',
+      '!dist',
+      '!.nuxt',
+      '!.output',
+    ])
   })
 })
 
@@ -42,19 +185,14 @@ describe('api version', () => {
     ['2026-1'],
     ['26-01'],
     ['latest'],
-    ['../../admin/api/2026-04/graphql.json'],
+    [`../../admin/api/${API_VERSION}/graphql.json`],
+    [`${API_VERSION}/../../admin`],
+    [`x${API_VERSION}`],
   ])('names the malformed version %s in the error', (apiVersion) => {
     const message = issues({ name: 'shop', clients: { storefront: { ...storefront, apiVersion } } })
 
     expect(message).toContain(`Malformed API version "${apiVersion}"`)
     expect(message).not.toContain('[object Object]')
-  })
-
-  it('accepts a well formed version that left the supported window', () => {
-    const config = configObjectSchema.parse({ name: 'shop', clients: { storefront: { ...storefront, apiVersion: '2020-01' } } })
-
-    expect(config.clients.storefront?.apiVersion).toBe('2020-01')
-    expect(isSupportedApiVersion('2020-01')).toBe(false)
   })
 })
 
@@ -81,23 +219,27 @@ describe('storefront documents', () => {
 
     expect(config.clients.storefront?.documents).toStrictEqual(['app/graphql/**/*.ts'])
   })
-
-  it('scans vue files through the default document list', () => {
-    const config = configObjectSchema.parse({ name: 'shop', clients: { storefront } })
-
-    expect(config.clients.storefront?.documents?.[0]).toBe('**/*.{gql,graphql,ts,js,vue}')
-  })
 })
 
 describe('public config', () => {
-  it('never carries server-only storefront credentials', () => {
-    const config = publicConfigSchema.parse({
+  it('carries the public token, never a server-only credential of any client', () => {
+    const config = publicConfigSchema.parse(configObjectSchema.parse({
       name: 'shop',
-      clients: { storefront: { ...storefront, privateAccessToken: 'private' } },
-    })
+      clients: {
+        storefront: { publicAccessToken: 'public-token', privateAccessToken: 'private-token' },
+        customerAccount: { clientId: 'client-id', clientSecret: 'client-secret' },
+        admin: { accessToken: 'admin-token' },
+      },
+    }))
 
+    const exposed = JSON.stringify(config)
+
+    expect(exposed).toContain('public-token')
     expect(config.clients.storefront).not.toHaveProperty('privateAccessToken')
-    expect(JSON.stringify(config)).not.toContain('private')
+
+    for (const secret of ['private-token', 'client-secret', 'admin-token']) {
+      expect(exposed).not.toContain(secret)
+    }
   })
 
   it('carries only the session cookie name, never customer account secrets', () => {
@@ -141,43 +283,9 @@ describe('enableable options', () => {
 
     expect(config.clients.admin?.tokenStorage).toBe('redis')
   })
-})
 
-describe('nitro route file documents', () => {
-  const documentsFor = (client: ShopifyClientType) => {
-    const parsed = configObjectSchema.parse({
-      name: 'test-shop',
-      clients: {
-        storefront: { publicAccessToken: 'token' },
-        admin: { accessToken: 'token' },
-        customerAccount: { clientId: 'client-id' },
-      },
-    })
-
-    return parsed.clients[client]!.documents!
-  }
-
-  it('routes method-suffixed route files to the admin client', () => {
-    const documents = documentsFor(ShopifyClientType.Admin)
-
-    expect(documents).toContain('**/admin.{connect,delete,get,head,options,patch,post,put,trace}.{ts,js}')
-    expect(documents).toContain('**/*.admin.{connect,delete,get,head,options,patch,post,put,trace}.{ts,js}')
-  })
-
-  it('routes method-suffixed route files to the customer account client', () => {
-    const documents = documentsFor(ShopifyClientType.CustomerAccount)
-
-    expect(documents).toContain('**/customer-account.{connect,delete,get,head,options,patch,post,put,trace}.{ts,js}')
-    expect(documents).toContain('**/account.{connect,delete,get,head,options,patch,post,put,trace}.{ts,js}')
-    expect(documents).toContain('**/customer.{connect,delete,get,head,options,patch,post,put,trace}.{ts,js}')
-  })
-
-  it('keeps method-suffixed route files out of the storefront client', () => {
-    const documents = documentsFor(ShopifyClientType.Storefront)
-
-    expect(documents).toContain('!**/admin.{connect,delete,get,head,options,patch,post,put,trace}.{ts,js}')
-    expect(documents).toContain('!**/account.{connect,delete,get,head,options,patch,post,put,trace}.{ts,js}')
-    expect(documents).toContain('!**/customer-account.{connect,delete,get,head,options,patch,post,put,trace}.{ts,js}')
+  it('does not declare admin operation types globally by default', () => {
+    expect(configObjectSchema.parse({ name: 'shop', clients: { admin: { accessToken: 'shpat_x' } } }).clients.admin?.codegen).toMatchObject({ autoImport: false })
   })
 })
 
@@ -190,7 +298,10 @@ describe('cache presets', () => {
   it('ships `short` and `long` out of the box', () => {
     const cache = presetsFor()
 
-    expect(cache && cache.presets).toMatchObject({ short: expect.any(Object), long: expect.any(Object) })
+    expect(cache && cache.presets).toStrictEqual({
+      short: { maxAge: 1, staleMaxAge: 9, swr: true },
+      long: { maxAge: 3600, staleMaxAge: 82800, swr: true },
+    })
   })
 
   it('replaces the built-in presets with the configured ones', () => {
@@ -208,17 +319,8 @@ describe('cache presets', () => {
 
 describe('customer account client id', () => {
   it('accepts a customer account block without a client id at the type level', () => {
-    type Input = z.input<typeof configObjectSchema>
-
-    const config: Input = {
-      name: 'shop',
-      clients: {
-        storefront,
-        customerAccount: { afterLogin: '/account' },
-      },
-    }
-
-    expect(config.clients?.customerAccount).toBeDefined()
+    expectTypeOf({ name: 'shop', clients: { storefront, customerAccount: { afterLogin: '/account' } } })
+      .toExtend<z.input<typeof configObjectSchema>>()
   })
 
   it('still refuses to parse a customer account client without a client id', () => {

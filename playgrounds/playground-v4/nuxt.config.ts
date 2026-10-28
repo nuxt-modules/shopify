@@ -40,7 +40,7 @@ export default defineNuxtConfig({
 
       analytics: {
         consent: {
-          banner: true,
+          mode: 'default-banner',
         },
       },
     },

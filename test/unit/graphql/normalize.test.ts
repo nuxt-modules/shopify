@@ -52,17 +52,19 @@ describe('scanner', () => {
     expect(names('#graphql\n query Foo { shop { name } }\n ${IMAGE_FRAGMENT}\n')).toStrictEqual(['operation:Foo'])
   })
 
-  it('ignores braces inside strings and comments', () => {
+  it('ignores braces and definitions inside strings and comments', () => {
     const source = `#graphql
+      # fragment Commented on Thing { id }
       query Foo {
-        # fragment Commented on Thing { id }
-        search(query: "a { b }") {
+        # closes early }
+        search(query: "a } b") {
           nodes { id }
         }
       }
+      fragment After on Shop { name }
     `
 
-    expect(names(source)).toStrictEqual(['operation:Foo'])
+    expect(names(source)).toStrictEqual(['operation:Foo', 'fragment:After'])
   })
 
   it('ignores inline type conditions when collecting spreads', () => {
@@ -106,20 +108,13 @@ describe('normalizeOperation', () => {
     expect(result).toContain('ProductFields')
   })
 
-  it('keeps fragments reached through another fragment', () => {
-    const result = normalizeOperation(QUERY + IMAGE + PRICE + PRODUCT)
-
-    expect(result).toContain('ImageFields')
-    expect(result).toContain('PriceFields')
-  })
-
   it('ignores a fragment-only document', () => {
     const source = `#graphql\n${IMAGE}\n`
 
     expect(normalizeOperation(source)).toBe(source)
   })
 
-  it('returns the same string instance on a repeat call', () => {
+  it('returns the same normalized result on a repeat call', () => {
     const source = QUERY + IMAGE + PRICE + PRODUCT + IMAGE
 
     expect(normalizeOperation(source)).toBe(normalizeOperation(source))

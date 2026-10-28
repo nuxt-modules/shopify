@@ -5,6 +5,7 @@ import type {
   ResponseErrors,
   ReturnData,
 } from '@shopify/graphql-client'
+import type { ShopifyScriptTagsOptions } from '@shopify/hydrogen'
 
 import type { ShopifyConfig } from '../schemas'
 import type {
@@ -12,10 +13,6 @@ import type {
   ShopifyApiClientConfig,
   ShopifyApiClientRequestOptions,
 } from './client'
-import type {
-  AnalyticsEventName,
-  ShopAnalytics,
-} from './analytics'
 import type {
   AdminTokenSet,
   CustomerAccountTokenSet,
@@ -47,14 +44,7 @@ export type ShopifyClientResponseHookParams<Operation extends keyof Operations, 
   options?: ShopifyApiClientRequestOptions<Operation, Operations, Cache>
 }
 
-export type ShopifyAnalyticsReadyHookParams = {
-  shop: ShopAnalytics | null
-}
-
-export type ShopifyAnalyticsPublishHookParams = {
-  event: AnalyticsEventName
-  payload: unknown
-}
+export type ShopifyAnalyticsReadyHookParams = Pick<ShopifyScriptTagsOptions, 'shop' | 'i18n'>
 
 export type ShopifyErrorHookParams = {
   errors: ResponseErrors
@@ -105,8 +95,7 @@ export type ShopifyClientCallbackResult = void | Promise<void>
  * Lifecycle callbacks of a Shopify API client.
  *
  * The client itself is environment agnostic and never resolves a hook target on
- * its own - wire these to `nuxtApp.hooks` / `nitroApp.hooks` / `nuxt.hooks`, or
- * to anything else, at the call site.
+ * its own.
  */
 export type ShopifyClientCallbacks<Operations extends AllOperations, Cache extends boolean | undefined = undefined> = {
   /**

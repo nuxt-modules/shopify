@@ -4,6 +4,7 @@ import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { ShopifyClientType } from '#src/schemas'
+import { API_VERSION } from '#test/helpers/api-version'
 
 const generate = vi.fn()
 const installedVersions = new Map<string, string>()
@@ -29,7 +30,7 @@ const { useLogger } = await import('#src/utils/log')
 
 const warn = vi.spyOn(useLogger(), 'warn')
 
-const FILENAME = 'schema/storefront.2026-04.schema.json'
+const FILENAME = `schema/storefront.${API_VERSION}.schema.json`
 
 let dir: string
 
@@ -40,17 +41,17 @@ const nuxt = {
   callHook: vi.fn(() => Promise.resolve()),
 } as never
 
-function createIntrospection(path: string, clientType = ShopifyClientType.Storefront) {
+function createIntrospection(path: string, clientType = ShopifyClientType.Storefront, apiVersion = API_VERSION) {
   return createIntrospectionGenerator({
     filename: FILENAME,
     shopName: 'test-shop',
     clientType,
-    clientConfig: { apiVersion: '2026-04', mock: true },
+    clientConfig: { apiVersion, mock: true },
   } as never, path)
 }
 
-function introspect(path: string, clientType?: ShopifyClientType) {
-  return createIntrospection(path, clientType).getContents({ nuxt })
+function introspect(path: string, clientType?: ShopifyClientType, apiVersion?: string) {
+  return createIntrospection(path, clientType, apiVersion).getContents({ nuxt })
 }
 
 function storedSchema(path: string) {
@@ -111,12 +112,6 @@ describe('introspection source', () => {
     expect(schemaOfCall(0)).toEqual(MOCK_API_SCHEMA)
   })
 
-  it('asks the api when the file does not exist', async () => {
-    await introspect(pathFor('missing.json'))
-
-    expect(schemaOfCall(0)).toEqual(MOCK_API_SCHEMA)
-  })
-
   it('reads the customer account schema from the installed hydrogen package', async () => {
     await introspect(pathFor('missing.json'), ShopifyClientType.CustomerAccount)
 
@@ -131,31 +126,23 @@ describe('hydrogen schema version', () => {
   })
 
   it('warns when the customer account types follow another api version than the client', async () => {
-    installedVersions.set('@shopify/hydrogen', '2026.10.1')
+    installedVersions.set('@shopify/hydrogen', '2025.7.0')
 
-    await introspect(pathFor('missing.json'), ShopifyClientType.CustomerAccount)
+    await introspect(pathFor('missing.json'), ShopifyClientType.CustomerAccount, '2025-04')
 
-    expect(warn).toHaveBeenCalledWith(expect.stringContaining('API version `2026-10`, but the client uses `2026-04`'))
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('API version `2025-07`, but the client uses `2025-04`'))
   })
 
   it('stays quiet when both use the same api version', async () => {
-    installedVersions.set('@shopify/hydrogen', '2026.4.6')
+    installedVersions.set('@shopify/hydrogen', '2025.4.0')
 
-    await introspect(pathFor('missing.json'), ShopifyClientType.CustomerAccount)
+    await introspect(pathFor('missing.json'), ShopifyClientType.CustomerAccount, '2025-04')
 
     expect(warn).not.toHaveBeenCalled()
   })
 
-  it('reads a hydrogen release between api releases as the api version before it', async () => {
-    installedVersions.set('@shopify/hydrogen', '2025.5.0')
-
-    await introspect(pathFor('missing.json'), ShopifyClientType.CustomerAccount)
-
-    expect(warn).toHaveBeenCalledWith(expect.stringContaining('API version `2025-04`'))
-  })
-
   it('stays quiet when a hook replaced the hydrogen schema', async () => {
-    installedVersions.set('@shopify/hydrogen', '2026.10.1')
+    installedVersions.set('@shopify/hydrogen', '2025.7.0')
 
     const replacing = {
       options: { dev: false, _prepare: true },
@@ -166,7 +153,7 @@ describe('hydrogen schema version', () => {
       },
     } as never
 
-    await createIntrospection(pathFor('missing.json'), ShopifyClientType.CustomerAccount).getContents({ nuxt: replacing })
+    await createIntrospection(pathFor('missing.json'), ShopifyClientType.CustomerAccount, '2025-04').getContents({ nuxt: replacing })
 
     expect(warn).not.toHaveBeenCalled()
   })
@@ -187,7 +174,7 @@ describe('shared schema', () => {
       filename,
       shopName: 'test-shop',
       clientType: ShopifyClientType.Storefront,
-      clientConfig: { apiVersion: '2026-04', mock: true, documents: [], codegen: { autoImport: false } },
+      clientConfig: { apiVersion: API_VERSION, mock: true, documents: [], codegen: { autoImport: false } },
     },
   }) as never
 
@@ -215,11 +202,12 @@ describe('shared schema', () => {
     expect(schemasFor(OPERATIONS_FILE)).toEqual([pathFor('missing.json')])
   })
 
-  it('generates types and operations from the hydrogen schema when the api cannot be introspected', async () => {
+  it('falls back to the hydrogen schema without retrying an invalid api schema and generates types and operations from it', async () => {
     generate.mockImplementationOnce(invalid).mockImplementation(succeeds)
 
-    await generateAll(pathFor('missing.json'))
+    const [, , introspection] = await generateAll(pathFor('missing.json'))
 
+    expect(introspection).toBe('{"__schema":{}}')
     expect(schemasFor(FILENAME)).toEqual([MOCK_API_SCHEMA, [expect.stringContaining('storefront.schema.json')]])
     expect(schemasFor(TYPES_FILE)).toEqual([pathFor('missing.json')])
     expect(schemasFor(OPERATIONS_FILE)).toEqual([pathFor('missing.json')])
@@ -245,7 +233,7 @@ describe('global type declarations', () => {
       filename: OPERATIONS_FILE,
       shopName: 'test-shop',
       clientType: ShopifyClientType.Storefront,
-      clientConfig: { apiVersion: '2026-04', mock: true, documents: [], codegen: { autoImport } },
+      clientConfig: { apiVersion: API_VERSION, mock: true, documents: [], codegen: { autoImport } },
     },
   }) as never
 
@@ -295,7 +283,7 @@ describe('introspection retries', () => {
     await vi.advanceTimersByTimeAsync(60_000)
 
     await expect(result).resolves.toBe('{"__schema":{}}')
-    expect(generate).toHaveBeenCalledTimes(2)
+    expect(schemasFor(FILENAME)).toEqual([MOCK_API_SCHEMA, MOCK_API_SCHEMA])
   })
 
   it('gives up after three tries and uses the hydrogen schema', async () => {
@@ -313,15 +301,6 @@ describe('introspection retries', () => {
     expect(existsSync(schemaOfCall(-1)[0])).toBe(true)
   })
 
-  it('uses the hydrogen schema without retrying an error the api will keep returning', async () => {
-    generate.mockImplementationOnce(invalid).mockImplementation(succeeds)
-
-    await expect(introspect(pathFor('missing.json'))).resolves.toBe('{"__schema":{}}')
-
-    expect(generate).toHaveBeenCalledTimes(2)
-    expect(schemaOfCall(-1)).toEqual([expect.stringContaining('storefront.schema.json')])
-  })
-
   it('retries an error that wraps a transport failure', async () => {
     vi.useFakeTimers()
 
@@ -337,7 +316,7 @@ describe('introspection retries', () => {
     await vi.advanceTimersByTimeAsync(60_000)
 
     await expect(result).resolves.toBe('{"__schema":{}}')
-    expect(generate).toHaveBeenCalledTimes(2)
+    expect(schemasFor(FILENAME)).toEqual([MOCK_API_SCHEMA, MOCK_API_SCHEMA])
   })
 
   it('does not retry a local schema file', async () => {
@@ -362,7 +341,7 @@ describe('hydrogen fallback', () => {
       filename: OPERATIONS_FILE,
       shopName: 'test-shop',
       clientType: ShopifyClientType.Storefront,
-      clientConfig: { apiVersion: '2026-04', mock: true, documents: [], codegen: { autoImport: false } },
+      clientConfig: { apiVersion: API_VERSION, mock: true, documents: [], codegen: { autoImport: false } },
     },
   }) as never
 
@@ -370,7 +349,7 @@ describe('hydrogen fallback', () => {
     clearGenerateFailures()
   })
 
-  it('reports a document error instead of retrying it against the hydrogen schema', async () => {
+  it('reports a document validation error as a failure without trying another schema', async () => {
     generate.mockImplementation(() => Promise.reject(new Error('GraphQL Document Validation failed with 1 errors;\n  Error 0: Cannot query field "customers" on type "QueryRoot".')))
 
     await expect(generateOperations(operationsData())).resolves.toBe('')
@@ -395,7 +374,7 @@ describe('document parse failures', () => {
       shopName: 'test-shop',
       clientType: ShopifyClientType.Storefront,
       clientConfig: {
-        apiVersion: '2026-04',
+        apiVersion: API_VERSION,
         mock: true,
         documents: ['**/*.{ts,graphql}', '!node_modules'],
         codegen: { autoImport: false },
@@ -462,7 +441,7 @@ describe('document globs', () => {
       shopName: 'test-shop',
       clientType: ShopifyClientType.Storefront,
       clientConfig: {
-        apiVersion: '2026-04',
+        apiVersion: API_VERSION,
         mock: true,
         documents: [...DOCUMENTS],
         codegen: { autoImport: false },

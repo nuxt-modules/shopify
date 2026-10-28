@@ -1,6 +1,5 @@
 <script setup lang="ts">
 const { open, loading, quantity, lines, total, checkoutUrl } = useCart()
-const { cart } = useShopifyAnalytics()
 const route = useRoute()
 
 watch(() => route.path, () => open.value = false)
@@ -58,7 +57,7 @@ watch(() => route.path, () => open.value = false)
         {{ $t('cart.empty') }}
       </p>
 
-      <ShopifyCartView :data="{ cart }" />
+      <ShopifyCartView />
     </template>
 
     <template #footer>

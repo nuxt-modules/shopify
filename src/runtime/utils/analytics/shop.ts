@@ -1,14 +1,20 @@
-import type { ShopAnalytics, ShopifyAnalyticsShopContext } from '../../../module'
+import type { StorefrontApiClient } from '@nuxtjs/shopify/storefront'
+import type { ShopifyScriptsI18n, ShopifyScriptTagsOptions } from '@shopify/hydrogen'
 
-import { useStorefront } from '../../composables/storefront/client'
+import type { PublicShopifyConfig, ShopifyAnalyticsShopContext } from '../../../module'
+
 import { createLogger } from '../log'
+
+export type ShopifyScriptsShopContext = Pick<ShopifyScriptTagsOptions, 'shop' | 'i18n'>
+
+type AnalyticsConfig = Exclude<PublicShopifyConfig['analytics'], false>
 
 const SHOP_QUERY = `#graphql
   query ShopifyAnalyticsShop($country: CountryCode, $language: LanguageCode)
   @inContext(country: $country, language: $language) {
     shop { id }
     localization {
-      country { currency { isoCode } }
+      country { isoCode currency { isoCode } }
       language { isoCode }
     }
   }
@@ -17,68 +23,53 @@ const SHOP_QUERY = `#graphql
 interface ShopQueryResult {
   shop?: { id?: string }
   localization?: {
-    country?: { currency?: { isoCode?: string } }
+    country?: { isoCode?: string, currency?: { isoCode?: string } }
     language?: { isoCode?: string }
   }
 }
 
-interface ShopResolverOptions {
-  shopId?: string
-  currency?: string
-  language?: string
-  storefrontId?: string
+function toI18n(country?: string, language?: string, currency?: string): ShopifyScriptsI18n | undefined {
+  if (!country || !language) return undefined
+
+  return { country, language, ...(currency ? { currency } : {}) } as ShopifyScriptsI18n
 }
 
-function toEnumCode(value?: string): string | undefined {
-  return value ? value.toUpperCase().replace(/-/g, '_') : undefined
-}
+export function createShopResolver(name: string, analytics: AnalyticsConfig, client: Pick<StorefrontApiClient<true>, 'request'>) {
+  const cache = new Map<string, Promise<ShopifyScriptsShopContext | null>>()
 
-export function createShopResolver(options: ShopResolverOptions) {
-  const cache = new Map<string, Promise<ShopAnalytics | null>>()
+  const resolve = async (context: ShopifyAnalyticsShopContext): Promise<ShopifyScriptsShopContext | null> => {
+    const configured: Pick<AnalyticsConfig, 'country' | 'language' | 'currency'> = context.country || context.language ? {} : analytics
 
-  const resolve = async (context?: ShopifyAnalyticsShopContext): Promise<ShopAnalytics | null> => {
-    const country = toEnumCode(context?.country)
-    const language = toEnumCode(context?.language)
-    const contextual = !!(country || language)
+    const complete = !!(analytics.shopId && configured.country && configured.language && configured.currency)
 
-    let shopId = options.shopId
-    let currency = contextual ? undefined : options.currency
-    let acceptedLanguage = contextual ? undefined : options.language
+    const result = complete
+      ? undefined
+      : await client.request<ShopQueryResult>(SHOP_QUERY, { variables: context })
+          .then(({ data }) => data)
+          .catch(error => void createLogger().debug('Shop analytics query failed:', error))
 
-    if (!shopId || !currency || !acceptedLanguage) {
-      try {
-        const { data } = await useStorefront().request<ShopQueryResult>(SHOP_QUERY, {
-          variables: { country, language },
-        })
+    const shopId = analytics.shopId || result?.shop?.id
 
-        shopId ||= data?.shop?.id
-        currency ||= data?.localization?.country?.currency?.isoCode
-        acceptedLanguage ||= data?.localization?.language?.isoCode
-      }
-      catch (error) {
-        createLogger().debug('Shop analytics query failed:', error)
-      }
-
-      currency ||= options.currency
-      acceptedLanguage ||= options.language
-    }
-
-    if (!shopId || !currency || !acceptedLanguage) {
-      createLogger().warn('Could not resolve shop analytics (missing shop ID, currency, or language). Analytics events will not be sent')
+    if (!shopId) {
+      createLogger().warn('Could not resolve the shop ID for analytics. Set `analytics.shopId` or make sure the storefront client can reach the Shopify API')
 
       return null
     }
 
+    const i18n = toI18n(
+      configured.country || result?.localization?.country?.isoCode,
+      configured.language || result?.localization?.language?.isoCode,
+      configured.currency || result?.localization?.country?.currency?.isoCode,
+    )
+
     return {
-      shopId,
-      currency,
-      acceptedLanguage,
-      hydrogenSubchannelId: options.storefrontId || '0',
+      shop: { shopId, storefrontId: analytics.storefrontId || '0', myshopifyDomain: `${name}.myshopify.com` },
+      ...(i18n ? { i18n } : {}),
     }
   }
 
-  return (context?: ShopifyAnalyticsShopContext): Promise<ShopAnalytics | null> => {
-    const key = `${toEnumCode(context?.country) ?? ''}:${toEnumCode(context?.language) ?? ''}`
+  return (context: ShopifyAnalyticsShopContext = {}): Promise<ShopifyScriptsShopContext | null> => {
+    const key = `${context.country ?? ''}:${context.language ?? ''}`
 
     let pending = cache.get(key)
 

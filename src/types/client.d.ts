@@ -90,9 +90,9 @@ export type ShopifyClientDefinition<Kind extends ShopifyClientKind = ShopifyClie
   createConfig: (config?: any) => ShopifyApiClientConfig
 
   authHeader?: string
-  tracking?: boolean
   cache?: boolean
   cookies?: boolean
+  shopifyCookies?: boolean
 }
 
 export type ShopifyClientOptions<

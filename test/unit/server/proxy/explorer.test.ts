@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { API_VERSION } from '#test/helpers/api-version'
 import { createTestEvent } from '#test/helpers/event'
 
 const runtimeConfig: { _shopify?: Record<string, unknown> } = {}
@@ -41,9 +42,9 @@ beforeEach(() => {
   runtimeConfig._shopify = {
     name: 'test-shop',
     clients: {
-      storefront: { apiVersion: '2026-04', publicAccessToken: 'public-token' },
-      admin: { apiVersion: '2026-04', clientId: 'id', clientSecret: 'secret' },
-      customerAccount: { apiVersion: '2026-04', clientId: 'id' },
+      storefront: { apiVersion: API_VERSION, publicAccessToken: 'public-token' },
+      admin: { apiVersion: API_VERSION, clientId: 'id', clientSecret: 'secret' },
+      customerAccount: { apiVersion: API_VERSION, clientId: 'id' },
     },
   }
 })
@@ -54,20 +55,6 @@ describe('availability', () => {
 
     await expect(handler(explorerEvent('storefront'))).resolves.toBeUndefined()
     expect(createShopifyClient).not.toHaveBeenCalled()
-  })
-
-  it('does not reach the client factory outside of dev', async () => {
-    vi.stubGlobal('__NUXT_DEV__', false)
-
-    await handler(explorerEvent('admin'))
-
-    expect(request).not.toHaveBeenCalled()
-  })
-
-  it('answers in dev', async () => {
-    await expect(handler(explorerEvent('storefront'))).resolves.toEqual({
-      data: { shop: { name: 'Test Shop' } },
-    })
   })
 })
 

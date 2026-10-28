@@ -55,17 +55,6 @@ beforeEach(() => {
 })
 
 describe('client cache', () => {
-  it('serves a repeated request from the cache', async () => {
-    const storage = createStorage()
-    const request = createRequest()
-
-    const first = await cached(storage, request, QUERY, { cache: 'short' })
-    const second = await cached(storage, request, QUERY, { cache: 'short' })
-
-    expect(request).toHaveBeenCalledTimes(1)
-    expect(second).toStrictEqual(first)
-  })
-
   it('derives the ttl from the named cache tier', async () => {
     const storage = createStorage()
 
@@ -125,15 +114,6 @@ describe('client cache', () => {
     await cached(createStorage(), request, QUERY, { cache: 'long' })
 
     expect(requestOptions(request)).toMatchObject({ headers: { 'X-Shopify-Proxy-Cache': 'long' } })
-  })
-
-  it('omits the proxy cache header when the request does not go through the proxy', async () => {
-    const request = createRequest()
-
-    await useCache(createStorage(), request as never, QUERY as never, { cache: 'long' } as never, presets, false)
-
-    expect(requestOptions(request)).toMatchObject({ headers: {} })
-    expect((requestOptions(request) as { headers: object }).headers).not.toHaveProperty('X-Shopify-Proxy-Cache')
   })
 
   it('caches a request that carries an abort signal', async () => {

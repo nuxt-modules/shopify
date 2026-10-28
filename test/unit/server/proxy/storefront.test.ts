@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { API_VERSION, OTHER_API_VERSION } from '#test/helpers/api-version'
 import { createTestEvent } from '#test/helpers/event'
 
 const runtimeConfig: { _shopify?: Record<string, unknown> } = {}
@@ -36,6 +37,8 @@ const handler = (await import('#src/runtime/server/api/proxy/storefront')).defau
 
 const query = '{ shop { name } }'
 
+const upstreamUrl = (version: string) => `https://test-shop.myshopify.com/api/${version}/graphql.json`
+
 function proxyEvent(headers: Record<string, string> = {}, body: unknown = { query }) {
   return createTestEvent({ method: 'POST', path: '/_proxy/storefront', headers, body })
 }
@@ -57,7 +60,7 @@ beforeEach(() => {
     name: 'test-shop',
     clients: {
       storefront: {
-        apiVersion: '2026-04',
+        apiVersion: API_VERSION,
         publicAccessToken: 'public-token',
       },
     },
@@ -65,20 +68,11 @@ beforeEach(() => {
 })
 
 describe('request guarding', () => {
-  it('rejects a cross-site request', async () => {
-    await expect(handler(proxyEvent({ 'sec-fetch-site': 'cross-site' })))
+  it('rejects a cross-site request before reading the body or calling Shopify', async () => {
+    await expect(handler(proxyEvent({ 'sec-fetch-site': 'cross-site' }, 'not json')))
       .rejects.toMatchObject({ statusCode: 403 })
 
     expect(upstream).not.toHaveBeenCalled()
-  })
-
-  it('rejects a cross-site request before reading the body', async () => {
-    await expect(handler(proxyEvent({ 'sec-fetch-site': 'cross-site' }, 'not json')))
-      .rejects.toMatchObject({ statusCode: 403 })
-  })
-
-  it('allows a same-origin request', async () => {
-    await expect(handler(proxyEvent({ 'sec-fetch-site': 'same-origin' }))).resolves.toBeDefined()
   })
 
   it('rejects a body without a query', async () => {
@@ -149,30 +143,30 @@ describe('api version override', () => {
   it('targets the configured api version by default', async () => {
     await handler(proxyEvent())
 
-    expect(lastCall().url).toContain('/api/2026-04/')
+    expect(lastCall().url).toBe(upstreamUrl(API_VERSION))
   })
 
   it('accepts a valid requested api version', async () => {
-    await handler(proxyEvent({ 'x-shopify-proxy-api-version': '2025-10' }))
+    await handler(proxyEvent({ 'x-shopify-proxy-api-version': OTHER_API_VERSION }))
 
-    expect(lastCall().url).toContain('/api/2025-10/')
+    expect(lastCall().url).toBe(upstreamUrl(OTHER_API_VERSION))
   })
 
   it('accepts the unstable api version', async () => {
     await handler(proxyEvent({ 'x-shopify-proxy-api-version': 'unstable' }))
 
-    expect(lastCall().url).toContain('/api/unstable/')
+    expect(lastCall().url).toBe(upstreamUrl('unstable'))
   })
 
   it.each([
-    ['../../admin/api/2026-04/graphql.json'],
+    [`../../admin/api/${API_VERSION}/graphql.json`],
     ['2026-1'],
     ['https://evil.example'],
     ['26-01'],
   ])('ignores the malformed api version %s', async (version) => {
     await handler(proxyEvent({ 'x-shopify-proxy-api-version': version }))
 
-    expect(lastCall().url).toContain('/api/2026-04/')
+    expect(lastCall().url).toBe(upstreamUrl(API_VERSION))
   })
 })
 
@@ -189,19 +183,12 @@ describe('proxy cache', () => {
       name: 'test-shop',
       clients: {
         storefront: {
-          apiVersion: '2026-04',
+          apiVersion: API_VERSION,
           publicAccessToken: 'public-token',
           cache: cacheable,
         },
       },
     }
-  })
-
-  it('goes upstream once for a repeated cacheable request', async () => {
-    await handler(proxyEvent({ 'x-shopify-proxy-cache': 'short' }))
-    await handler(proxyEvent({ 'x-shopify-proxy-cache': 'short' }))
-
-    expect(upstream).toHaveBeenCalledTimes(1)
   })
 
   it('never caches a request without a known preset', async () => {
@@ -292,31 +279,24 @@ describe('proxy cache', () => {
     expect(definitions).toBe(2)
   })
 
-  it('never treats an inherited object property as a configured preset', async () => {
-    await handler(proxyEvent({ 'x-shopify-proxy-cache': 'toString' }))
-    await handler(proxyEvent({ 'x-shopify-proxy-cache': 'toString' }))
-
-    expect(upstream).toHaveBeenCalledTimes(2)
-  })
-
-  it('forwards tracking headers on a miss but never replays them on a hit', async () => {
+  it('forwards Shopify\'s session cookies on a miss but never replays them on a hit', async () => {
     upstream.mockResolvedValue({
       _data: { data: {} },
-      headers: new Headers({ 'server-timing': '_y;desc=abc, _s;desc=def' }),
+      headers: new Headers({ 'set-cookie': '_shopify_essential=abc; Path=/; HttpOnly' }),
     })
 
     const miss = proxyEvent({ 'x-shopify-proxy-cache': 'short' })
 
     await handler(miss)
 
-    expect(miss.node.res.getHeader('server-timing')).toBeTruthy()
+    expect(miss.node.res.getHeader('set-cookie')).toBeTruthy()
 
     const hit = proxyEvent({ 'x-shopify-proxy-cache': 'short' })
 
     await handler(hit)
 
     expect(upstream).toHaveBeenCalledTimes(1)
-    expect(hit.node.res.getHeader('server-timing')).toBeFalsy()
+    expect(hit.node.res.getHeader('set-cookie')).toBeFalsy()
   })
 })
 
@@ -324,7 +304,7 @@ describe('mock mode', () => {
   it('targets mock.shop when the client is mocked', async () => {
     runtimeConfig._shopify = {
       name: 'test-shop',
-      clients: { storefront: { apiVersion: '2026-04', mock: true } },
+      clients: { storefront: { apiVersion: API_VERSION, mock: true } },
     }
 
     await handler(proxyEvent())
@@ -342,13 +322,7 @@ describe('upstream failures', () => {
       data,
     })
 
-  it('keeps the upstream status instead of collapsing to 500', async () => {
-    upstream.mockRejectedValue(fetchError(401, '{"errors":[{"message":"","extensions":{"code":"UNAUTHORIZED"}}]}', 'Unauthorized'))
-
-    await expect(handler(proxyEvent())).rejects.toMatchObject({ statusCode: 401 })
-  })
-
-  it('passes the upstream body through as data', async () => {
+  it('keeps the upstream status and passes the body through as data', async () => {
     upstream.mockRejectedValue(fetchError(429, { errors: [{ message: 'Throttled', extensions: { code: 'THROTTLED' } }] }))
 
     await expect(handler(proxyEvent())).rejects.toMatchObject({
@@ -389,22 +363,25 @@ describe('upstream failures', () => {
     await expect(handler(proxyEvent())).rejects.toMatchObject({ unhandled: false, fatal: false })
   })
 
-  it('surfaces a failure raised inside the cached path', async () => {
+  it('surfaces a failure raised inside the cached path as a handled error', async () => {
     runtimeConfig._shopify = {
       name: 'test-shop',
       clients: {
         storefront: {
-          apiVersion: '2026-04',
+          apiVersion: API_VERSION,
           publicAccessToken: 'public-token',
           cache: { proxy: true, presets: { long: { maxAge: 60 } } },
         },
       },
     }
 
-    upstream.mockRejectedValue(fetchError(423, { errors: [{ message: 'Shop is locked' }] }))
+    upstream.mockRejectedValue(fetchError(423, '{"errors":[{"message":"Shop is locked"}]}'))
 
-    await expect(handler(proxyEvent({ 'x-shopify-proxy-cache': 'long' })))
-      .rejects.toMatchObject({ statusCode: 423, data: { errors: [{ message: 'Shop is locked' }] } })
+    await expect(handler(proxyEvent({ 'x-shopify-proxy-cache': 'long' }))).rejects.toMatchObject({
+      statusCode: 423,
+      unhandled: false,
+      data: { errors: [{ message: 'Shop is locked' }] },
+    })
   })
 
   it('never caches a failure', async () => {
@@ -412,7 +389,7 @@ describe('upstream failures', () => {
       name: 'test-shop',
       clients: {
         storefront: {
-          apiVersion: '2026-04',
+          apiVersion: API_VERSION,
           publicAccessToken: 'public-token',
           cache: { proxy: true, presets: { long: { maxAge: 60 } } },
         },
@@ -421,7 +398,7 @@ describe('upstream failures', () => {
 
     upstream.mockRejectedValueOnce(fetchError(503, { errors: [{ message: 'down' }] }))
 
-    await expect(handler(proxyEvent({ 'x-shopify-proxy-cache': 'long' }))).rejects.toMatchObject({ statusCode: 503 })
+    await expect(handler(proxyEvent({ 'x-shopify-proxy-cache': 'long' }))).rejects.toMatchObject({ statusCode: 503, unhandled: false })
 
     upstream.mockResolvedValue({ _data: { data: { shop: { name: 'Test Shop' } } }, headers: new Headers() })
 

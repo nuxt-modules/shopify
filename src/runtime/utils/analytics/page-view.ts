@@ -1,36 +1,23 @@
-import type { ShopAnalytics } from '../../../module'
+import type { useRouter } from '#imports'
 
 import { nextTick } from 'vue'
 
-export interface PageViewRouter {
-  currentRoute: { value: { fullPath: string } }
-  afterEach: (guard: () => void) => unknown
-}
+type Router = ReturnType<typeof useRouter>
 
-export interface PageViewTrackerOptions {
-  router: PageViewRouter
-  shop: () => ShopAnalytics | null
-  publish: (url: string) => void
-}
-
-export function createPageViewTracker({ router, shop, publish }: PageViewTrackerOptions) {
-  let lastKey: string | undefined
+export function trackPageViews(router: Pick<Router, 'currentRoute' | 'afterEach'>, publish: () => void) {
+  let lastPage: string | undefined
 
   const track = () => {
-    if (!shop()?.shopId) return
+    const [page] = router.currentRoute.value.fullPath.split('#')
 
-    const { fullPath } = router.currentRoute.value
-    const hashIndex = fullPath.indexOf('#')
-    const key = hashIndex === -1 ? fullPath : fullPath.slice(0, hashIndex)
+    if (page === lastPage) return
 
-    if (key === lastKey) return
+    lastPage = page
 
-    lastKey = key
-
-    publish(window.location.href)
+    publish()
   }
 
   router.afterEach(() => void nextTick(track))
 
-  return track
+  track()
 }

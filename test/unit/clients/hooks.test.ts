@@ -1,11 +1,13 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { createClient } from '#src/runtime/utils/clients/create'
+import { DEFAULT_API_VERSION } from '#src/runtime/utils/clients/defaults'
 import { createStorefrontConfig } from '#src/runtime/utils/clients/storefront'
+import { API_VERSION } from '#test/helpers/api-version'
 
 const definition = { kind: 'storefront', createConfig: createStorefrontConfig, cache: true } as never
 
-const config = { name: 'shop', clients: { storefront: { apiVersion: '2026-04', publicAccessToken: 'tok', retries: 0 } } }
+const config = { name: 'shop', clients: { storefront: { apiVersion: API_VERSION, publicAccessToken: 'tok', retries: 0 } } }
 
 const QUERY = 'query Shop { shop { name } }'
 
@@ -79,15 +81,23 @@ describe('client response hook', () => {
 })
 
 describe('caller configuration', () => {
-  it('never writes defaults back into the config it was given', async () => {
+  it('never writes defaults back into the config it was given or its sibling clients', async () => {
     respondWith({ data: { shop: { name: 'shop' } } })
 
-    const shared = { name: 'shop', clients: { storefront: { publicAccessToken: 'tok' } } }
+    const shared = {
+      name: 'shop',
+      clients: {
+        storefront: { publicAccessToken: 'tok' },
+        admin: { accessToken: 'shpat_x' },
+      },
+    }
     const snapshot = structuredClone(shared)
+    const admin = shared.clients.admin
 
     await createClient(definition, shared as never, {} as never).request(QUERY as never)
 
     expect(shared).toStrictEqual(snapshot)
+    expect(shared.clients.admin).toBe(admin)
     expect(shared.clients.storefront).not.toHaveProperty('apiVersion')
     expect(shared.clients.storefront).not.toHaveProperty('retries')
   })
@@ -104,25 +114,7 @@ describe('caller configuration', () => {
     ).request(QUERY as never)
 
     expect(onConfigure).toHaveBeenCalledWith(
-      expect.objectContaining({ config: expect.objectContaining({ apiVersion: expect.any(String) }) }),
+      expect.objectContaining({ config: expect.objectContaining({ apiVersion: DEFAULT_API_VERSION }) }),
     )
-  })
-
-  it('leaves a sibling client untouched', async () => {
-    respondWith({ data: { shop: { name: 'shop' } } })
-
-    const shared = {
-      name: 'shop',
-      clients: {
-        storefront: { publicAccessToken: 'tok' },
-        admin: { accessToken: 'shpat_x' },
-      },
-    }
-    const admin = shared.clients.admin
-
-    await createClient(definition, shared as never, {} as never).request(QUERY as never)
-
-    expect(shared.clients.admin).toBe(admin)
-    expect(admin).toStrictEqual({ accessToken: 'shpat_x' })
   })
 })

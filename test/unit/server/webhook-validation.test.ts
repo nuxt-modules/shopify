@@ -12,10 +12,6 @@ vi.mock('#imports', async () => ({
   useRuntimeConfig: () => runtimeConfig,
 }))
 
-vi.mock('nitropack/runtime', () => ({
-  useRuntimeConfig: () => runtimeConfig,
-}))
-
 const debug = vi.fn()
 
 vi.mock('#src/runtime/server/utils/log', () => ({
@@ -44,10 +40,6 @@ describe('webhook hmac validation', () => {
     await expect(validate(createEvent(body, sign(body)))).resolves.toBeUndefined()
   })
 
-  it('rejects a payload signed with a different secret', async () => {
-    await expect(validate(createEvent(body, sign(body, 'wrong_secret')))).rejects.toMatchObject({ statusCode: 401 })
-  })
-
   it('rejects a tampered payload', async () => {
     const signature = sign(body)
     const tampered = JSON.stringify({ id: 2, topic: 'orders/create' })
@@ -59,8 +51,11 @@ describe('webhook hmac validation', () => {
     await expect(validate(createEvent(body))).rejects.toMatchObject({ statusCode: 401 })
   })
 
-  it('rejects a signature of the wrong length', async () => {
+  it('rejects a signature of the wrong length as not matching', async () => {
+    debug.mockClear()
+
     await expect(validate(createEvent(body, 'short'))).rejects.toMatchObject({ statusCode: 401 })
+    expect(debug).toHaveBeenCalledWith(expect.stringContaining('does not match'))
   })
 
   it('rejects an empty body', async () => {

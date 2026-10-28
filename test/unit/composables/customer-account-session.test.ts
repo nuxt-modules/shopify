@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ref } from 'vue'
 
 import { SESSION_DEFAULT_NAME } from '#src/runtime/utils/session'
@@ -6,10 +6,12 @@ import { SESSION_DEFAULT_NAME } from '#src/runtime/utils/session'
 const sessionRoute = '_auth/customer-account/session'
 
 const requests: string[] = []
+const navigations: unknown[][] = []
 const state = new Map<string, ReturnType<typeof ref>>()
 
 let sessionName: string | undefined = SESSION_DEFAULT_NAME
 let requestCookie: string | undefined
+let tunnelURL: string | undefined
 
 const loggedIn = { loggedIn: true, user: { id: 'gid://shopify/Customer/1' }, loggedInAt: 1 }
 
@@ -24,7 +26,7 @@ vi.mock('#imports', async () => ({
             clientId: 'cid',
             routes: { callback: '_auth/customer-account/callback', logout: '_auth/customer-account/logout', session: sessionRoute },
             afterLogin: '/',
-            dev: { bridgeURL: '_auth/customer-account/bridge' },
+            dev: { bridgeURL: '_auth/customer-account/bridge', tunnelURL },
             ...(sessionName === undefined ? {} : { session: { name: sessionName } }),
           },
         },
@@ -47,17 +49,27 @@ vi.mock('#imports', async () => ({
     return Promise.resolve(loggedIn)
   },
 
-  navigateTo: (url: string) => url,
+  navigateTo: (...args: unknown[]) => {
+    navigations.push(args)
+
+    return args[0]
+  },
 }))
 
 const { useCustomerAccountSession } = await import('#src/runtime/composables/customer-account/session')
 
 beforeEach(() => {
   requests.length = 0
+  navigations.length = 0
   state.clear()
 
   sessionName = SESSION_DEFAULT_NAME
   requestCookie = undefined
+  tunnelURL = undefined
+})
+
+afterEach(() => {
+  vi.unstubAllGlobals()
 })
 
 describe('server side session fetching', () => {
@@ -140,5 +152,56 @@ describe('server side session fetching', () => {
     await fetch()
 
     expect(requests).toHaveLength(0)
+  })
+})
+
+describe('login and logout', () => {
+  it('starts the login at the callback route with the requested options', () => {
+    useCustomerAccountSession().login({
+      loginHint: 'customer@example.com',
+      loginHintMode: 'submit',
+      locale: 'de',
+      countryCode: 'DE',
+      acrValues: 'b2b',
+      returnTo: '/account/orders',
+    })
+
+    const [url, options] = navigations.at(-1) as [string, unknown]
+    const target = new URL(url, 'https://shop.example')
+
+    expect(target.pathname).toBe('/_auth/customer-account/callback')
+    expect(Object.fromEntries(target.searchParams)).toEqual({
+      login_hint: 'customer@example.com',
+      login_hint_mode: 'submit',
+      locale: 'de',
+      region_country: 'DE',
+      acr_values: 'b2b',
+      return_to: '/account/orders',
+    })
+    expect(options).toEqual({ external: true })
+  })
+
+  it('starts the login on the tunnel while developing', () => {
+    vi.stubGlobal('__NUXT_DEV__', true)
+
+    tunnelURL = 'https://tunnel.example.dev'
+
+    useCustomerAccountSession().login()
+
+    expect(navigations.at(-1)?.[0]).toBe('https://tunnel.example.dev/_auth/customer-account/callback')
+  })
+
+  it('ignores the tunnel outside of dev', () => {
+    tunnelURL = 'https://tunnel.example.dev'
+
+    useCustomerAccountSession().login()
+
+    expect(navigations.at(-1)?.[0]).toBe('/_auth/customer-account/callback')
+  })
+
+  it('logs out through the logout route as a full page navigation', () => {
+    useCustomerAccountSession().logout()
+
+    expect(navigations.at(-1)).toEqual(['/_auth/customer-account/logout', { external: true }])
   })
 })

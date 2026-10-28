@@ -20,10 +20,7 @@ export const useCart = () => {
   const setCart = (value?: CartFieldsFragment) => {
     cart.value = value
 
-    analytics.setCart(value
-      ? { ...value, lines: flattenConnection(value.lines) }
-      : null,
-    )
+    analytics.setCart(value ?? null)
   }
 
   const lines = computed(() => flattenConnection(cart.value?.lines))
@@ -34,12 +31,12 @@ export const useCart = () => {
   const setLoading = async (value: boolean) => loading.value = value
 
   const getAvatar = (variantId: string, lines?: CartFieldsFragment['lines']) => {
-    const line = lines?.edges?.find(line => line.node.merchandise.id === variantId)
+    const line = lines?.nodes.find(line => line.merchandise.id === variantId)
 
-    return line?.node.merchandise.image
+    return line?.merchandise.image
       ? {
-          src: line.node.merchandise.image.url + '?width=88&height=88',
-          alt: line.node.merchandise.image.altText || undefined,
+          src: line.merchandise.image.url + '?width=88&height=88',
+          alt: line.merchandise.image.altText || undefined,
         }
       : undefined
   }

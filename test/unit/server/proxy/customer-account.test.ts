@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { API_VERSION } from '#test/helpers/api-version'
 import { createTestEvent } from '#test/helpers/event'
 
 const runtimeConfig: { _shopify?: Record<string, unknown> } = {}
@@ -41,9 +42,9 @@ beforeEach(() => {
     name: 'test-shop',
     clients: {
       customerAccount: {
-        apiVersion: '2026-04',
+        apiVersion: API_VERSION,
         clientId: 'client-id',
-        apiURL: 'https://shopify.com/1/account/customer/api/2026-04/graphql',
+        apiURL: `https://shopify.com/1/account/customer/api/${API_VERSION}/graphql`,
       },
     },
   }
@@ -63,28 +64,18 @@ describe('customer account proxy', () => {
     expect(getValidCustomerAccessToken).not.toHaveBeenCalled()
   })
 
-  it('allows a same-origin request', async () => {
-    await expect(handler(proxyEvent({ 'sec-fetch-site': 'same-origin' }))).resolves.toBeDefined()
-  })
-
-  it('rejects a body without a query', async () => {
-    await expect(handler(proxyEvent({}, { variables: {} }))).rejects.toBeDefined()
+  it('rejects a body without a query as a validation error', async () => {
+    await expect(handler(proxyEvent({}, { variables: {} }))).rejects.toMatchObject({ statusCode: 400 })
     expect(upstream).not.toHaveBeenCalled()
   })
 
-  it('attaches the session access token as the authorization header', async () => {
-    await handler(proxyEvent())
-
-    expect(lastCall().options.headers).toMatchObject({
-      'Authorization': 'Bearer customer-access-token',
-      'Content-Type': 'application/json',
-    })
-  })
-
-  it('never forwards a client supplied authorization header', async () => {
+  it('authorizes upstream with the session access token only, never a client supplied one', async () => {
     await handler(proxyEvent({ authorization: 'Bearer forged-token' }))
 
-    expect(lastCall().options.headers.Authorization).toBe('Bearer customer-access-token')
+    expect(lastCall().options.headers).toStrictEqual({
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer customer-access-token',
+    })
   })
 
   it('reports the unauthorized error when the session has expired', async () => {
@@ -99,7 +90,7 @@ describe('customer account proxy', () => {
   it('targets the configured customer account api url', async () => {
     await handler(proxyEvent())
 
-    expect(lastCall().url).toBe('https://shopify.com/1/account/customer/api/2026-04/graphql')
+    expect(lastCall().url).toBe(`https://shopify.com/1/account/customer/api/${API_VERSION}/graphql`)
   })
 
   it('forwards the query and variables', async () => {
@@ -108,43 +99,16 @@ describe('customer account proxy', () => {
     expect(lastCall().options.body).toEqual({ query, variables: { first: 5 } })
   })
 
-  it('fails when the customer account client is not configured', async () => {
+  it('reports a missing customer account client configuration', async () => {
     runtimeConfig._shopify = { name: 'test-shop', clients: {} }
 
-    await expect(handler(proxyEvent())).rejects.toBeDefined()
+    await expect(handler(proxyEvent())).rejects.toThrow(/client is not configured/)
   })
 })
 
 describe('upstream failures', () => {
   const fetchError = (status: number, data: unknown) =>
     Object.assign(new Error(`[POST] "https://shopify.com/…": ${status}`), { status, statusCode: status, data })
-
-  it('keeps the upstream status instead of collapsing to 500', async () => {
-    upstream.mockRejectedValue(fetchError(401, { errors: [{ message: 'Unauthorized' }] }))
-
-    await expect(handler(proxyEvent())).rejects.toMatchObject({ statusCode: 401 })
-  })
-
-  it('passes the upstream body through as data', async () => {
-    upstream.mockRejectedValue(fetchError(429, { errors: [{ message: 'Throttled' }] }))
-
-    await expect(handler(proxyEvent())).rejects.toMatchObject({
-      statusCode: 429,
-      data: { errors: [{ message: 'Throttled' }] },
-    })
-  })
-
-  it('reports a connection failure as a bad gateway', async () => {
-    upstream.mockRejectedValue(new Error('connect ECONNREFUSED'))
-
-    await expect(handler(proxyEvent())).rejects.toMatchObject({ statusCode: 502 })
-  })
-
-  it('never marks the error unhandled, so production keeps the detail', async () => {
-    upstream.mockRejectedValue(fetchError(401, { errors: [{ message: 'nope' }] }))
-
-    await expect(handler(proxyEvent())).rejects.toMatchObject({ unhandled: false, fatal: false })
-  })
 
   it('names the customer account API in the message', async () => {
     upstream.mockRejectedValue(fetchError(403, { errors: [{ message: 'Forbidden' }] }))

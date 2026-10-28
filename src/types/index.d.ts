@@ -15,7 +15,6 @@ import type {
   ShopifyAdminAuthErrorHookParams,
   ShopifyAdminAuthRequestHookParams,
   ShopifyAdminAuthTokenHookParams,
-  ShopifyAnalyticsPublishHookParams,
   ShopifyAnalyticsReadyHookParams,
   ShopifyClientHookParams,
   ShopifyClientOptionHookParams,
@@ -130,14 +129,9 @@ declare module '#app' {
 
   interface RuntimeNuxtHooks {
     /**
-     * Called once analytics is ready (shop identity resolved and the Customer Privacy API loaded)
+     * Called once analytics is ready (shop identity resolved and Shopify's scripts started)
      */
-    'analytics:ready': ({ shop }: ShopifyAnalyticsReadyHookParams) => HookResult
-
-    /**
-     * Called whenever an analytics event is published, before it is dispatched to subscribers
-     */
-    'analytics:publish': ({ event, payload }: ShopifyAnalyticsPublishHookParams) => HookResult
+    'analytics:ready': ({ shop, i18n }: ShopifyAnalyticsReadyHookParams) => HookResult
 
     /**
      * Called before the storefront client is created within nuxt
@@ -356,23 +350,7 @@ export type {
 } from './hooks'
 
 export type {
-  AnalyticsConsentFlags,
-  AnalyticsEmitter,
-  AnalyticsEventName,
-  AnalyticsEventPayload,
-  AnalyticsProductInput,
-  AnalyticsSubscriber,
-  CartViewPayload,
-  CartUpdatePayload,
-  CollectionViewPayload,
-  CustomerPrivacyApi,
-  PrivacyBanner,
-  ProductViewPayload,
-  SearchViewPayload,
-  ShopAnalytics,
   ShopifyAnalyticsCart,
-  ShopifyAnalyticsCartLine,
   ShopifyAnalyticsContext,
   ShopifyAnalyticsShopContext,
-  TrackingConsent,
 } from './analytics'

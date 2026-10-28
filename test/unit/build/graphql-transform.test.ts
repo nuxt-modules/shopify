@@ -3,7 +3,6 @@ import { describe, expect, it } from 'vitest'
 import type { FragmentRegistry } from '#src/utils/graphql/registry'
 
 import { findGraphqlLiterals } from '#src/utils/graphql/literals'
-import { normalizeOperation } from '#src/runtime/utils/graphql/normalize'
 import { scanDefinitions } from '#src/runtime/utils/graphql/scanner'
 import { touchesFragments } from '#src/setup/graphql-transform'
 import { createGraphqlTransformPlugin, transformGraphqlLiterals } from '#src/utils/graphql/transform'
@@ -68,13 +67,6 @@ describe('findGraphqlLiterals', () => {
     expect(findGraphqlLiterals('const greeting = `hello ${name}`')).toHaveLength(0)
   })
 
-  it('can handle regex character classes containing backticks', () => {
-    const literals = findGraphqlLiterals('const r = /`/\nconst q = `#graphql\n query D { id }\n`')
-
-    expect(literals).toHaveLength(1)
-    expect(literals[0]!.content).toContain('query D')
-  })
-
   it('can handle regex character classes containing slashes', () => {
     const literals = findGraphqlLiterals('const r = /[/`]/g\nconst q = `#graphql\n query J { id }\n`')
 
@@ -83,10 +75,10 @@ describe('findGraphqlLiterals', () => {
   })
 
   it('ignores slashes after operands', () => {
-    const literals = findGraphqlLiterals('const n = (a) / 2 / b\nconst q = `#graphql\n query L { id }\n`')
+    const literals = findGraphqlLiterals('const n = (a) / 2; const q = `#graphql\n query L { id }\n`')
 
     expect(literals).toHaveLength(1)
-    expect(literals[0]!.content).toContain('query L')
+    expect(literals[0]!.content).toBe('#graphql\n query L { id }\n')
   })
 
   it('treats a slash after keywords as regex', () => {
@@ -97,10 +89,10 @@ describe('findGraphqlLiterals', () => {
   })
 
   it('can handle nested literals', () => {
-    const literals = findGraphqlLiterals('const q = `#graphql\n query Foo { id }\n${cond ? `a` : `b`}\n`\nconst after = 1')
+    const literals = findGraphqlLiterals('const q = `#graphql\n query Foo { id }\n${cond ? `}` : `b`}\n`\nconst after = 1')
 
     expect(literals).toHaveLength(1)
-    expect(literals[0]!.content).toContain('query Foo')
+    expect(literals[0]!.content).toBe('#graphql\n query Foo { id }\n${cond ? `}` : `b`}\n')
   })
 })
 
@@ -143,23 +135,10 @@ describe('fragment injection', () => {
     expect(transform(code)).toBeUndefined()
   })
 
-  it('produces a document that normalizes to itself', () => {
-    const code = 'const q = `#graphql\n  query FetchProduct {\n    product { ...ProductFields }\n  }\n`'
-    const content = findGraphqlLiterals(transform(code)!).at(0)!.content
-
-    expect(normalizeOperation(content)).toBe(content)
-  })
-
   it('injects into an anonymous operation', () => {
     const code = 'const q = `#graphql\n  query {\n    product { ...ProductFields }\n  }\n`'
 
     expect(transform(code)).toContain('fragment ProductFields')
-  })
-
-  it('injects into a bare selection set', () => {
-    const code = 'const q = `#graphql\n{ product { ...ProductFields } }\n`'
-
-    expect(transform(code)).toContain('fragment ImageFields')
   })
 
   it('injects into every operation literal in a file', () => {
@@ -186,14 +165,21 @@ describe('transform plugin', () => {
     expect(run('/project/app/pages/product.vue')?.code).toContain('fragment ProductFields')
   })
 
-  it('transforms the script block of a single file component', () => {
-    const id = '/project/app/pages/product.vue?vue&type=script&setup=true&lang.ts'
+  it('transforms the script block of a single file component and resolves fragments by its file path', () => {
+    const files: string[] = []
 
-    expect(run(id)?.code).toContain('fragment ProductFields')
-  })
+    const scriptPlugin = createGraphqlTransformPlugin({
+      resolveRegistry: (file) => {
+        files.push(file)
 
-  it('runs after the vue plugin', () => {
-    expect(plugin.enforce).toBe('post')
+        return registry()
+      },
+    })
+
+    const result = scriptPlugin.transform(code, '/project/app/pages/product.vue?vue&type=script&setup=true&lang.tsx')
+
+    expect(result?.code).toContain('fragment ProductFields')
+    expect(files).toStrictEqual(['/project/app/pages/product.vue'])
   })
 
   it('emits a source map for the original file', () => {

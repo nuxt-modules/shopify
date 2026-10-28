@@ -15,7 +15,7 @@ vi.mock('#imports', () => ({
 
 const { useAnalyticsCart, useShopifyAnalytics } = await import('#src/runtime/composables/analytics/client')
 
-const cart = { id: 'gid://shopify/Cart/1', updatedAt: '1', lines: [] }
+const cart = { id: 'gid://shopify/Cart/1', updatedAt: '1', lines: { nodes: [] } }
 
 beforeEach(() => {
   state.clear()

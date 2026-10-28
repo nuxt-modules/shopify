@@ -5,10 +5,6 @@ import useErrors from '#src/runtime/utils/clients/errors'
 const graphQLErrors = [{ message: 'Field `nope` doesn\'t exist', path: ['products', 'nope'] }]
 
 describe('client errors', () => {
-  it('does nothing when there are no errors', async () => {
-    await expect(useErrors(undefined as never, true)).resolves.toBeUndefined()
-  })
-
   it('reports graphql errors with their path', async () => {
     await expect(useErrors({ graphQLErrors } as never, true)).rejects.toMatchObject({
       statusCode: 500,
@@ -36,15 +32,11 @@ describe('client errors', () => {
     })
   })
 
-  it('does not throw when throwing is disabled', async () => {
-    await expect(useErrors({ graphQLErrors } as never, false)).resolves.toBeUndefined()
-  })
-
-  it('always calls the callback, throwing or not', async () => {
+  it('always calls the callback but only throws when throwing is enabled', async () => {
     const onErrors = vi.fn()
 
-    await useErrors({ graphQLErrors } as never, false, onErrors)
-    await useErrors({ graphQLErrors } as never, true, onErrors).catch(() => {})
+    await expect(useErrors({ graphQLErrors } as never, false, onErrors)).resolves.toBeUndefined()
+    await expect(useErrors({ graphQLErrors } as never, true, onErrors)).rejects.toMatchObject({ statusCode: 500 })
 
     expect(onErrors).toHaveBeenCalledTimes(2)
     expect(onErrors).toHaveBeenCalledWith({ errors: { graphQLErrors } })

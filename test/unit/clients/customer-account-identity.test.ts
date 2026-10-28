@@ -1,11 +1,16 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { fetchCustomerIdentity } from '#src/runtime/utils/clients/customer-account/auth'
+import { API_VERSION } from '#test/helpers/api-version'
 
-const API_URL = 'https://shopify.com/1234/account/customer/api/2026-04/graphql'
+const API_URL = `https://shopify.com/1234/account/customer/api/${API_VERSION}/graphql`
 
 function stubResponse(customer: unknown) {
-  vi.stubGlobal('$fetch', vi.fn(async () => ({ data: { customer } })))
+  const fetch = vi.fn(async () => ({ data: { customer } }))
+
+  vi.stubGlobal('$fetch', fetch)
+
+  return fetch
 }
 
 afterEach(() => {
@@ -47,6 +52,17 @@ describe('fetchCustomerIdentity', () => {
       email: null,
       phone: '+15145551234',
     })
+  })
+
+  it('queries the customer account api with the raw access token as authorization', async () => {
+    const fetch = stubResponse({ id: 'gid://shopify/Customer/1', firstName: null, lastName: null, emailAddress: null, phoneNumber: null })
+
+    await fetchCustomerIdentity(API_URL, 'access-token')
+
+    expect(fetch).toHaveBeenCalledWith(API_URL, expect.objectContaining({
+      method: 'POST',
+      headers: expect.objectContaining({ Authorization: 'access-token' }),
+    }))
   })
 
   it('rejects a response without a customer', async () => {

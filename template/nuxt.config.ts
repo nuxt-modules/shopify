@@ -33,10 +33,6 @@ export default defineNuxtConfig({
 
       analytics: {
         storefrontId: '187932',
-
-        consent: {
-          banner: true,
-        },
       },
     },
   },

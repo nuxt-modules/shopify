@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { API_VERSION } from '#test/helpers/api-version'
+
 const request = vi.fn()
 
 vi.mock('#src/runtime/utils/clients/admin', () => ({
@@ -10,7 +12,7 @@ const { getSubscribedWebhooks, subscribeWebhook, unsubscribeWebhook } = await im
 
 const config = {
   name: 'shop',
-  clients: { admin: { apiVersion: '2026-04', accessToken: 'shpat_x', retries: 0 } },
+  clients: { admin: { apiVersion: API_VERSION, accessToken: 'shpat_x', retries: 0 } },
 } as never
 
 const withHooks = (hooks: unknown[]) => ({ ...(config as object), webhooks: { hooks } }) as never
@@ -114,8 +116,8 @@ describe('listing subscriptions', () => {
     expect(request.mock.calls[1]?.[1]).toMatchObject({ variables: { first: 250, after: 'cursor-1' } })
   })
 
-  it('stops after a single page', async () => {
-    request.mockResolvedValueOnce(page([subscription()]))
+  it('stops when the API reports no next page even though it returns a cursor', async () => {
+    request.mockResolvedValueOnce(page([subscription()], false, 'cursor-1'))
 
     await expect(getSubscribedWebhooks(config)).resolves.toHaveLength(1)
     expect(request).toHaveBeenCalledTimes(1)
@@ -271,16 +273,8 @@ describe('leaving matching subscriptions alone', () => {
     expect(calls).toStrictEqual([])
   })
 
-  it('treats an absent filter and a null filter as equal', async () => {
-    const calls = mockApi([subscription({ filter: null })])
-
-    await subscribeWebhook(withHooks([{ topic: 'ORDERS_CREATE', uri: 'https://example.com/hook' }]))
-
-    expect(calls).toStrictEqual([])
-  })
-
-  it('treats an omitted format as JSON', async () => {
-    const calls = mockApi([subscription({ format: 'JSON' })])
+  it('treats an absent filter as null and an omitted format as JSON', async () => {
+    const calls = mockApi([subscription({ filter: null, format: 'JSON' })])
 
     await subscribeWebhook(withHooks([{ topic: 'ORDERS_CREATE', uri: 'https://example.com/hook' }]))
 

@@ -55,10 +55,11 @@ describe('assertSameSite', () => {
       .toThrow(expect.objectContaining({ statusCode: 403 }))
   })
 
-  it('rejects a cross-site request regardless of the origin header', () => {
+  it('rejects a cross-site request even when its origin matches the host', () => {
     expect(() => assertSameSite(event({
       'sec-fetch-site': 'cross-site',
-      'origin': 'https://evil.example',
+      'host': 'shop.example',
+      'origin': 'https://shop.example',
     }))).toThrow(expect.objectContaining({ statusCode: 403 }))
   })
 

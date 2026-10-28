@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ProductViewPayload } from '../../../module'
+import type { ProductViewPayload } from '@shopify/hydrogen'
 
 import { onMounted, watch } from 'vue'
 import { useShopifyAnalytics } from '../../composables/analytics/client'
@@ -16,7 +16,7 @@ const publish = () => {
 
 onMounted(publish)
 
-watch(() => props.data.products.map(product => product.variantId ?? product.id).join(','), publish)
+watch(() => props.data.products.map(product => product.variantId || product.id).join(','), publish)
 </script>
 
 <template>

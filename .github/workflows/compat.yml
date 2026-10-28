@@ -49,7 +49,7 @@ jobs:
         run: pnpm install --frozen-lockfile --ignore-scripts
 
       - name: Run tests
-        run: pnpm run prepare && pnpm run prepare:playgrounds && pnpm run test
+        run: pnpm run prepare && pnpm run test
 
   hydrogen:
     name: "hydrogen ${{ matrix.hydrogen }}"
@@ -57,13 +57,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - hydrogen: "2024"
-            hydrogen-react: "2024"
-          - hydrogen: "~2026.4.0"
-            hydrogen-react: "~2026.4.0"
-          - hydrogen: "~2026.10.0"
-            hydrogen-react: "~2026.4.0"
+        hydrogen:
+          - "~2026.10.0"
     steps:
       - uses: actions/checkout@v7.0.1
         with:
@@ -78,7 +73,7 @@ jobs:
         run: pnpm install --no-frozen-lockfile --ignore-scripts
 
       - name: Pin hydrogen peers
-        run: pnpm add -D -w "@shopify/hydrogen@${{ matrix.hydrogen }}" "@shopify/hydrogen-react@${{ matrix.hydrogen-react }}"
+        run: pnpm add -D -w "@shopify/hydrogen@${{ matrix.hydrogen }}"
 
       - name: Run tests
-        run: pnpm run prepare && pnpm run prepare:playgrounds && pnpm run test
+        run: pnpm run prepare && pnpm run test

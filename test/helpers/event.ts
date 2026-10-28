@@ -1,8 +1,10 @@
+import type { SetCookie } from 'cookie-es'
 import type { H3Event } from 'h3'
 
 import { IncomingMessage, ServerResponse } from 'node:http'
 import { Socket } from 'node:net'
-import { createEvent } from 'h3'
+import { parse, parseSetCookie, stringifyCookie } from 'cookie-es'
+import { createEvent, getRequestHeader } from 'h3'
 
 export type TestEventInit = {
   method?: string
@@ -68,8 +70,23 @@ export function getResponseCookies(event: H3Event): Record<string, string> {
   }))
 }
 
+function isClearedCookie({ value, maxAge, expires }: SetCookie): boolean {
+  return !value
+    || (maxAge !== undefined && maxAge <= 0)
+    || (expires !== undefined && expires.getTime() <= Date.now())
+}
+
 export function toCookieHeader(event: H3Event): string {
-  return Object.entries(getResponseCookies(event))
-    .map(([name, value]) => `${name}=${encodeURIComponent(value)}`)
-    .join('; ')
+  const jar = new Map(Object.entries(parse(getRequestHeader(event, 'cookie') ?? '')))
+
+  for (const header of getSetCookieHeaders(event)) {
+    const cookie = parseSetCookie(header)
+
+    if (!cookie) throw new Error(`Unparsable Set-Cookie header: ${header}`)
+
+    if (isClearedCookie(cookie)) jar.delete(cookie.name)
+    else jar.set(cookie.name, cookie.value)
+  }
+
+  return stringifyCookie(Object.fromEntries(jar))
 }

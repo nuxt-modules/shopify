@@ -210,24 +210,18 @@ const webhooksSchema = z.object({
 })
 
 const analyticsSchema = z.object({
-  domain: z.string().optional(),
   shopId: z.union([z.string(), z.number()]).transform(v => String(v)).optional(),
   storefrontId: z.union([z.string(), z.number()]).transform(v => String(v)).optional(),
 
+  country: z.string().optional(),
   language: z.string().optional(),
   currency: z.string().optional(),
 
   autoPageView: z.boolean().optional().default(true),
 
   consent: z.object({
-    checkoutDomain: z.string().optional(),
-    storefrontAccessToken: z.string().optional(),
-
-    banner: enableable(z.object({
-      country: z.string().optional(),
-      language: z.string().optional(),
-    }), {}, false),
-  }).optional(),
+    mode: z.enum(['no-banner', 'default-banner', 'custom-banner']).optional().default('no-banner'),
+  }).optional().default({ mode: 'no-banner' }),
 })
 
 const storefrontClient = storefrontClientSchema
@@ -270,7 +264,7 @@ export const configObjectSchema = z.object({
 
   webhooks: webhooksSchema.optional(),
 
-  analytics: enableable(analyticsSchema, { autoPageView: true }, false),
+  analytics: enableable(analyticsSchema, analyticsSchema.parse({}), false),
 
   logger: z.any().transform(v => v as Partial<ConsolaOptions>).optional(),
 })

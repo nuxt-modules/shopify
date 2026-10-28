@@ -1,162 +1,105 @@
 // @vitest-environment happy-dom
-import type { ShopifyAnalyticsCart, ShopifyAnalyticsCartLine } from '#src/types'
+import type { ShopifyAnalyticsCart } from '#src/types'
 
+import { trackCartAnalytics } from '@shopify/hydrogen'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { nextTick, ref } from 'vue'
 
-import { createCartTracker } from '#src/runtime/utils/analytics/cart'
+import { createCartAnalyticsStore, toAnalyticsCart } from '#src/runtime/utils/analytics/cart'
 
-function line(id: string, quantity: number): ShopifyAnalyticsCartLine {
+type CartLine = ShopifyAnalyticsCart['lines']['nodes'][number]
+
+const publish = vi.fn()
+
+function line(id: string, quantity: number): CartLine {
   return {
     id,
     quantity,
+    cost: { amountPerQuantity: { amount: '10.0', currencyCode: 'EUR' } },
     merchandise: {
       id: `gid://shopify/ProductVariant/${id}`,
-      title: 'Default',
-      price: { amount: '10.00' },
-      product: {
-        id: `gid://shopify/Product/${id}`,
-        title: `Product ${id}`,
-        vendor: 'Acme',
-      },
+      title: 'Black / M',
+      sku: `SKU-${id}`,
+      product: { id: `gid://shopify/Product/${id}`, title: `Product ${id}`, vendor: 'Acme', productType: 'Hoodie', handle: `product-${id}` },
     },
   }
 }
 
-function cart(updatedAt: string, lines: ShopifyAnalyticsCartLine[]): ShopifyAnalyticsCart {
-  return { id: 'gid://shopify/Cart/1', updatedAt, lines }
+function cart(updatedAt: string | undefined, lines: CartLine[]): ShopifyAnalyticsCart {
+  return { id: 'gid://shopify/Cart/1', updatedAt, cost: { totalAmount: { currencyCode: 'EUR' } }, lines: { nodes: lines } }
 }
 
-function setup(initialCart?: ShopifyAnalyticsCart) {
-  const publish = vi.fn()
-
-  return { publish, track: createCartTracker({ publish, initialCart }) }
-}
-
-function events(publish: ReturnType<typeof vi.fn>, name: string) {
+function events(name: string) {
   return publish.mock.calls.filter(([event]) => event === name).map(([, payload]) => payload)
 }
 
+function track(initial: ShopifyAnalyticsCart | null) {
+  const current = ref(initial)
+
+  trackCartAnalytics(createCartAnalyticsStore(current))
+
+  return current
+}
+
 beforeEach(() => {
+  publish.mockClear()
   localStorage.clear()
+
+  window.Shopify = { analytics: { publish, addDestination: vi.fn(), getConfig: () => ({ shop: null, consent: {} }) } } as never
 })
 
-describe('analytics cart events', () => {
-  it('publishes nothing without an updated cart', () => {
-    const { publish, track } = setup()
+describe('createCartAnalyticsStore', () => {
+  it('reports a cart change against the cart the page started with', async () => {
+    const current = track(cart('1', [line('a', 1)]))
 
-    track(null)
-    track({ id: 'gid://shopify/Cart/1', lines: [] })
+    current.value = cart('2', [line('a', 2)])
 
-    expect(publish).not.toHaveBeenCalled()
+    await nextTick()
+
+    expect(events('cart_updated')).toMatchObject([{ prevCart: { updatedAt: '1' }, cart: { updatedAt: '2' } }])
   })
 
-  it('publishes an update when the cart changes', () => {
-    const { publish, track } = setup()
+  it('reports the first cart when tracking starts before the visitor has one', async () => {
+    const current = track(null)
 
-    track(cart('1', [line('a', 1)]))
+    current.value = cart('1', [line('a', 1)])
 
-    expect(events(publish, 'cart_updated')).toHaveLength(1)
+    await nextTick()
+
+    expect(events('cart_updated')).toMatchObject([{ cart: { updatedAt: '1' } }])
+  })
+})
+
+describe('toAnalyticsCart', () => {
+  it('maps the cart to Shopify\'s analytics shape', () => {
+    expect(toAnalyticsCart(cart('1', [line('a', 2)]))).toStrictEqual({
+      id: 'gid://shopify/Cart/1',
+      updatedAt: '1',
+      cost: { totalAmount: { currencyCode: 'EUR' } },
+      lines: {
+        nodes: [{
+          id: 'a',
+          quantity: 2,
+          merchandise: {
+            id: 'gid://shopify/ProductVariant/a',
+            title: 'Black / M',
+            price: { amount: '10.0', currencyCode: 'EUR' },
+            sku: 'SKU-a',
+            product: { id: 'gid://shopify/Product/a', title: 'Product a', vendor: 'Acme', productType: 'Hoodie', handle: 'product-a' },
+          },
+        }],
+      },
+    })
   })
 
-  it('ignores a cart that has not changed since the last event', () => {
-    const { publish, track } = setup()
+  it('leaves out lines without product details', () => {
+    const { merchandise, ...withoutMerchandise } = line('b', 1)
 
-    track(cart('1', [line('a', 1)]))
-    publish.mockClear()
-
-    track(cart('1', [line('a', 1)]))
-
-    expect(publish).not.toHaveBeenCalled()
+    expect(merchandise).toBeDefined()
+    expect(toAnalyticsCart(cart('1', [line('a', 1), withoutMerchandise]))?.lines.nodes).toHaveLength(1)
   })
 
-  it('does not replay the stored cart on a fresh load', () => {
-    const first = setup()
-    first.track(cart('1', [line('a', 1)]))
-
-    const second = setup()
-    second.track(cart('1', [line('a', 1)]))
-
-    expect(second.publish).not.toHaveBeenCalled()
-  })
-
-  it('compares the first change against the starting cart', () => {
-    const { publish, track } = setup(cart('1', [line('a', 1)]))
-
-    track(cart('2', [line('a', 1), line('b', 1)]))
-
-    const added = events(publish, 'product_added_to_cart')
-
-    expect(added).toHaveLength(1)
-    expect(added[0].currentLine.id).toBe('b')
-    expect(events(publish, 'cart_updated')[0].prevCart.updatedAt).toBe('1')
-  })
-
-  it('ignores the starting cart when it is set again', () => {
-    const { publish, track } = setup(cart('1', [line('a', 1)]))
-
-    track(cart('1', [line('a', 1)]))
-
-    expect(publish).not.toHaveBeenCalled()
-  })
-
-  it('reports a new line as added', () => {
-    const { publish, track } = setup()
-
-    track(cart('1', []))
-    track(cart('2', [line('a', 1)]))
-
-    const added = events(publish, 'product_added_to_cart')
-
-    expect(added).toHaveLength(1)
-    expect(added[0].currentLine.id).toBe('a')
-  })
-
-  it('reports a raised quantity as added', () => {
-    const { publish, track } = setup()
-
-    track(cart('1', [line('a', 1)]))
-    publish.mockClear()
-
-    track(cart('2', [line('a', 3)]))
-
-    const added = events(publish, 'product_added_to_cart')
-
-    expect(added).toHaveLength(1)
-    expect(added[0].prevLine.quantity).toBe(1)
-    expect(added[0].currentLine.quantity).toBe(3)
-  })
-
-  it('reports a lowered quantity as removed', () => {
-    const { publish, track } = setup()
-
-    track(cart('1', [line('a', 3)]))
-    track(cart('2', [line('a', 1)]))
-
-    expect(events(publish, 'product_removed_from_cart')).toHaveLength(1)
-  })
-
-  it('reports a dropped line as removed without a current line', () => {
-    const { publish, track } = setup()
-
-    track(cart('1', [line('a', 1), line('b', 1)]))
-    track(cart('2', [line('a', 1)]))
-
-    const removed = events(publish, 'product_removed_from_cart')
-
-    expect(removed).toHaveLength(1)
-    expect(removed[0].prevLine.id).toBe('b')
-    expect(removed[0].currentLine).toBeUndefined()
-  })
-
-  it('reports each line of a multi line change', () => {
-    const { publish, track } = setup()
-
-    track(cart('1', [line('a', 1), line('b', 1)]))
-    publish.mockClear()
-
-    track(cart('2', [line('a', 2), line('c', 1)]))
-
-    expect(events(publish, 'product_added_to_cart')).toHaveLength(2)
-    expect(events(publish, 'product_removed_from_cart')).toHaveLength(1)
+  it('has no cart before Shopify confirmed one', () => {
+    expect(toAnalyticsCart(cart(undefined, []))).toBeNull()
   })
 })

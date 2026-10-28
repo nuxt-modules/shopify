@@ -6,9 +6,9 @@ import { buildSchema, introspectionFromSchema } from 'graphql'
 import { kebabCase } from 'scule'
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { ShopifyClientType } from '#src/schemas'
+import { ShopifyClientType, configObjectSchema } from '#src/schemas'
 import { clearGenerateFailures, createOperationsGenerator, getGenerateFailures } from '#src/utils/codegen'
-import { expectedAdminDocuments, expectedStorefrontDocuments } from '#test/helpers/codegen'
+import { API_VERSION } from '#test/helpers/api-version'
 
 const HYDROGEN_STOREFRONT_SCHEMA = fileURLToPath(import.meta.resolve('@shopify/hydrogen/storefront.schema.json'))
 
@@ -28,6 +28,14 @@ const ADMIN_SDL = `
 
 const CODEGEN_TIMEOUT = 30_000
 
+const shippedConfig = configObjectSchema.parse({
+  name: 'test-shop',
+  clients: {
+    storefront: { publicAccessToken: 'token' },
+    admin: { accessToken: 'token' },
+  },
+})
+
 let root: string
 
 function writeProjectFile(path: string, contents: string) {
@@ -38,11 +46,12 @@ function writeProjectFile(path: string, contents: string) {
 }
 
 function introspectionFile(clientType: ShopifyClientType) {
-  return `.nuxt/shopify/schema/${kebabCase(clientType)}.2026-04.schema.json`
+  return `.nuxt/shopify/schema/${kebabCase(clientType)}.${API_VERSION}.schema.json`
 }
 
-function operationsData(clientType: ShopifyClientType, documents: string[]) {
+function operationsData(clientType: ShopifyClientType) {
   const client = kebabCase(clientType)
+  const documents = shippedConfig.clients[clientType]!.documents!
 
   return {
     nuxt: {
@@ -53,7 +62,7 @@ function operationsData(clientType: ShopifyClientType, documents: string[]) {
       filename: `shopify/${client}/${client}.operations.d.ts`,
       shopName: 'test-shop',
       clientType,
-      clientConfig: { apiVersion: '2026-04', documents, codegen: { autoImport: false } },
+      clientConfig: { apiVersion: API_VERSION, documents, codegen: { autoImport: false } },
     },
   } as never
 }
@@ -85,7 +94,7 @@ beforeEach(() => {
 describe('document routing', () => {
   it('keeps admin operations out of the storefront types', async () => {
     const generateOperations = createOperationsGenerator(storedSchema(ShopifyClientType.Storefront))!
-    const contents = await generateOperations(operationsData(ShopifyClientType.Storefront, expectedStorefrontDocuments))
+    const contents = await generateOperations(operationsData(ShopifyClientType.Storefront))
 
     expect(getGenerateFailures()).toEqual([])
     expect(contents).toContain('export type ShopNameQuery =')
@@ -94,7 +103,7 @@ describe('document routing', () => {
 
   it('types admin operations against the admin schema only', async () => {
     const generateOperations = createOperationsGenerator(storedSchema(ShopifyClientType.Admin))!
-    const contents = await generateOperations(operationsData(ShopifyClientType.Admin, expectedAdminDocuments))
+    const contents = await generateOperations(operationsData(ShopifyClientType.Admin))
 
     expect(getGenerateFailures()).toEqual([])
     expect(contents).toContain('export type AdminCustomersQuery =')

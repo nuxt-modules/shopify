@@ -1,85 +1,55 @@
-import type {
-  AnalyticsEventName,
-  AnalyticsEventPayload,
-  ShopifyAnalyticsCart,
-  ShopifyAnalyticsCartLine,
-} from '../../../module'
+import type { AnalyticsCart, CartData, CartState, CartStore } from '@shopify/hydrogen'
+import type { Ref } from 'vue'
 
-const STORAGE_KEY = 'cartLastUpdatedAt'
+import type { ShopifyAnalyticsCart } from '../../../module'
 
-type StoredUpdate = { id?: string, updatedAt?: string }
+import { EMPTY_CART_DATA, EMPTY_CART_STATE } from '@shopify/hydrogen'
+import { watch } from 'vue'
 
-export interface CartTrackerOptions {
-  publish: <E extends AnalyticsEventName>(event: E, payload: AnalyticsEventPayload<E>) => void
-  initialCart?: ShopifyAnalyticsCart | null
-}
+export function createCartAnalyticsStore(cart: Ref<ShopifyAnalyticsCart | null>): Pick<CartStore, 'getState' | 'subscribe'> {
+  const getState = (): CartState => ({
+    ...EMPTY_CART_STATE,
+    loading: false,
+    data: (cart.value ?? EMPTY_CART_DATA) as CartData,
+  })
 
-function readStoredUpdate(): StoredUpdate | null {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '') as StoredUpdate
-  }
-  catch {
-    return null
+  return {
+    getState,
+    subscribe: listener => watch(cart, () => listener(getState())),
   }
 }
 
-function storeUpdate(cart: ShopifyAnalyticsCart): void {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ id: cart.id, updatedAt: cart.updatedAt }))
-  }
-  catch {
-    return
-  }
-}
+export function toAnalyticsCart(cart: ShopifyAnalyticsCart): AnalyticsCart | null {
+  if (!cart.id || !cart.updatedAt) return null
 
-export function createCartTracker({ publish, initialCart = null }: CartTrackerOptions) {
-  let prevCart = initialCart
+  return {
+    id: cart.id,
+    updatedAt: cart.updatedAt,
+    cost: cart.cost,
+    lines: {
+      nodes: cart.lines.nodes.flatMap(({ id, quantity, cost, merchandise }) => {
+        const product = merchandise?.product
 
-  const diffLines = (cart: ShopifyAnalyticsCart, previousLines: ShopifyAnalyticsCartLine[]) => {
-    const currentLines = cart.lines ?? []
+        if (!merchandise || typeof product?.id !== 'string' || typeof product.vendor !== 'string') return []
 
-    for (const prevLine of previousLines) {
-      const currentLine = currentLines.find(line => line.id === prevLine.id)
-
-      if (!currentLine) {
-        publish('product_removed_from_cart', { cart, prevLine })
-      }
-      else if (prevLine.quantity < currentLine.quantity) {
-        publish('product_added_to_cart', { cart, prevLine, currentLine })
-      }
-      else if (prevLine.quantity > currentLine.quantity) {
-        publish('product_removed_from_cart', { cart, prevLine, currentLine })
-      }
-    }
-
-    for (const currentLine of currentLines) {
-      if (!previousLines.some(prevLine => prevLine.id === currentLine.id)) {
-        publish('product_added_to_cart', { cart, currentLine })
-      }
-    }
-  }
-
-  return (cart: ShopifyAnalyticsCart | null) => {
-    if (!cart?.id || !cart.updatedAt) return
-    if (cart.updatedAt === prevCart?.updatedAt) return
-
-    const stored = readStoredUpdate()
-
-    if (stored?.id === cart.id && stored?.updatedAt === cart.updatedAt) {
-      prevCart = cart
-
-      return
-    }
-
-    const previousLines = prevCart?.lines ?? []
-    const previous = prevCart
-
-    prevCart = cart
-
-    publish('cart_updated', { cart, prevCart: previous })
-
-    storeUpdate(cart)
-
-    diffLines(cart, previousLines)
+        return [{
+          id,
+          quantity,
+          merchandise: {
+            id: merchandise.id,
+            title: merchandise.title ?? product.title,
+            price: cost.amountPerQuantity,
+            sku: typeof merchandise.sku === 'string' ? merchandise.sku : null,
+            product: {
+              id: product.id,
+              title: product.title,
+              vendor: product.vendor,
+              productType: typeof product.productType === 'string' ? product.productType : undefined,
+              handle: product.handle,
+            },
+          },
+        }]
+      }),
+    },
   }
 }

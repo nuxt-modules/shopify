@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { SearchViewPayload } from '../../../module'
+import type { SearchViewPayload } from '@shopify/hydrogen'
 
 import { onMounted, watch } from 'vue'
 import { useShopifyAnalytics } from '../../composables/analytics/client'

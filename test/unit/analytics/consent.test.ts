@@ -2,65 +2,33 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { nextTick, watchEffect } from 'vue'
 
-import { parseStoreDomain, setupCustomerPrivacy } from '#src/runtime/utils/analytics/consent'
+import { createCustomerPrivacy } from '#src/runtime/utils/analytics/consent'
 
-declare global {
-  interface Window {
-    happyDOM: {
-      setURL(url: string): void
-    }
-  }
-}
+const accepted = { analytics: true, marketing: true, preferences: true, sale_of_data: true }
 
-function onHost(host: string, checkoutDomain: string) {
-  window.happyDOM.setURL(`https://${host}/`)
-
-  return parseStoreDomain(checkoutDomain)
-}
-
-describe('parseStoreDomain', () => {
-  it('uses the longest domain the storefront and checkout share', () => {
-    expect(onHost('shop.example.com', 'checkout.example.com')).toBe('example.com')
-  })
-
-  it('keeps the full host when the checkout domain is the storefront itself', () => {
-    expect(onHost('shop.example.com', 'shop.example.com')).toBe('shop.example.com')
-  })
-
-  it('shares nothing when only the public suffix matches', () => {
-    expect(onHost('shop.example.com', 'checkout.myshop.com')).toBeUndefined()
-  })
-
-  it('stops at the first mismatched label', () => {
-    expect(onHost('a.b.com', 'c.b.net')).toBeUndefined()
-  })
-
-  it('shares nothing between unrelated domains', () => {
-    expect(onHost('shop.example.com', 'checkout.shopify.io')).toBeUndefined()
-  })
-})
-
-type ConsentCallback = (result: { error?: string }) => void
-
-function stubCustomerPrivacy() {
+function stubCustomerPrivacy({ bannerRequired = false } = {}) {
   let allowed = false
 
   const api = {
     analyticsProcessingAllowed: () => allowed,
-    marketingAllowed: () => allowed,
-    saleOfDataAllowed: () => allowed,
-    setTrackingConsent: vi.fn((_consent: unknown, callback?: ConsentCallback) => {
-      allowed = true
-
-      callback?.({})
+    shouldShowBanner: () => bannerRequired && !allowed,
+    setTrackingConsent: vi.fn(async (consent: { analytics: boolean }) => {
+      allowed = consent.analytics
     }),
   }
 
-  ;(window as unknown as { Shopify?: unknown }).Shopify = { customerPrivacy: api }
+  const shopify = { customerPrivacy: {} as typeof api | Record<string, never> }
+
+  ;(window as unknown as { Shopify?: unknown }).Shopify = shopify
 
   return {
     api,
-    grant: () => {
+    load: () => {
+      shopify.customerPrivacy = api
+
+      document.dispatchEvent(new Event('consentTrackingApiLoaded'))
+    },
+    collect: () => {
       allowed = true
 
       document.dispatchEvent(new Event('visitorConsentCollected'))
@@ -68,66 +36,134 @@ function stubCustomerPrivacy() {
   }
 }
 
-function setup() {
-  return setupCustomerPrivacy({
-    checkoutDomain: 'shop.example.com',
-    storefrontAccessToken: 'tok',
-    banner: false,
-  })
-}
-
 afterEach(() => {
   delete (window as unknown as { Shopify?: unknown }).Shopify
+  delete (window as unknown as { privacyBanner?: unknown }).privacyBanner
 })
 
-describe('canTrack', () => {
-  it('reports the consent state once the privacy api has loaded', async () => {
-    const { grant } = stubCustomerPrivacy()
+describe('createCustomerPrivacy', () => {
+  it('cannot track until the privacy api that Shopify\'s scripts load allows it', () => {
+    const { load } = stubCustomerPrivacy()
 
-    const privacy = setup()
+    const privacy = createCustomerPrivacy('no-banner')
 
-    await privacy.ready
+    privacy.connect()
 
     expect(privacy.canTrack()).toBe(false)
 
-    grant()
+    load()
+
+    expect(privacy.canTrack()).toBe(false)
+  })
+
+  it('keeps the server state until it connects after hydration', () => {
+    const { load, collect } = stubCustomerPrivacy()
+
+    load()
+    collect()
+
+    const privacy = createCustomerPrivacy('no-banner')
+
+    expect(privacy.canTrack()).toBe(false)
+
+    privacy.connect()
 
     expect(privacy.canTrack()).toBe(true)
   })
 
   it('re-renders a template that reads it when consent is collected', async () => {
-    const { grant } = stubCustomerPrivacy()
+    const { load, collect } = stubCustomerPrivacy()
 
-    const privacy = setup()
+    const privacy = createCustomerPrivacy('no-banner')
 
-    await privacy.ready
+    privacy.connect()
+    load()
 
     const rendered: boolean[] = []
 
     watchEffect(() => rendered.push(privacy.canTrack()))
 
-    grant()
+    collect()
 
     await nextTick()
 
     expect(rendered).toStrictEqual([false, true])
   })
 
-  it('re-renders after consent is granted through setTrackingConsent', async () => {
-    stubCustomerPrivacy()
+  it('records the choice through the privacy api', async () => {
+    const { api, load } = stubCustomerPrivacy()
 
-    const privacy = setup()
+    const privacy = createCustomerPrivacy('no-banner')
 
-    await privacy.ready
+    privacy.connect()
+    load()
 
-    const rendered: boolean[] = []
+    await privacy.setTrackingConsent(accepted)
 
-    watchEffect(() => rendered.push(privacy.canTrack()))
+    expect(api.setTrackingConsent).toHaveBeenCalledWith(accepted)
+    expect(privacy.canTrack()).toBe(true)
+  })
 
-    privacy.setTrackingConsent({ analytics: true, marketing: true, preferences: true, sale_of_data: true })
+  it('rejects when the privacy api cannot store the choice', async () => {
+    const { api, load } = stubCustomerPrivacy()
+
+    api.setTrackingConsent.mockRejectedValueOnce(new Error('offline'))
+
+    const privacy = createCustomerPrivacy('no-banner')
+
+    privacy.connect()
+    load()
+
+    await expect(privacy.setTrackingConsent(accepted)).rejects.toThrow('offline')
+  })
+
+  it('reports whether Shopify asks for a banner for the visitor', async () => {
+    const { load } = stubCustomerPrivacy({ bannerRequired: true })
+
+    const privacy = createCustomerPrivacy('no-banner')
+
+    privacy.connect()
+    load()
+
+    expect(privacy.shouldShowBanner()).toBe(true)
+
+    await privacy.setTrackingConsent(accepted)
+
+    expect(privacy.shouldShowBanner()).toBe(false)
+  })
+
+  it('holds the events of a custom banner until the visitor chooses', async () => {
+    const { load } = stubCustomerPrivacy()
+
+    const privacy = createCustomerPrivacy('custom-banner')
+
+    privacy.connect()
+    load()
+
+    let settled = false
+
+    if (privacy.consent.mode === 'custom-banner') void privacy.consent.setup().then(() => (settled = true))
 
     await nextTick()
 
-    expect(rendered).toStrictEqual([false, true])
+    expect(settled).toBe(false)
+
+    await privacy.setTrackingConsent(accepted)
+
+    await vi.waitFor(() => expect(settled).toBe(true))
+  })
+
+  it('passes only the mode to Shopify\'s own banner and opens its preferences only for it', async () => {
+    const showPreferences = vi.fn()
+
+    ;(window as unknown as { privacyBanner?: unknown }).privacyBanner = { showPreferences }
+
+    const ownBanner = createCustomerPrivacy('default-banner')
+
+    await createCustomerPrivacy('no-banner').showPreferences()
+    await ownBanner.showPreferences()
+
+    expect(ownBanner.consent).toStrictEqual({ mode: 'default-banner' })
+    expect(showPreferences).toHaveBeenCalledTimes(1)
   })
 })

@@ -209,10 +209,8 @@ CustomerAccount.vue
     },
     "dependencies": {
       "@nuxtjs/shopify": "latest",
+      "@shopify/hydrogen": "^2026.10.2",
       "nuxt": "latest"
-    },
-    "devDependencies": {
-      "@shopify/hydrogen": "2026.1.4"
     }
   }
   ```

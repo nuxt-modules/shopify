@@ -1,9 +1,12 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import {
   buildAuthorizationParams,
+  exchangeAuthorizationCode,
   getIdTokenNonce,
+  getOpenIdConfiguration,
   normalizeLocale,
+  refreshAccessToken,
   sanitizeReturnPath,
 } from '#src/runtime/utils/clients/customer-account/auth'
 
@@ -23,6 +26,33 @@ const baseParams = {
   scope: ['openid', 'email', 'openid'],
   state: 'state-value',
 }
+
+const configuration = {
+  issuer: 'https://shopify.example',
+  authorization_endpoint: 'https://shopify.example/oauth/authorize',
+  token_endpoint: 'https://shopify.example/oauth/token',
+  end_session_endpoint: 'https://shopify.example/oauth/logout',
+}
+
+const BASIC_AUTH = `Basic ${Buffer.from('client-id:client-secret').toString('base64')}`
+
+function stubFetch(response: unknown) {
+  const fetch = vi.fn(async () => response)
+
+  vi.stubGlobal('$fetch', fetch)
+
+  return fetch
+}
+
+function tokenRequest(fetch: ReturnType<typeof stubFetch>) {
+  const [url, options] = fetch.mock.calls[0] as unknown as [string, { body: string, headers: Record<string, string> }]
+
+  return { url, body: Object.fromEntries(new URLSearchParams(options.body)), headers: options.headers }
+}
+
+afterEach(() => {
+  vi.unstubAllGlobals()
+})
 
 describe('normalizeLocale', () => {
   it.each([
@@ -59,7 +89,7 @@ describe('buildAuthorizationParams', () => {
     expect(withHint.login_hint).toBe('customer@example.com')
   })
 
-  it('adds the PKCE challenge only when a code challenge is given', () => {
+  it('adds the S256 PKCE challenge when a code challenge is given', () => {
     const params = buildAuthorizationParams({ ...baseParams, codeChallenge: 'challenge' })
 
     expect(params.code_challenge).toBe('challenge')
@@ -72,10 +102,11 @@ describe('getIdTokenNonce', () => {
     expect(getIdTokenNonce(encodeIdToken({ nonce: 'nonce-value' }))).toBe('nonce-value')
   })
 
-  it('decodes non-ASCII claims correctly', () => {
-    const token = encodeIdToken({ nonce: 'nonce-value', name: 'Jörg Müller' })
+  it('decodes a non-ASCII nonce from a url-safe payload', () => {
+    const token = encodeIdToken({ nonce: 'nönce~~~?' })
 
-    expect(getIdTokenNonce(token)).toBe('nonce-value')
+    expect(token.split('.')[1]).toMatch(/[-_]/)
+    expect(getIdTokenNonce(token)).toBe('nönce~~~?')
   })
 
   it.each([
@@ -109,5 +140,87 @@ describe('sanitizeReturnPath', () => {
   it('rejects control characters', () => {
     expect(sanitizeReturnPath('/\t/evil.com')).toBeUndefined()
     expect(sanitizeReturnPath('/\n\r/evil.com')).toBeUndefined()
+  })
+})
+
+describe('exchangeAuthorizationCode', () => {
+  const params = {
+    clientId: 'client-id',
+    redirectUri: 'https://example.com/_auth/customer-account/callback',
+    code: 'authorization-code',
+  }
+
+  it('sends the PKCE verifier and no client credentials for a public client', async () => {
+    const fetch = stubFetch({ access_token: 'access-token' })
+
+    await exchangeAuthorizationCode(configuration, { ...params, codeVerifier: 'code-verifier' })
+
+    const request = tokenRequest(fetch)
+
+    expect(request.url).toBe(configuration.token_endpoint)
+    expect(request.body).toEqual({
+      grant_type: 'authorization_code',
+      client_id: 'client-id',
+      redirect_uri: params.redirectUri,
+      code: 'authorization-code',
+      code_verifier: 'code-verifier',
+    })
+    expect(request.headers).not.toHaveProperty('Authorization')
+  })
+
+  it('authenticates a confidential client with basic auth instead of a verifier', async () => {
+    const fetch = stubFetch({ access_token: 'access-token' })
+
+    await exchangeAuthorizationCode(configuration, { ...params, clientSecret: 'client-secret' })
+
+    const request = tokenRequest(fetch)
+
+    expect(request.body).not.toHaveProperty('code_verifier')
+    expect(request.headers.Authorization).toBe(BASIC_AUTH)
+  })
+
+  it('rejects a token response without an access token', async () => {
+    stubFetch({ token_type: 'Bearer' })
+
+    await expect(exchangeAuthorizationCode(configuration, { ...params, codeVerifier: 'code-verifier' }))
+      .rejects.toThrow(/no access token in response/)
+  })
+})
+
+describe('refreshAccessToken', () => {
+  it('sends the refresh token with basic auth for a confidential client', async () => {
+    const fetch = stubFetch({ access_token: 'fresh-access-token' })
+
+    await refreshAccessToken(configuration, { clientId: 'client-id', clientSecret: 'client-secret', refreshToken: 'refresh-token' })
+
+    const request = tokenRequest(fetch)
+
+    expect(request.body).toEqual({ grant_type: 'refresh_token', client_id: 'client-id', refresh_token: 'refresh-token' })
+    expect(request.headers.Authorization).toBe(BASIC_AUTH)
+  })
+})
+
+describe('getOpenIdConfiguration', () => {
+  it('fetches the discovery document once per store', async () => {
+    const fetch = stubFetch(configuration)
+
+    await getOpenIdConfiguration('https://cached.example')
+
+    await expect(getOpenIdConfiguration('https://cached.example')).resolves.toEqual(configuration)
+    expect(fetch).toHaveBeenCalledOnce()
+    expect(fetch).toHaveBeenCalledWith('https://cached.example/.well-known/openid-configuration')
+  })
+
+  it('fetches the discovery document again after a failed request', async () => {
+    const fetch = vi.fn()
+      .mockRejectedValueOnce(new Error('unavailable'))
+      .mockResolvedValueOnce(configuration)
+
+    vi.stubGlobal('$fetch', fetch)
+
+    await expect(getOpenIdConfiguration('https://retried.example'))
+      .rejects.toThrow(/Failed to fetch the customer account OpenID configuration/)
+    await expect(getOpenIdConfiguration('https://retried.example')).resolves.toEqual(configuration)
+    expect(fetch).toHaveBeenCalledTimes(2)
   })
 })

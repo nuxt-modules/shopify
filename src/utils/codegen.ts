@@ -15,7 +15,8 @@ import { joinURL } from 'ufo'
 
 import { ShopifyClientType } from '../schemas'
 import { useLogger } from './log'
-import { getInstalledVersion, resolveInstalledPath } from './install'
+import { getHydrogenSchemaApiVersion, HYDROGEN } from './hydrogen'
+import { resolveInstalledPath } from './install'
 import { getAdminAccessToken } from '../runtime/utils/clients/admin/auth'
 import {
   ADMIN_TOKEN_HEADER,
@@ -23,8 +24,6 @@ import {
   PRIVATE_TOKEN_HEADER,
   PUBLIC_TOKEN_HEADER,
 } from '../runtime/utils/clients/transport'
-
-const HYDROGEN = '@shopify/hydrogen'
 
 const HYDROGEN_SCHEMAS: Partial<Record<ShopifyClientType, string>> = {
   [ShopifyClientType.Storefront]: `${HYDROGEN}/storefront.schema.json`,
@@ -72,17 +71,6 @@ function isHydrogenSchema(schema: Types.ConfiguredOutput['schema'], clientType: 
   const [hydrogenSchema] = getHydrogenSchema(clientType) ?? []
 
   return !!hydrogenSchema && [schema].flat().includes(hydrogenSchema)
-}
-
-async function getHydrogenSchemaApiVersion() {
-  const version = await getInstalledVersion(HYDROGEN)
-  const [year, month] = version?.split('.').map(Number) ?? []
-
-  if (!year || !month) return undefined
-
-  const apiReleaseMonth = month - ((month - 1) % 3)
-
-  return `${year}-${String(apiReleaseMonth).padStart(2, '0')}`
 }
 
 async function warnOnHydrogenSchemaMismatch({ clientType, clientConfig }: ShopifyTemplateOptions) {
@@ -255,7 +243,7 @@ function createGlobalDeclarations(contents: string, filename: string): string {
   return `\ndeclare global {\n${declarations}\n}\n`
 }
 
-export function getInterfaceExtensionFunction(clientType: ShopifyClientType, queryType: string, mutationType: string) {
+function getInterfaceExtensionFunction(clientType: ShopifyClientType, queryType: string, mutationType: string) {
   return `
 declare module '@nuxtjs/shopify/${kebabCase(clientType)}' {
   type InputMaybe<T> = ${upperFirst(clientType)}Types.InputMaybe<T>

@@ -1,137 +1,80 @@
-import type { CustomerPrivacyApi, PrivacyBanner, TrackingConsent } from '../../../module'
+import type { ConsentConfig, ConsentPreferences, ShopifyGlobal } from '@shopify/hydrogen'
 
 import { ref } from 'vue'
-import { useHead } from '#imports'
 
 import { createLogger } from '../log'
-import { waitFor, windowRef } from './helpers'
+import { waitFor } from './helpers'
 
-const CONSENT_API = 'https://cdn.shopify.com/shopifycloud/consent-tracking-api/v0.2/consent-tracking-api.js'
-const CONSENT_API_WITH_BANNER = 'https://cdn.shopify.com/shopifycloud/privacy-banner/storefront-banner.js'
-const SCRIPT_ID = 'customer-privacy-api'
+export type ConsentMode = NonNullable<ConsentConfig['mode']>
 
-function getPrivacyWindow() {
-  return windowRef<{ Shopify?: { customerPrivacy?: CustomerPrivacyApi }, privacyBanner?: PrivacyBanner }>()
+function getCustomerPrivacy(): ShopifyGlobal['customerPrivacy'] | null {
+  const api = typeof window === 'undefined' ? undefined : window.Shopify?.customerPrivacy
+
+  return api && 'setTrackingConsent' in api ? api : null
 }
 
-export function parseStoreDomain(checkoutDomain: string): string | undefined {
-  if (typeof window === 'undefined') return undefined
+async function showBannerPreferences(enabled: boolean) {
+  if (!enabled) {
+    createLogger().debug('Cannot show the Shopify privacy banner preferences, `analytics.consent.mode` is not `default-banner`')
 
-  const current = window.location.host.split('.').reverse()
-  const checkout = checkoutDomain.split('.').reverse()
-  const shared: string[] = []
-
-  for (const [index, part] of checkout.entries()) {
-    if (part !== current[index]) break
-
-    shared.push(part)
+    return
   }
 
-  return shared.length > 1 ? shared.reverse().join('.') : undefined
+  const banner = await waitFor(() => window.privacyBanner ?? null)
+
+  await banner?.showPreferences()
 }
 
-function getCustomerPrivacy(): CustomerPrivacyApi | null {
-  try {
-    const api = getPrivacyWindow().Shopify?.customerPrivacy
-
-    return api && 'setTrackingConsent' in api ? api : null
-  }
-  catch {
-    return null
-  }
-}
-
-export function setupCustomerPrivacy(config: {
-  checkoutDomain: string
-  storefrontAccessToken: string
-  banner?: { country?: string, locale?: string } | false
-}) {
-  const ancestorDomain = parseStoreDomain(config.checkoutDomain)
-
-  const consentConfig = {
-    checkoutRootDomain: config.checkoutDomain,
-    storefrontRootDomain: ancestorDomain ? `.${ancestorDomain}` : undefined,
-    storefrontAccessToken: config.storefrontAccessToken,
-    headlessStorefront: true,
-  }
-
-  const bannerConfig = {
-    ...consentConfig,
-    country: config.banner ? config.banner.country : undefined,
-    locale: config.banner ? config.banner.locale : undefined,
-  }
-
-  useHead({
-    script: [{
-      key: SCRIPT_ID,
-      src: config.banner ? CONSENT_API_WITH_BANNER : CONSENT_API,
-      async: true,
-    }],
-  })
-
-  const waitForBanner = () => waitFor(() => getPrivacyWindow().privacyBanner ?? null)
-
+export function createCustomerPrivacy(mode: ConsentMode) {
   const trackingAllowed = ref(false)
+  const bannerRequired = ref(false)
 
-  const syncTrackingConsent = () => {
-    trackingAllowed.value = getCustomerPrivacy()?.analyticsProcessingAllowed() ?? false
+  let recordChoice = () => {}
+
+  const choiceRecorded = new Promise<void>(resolve => (recordChoice = resolve))
+
+  const sync = () => {
+    const api = getCustomerPrivacy()
+
+    trackingAllowed.value = api?.analyticsProcessingAllowed() ?? false
+    bannerRequired.value = api?.shouldShowBanner() ?? false
   }
 
-  if (typeof document !== 'undefined') {
-    document.addEventListener('visitorConsentCollected', syncTrackingConsent)
+  const connect = () => {
+    document.addEventListener('consentTrackingApiLoaded', sync)
+    document.addEventListener('visitorConsentCollected', sync)
+
+    sync()
   }
 
-  const ready = waitFor(getCustomerPrivacy).then((api) => {
-    syncTrackingConsent()
-
-    if (api && config.banner) {
-      void waitForBanner()
-        .then(banner => banner?.loadBanner(bannerConfig))
-        .catch(error => createLogger().debug('Failed to load the Shopify privacy banner:', error))
-    }
-  })
+  const consent: ConsentConfig = mode === 'custom-banner'
+    ? { mode, setup: () => choiceRecorded }
+    : { mode }
 
   return {
-    ready,
+    consent,
 
-    cookieDomain: ancestorDomain ? `.${ancestorDomain}` : undefined,
+    connect,
 
     canTrack: () => trackingAllowed.value,
 
-    getConsent: () => {
-      const api = getCustomerPrivacy()
+    shouldShowBanner: () => bannerRequired.value,
 
-      const analyticsAllowed = api?.analyticsProcessingAllowed() ?? false
-      const marketingAllowed = api?.marketingAllowed() ?? false
-      const saleOfDataAllowed = api?.saleOfDataAllowed() ?? false
+    setTrackingConsent: async (preferences: ConsentPreferences) => {
+      if (typeof window === 'undefined') return
 
-      return {
-        analyticsAllowed,
-        marketingAllowed,
-        saleOfDataAllowed,
-        ccpaEnforced: !saleOfDataAllowed,
-        gdprEnforced: !(marketingAllowed && analyticsAllowed),
-      }
+      const api = await waitFor(getCustomerPrivacy)
+
+      if (!api) throw new Error('Shopify\'s Customer Privacy API did not load, so the consent was not recorded')
+
+      await api.setTrackingConsent({ ...preferences })
+
+      sync()
+      recordChoice()
     },
 
-    setTrackingConsent: (consent: TrackingConsent, callback?: (result: { error?: string }) => void) => {
-      getCustomerPrivacy()?.setTrackingConsent({ ...consentConfig, ...consent }, (result) => {
-        syncTrackingConsent()
-
-        callback?.(result)
-      })
-    },
-
-    showPreferences: async () => {
-      if (!config.banner) {
-        createLogger().debug('Cannot show the Shopify privacy banner preferences, `analytics.consent.banner` is not enabled')
-
-        return
-      }
-
-      const banner = await waitForBanner()
-
-      banner?.showPreferences(bannerConfig)
-    },
+    showPreferences: () => typeof window === 'undefined'
+      ? Promise.resolve()
+      : showBannerPreferences(mode === 'default-banner'),
   }
 }

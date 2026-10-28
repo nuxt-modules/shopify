@@ -63,12 +63,6 @@ describe('admin access token', () => {
     expect(fetchMock.mock.calls[0]![1].body.get('refresh_token')).toBe('refresh-token')
   })
 
-  it('requires both a client id and secret when no access token is set', async () => {
-    stubTokenEndpoint()
-
-    await expect(getAdminAccessToken('shop', { clientId: 'client-id' } as never)).rejects.toThrow(/clientId. or .clientSecret/)
-  })
-
   it('creates one token per shop for concurrent requests', async () => {
     const fetchMock = stubTokenEndpoint({ defer: true })
 
@@ -136,10 +130,14 @@ describe('admin access token failures', () => {
     })
   })
 
-  it('reports incomplete credentials as a server misconfiguration', async () => {
+  it('reports incomplete credentials as a server misconfiguration without requesting a token', async () => {
+    const fetchMock = stubTokenEndpoint()
+
     await expect(getAdminAccessToken('shop', { clientId: 'client-id' } as never)).rejects.toMatchObject({
       statusCode: 500,
       message: expect.stringContaining('missing `clientId` or `clientSecret`'),
     })
+
+    expect(fetchMock).not.toHaveBeenCalled()
   })
 })

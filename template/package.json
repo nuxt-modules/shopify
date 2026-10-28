@@ -19,10 +19,10 @@
         "@nuxtjs/critters": "^0.10.1",
         "@nuxtjs/i18n": "^10.6.0",
         "@nuxtjs/shopify": ">=1.0.1",
-        "@shopify/hydrogen": "^2026.4.6",
-        "@shopify/hydrogen-react": "^2026.4.4",
+        "@shopify/hydrogen": "^2026.10.2",
         "@tailwindcss/typography": "^0.5.20",
         "nuxt": "^4.5.2",
+        "tailwindcss": "^4.3.3",
         "zod": "^4.6.5"
     },
     "devDependencies": {

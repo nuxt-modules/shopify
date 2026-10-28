@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { CollectionViewPayload } from '../../../module'
+import type { CollectionViewPayload } from '@shopify/hydrogen'
 
 import { onMounted, watch } from 'vue'
 import { useShopifyAnalytics } from '../../composables/analytics/client'
