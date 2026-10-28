@@ -3,7 +3,7 @@
   "version": "1.0.2",
   "license": "MIT",
   "type": "module",
-  "description": "Easily integrate Shopify with Nuxt 3 and 4 🚀",
+  "description": "Easily integrate Shopify with Nuxt 🚀",
   "packageManager": "pnpm@11.28.3",
   "workspaces": [
     "playgrounds/*",
@@ -60,7 +60,6 @@
     "build:docs": "pnpm --filter ./docs build",
     "dev": "dotenv -e .env -- pnpm --filter playground-v4 dev",
     "dev:mock": "dotenv -e .env -- pnpm --filter playground-v4-mock dev",
-    "dev:v3": "dotenv -e .env -- pnpm --filter playground-v3 dev",
     "dev:template": "dotenv -e .env -- pnpm --filter ./template dev --extends ../dev",
     "dev:docs": "dotenv -e .env -- pnpm --filter ./docs dev",
     "lint": "eslint .",
@@ -68,7 +67,6 @@
     "typecheck:playgrounds": "dotenv -e .env -- pnpm --filter \"./playgrounds/*\" typecheck",
     "typecheck:playground-v4": "dotenv -e .env -- pnpm --filter playground-v4 typecheck",
     "typecheck:playground-v4-mock": "dotenv -e .env -- pnpm --filter playground-v4-mock typecheck",
-    "typecheck:playground-v3": "dotenv -e .env -- pnpm --filter playground-v3 typecheck",
     "typecheck:template": "pnpm --filter ./template typecheck",
     "typecheck:docs": "pnpm --filter ./docs typecheck",
     "knip": "knip",
@@ -149,7 +147,6 @@
   },
   "keywords": [
     "nuxt",
-    "nuxt3",
     "nuxt4",
     "nuxtjs",
     "nuxt-module",

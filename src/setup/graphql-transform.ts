@@ -1,5 +1,4 @@
 import type { Nuxt } from '@nuxt/schema'
-import type { NitroConfig } from 'nitropack'
 import type { ViteDevServer } from 'vite'
 
 import type { FragmentRegistry } from '../utils/graphql/registry'
@@ -150,9 +149,7 @@ export default async function setupGraphqlTransform(nuxt: Nuxt, config: ShopifyC
 
   addVitePlugin(plugin)
 
-  nuxt.hook('nitro:config', (serverConfig) => {
-    const nitroConfig = serverConfig as NitroConfig
-
+  nuxt.hook('nitro:config', (nitroConfig) => {
     nitroConfig.rollupConfig ??= {}
     nitroConfig.rollupConfig.plugins ??= []
 

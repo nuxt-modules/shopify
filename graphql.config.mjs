@@ -77,9 +77,6 @@ export const projects = {
 
   'playground-v4-mock-storefront': storefront('playgrounds/playground-v4-mock'),
 
-  'playground-v3-admin': admin('playgrounds/playground-v3'),
-  'playground-v3-storefront': storefront('playgrounds/playground-v3'),
-
   'template-customer-account': customerAccount('template'),
   'template-storefront': storefront('template'),
   'docs-storefront': storefront('docs'),

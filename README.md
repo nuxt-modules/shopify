@@ -34,7 +34,7 @@ Fully configurable, works out of the box with [mock.shop](https://mock.shop) for
 - 🏖️ Built-in GraphQL explorer for all client APIs
 - 🛠️ Automatic mock.shop integration
 - 🔄 Hooks for customizing the module behavior
-- 🧪 Tested with Nuxt 3 & 4
+- 🧪 Fully tested with the latest Nuxt version
 
 ## Setup
 

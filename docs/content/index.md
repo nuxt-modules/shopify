@@ -1,7 +1,7 @@
 ---
 seo:
   title: 'Create your Shopify store with Nuxt'
-  description: Easily integrate and use Shopify in your Nuxt 3 or 4 app.
+  description: Easily integrate and use Shopify in your Nuxt app.
 ---
 
 ::product-marquee
@@ -12,7 +12,7 @@ seo:
 [Nuxt]{.text-primary} Shopify
 
 #description
-Plug & play Shopify integration for Nuxt 3 & 4
+Plug & play Shopify integration for Nuxt
 
 #links
   :::u-button
@@ -327,7 +327,7 @@ Build your Shopify store with Nuxt
   to: https://nuxt.com
   ---
   #title
-  Module for [Nuxt 3 & 4]{.text-primary}
+  Module for [Nuxt]{.text-primary}
   
   #description
   Optimized for the most famous Vue framework. Nuxt Shopify gives you everything you need to build fast, performant, and SEO-friendly shops.

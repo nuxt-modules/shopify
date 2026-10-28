@@ -1,5 +1,5 @@
 import type { Nuxt } from '@nuxt/schema'
-import type { NitroConfig, StorageMounts } from 'nitropack'
+import type { StorageMounts } from 'nitropack'
 
 import { useLogger } from './log'
 
@@ -8,8 +8,6 @@ export function registerStorageMount(nuxt: Nuxt, base: string, mount: StorageMou
 
   useLogger().debug(`Mounting storage at \`${base}\``)
 
-  const nitroConfig = nuxt.options.nitro as NitroConfig
-
-  nitroConfig.storage ??= {}
-  nitroConfig.storage[base] = mount
+  nuxt.options.nitro.storage ??= {}
+  nuxt.options.nitro.storage[base] = mount
 }
