@@ -1,13 +1,12 @@
 import type { StorefrontApiClient, StorefrontOperations } from '@nuxtjs/shopify/storefront'
 
 import type {
+  ModuleOptions,
   ShopifyApiClientConfig,
-  ShopifyConfig,
-  PublicShopifyConfig,
   ShopifyClientConfig,
-  ShopifyClientDefinition,
   ShopifyClientOptions,
 } from '../../../../module'
+import type { ClientDefinition } from '../create'
 
 import {
   PRIVATE_TOKEN_HEADER,
@@ -16,12 +15,13 @@ import {
   createStoreDomain,
 } from '../transport'
 import { createClient } from '../create'
+import { DEFAULT_API_VERSION, DEFAULT_RETRIES } from '../defaults'
 
-const MOCK_STORE_DOMAIN = 'https://mock.shop'
+export const MOCK_STORE_DOMAIN = 'https://mock.shop'
 
-export const createStorefrontConfig = (config?: ShopifyConfig | PublicShopifyConfig): ShopifyApiClientConfig => {
+export const createStorefrontConfig = (config?: ModuleOptions): ShopifyApiClientConfig => {
   if (!config?.clients?.storefront) {
-    throw new Error('[shopify] Failed to create storefront client config: client is not configured (set `shopify.clients.storefront`)')
+    throw new Error('[shopify] Failed to create storefront client config: client is not configured (set `clients.storefront`)')
   }
 
   const {
@@ -30,7 +30,6 @@ export const createStorefrontConfig = (config?: ShopifyConfig | PublicShopifyCon
 
     clients: {
       storefront: {
-        apiVersion,
         headers,
         retries,
 
@@ -40,10 +39,11 @@ export const createStorefrontConfig = (config?: ShopifyConfig | PublicShopifyCon
     },
   } = config
 
-  const privateAccessToken = (config as ShopifyConfig)?.clients?.storefront?.privateAccessToken
+  const apiVersion = config.clients.storefront.apiVersion || DEFAULT_API_VERSION
+  const privateAccessToken = mock ? undefined : config.clients.storefront.privateAccessToken
 
   if (!name) {
-    throw new Error('[shopify] Failed to create storefront client config: missing shop name (set `shopify.name`)')
+    throw new Error('[shopify] Failed to create storefront client config: missing shop name (set `name`)')
   }
 
   if (!publicAccessToken && !privateAccessToken && !mock) {
@@ -59,7 +59,7 @@ export const createStorefrontConfig = (config?: ShopifyConfig | PublicShopifyCon
     apiUrl,
     apiVersion,
     logger,
-    retries,
+    retries: retries ?? DEFAULT_RETRIES,
     headers: {
       ...(privateAccessToken ? { [PRIVATE_TOKEN_HEADER]: privateAccessToken } : {}),
       ...(!privateAccessToken && publicAccessToken ? { [PUBLIC_TOKEN_HEADER]: publicAccessToken } : {}),
@@ -68,14 +68,16 @@ export const createStorefrontConfig = (config?: ShopifyConfig | PublicShopifyCon
   } satisfies ShopifyApiClientConfig
 }
 
-const definition: ShopifyClientDefinition<'storefront'> = {
+const definition: ClientDefinition<'storefront'> = {
   kind: 'storefront',
   createConfig: createStorefrontConfig,
-  tracking: true,
-  cache: true,
+  createProxyUrl: ({ clients }, origin, apiVersion) => clients?.storefront?.proxy ? createApiUrl(origin, apiVersion) : undefined,
+  buyerIpHeader: ({ clients }) => clients?.storefront?.buyerIpHeader,
+  cachePresets: ({ clients }) => typeof clients?.storefront?.cache === 'object' ? clients.storefront.cache?.presets : undefined,
+  shopifyCookies: true,
 }
 
-export function createStorefrontClient<Cache extends boolean | undefined = undefined>(
+export function createStorefrontApiClient<Cache extends boolean | undefined = undefined>(
   config: ShopifyClientConfig<'storefront'>,
   options: ShopifyClientOptions<StorefrontOperations, Cache> = {},
 ): StorefrontApiClient<Cache> {

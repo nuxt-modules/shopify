@@ -4,21 +4,21 @@ import type { ShopifyConfig } from '../types'
 
 import { loadNuxt } from '@nuxt/kit'
 
-import { createAdminClient } from '../runtime/utils/clients/admin'
-import { flattenConnection } from '../runtime/utils/functions/flattenConnection'
+import { createAdminApiClient } from '../runtime/utils/clients/admin'
+import { flattenConnection } from '@shopify/hydrogen'
 
 const PAGE_SIZE = 250
 
 export const WEBHOOK_GID_PREFIX = 'gid://shopify/WebhookSubscription/'
 
-type WebhookConfig = NonNullable<NonNullable<ShopifyConfig['webhooks']>['hooks']>[number]
+type ConfiguredSubscription = NonNullable<NonNullable<ShopifyConfig['webhooks']>['subscriptions']>[number]
 
 type MetafieldIdentifier = {
   key: string
   namespace?: string | null
 }
 
-export interface WebhookSubscription {
+export type WebhookSubscription = {
   id: string
   topic: string
   uri: string
@@ -29,7 +29,7 @@ export interface WebhookSubscription {
   metafields: MetafieldIdentifier[]
 }
 
-interface WebhookSubscriptionResult {
+type WebhookSubscriptionResult = {
   action: 'created' | 'updated'
   subscription: WebhookSubscription
 }
@@ -48,13 +48,13 @@ const SUBSCRIPTION_FIELDS = `
   }
 `
 
-const toInput = (hook: WebhookConfig) => ({
-  uri: hook.uri,
-  format: hook.format ?? 'JSON',
-  filter: hook.filter,
-  includeFields: hook.includeFields,
-  metafieldNamespaces: hook.metafieldNamespaces,
-  metafields: hook.metafields,
+const toInput = (configured: ConfiguredSubscription) => ({
+  uri: configured.uri,
+  format: configured.format,
+  filter: configured.filter,
+  includeFields: configured.includeFields,
+  metafieldNamespaces: configured.metafieldNamespaces,
+  metafields: configured.metafields,
 })
 
 function sameList(left: readonly string[] = [], right: readonly string[] = []) {
@@ -69,16 +69,16 @@ function sameList(left: readonly string[] = [], right: readonly string[] = []) {
 const metafieldKeys = (metafields: readonly MetafieldIdentifier[] = []) =>
   metafields.map(({ namespace, key }) => `${namespace ?? ''}/${key}`)
 
-function isUpToDate(subscription: WebhookSubscription, hook: WebhookConfig) {
-  return subscription.format === (hook.format ?? 'JSON')
-    && (subscription.filter ?? undefined) === hook.filter
-    && sameList(subscription.includeFields, hook.includeFields)
-    && sameList(subscription.metafieldNamespaces, hook.metafieldNamespaces)
-    && sameList(metafieldKeys(subscription.metafields), metafieldKeys(hook.metafields))
+function isUpToDate(subscription: WebhookSubscription, configured: ConfiguredSubscription) {
+  return subscription.format === configured.format
+    && (subscription.filter ?? undefined) === configured.filter
+    && sameList(subscription.includeFields, configured.includeFields)
+    && sameList(subscription.metafieldNamespaces, configured.metafieldNamespaces)
+    && sameList(metafieldKeys(subscription.metafields), metafieldKeys(configured.metafields))
 }
 
-const matches = (subscription: WebhookSubscription, hook: WebhookConfig) =>
-  subscription.topic === hook.topic && subscription.uri === hook.uri
+const matches = (subscription: WebhookSubscription, configured: ConfiguredSubscription) =>
+  subscription.topic === configured.topic && subscription.uri === configured.uri
 
 const fetchSubscriptions = async (client: AdminApiClient) => {
   const subscriptions: WebhookSubscription[] = []
@@ -121,7 +121,7 @@ const fetchSubscriptions = async (client: AdminApiClient) => {
   return subscriptions
 }
 
-const createSubscription = async (client: AdminApiClient, hook: WebhookConfig) => {
+const createSubscription = async (client: AdminApiClient, configured: ConfiguredSubscription) => {
   const { data, errors } = await client.request(`#graphql
     mutation WebhookSubscriptionCreate(
       $topic: WebhookSubscriptionTopic!,
@@ -142,8 +142,8 @@ const createSubscription = async (client: AdminApiClient, hook: WebhookConfig) =
     }
   `, {
     variables: {
-      topic: hook.topic,
-      webhookSubscription: toInput(hook),
+      topic: configured.topic,
+      webhookSubscription: toInput(configured),
     },
   })
 
@@ -158,7 +158,7 @@ const createSubscription = async (client: AdminApiClient, hook: WebhookConfig) =
   return data?.webhookSubscriptionCreate.webhookSubscription as WebhookSubscription | undefined
 }
 
-const updateSubscription = async (client: AdminApiClient, id: string, hook: WebhookConfig) => {
+const updateSubscription = async (client: AdminApiClient, id: string, configured: ConfiguredSubscription) => {
   const { data, errors } = await client.request(`#graphql
     mutation WebhookSubscriptionUpdate(
       $id: ID!,
@@ -180,7 +180,7 @@ const updateSubscription = async (client: AdminApiClient, id: string, hook: Webh
   `, {
     variables: {
       id,
-      webhookSubscription: toInput(hook),
+      webhookSubscription: toInput(configured),
     },
   })
 
@@ -236,32 +236,32 @@ export const getShopifyConfig = async () => {
 }
 
 export const getSubscribedWebhooks = async (config: ShopifyConfig) => {
-  const client = createAdminClient(config)
+  const client = createAdminApiClient(config)
 
   return await fetchSubscriptions(client)
 }
 
-export const subscribeWebhook = async (config: ShopifyConfig) => {
-  const client = createAdminClient(config)
+export const subscribeWebhooks = async (config: ShopifyConfig) => {
+  const client = createAdminApiClient(config)
 
   const subscriptions = await fetchSubscriptions(client)
 
   const results: WebhookSubscriptionResult[] = []
 
-  for (const hook of config.webhooks?.hooks || []) {
-    const existing = subscriptions.find(subscription => matches(subscription, hook))
+  for (const configured of config.webhooks?.subscriptions || []) {
+    const existing = subscriptions.find(subscription => matches(subscription, configured))
 
     if (!existing) {
-      const created = await createSubscription(client, hook)
+      const created = await createSubscription(client, configured)
 
       if (created) results.push({ action: 'created', subscription: created })
 
       continue
     }
 
-    if (isUpToDate(existing, hook)) continue
+    if (isUpToDate(existing, configured)) continue
 
-    const updated = await updateSubscription(client, existing.id, hook)
+    const updated = await updateSubscription(client, existing.id, configured)
 
     if (updated) results.push({ action: 'updated', subscription: updated })
   }
@@ -269,15 +269,15 @@ export const subscribeWebhook = async (config: ShopifyConfig) => {
   return results
 }
 
-export const unsubscribeWebhook = async (config: ShopifyConfig) => {
-  const client = createAdminClient(config)
+export const unsubscribeWebhooks = async (config: ShopifyConfig) => {
+  const client = createAdminApiClient(config)
 
   const subscriptions = await fetchSubscriptions(client)
 
   const results: WebhookSubscription[] = []
 
-  for (const hook of config.webhooks?.hooks || []) {
-    const subscription = subscriptions.find(subscription => matches(subscription, hook))
+  for (const configured of config.webhooks?.subscriptions || []) {
+    const subscription = subscriptions.find(subscription => matches(subscription, configured))
 
     if (!subscription) continue
 

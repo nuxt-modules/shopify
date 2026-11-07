@@ -1,7 +1,9 @@
 import type { AllOperations, ResponseErrors } from '@shopify/graphql-client'
+import type { ConsolaOptions } from 'consola'
 
 import type { ShopifyClientCallbacks } from '../../../module'
 
+import { createConsola } from 'consola'
 import { createError } from 'h3'
 
 const statusTexts: Record<number, string> = {
@@ -18,95 +20,44 @@ const statusTexts: Record<number, string> = {
   504: 'Gateway Timeout',
 }
 
-export function resolveStatus(networkStatusCode?: number): number {
-  return networkStatusCode && networkStatusCode >= 400 ? networkStatusCode : 500
+export function resolveStatus(upstreamStatus?: number): number {
+  return upstreamStatus && upstreamStatus >= 400 ? upstreamStatus : 502
 }
 
-export function resolveStatusText(status: number): string {
-  return statusTexts[status] ?? 'Internal Server Error'
+export function createUpstreamError(status: number, detail: string, cause: unknown, logger?: Partial<ConsolaOptions>) {
+  if (!import.meta.client) createConsola(logger).withTag('shopify').error(detail)
+
+  return createError({ status, statusText: statusTexts[status] ?? 'Internal Server Error', message: '[shopify] Request to Shopify failed', cause })
 }
 
-interface UpstreamFailure {
-  status?: number
-  statusCode?: number
-  statusText?: string
-  data?: unknown
-}
-
-interface UpstreamBody {
-  errors?: { message?: string, extensions?: { code?: string } }[]
-}
-
-function parseBody(data: unknown) {
-  if (typeof data !== 'string') return data
-
-  try {
-    return JSON.parse(data)
-  }
-  catch {
-    return data
-  }
-}
-
-function describe(body: unknown) {
-  const errors = (body as UpstreamBody)?.errors
-
-  if (!Array.isArray(errors)) return undefined
-
-  const described = errors
-    .map(error => error?.message || error?.extensions?.code)
-    .filter(Boolean)
-
-  return described.length ? described.join(', ') : undefined
-}
-
-export function createUpstreamError(client: string, error: unknown) {
-  const { status, statusCode, statusText, data } = (error ?? {}) as UpstreamFailure
-
-  const upstreamStatus = status ?? statusCode
-  const resolved = upstreamStatus ? resolveStatus(upstreamStatus) : 502
-
-  const body = parseBody(data)
-  const detail = describe(body)
-
-  return createError({
-    status: resolved,
-    statusText: statusText || resolveStatusText(resolved),
-    message: `[shopify] The ${client} API rejected the request with status ${resolved}${detail ? `: ${detail}` : ''}`,
-    data: body,
-  })
-}
-
-export default async function useErrors(
+export async function handleErrors(
   errors: ResponseErrors,
   shouldThrow: boolean,
   onErrors?: ShopifyClientCallbacks<AllOperations, undefined>['onErrors'],
+  logger?: Partial<ConsolaOptions>,
 ) {
-  const tag = '[shopify]'
-
   if (errors) {
     await onErrors?.({ errors })
   }
 
   if (shouldThrow && errors?.graphQLErrors?.length) {
-    const status = resolveStatus(errors.networkStatusCode)
-
-    throw createError({
-      status,
-      statusText: resolveStatusText(status),
-      message: errors.graphQLErrors.map(error =>
-        `${tag} GraphQL error: ${error.message}${error.path?.length ? ` (at \`${error.path.join('.')}\`)` : ''}`,
-      ).join(', '),
-    })
+    throw createUpstreamError(
+      resolveStatus(errors.networkStatusCode),
+      errors.graphQLErrors.map(error => `GraphQL error: ${error.message}${error.path?.length ? ` (at \`${error.path.join('.')}\`)` : ''}`).join(', '),
+      errors,
+      logger,
+    )
   }
 
   if (shouldThrow && errors?.message) {
-    const status = resolveStatus(errors.networkStatusCode)
+    const { networkStatusCode, message, response } = errors
+    const body = response && !response.bodyUsed ? await response.clone().text().catch(() => '') : ''
 
-    throw createError({
-      status,
-      statusText: resolveStatusText(status),
-      message: `${tag} Request failed: ${errors.message}`,
-    })
+    throw createUpstreamError(
+      resolveStatus(networkStatusCode),
+      `Request failed${networkStatusCode ? ` with status ${networkStatusCode}` : ''}: ${message}${body ? ` - ${body}` : ''}`,
+      errors,
+      logger,
+    )
   }
 }

@@ -1,7 +1,7 @@
 import type { EventHandler, EventHandlerRequest, EventHandlerResponse } from 'h3'
 
 import { defineEventHandler } from 'h3'
-import { validate } from './validation'
+import { validateWebhook } from './validation'
 
 /**
  * Defines a webhook event handler with Shopify's HMAC validation.
@@ -15,7 +15,7 @@ export const defineWebhookEventHandler = <
   Res = EventHandlerResponse,
 >(handler: EventHandler<Req, Res>): EventHandler => {
   return defineEventHandler(async (event) => {
-    await validate(event)
+    await validateWebhook(event)
 
     return handler(event)
   })

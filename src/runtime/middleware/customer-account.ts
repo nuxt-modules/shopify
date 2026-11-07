@@ -1,11 +1,13 @@
-import { defineNuxtRouteMiddleware } from '#app'
+import { defineNuxtRouteMiddleware, useNuxtApp } from '#app'
 
 import { useCustomerAccountSession } from '../composables/customer-account/session'
 
 export default defineNuxtRouteMiddleware(async (to) => {
-  const { isLoggedIn, ready, fetch, login } = useCustomerAccountSession()
+  const nuxtApp = useNuxtApp()
 
-  if (import.meta.client || !ready.value) {
+  const { isLoggedIn, isReady, fetch, login } = useCustomerAccountSession()
+
+  if (!isReady.value || (import.meta.client && !nuxtApp.isHydrating)) {
     await fetch()
   }
 

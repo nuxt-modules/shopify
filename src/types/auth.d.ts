@@ -1,46 +1,20 @@
-export type CustomerAccountUser = {
-  id: string
-  firstName: string | null
-  lastName: string | null
-  email: string | null
-  phone: string | null
+import type { H3Event } from 'h3'
+
+export type ShopifyCustomerAccountSessionData = {
+  tokenKey?: string
+  customerAccount?: unknown
 }
 
-export type CustomerAccountTokenSet = {
-  accessToken: string
-  refreshToken?: string
-  idToken?: string
-  expiresAt: number
+export type ShopifyCustomerAccountSession = {
+  isLoggedIn: boolean
 }
 
-export type CustomerAccountTokens = {
-  access_token: string
-  refresh_token?: string
-  id_token?: string
-  expires_in?: number
-  token_type?: string
+export type ShopifyCustomerAccountContext = {
+  getSession: (event: H3Event) => Promise<ShopifyCustomerAccountSession>
+  getAccessToken: (event: H3Event) => Promise<string>
 }
 
-export type CustomerAccountSessionData = {
-  user?: CustomerAccountUser
-  loggedInAt?: number
-  tokens?: CustomerAccountTokenSet
-}
-
-export type CustomerAccountSession = {
-  loggedIn: boolean
-  user: CustomerAccountUser | null
-  loggedInAt: number | null
-}
-
-export type OpenIdConfiguration = {
-  issuer: string
-  authorization_endpoint: string
-  token_endpoint: string
-  end_session_endpoint: string
-}
-
-export type AdminTokenSet = {
+export type ShopifyAdminTokenSet = {
   accessToken: string
   refreshToken?: string
   expiresAt: number

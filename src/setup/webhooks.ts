@@ -12,8 +12,7 @@ export default function setupWebhooks(resolver: Resolver) {
     },
     {
       from: resolver.resolve('./runtime/server/utils/webhooks/validation'),
-      name: 'validate',
-      as: 'validateWebhook',
+      name: 'validateWebhook',
     },
 
     {

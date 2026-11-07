@@ -3,18 +3,17 @@ import type { FragmentRegistry } from './registry'
 import MagicString from 'magic-string'
 
 import { collectSpreads, scanDefinitions } from '../../runtime/utils/graphql/scanner'
-import { GRAPHQL_MARKER, findGraphqlLiterals } from './literals'
+import { GRAPHQL_MARKER, INTERPOLATION, findGraphqlLiterals } from './literals'
 import { resolveFragments } from './registry'
 
 const TRANSFORMABLE = /\.(?:ts|js|mjs|cjs|mts|cts|vue)(?:\?|$)/
-const INTERPOLATION = /\$\{\s*(\w+)\s*\}/g
 
-interface Insertion {
+type Insertion = {
   at: number
   text: string
 }
 
-export interface GraphqlTransformOptions {
+export type GraphqlTransformOptions = {
   resolveRegistry: (file: string) => FragmentRegistry | undefined
 }
 
@@ -67,10 +66,6 @@ function rewrite(code: string, file: string, options: GraphqlTransformOptions) {
   for (const insertion of insertions) source.appendLeft(insertion.at, insertion.text)
 
   return source
-}
-
-export function transformGraphqlLiterals(code: string, file: string, options: GraphqlTransformOptions) {
-  return rewrite(code, file, options)?.toString()
 }
 
 export function createGraphqlTransformPlugin(options: GraphqlTransformOptions) {

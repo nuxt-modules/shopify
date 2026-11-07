@@ -1,77 +1,69 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { AllOperations } from '@shopify/graphql-client'
-import type { CacheOptions } from 'nitropack'
+import type { CacheOptions } from '@shopify/hydrogen'
 
 import type {
-  PublicShopifyConfig,
+  ModuleOptions,
   ShopifyApiClient,
+  ShopifyApiClientConfig,
   ShopifyApiClientRequestOptions,
   ShopifyClientConfig,
-  ShopifyClientDefinition,
   ShopifyClientKind,
   ShopifyClientOptions,
-  ShopifyConfig,
   ShopifyInlineConfig,
 } from '../../../module'
 
-import { getRequestHeader, getRequestIP } from 'h3'
-import { joinURL } from 'ufo'
+import type { H3Error } from 'h3'
 
-import { createTrackingHeaders, collectTrackingHeaders } from '../../server/utils/tracking'
+import { getRequestHeader } from 'h3'
+
+import { pickShopifyCookies } from '../cookies'
+import { resolveBuyerIp } from './buyer-ip'
 import {
   BUYER_IP_HEADER,
   PRIVATE_TOKEN_HEADER,
-  PROXY_API_VERSION_HEADER,
   createTransport,
   withApiVersion,
 } from './transport'
-import { DEFAULT_API_VERSION, DEFAULT_RETRIES, DEFAULT_THROW_ERRORS } from './defaults'
-import useCache from './cache'
-import useErrors from './errors'
+import { DEFAULT_THROW_ERRORS } from './defaults'
+import { requestWithCache } from './cache'
+import { handleErrors } from './errors'
 
-function isFullConfig(config: ShopifyClientConfig): config is ShopifyConfig | PublicShopifyConfig {
-  return !!config && 'clients' in config && !!(config as ShopifyConfig).clients
+export type ClientDefinition<Kind extends ShopifyClientKind = ShopifyClientKind> = {
+  kind: Kind
+
+  createConfig: (config: ModuleOptions) => ShopifyApiClientConfig
+  createProxyUrl?: (config: ModuleOptions, origin: string, apiVersion: string) => string | undefined
+  buyerIpHeader?: (config: ModuleOptions) => string | undefined
+  cachePresets?: (config: ModuleOptions) => Record<string, CacheOptions> | undefined
+
+  authHeader?: string
+  shopifyCookies?: boolean
 }
 
-function normalizeConfig(kind: ShopifyClientKind, config: ShopifyClientConfig): ShopifyConfig {
-  const base = (isFullConfig(config)
-    ? config
-    : (() => {
-        const { name, logger, errors, ...clientConfig } = config ?? {} as ShopifyInlineConfig
+export function isInlineConfig(config: ShopifyClientConfig): config is ShopifyInlineConfig {
+  return !config.clients
+}
 
-        return { name, logger, errors, clients: { [kind]: clientConfig } }
-      })()) as ShopifyConfig
+function normalizeConfig(kind: ShopifyClientKind, config: ShopifyClientConfig): ModuleOptions {
+  if (!isInlineConfig(config)) return config
 
-  const clientConfig = base.clients?.[kind]
+  const { name, shopId, logger, errors, ...clientConfig } = config
 
-  if (!clientConfig) return base
-
-  return {
-    ...base,
-    clients: {
-      ...base.clients,
-      [kind]: {
-        ...clientConfig,
-        apiVersion: clientConfig.apiVersion ?? DEFAULT_API_VERSION,
-        retries: clientConfig.retries ?? DEFAULT_RETRIES,
-      },
-    },
-  } as ShopifyConfig
+  return { name, shopId, logger, errors, clients: { [kind]: clientConfig } }
 }
 
 export function createClient<
   Operations extends AllOperations = AllOperations,
   Cache extends boolean | undefined = undefined,
 >(
-  definition: ShopifyClientDefinition,
+  definition: ClientDefinition,
   config: ShopifyClientConfig,
   options: ShopifyClientOptions<Operations, Cache> = {},
 ): ShopifyApiClient<Operations, Cache> {
-  const { kind, authHeader } = definition
-  const { event, origin, cache, buyerIp, ...callbacks } = options
+  const { authHeader } = definition
+  const { event, origin, browserCache, serverCache, buyerIp, ...callbacks } = options
 
-  const moduleConfig = normalizeConfig(kind, config)
-  const clientConfig = moduleConfig.clients?.[kind]
+  const moduleConfig = normalizeConfig(definition.kind, config)
 
   const apiClientConfig = definition.createConfig(moduleConfig)
 
@@ -84,29 +76,18 @@ export function createClient<
   if (options.logger) apiClientConfig.logger = options.logger
   if (options.headers) Object.assign(apiClientConfig.headers, options.headers)
 
-  const proxy = (clientConfig as { proxy?: { route: string } | false })?.proxy
+  const proxyUrl = origin ? definition.createProxyUrl?.(moduleConfig, origin, apiClientConfig.apiVersion) : undefined
 
-  if (origin && proxy) {
-    apiClientConfig.apiUrl = joinURL(origin, proxy.route)
+  if (proxyUrl) apiClientConfig.apiUrl = proxyUrl
 
-    if (options.apiVersion) {
-      apiClientConfig.headers[PROXY_API_VERSION_HEADER] = options.apiVersion
-    }
-  }
+  if (import.meta.server && event && definition.shopifyCookies) {
+    const cookie = pickShopifyCookies(getRequestHeader(event, 'cookie'))
 
-  if (import.meta.server && event) {
-    if (definition.tracking) {
-      Object.assign(apiClientConfig.headers, createTrackingHeaders(event, getRequestHeader(event, 'cookie')))
-    }
-    else if (definition.cookies && proxy) {
-      const cookie = getRequestHeader(event, 'cookie')
-
-      if (cookie) apiClientConfig.headers['Cookie'] = cookie
-    }
+    if (cookie) apiClientConfig.headers['Cookie'] = cookie
   }
 
   if (buyerIp !== false && apiClientConfig.headers[PRIVATE_TOKEN_HEADER]) {
-    const resolvedBuyerIp = buyerIp ?? (event ? getRequestIP(event, { xForwardedFor: true }) : undefined)
+    const resolvedBuyerIp = buyerIp ?? (import.meta.server && event ? resolveBuyerIp(event, definition.buyerIpHeader?.(moduleConfig)) : undefined)
 
     if (resolvedBuyerIp) apiClientConfig.headers[BUYER_IP_HEADER] = resolvedBuyerIp
   }
@@ -114,48 +95,58 @@ export function createClient<
   callbacks.onConfigure?.({ config: apiClientConfig })
 
   const transport = createTransport<Operations, Cache>(apiClientConfig, {
-    normalize: (moduleConfig as { graphql?: { normalize?: boolean } }).graphql?.normalize ?? true,
+    normalize: moduleConfig.graphql?.normalize ?? true,
+    fetch: serverCache,
   })
 
-  const auth = options.auth || undefined
+  const { auth } = options
 
   const throwOnErrors = options.throwOnErrors
     ?? moduleConfig.errors?.throw
     ?? DEFAULT_THROW_ERRORS
 
-  const cacheConfig = definition.cache
-    ? (clientConfig as { cache?: { presets?: Record<string, Pick<CacheOptions, 'maxAge' | 'staleMaxAge' | 'swr'>> } | false })?.cache || undefined
-    : undefined
+  const cachePresets = definition.cachePresets?.(moduleConfig)
+
+  const authenticate = async () => {
+    if (auth && authHeader) transport.config.headers[authHeader] = await auth()
+  }
 
   const request: ShopifyApiClient<Operations, Cache>['request'] = async (operation, options) => {
     await callbacks.onRequest?.({
-      operation: operation as keyof Operations,
+      operation,
       options: options as ShopifyApiClientRequestOptions<keyof Operations, Operations, Cache>,
       config: transport.config,
     })
 
-    if (auth && authHeader) {
-      transport.config.headers[authHeader] = await auth()
-    }
+    const authError = await authenticate().then(() => undefined, (error: H3Error) => error)
 
-    const response = definition.cache
-      ? await useCache(cache, transport.request as any, operation, options, cacheConfig?.presets, Boolean(origin && proxy))
-      : await transport.request(operation, options)
+    const response = authError
+      ? { errors: { networkStatusCode: authError.statusCode, message: authError.message.replace(/^\[shopify\] /, '') } }
+      : definition.cachePresets
+        ? await requestWithCache(browserCache, transport.request, operation, options, cachePresets, Boolean(serverCache))
+        : await transport.request(operation, options)
 
-    if (import.meta.server && event && definition.tracking) collectTrackingHeaders(event, response.headers)
+    if (options?.signal?.aborted) return response
 
     await callbacks.onResponse?.({
       response: response,
-      operation: operation as keyof Operations,
+      operation,
       options: options as ShopifyApiClientRequestOptions<keyof Operations, Operations, Cache>,
     })
 
-    if (response.errors) await useErrors(response.errors, throwOnErrors, callbacks.onErrors)
+    if (response.errors) await handleErrors(response.errors, throwOnErrors && !authError, callbacks.onErrors, apiClientConfig.logger)
+
+    if (authError && throwOnErrors) throw authError
 
     return response
   }
 
-  const client = { ...transport, request } as ShopifyApiClient<Operations, Cache>
+  const client: ShopifyApiClient<Operations, Cache> = {
+    ...transport,
+    fetch: (...params) => authenticate().then(() => transport.fetch(...params)),
+    requestStream: (...params) => authenticate().then(() => transport.requestStream(...params)),
+    request,
+  }
 
   callbacks.onCreate?.({ client })
 

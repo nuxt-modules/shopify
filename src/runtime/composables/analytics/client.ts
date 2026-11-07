@@ -1,33 +1,10 @@
-import type { ShopifyAnalyticsCart, ShopifyAnalyticsContext } from '../../../module'
-
-import { ref } from 'vue'
-import { useNuxtApp, useState } from '#imports'
-
-export function useAnalyticsCart() {
-  return useState<ShopifyAnalyticsCart | null>('shopify-analytics-cart', () => null)
-}
-
-function createInactiveContext(): ShopifyAnalyticsContext {
-  const cart = useAnalyticsCart()
-
-  return {
-    shop: ref(null),
-    cart,
-    setCart: value => (cart.value = value),
-    canTrack: () => false,
-    publish: () => {},
-    subscribe: () => () => {},
-    setTrackingConsent: () => {},
-    showPreferences: () => Promise.resolve(),
-    setShopContext: () => Promise.resolve(null),
-  }
-}
+import type { StorefrontAnalytics } from '@shopify/hydrogen'
 
 /**
- * Provides access to the Shopify analytics context.
+ * Provides the analytics bus that Shopify's scripts create in the browser.
  *
- * @returns the analytics context with the current shop, cart and consent state
+ * @returns the analytics bus, or `null` on the server and before Shopify's scripts have loaded
  */
-export function useShopifyAnalytics(): ShopifyAnalyticsContext {
-  return useNuxtApp().$shopify?.analytics ?? createInactiveContext()
+export function useShopifyAnalytics(): StorefrontAnalytics | null {
+  return import.meta.server ? null : window.Shopify?.analytics ?? null
 }

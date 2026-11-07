@@ -1,90 +1,119 @@
-import type { ShopAnalytics, ShopifyAnalyticsShopContext } from '../../../module'
+import type { StorefrontApiClient } from '@nuxtjs/shopify/storefront'
+import type { ShopifyScriptsI18n } from '@shopify/hydrogen'
 
-import { useStorefront } from '../../composables/storefront/client'
+import type { PublicShopifyConfig, ShopifyScriptsShopContext } from '../../../module'
+
 import { createLogger } from '../log'
+
+type ShopConfig = Pick<PublicShopifyConfig, 'name' | 'shopId' | 'storefrontId' | 'defaultMarket' | 'analytics'>
 
 const SHOP_QUERY = `#graphql
   query ShopifyAnalyticsShop($country: CountryCode, $language: LanguageCode)
   @inContext(country: $country, language: $language) {
     shop { id }
     localization {
-      country { currency { isoCode } }
+      country { isoCode currency { isoCode } }
       language { isoCode }
     }
   }
 `
 
-interface ShopQueryResult {
+type ShopQueryResult = {
   shop?: { id?: string }
   localization?: {
-    country?: { currency?: { isoCode?: string } }
+    country?: { isoCode?: string, currency?: { isoCode?: string } }
     language?: { isoCode?: string }
   }
 }
 
-interface ShopResolverOptions {
-  shopId?: string
-  currency?: string
-  language?: string
-  storefrontId?: string
+function toI18n(country?: string, language?: string, currency?: string): ShopifyScriptsI18n | undefined {
+  if (!country || !language) return undefined
+
+  return { country, language, ...(currency ? { currency } : {}) } as ShopifyScriptsI18n
 }
 
-function toEnumCode(value?: string): string | undefined {
-  return value ? value.toUpperCase().replace(/-/g, '_') : undefined
+const MAX_CACHED_MARKETS = 50
+
+type ShopLookupClient = Pick<StorefrontApiClient<true>, 'request'>
+
+type ShopResolution = {
+  resolved: ShopifyScriptsShopContext
+  failed: boolean
 }
 
-export function createShopResolver(options: ShopResolverOptions) {
-  const cache = new Map<string, Promise<ShopAnalytics | null>>()
+export function createShopResolver(config: ShopConfig, getClient?: () => ShopLookupClient | Promise<ShopLookupClient>) {
+  const cache = new Map<string, Promise<ShopifyScriptsShopContext>>()
 
-  const resolve = async (context?: ShopifyAnalyticsShopContext): Promise<ShopAnalytics | null> => {
-    const country = toEnumCode(context?.country)
-    const language = toEnumCode(context?.language)
-    const contextual = !!(country || language)
+  const myshopifyDomain = `${config.name}.myshopify.com`
 
-    let shopId = options.shopId
-    let currency = contextual ? undefined : options.currency
-    let acceptedLanguage = contextual ? undefined : options.language
+  let client: ShopLookupClient | undefined
 
-    if (!shopId || !currency || !acceptedLanguage) {
+  let warned = false
+
+  const lookUp = async (lookupClient: () => ShopLookupClient | Promise<ShopLookupClient>, country?: string, language?: string) => {
+    client ??= await lookupClient()
+
+    const { data, errors } = await client.request<ShopQueryResult>(SHOP_QUERY, { variables: { country, language } })
+
+    if (!data) throw new Error(errors?.message ?? 'The Storefront API returned no data')
+
+    return data
+  }
+
+  const resolve = async (market?: ShopifyScriptsI18n): Promise<ShopResolution> => {
+    const { pathPrefix, ...requested }: Partial<ShopifyScriptsI18n> = market ?? config.defaultMarket ?? {}
+
+    const tracked = !!config.analytics
+    const incomplete = (tracked && !config.shopId) || !requested.country || !requested.language || (tracked && !requested.currency)
+
+    let result: ShopQueryResult | undefined
+    let failed = false
+
+    if (incomplete && getClient) {
       try {
-        const { data } = await useStorefront().request<ShopQueryResult>(SHOP_QUERY, {
-          variables: { country, language },
-        })
-
-        shopId ||= data?.shop?.id
-        currency ||= data?.localization?.country?.currency?.isoCode
-        acceptedLanguage ||= data?.localization?.language?.isoCode
+        result = await lookUp(getClient, requested.country || undefined, requested.language || undefined)
       }
       catch (error) {
-        createLogger().debug('Shop analytics query failed:', error)
+        failed = true
+
+        if (!warned) createLogger().warn('Could not look up the shop and its default market through the Storefront API, so Shopify\'s scripts run without them. Set `shopId` and a `defaultMarket` with its `currency` to skip the lookup:', error)
+
+        warned = true
       }
-
-      currency ||= options.currency
-      acceptedLanguage ||= options.language
     }
 
-    if (!shopId || !currency || !acceptedLanguage) {
-      createLogger().warn('Could not resolve shop analytics (missing shop ID, currency, or language). Analytics events will not be sent')
+    const shopId = config.shopId || result?.shop?.id
 
-      return null
-    }
+    const i18n = toI18n(
+      requested.country || result?.localization?.country?.isoCode,
+      requested.language || result?.localization?.language?.isoCode,
+      requested.currency || result?.localization?.country?.currency?.isoCode,
+    )
+
+    const trackedShopId = tracked ? shopId : undefined
 
     return {
-      shopId,
-      currency,
-      acceptedLanguage,
-      hydrogenSubchannelId: options.storefrontId || '0',
+      resolved: {
+        shop: trackedShopId
+          ? { shopId: trackedShopId, storefrontId: config.storefrontId || '0', myshopifyDomain }
+          : { shopId: '0', storefrontId: '', myshopifyDomain },
+        shopifyAnalytics: !!trackedShopId,
+        ...(i18n ? { i18n: pathPrefix ? { ...i18n, pathPrefix } : i18n } : {}),
+      },
+      failed,
     }
   }
 
-  return (context?: ShopifyAnalyticsShopContext): Promise<ShopAnalytics | null> => {
-    const key = `${toEnumCode(context?.country) ?? ''}:${toEnumCode(context?.language) ?? ''}`
+  return (market?: ShopifyScriptsI18n): Promise<ShopifyScriptsShopContext> => {
+    const key = market ? [market.country, market.language, market.currency, market.pathPrefix].join(':') : ''
 
     let pending = cache.get(key)
 
     if (!pending) {
-      pending = resolve(context).then((resolved) => {
-        if (!resolved) cache.delete(key)
+      if (cache.size >= MAX_CACHED_MARKETS) cache.delete(cache.keys().next().value!)
+
+      pending = resolve(market).then(({ resolved, failed }) => {
+        if (failed) cache.delete(key)
 
         return resolved
       })

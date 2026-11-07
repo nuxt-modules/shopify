@@ -3,16 +3,22 @@ import { defineNuxtPlugin } from '#app'
 import { useCustomerAccountSession } from '../../composables/customer-account/session'
 
 export default defineNuxtPlugin({
-  name: 'shopify:customer-account-session',
+  name: 'shopify:customer-account:session',
   enforce: 'pre',
 
-  async setup() {
+  async setup(nuxtApp) {
     if (import.meta.server && import.meta.prerender) return
 
-    const { fetch, ready } = useCustomerAccountSession()
+    const { fetch, isReady } = useCustomerAccountSession()
 
-    if (!ready.value) {
-      await fetch()
+    if (isReady.value) return
+
+    if (import.meta.client && nuxtApp.payload.serverRendered) {
+      nuxtApp.hook('app:mounted', fetch)
+
+      return
     }
+
+    await fetch()
   },
 })

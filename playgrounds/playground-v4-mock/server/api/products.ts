@@ -7,7 +7,7 @@ export const schema = z.object({
 export default defineEventHandler(async (event) => {
   const query = await getValidatedQuery(event, schema.parse)
 
-  const storefront = useStorefront()
+  const storefront = useStorefront(event)
 
   return storefront.request(`#graphql
     query FetchProducts($first: Int) {

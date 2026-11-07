@@ -1,9 +1,9 @@
-import type { ConsolaOptions } from 'consola'
+import type { ConsolaInstance, ConsolaOptions } from 'consola'
 
 import { useRuntimeConfig } from '#imports'
 import { createConsola } from 'consola'
 
-let logger: ReturnType<typeof createConsola> | undefined
+let logger: ConsolaInstance | undefined
 
 export function createLogger() {
   if (logger) return logger

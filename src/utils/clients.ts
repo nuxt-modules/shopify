@@ -9,16 +9,24 @@ import {
   addRouteMiddleware,
   addServerHandler,
   addServerImports,
+  addServerPlugin,
 } from '@nuxt/kit'
 import { kebabCase, pascalCase } from 'scule'
-import { withLeadingSlash, withoutHost } from 'ufo'
 
+import { CUSTOMER_ACCOUNT_PROXY_ROUTE } from '../runtime/utils/clients/transport'
+import { CUSTOMER_ACCOUNT_SESSION_ROUTE } from '../runtime/utils/session'
 import { ShopifyClientType } from '../schemas'
-import { DEV_ORIGIN_ENV } from '../runtime/utils/clients/customer-account/auth'
 import { onDevServerURL } from './dev'
 import { useLogger } from './log'
+import { CUSTOMER_ACCOUNT_ROUTES, STOREFRONT_ROUTES, addUncachedServerHandler, keepUncached } from './routes'
 
 type CustomerAccountConfig = NonNullable<ShopifyConfig['clients']['customerAccount']>
+
+export const DOCUMENT_ROUTING_ORDER = [
+  ShopifyClientType.Admin,
+  ShopifyClientType.CustomerAccount,
+  ShopifyClientType.Storefront,
+]
 
 export function registerClientServerImports(clientType: ShopifyClientType, resolver: Resolver) {
   addServerImports([{
@@ -43,51 +51,51 @@ export function registerClientAsyncImports(nuxt: Nuxt, clientType: ShopifyClient
   nuxt.options.optimization.keyedComposables.push({ name, argumentLength: 4, source: from })
 }
 
-export function registerCustomerAccountAuthRoutes(customerAccount: CustomerAccountConfig, resolver: Resolver) {
-  const routes = [
-    { path: withLeadingSlash(customerAccount.routes.callback), handler: 'callback' },
-    { path: withLeadingSlash(customerAccount.routes.logout), handler: 'logout' },
-    { path: withLeadingSlash(customerAccount.routes.session), handler: 'session' },
-  ]
+export function registerShopifyRoutes(nuxt: Nuxt, config: ShopifyConfig, resolver: Resolver) {
+  const handler = resolver.resolve('./runtime/server/middleware/routes')
 
-  for (const { path, handler } of routes) {
-    addServerHandler({
-      method: 'get',
-      route: path,
-      handler: resolver.resolve(`./runtime/server/api/auth/customer-account/${handler}`),
-    })
+  if (nuxt.options.serverHandlers.some(serverHandler => serverHandler.handler === handler)) return
+
+  addServerHandler({ middleware: true, handler })
+  addServerPlugin(resolver.resolve('./runtime/server/plugins/response-headers'))
+
+  const storefront = !!(config.clients.storefront || config.analytics)
+
+  for (const route of [...storefront ? STOREFRONT_ROUTES : [], ...config.clients.customerAccount ? CUSTOMER_ACCOUNT_ROUTES : []]) {
+    keepUncached(route)
   }
 
-  useLogger().debug(`Registered customer account auth routes: ${routes.map(({ path }) => `\`${path}\``).join(', ')}`)
+  if (!storefront) return
+
+  addPlugin({ src: resolver.resolve('./runtime/plugins/redirects'), mode: 'server' })
+  addPlugin(resolver.resolve('./runtime/plugins/scripts'))
 }
 
-export function registerCustomerAccountDevBridge(nuxt: Nuxt, customerAccount: CustomerAccountConfig, resolver: Resolver) {
-  if (!nuxt.options.dev || !customerAccount.dev?.tunnelURL || !customerAccount.dev?.bridgeURL) return
-
-  const path = withLeadingSlash(withoutHost(customerAccount.dev.bridgeURL))
-
-  addServerHandler({
+export function registerCustomerAccountRoutes(customerAccount: CustomerAccountConfig, resolver: Resolver) {
+  addUncachedServerHandler({
     method: 'get',
-    route: path,
-    handler: resolver.resolve('./runtime/server/api/auth/customer-account/bridge'),
+    route: CUSTOMER_ACCOUNT_SESSION_ROUTE,
+    handler: resolver.resolve('./runtime/server/api/customer-account/session'),
   })
 
-  onDevServerURL(nuxt, (origin) => {
-    globalThis.process.env[DEV_ORIGIN_ENV] = origin
-  })
+  if (!customerAccount.proxy) return
 
-  useLogger().debug(`Registered customer account dev bridge at \`${path}\``)
+  addUncachedServerHandler({
+    method: 'post',
+    route: CUSTOMER_ACCOUNT_PROXY_ROUTE,
+    handler: resolver.resolve('./runtime/server/api/customer-account/proxy'),
+  })
 }
 
-export function warnMissingCustomerAccountTunnel(nuxt: Nuxt, customerAccount: CustomerAccountConfig) {
-  if (customerAccount.dev?.tunnelURL) return
-
+export function warnInsecureCustomerAccountDevServer(nuxt: Nuxt) {
   onDevServerURL(nuxt, (origin) => {
-    if (new URL(origin).protocol === 'https:') return
+    const { protocol, hostname } = new URL(origin)
+
+    if (protocol === 'https:' && !['localhost', '127.0.0.1', '[::1]'].includes(hostname)) return
 
     useLogger().warn(
-      `The dev server runs on ${origin}, but Shopify rejects a plain HTTP \`redirect_uri\`, so customer account login will fail. `
-      + 'Set `clients.customerAccount.dev.tunnelURL` to an HTTPS tunnel that forwards here',
+      `The dev server runs on ${origin}, but Shopify only signs customers in on HTTPS origins other than localhost, so customer account login will fail. `
+      + 'Run the dev server with `localHttps` from `@shopify/hydrogen/vite`, which serves it on `https://local.tryhydrogen.dev:5173`',
     )
   })
 }
@@ -118,20 +126,22 @@ export function registerCustomerAccountSession(resolver: Resolver) {
   useLogger().debug('Registered customer account route middleware `customer-account`')
 }
 
-export function isPublicClient(config: ShopifyConfig['clients'][ShopifyClientType]): boolean {
-  return !!((config as { publicAccessToken?: string })?.publicAccessToken
-    || (config as { mock?: boolean })?.mock
-    || (config as { clientId?: string })?.clientId
-  )
+export function isPublicClient(storefront: ShopifyConfig['clients']['storefront']): boolean {
+  return !!(storefront?.publicAccessToken || storefront?.mock)
 }
 
 export function hasPublicClient(config: ShopifyConfig): boolean {
-  const storefrontConfig = config.clients[ShopifyClientType.Storefront]
-  const customerAccountConfig = config.clients[ShopifyClientType.CustomerAccount]
+  return isPublicClient(config.clients.storefront) || !!config.clients.customerAccount?.clientId
+}
 
-  return !!(storefrontConfig?.publicAccessToken
-    || storefrontConfig?.mock
-    || customerAccountConfig?.clientId)
+const PRESET_BUYER_IP_HEADERS: Array<[RegExp, string]> = [
+  [/^vercel/, 'x-real-ip'],
+  [/^netlify/, 'x-nf-client-connection-ip'],
+  [/^cloudflare/, 'cf-connecting-ip'],
+]
+
+export function getPresetBuyerIpHeader(preset: string | undefined): string | undefined {
+  return preset ? PRESET_BUYER_IP_HEADERS.find(([pattern]) => pattern.test(preset))?.[1] : undefined
 }
 
 export function getConfiguredClients(config: ShopifyConfig): ShopifyClientType[] {

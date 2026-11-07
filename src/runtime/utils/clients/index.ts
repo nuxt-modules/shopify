@@ -1,29 +1,31 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import type { AllOperations } from '@shopify/graphql-client'
+import type { AdminApiClient, AdminOperations } from '@nuxtjs/shopify/admin'
+import type { CustomerAccountApiClient, CustomerAccountOperations } from '@nuxtjs/shopify/customer-account'
+import type { StorefrontApiClient, StorefrontOperations } from '@nuxtjs/shopify/storefront'
 
-import type { ShopifyClientConfig, ShopifyGenericClientOptions, ShopifyApiClient } from '../../../module'
+import type { ShopifyAdminAuthCallbacks, ShopifyClientConfig, ShopifyClientOptions } from '../../../module'
 
-import { createAdminClient } from './admin'
-import { createCustomerAccountClient } from './customer-account'
-import { createStorefrontClient } from './storefront'
+import { createAdminApiClient } from './admin'
+import { createCustomerAccountApiClient } from './customer-account'
+import { createStorefrontApiClient } from './storefront'
 
-export function createShopifyClient<
-  Operations extends AllOperations = AllOperations,
-  Cache extends boolean | undefined = undefined,
->(
-  config: ShopifyClientConfig,
-  options: ShopifyGenericClientOptions<Operations, Cache>,
-): ShopifyApiClient<Operations, Cache> {
+type StorefrontClientOptions<Cache extends boolean | undefined> = ShopifyClientOptions<StorefrontOperations, Cache> & { client: 'storefront' }
+type CustomerAccountClientOptions = ShopifyClientOptions<CustomerAccountOperations> & { client: 'customerAccount' }
+type AdminClientOptions = ShopifyClientOptions<AdminOperations> & ShopifyAdminAuthCallbacks & { client: 'admin' }
+
+export function createShopifyApiClient<Cache extends boolean | undefined = undefined>(config: ShopifyClientConfig<'storefront'>, options: StorefrontClientOptions<Cache>): StorefrontApiClient<Cache>
+export function createShopifyApiClient(config: ShopifyClientConfig<'customerAccount'>, options: CustomerAccountClientOptions): CustomerAccountApiClient
+export function createShopifyApiClient(config: ShopifyClientConfig<'admin'>, options: AdminClientOptions): AdminApiClient
+export function createShopifyApiClient(config: ShopifyClientConfig, options: StorefrontClientOptions<boolean | undefined> | CustomerAccountClientOptions | AdminClientOptions) {
   switch (options.client) {
     case 'storefront':
-      return createStorefrontClient(config, options as any) as unknown as ShopifyApiClient<Operations, Cache>
+      return createStorefrontApiClient(config, options)
     case 'customerAccount':
-      return createCustomerAccountClient(config, options as any) as unknown as ShopifyApiClient<Operations, Cache>
+      return createCustomerAccountApiClient(config, options)
     case 'admin':
-      return createAdminClient(config, options as any) as unknown as ShopifyApiClient<Operations, Cache>
+      return createAdminApiClient(config, options)
   }
 }
 
-export { createAdminClient, createAdminConfig } from './admin'
-export { createCustomerAccountClient, createCustomerAccountConfig } from './customer-account'
-export { createStorefrontClient, createStorefrontConfig } from './storefront'
+export { createAdminApiClient } from './admin'
+export { createCustomerAccountApiClient } from './customer-account'
+export { createStorefrontApiClient } from './storefront'

@@ -7,9 +7,11 @@ import {
   WEBHOOK_GID_PREFIX,
   getShopifyConfig,
   getSubscribedWebhooks,
-  subscribeWebhook,
-  unsubscribeWebhook,
+  subscribeWebhooks,
+  unsubscribeWebhooks,
 } from '../utils/webhooks'
+
+const ACTIONS = ['list', 'subscribe', 'unsubscribe']
 
 const toRow = (subscription: WebhookSubscription) => ({
   id: subscription.id.replace(WEBHOOK_GID_PREFIX, ''),
@@ -27,12 +29,16 @@ export default defineCommand({
     action: {
       type: 'positional',
       description: 'Action to perform on webhooks.',
-      valueHint: 'list | subscribe | unsubscribe',
+      valueHint: ACTIONS.join(' | '),
       required: true,
     },
   },
 
   run: async ({ args }) => {
+    if (!ACTIONS.includes(args.action)) {
+      throw new Error(`[shopify] Unknown webhook action \`${args.action}\`: expected one of ${ACTIONS.join(', ')}`)
+    }
+
     const config = await getShopifyConfig()
 
     if (args.action === 'list') {
@@ -49,7 +55,7 @@ export default defineCommand({
       console.table(webhooks.map(toRow))
     }
     else if (args.action === 'subscribe') {
-      const results = await subscribeWebhook(config)
+      const results = await subscribeWebhooks(config)
 
       if (results.length === 0) {
         log.info('All webhooks are already up to date.')
@@ -67,8 +73,8 @@ export default defineCommand({
 
       console.table(results.map(({ action, subscription }) => ({ action, ...toRow(subscription) })))
     }
-    else if (args.action === 'unsubscribe') {
-      const webhooks = await unsubscribeWebhook(config)
+    else {
+      const webhooks = await unsubscribeWebhooks(config)
 
       if (webhooks.length === 0) {
         log.info('No webhooks unsubscribed.')
@@ -79,9 +85,6 @@ export default defineCommand({
       log.info(`Unsubscribed from ${webhooks.length} webhook(s):`)
 
       console.table(webhooks.map(toRow))
-    }
-    else {
-      log.error(`Unknown webhook action: ${args.action}.`)
     }
   },
 })

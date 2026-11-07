@@ -1,33 +1,32 @@
 import type { Resolver } from '@nuxt/kit'
+import type { Nuxt } from '@nuxt/schema'
 
 import type { ShopifyConfig } from '../types'
 
-import { addComponentsDir, addImports, addPlugin, addServerPlugin } from '@nuxt/kit'
+import { addComponentsDir, addImports } from '@nuxt/kit'
 
-import { ShopifyClientType } from '../schemas'
+import { registerShopifyRoutes } from '../utils/clients'
 import { useLogger } from '../utils/log'
 
-export default function setupAnalytics(config: ShopifyConfig, resolver: Resolver) {
+export default function setupAnalytics(nuxt: Nuxt, config: ShopifyConfig, resolver: Resolver) {
   if (!config.analytics) return
 
   const logger = useLogger()
 
-  if (!config.analytics.storefrontId) {
-    logger.debug('Analytics is enabled but no `analytics.storefrontId` set. Events are attributed to the default storefront ("0").')
+  if (!config.storefrontId) {
+    logger.debug('Analytics is enabled without a `storefrontId`, so events are attributed to the Headless channel')
   }
 
-  if (!config.clients[ShopifyClientType.Storefront]?.proxy) {
-    logger.warn('The storefront proxy is disabled, so Shopify cannot expose visitor tracking identifiers. Analytics events will be reported without them')
+  if (!config.clients.storefront && (!config.shopId || !(config.defaultMarket?.country && config.defaultMarket.language))) {
+    logger.warn('Analytics without the storefront client needs `shopId` and `defaultMarket`, because there is no client to look them up with')
   }
 
-  addServerPlugin(resolver.resolve('./runtime/server/plugins/tracking'))
-
-  addPlugin({ src: resolver.resolve('./runtime/plugins/analytics'), mode: 'client' })
+  registerShopifyRoutes(nuxt, config, resolver)
 
   addComponentsDir({
     path: resolver.resolve('./runtime/components/analytics'),
     pathPrefix: false,
-    prefix: '',
+    prefix: 'Shopify',
   })
 
   addImports([{
@@ -35,5 +34,5 @@ export default function setupAnalytics(config: ShopifyConfig, resolver: Resolver
     name: 'useShopifyAnalytics',
   }])
 
-  logger.debug('Registered analytics plugin, components and `useShopifyAnalytics` composable')
+  logger.debug('Registered the analytics components and `useShopifyAnalytics` composable')
 }

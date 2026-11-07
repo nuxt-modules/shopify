@@ -69,7 +69,7 @@
     "typecheck:playground-v4": "dotenv -e .env -- pnpm --filter playground-v4 typecheck",
     "typecheck:playground-v4-mock": "dotenv -e .env -- pnpm --filter playground-v4-mock typecheck",
     "typecheck:playground-v3": "dotenv -e .env -- pnpm --filter playground-v3 typecheck",
-    "typecheck:template": "pnpm --filter ./template typecheck",
+    "typecheck:template": "pnpm --filter ./template typecheck --extends ../dev",
     "typecheck:docs": "pnpm --filter ./docs typecheck",
     "knip": "knip",
     "check:package": "publint --strict && attw --pack . --profile esm-only",
@@ -79,25 +79,24 @@
     "analyze": "pnpm --filter playground-v4 analyze",
     "prepack": "nuxt-module-build prepare && nuxt-module-build build",
     "prepare": "nuxt-module-build prepare && nuxt-module-build build",
-    "prepare:dev": "nuxt-module-build --filter={./playgrounds/*,./template} prepare",
+    "prepare:dev": "nuxt-module-build prepare && pnpm run prepare:playgrounds && pnpm --filter ./template prepare --extends ../dev",
     "prepare:playgrounds": "dotenv -e .env -- pnpm --filter \"./playgrounds/*\" prepare",
-    "prepare:template": "pnpm run build && pnpm --filter ./template prepare",
+    "prepare:template": "pnpm run build && pnpm --filter ./template prepare --extends ../dev",
     "prepare:docs": "pnpm --filter ./docs prepare"
   },
   "dependencies": {
     "@graphql-codegen/cli": "^7.4.3",
-    "@graphql-codegen/import-types-preset": "^4.0.1",
     "@graphql-codegen/introspection": "^6.1.0",
     "@graphql-codegen/plugin-helpers": "^7.4.0",
     "@graphql-codegen/typescript": "^6.1.0",
     "@graphql-tools/code-file-loader": "^9.0.7",
     "@graphql-yoga/render-graphiql": "^6.0.1",
     "@nuxt/kit": "^4.5.2",
-    "@shopify/api-codegen-preset": "^3.0.0",
     "@shopify/graphql-client": "^2.0.0",
     "@shopify/graphql-codegen": "^0.1.0",
     "citty": "^0.2.2",
     "consola": "^3.4.2",
+    "cookie-es": "^3.1.1",
     "defu": "^6.1.7",
     "exsolve": "^1.1.1",
     "giget": "^3.3.1",
@@ -108,7 +107,6 @@
     "minimatch": "^11.0.5",
     "nitropack": "^2.13.4",
     "ohash": "^2.0.12",
-    "pkg-types": "^2.3.3",
     "scule": "^1.3.0",
     "ufo": "^1.6.4",
     "unstorage": "^1.17.5",
@@ -121,8 +119,7 @@
     "@nuxt/module-builder": "^1.0.3",
     "@nuxt/schema": "^4.5.2",
     "@nuxt/test-utils": "^4.3.2",
-    "@shopify/hydrogen": "^2026.4.6",
-    "@shopify/hydrogen-react": "^2026.4.4",
+    "@shopify/hydrogen": "^2026.10.2",
     "@types/node": "^25.9.9",
     "@vitest/coverage-v8": "^4.1.11",
     "dotenv-cli": "^11.0.0",
@@ -138,17 +135,8 @@
     "vue-tsc": "^3.3.11"
   },
   "peerDependencies": {
-    "@shopify/hydrogen": ">=2024.0.0",
-    "@shopify/hydrogen-react": ">=2024.0.0",
-    "vue": ">=3.5.43"
-  },
-  "peerDependenciesMeta": {
-    "@shopify/hydrogen": {
-      "optional": true
-    },
-    "@shopify/hydrogen-react": {
-      "optional": true
-    }
+    "@shopify/hydrogen": ">=2026.10.0",
+    "vue": ">=3.5.0"
   },
   "keywords": [
     "nuxt",

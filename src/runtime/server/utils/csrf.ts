@@ -1,11 +1,17 @@
 import type { H3Event } from 'h3'
 
-import { createError, getRequestHeader, getRequestHost } from 'h3'
+import { createError, getRequestHeader, getRequestHost, getRequestIP, getRequestURL } from 'h3'
+
+const LOCAL_HOSTNAMES = ['localhost', '127.0.0.1', '[::1]', '::1', 'local.tryhydrogen.dev']
+
+const LOOPBACK_ADDRESS = /^(?:127(?:\.\d{1,3}){3}|::1|::ffff:127(?:\.\d{1,3}){3})$/
 
 function isCrossOrigin(event: H3Event): boolean {
   const origin = getRequestHeader(event, 'origin')
 
-  if (!origin || origin === 'null') return false
+  if (!origin) return false
+
+  if (origin === 'null') return true
 
   try {
     return new URL(origin).host !== getRequestHost(event, { xForwardedHost: true })
@@ -15,24 +21,26 @@ function isCrossOrigin(event: H3Event): boolean {
   }
 }
 
-export function assertSameSite(event: H3Event, options: { allowNavigation?: boolean } = {}) {
+export function assertSameSite(event: H3Event) {
   const site = getRequestHeader(event, 'sec-fetch-site')
 
-  const forbidden = () => createError({
+  const allowed = site ? site === 'same-origin' || site === 'none' : !isCrossOrigin(event)
+
+  if (allowed) return
+
+  throw createError({
     status: 403,
     statusText: 'Forbidden',
-    message: '[shopify] Cross-site requests are not allowed',
+    message: '[shopify] Cross-origin requests are not allowed',
   })
+}
 
-  if (site) {
-    if (site !== 'cross-site') return
+export function assertLocalRequest(event: H3Event) {
+  if (LOCAL_HOSTNAMES.includes(getRequestURL(event).hostname) && LOOPBACK_ADDRESS.test(getRequestIP(event) ?? '')) return
 
-    if (options.allowNavigation && getRequestHeader(event, 'sec-fetch-mode') === 'navigate') return
-
-    throw forbidden()
-  }
-
-  if (options.allowNavigation) return
-
-  if (isCrossOrigin(event)) throw forbidden()
+  throw createError({
+    status: 403,
+    statusText: 'Forbidden',
+    message: '[shopify] This endpoint is only available on localhost',
+  })
 }

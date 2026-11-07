@@ -1,24 +1,30 @@
 import type { AdminApiClient, AdminOperations } from '@nuxtjs/shopify/admin'
 
 import type {
+  ModuleOptions,
+  ShopifyAdminAuthCallbacks,
   ShopifyApiClientConfig,
-  ShopifyConfig,
   ShopifyClientConfig,
-  ShopifyClientDefinition,
   ShopifyClientOptions,
 } from '../../../../module'
+import type { ClientDefinition } from '../create'
 
 import {
   ADMIN_TOKEN_HEADER,
   createApiUrl,
   createStoreDomain,
 } from '../transport'
-import { createClient } from '../create'
+import { createClient, isInlineConfig } from '../create'
+import { DEFAULT_API_VERSION, DEFAULT_RETRIES } from '../defaults'
 import { getAdminAccessToken } from './auth'
 
-export const createAdminConfig = (config?: Partial<ShopifyConfig>): ShopifyApiClientConfig => {
-  if (!config?.name || !config.clients?.admin) {
-    throw new Error('[shopify] Failed to create admin client config: missing shop name or admin client config')
+export const createAdminConfig = (config?: ModuleOptions): ShopifyApiClientConfig => {
+  if (!config?.clients?.admin) {
+    throw new Error('[shopify] Failed to create admin client config: client is not configured (set `clients.admin`)')
+  }
+
+  if (!config.name) {
+    throw new Error('[shopify] Failed to create admin client config: missing shop name (set `name`)')
   }
 
   const {
@@ -27,7 +33,6 @@ export const createAdminConfig = (config?: Partial<ShopifyConfig>): ShopifyApiCl
 
     clients: {
       admin: {
-        apiVersion,
         accessToken,
         headers,
         retries,
@@ -35,12 +40,14 @@ export const createAdminConfig = (config?: Partial<ShopifyConfig>): ShopifyApiCl
     },
   } = config
 
+  const apiVersion = config.clients.admin.apiVersion || DEFAULT_API_VERSION
+
   return {
     storeDomain: createStoreDomain(name),
     apiUrl: createApiUrl(createStoreDomain(name), apiVersion, 'admin'),
     apiVersion,
     logger,
-    retries,
+    retries: retries ?? DEFAULT_RETRIES,
     headers: {
       ...(accessToken ? { [ADMIN_TOKEN_HEADER]: accessToken } : {}),
       ...headers,
@@ -48,19 +55,17 @@ export const createAdminConfig = (config?: Partial<ShopifyConfig>): ShopifyApiCl
   } satisfies ShopifyApiClientConfig
 }
 
-const definition: ShopifyClientDefinition<'admin'> = {
+const definition: ClientDefinition<'admin'> = {
   kind: 'admin',
   createConfig: createAdminConfig,
   authHeader: ADMIN_TOKEN_HEADER,
 }
 
-export function createAdminClient(
+export function createAdminApiClient(
   config: ShopifyClientConfig<'admin'>,
-  options: ShopifyClientOptions<AdminOperations> = {},
+  options: ShopifyClientOptions<AdminOperations> & ShopifyAdminAuthCallbacks = {},
 ): AdminApiClient {
-  const adminConfig = ('clients' in config
-    ? (config as ShopifyConfig).clients?.admin
-    : config) as Parameters<typeof getAdminAccessToken>[1] | undefined
+  const adminConfig = isInlineConfig(config) ? config : config.clients?.admin
 
   const auth = options.auth === undefined && adminConfig
     ? () => getAdminAccessToken(config.name, adminConfig, {
@@ -68,6 +73,7 @@ export function createAdminClient(
         onAuthRequest: options.onAuthRequest,
         onAuthToken: options.onAuthToken,
         onAuthError: options.onAuthError,
+        logger: options.logger ?? config.logger,
       })
     : options.auth
 

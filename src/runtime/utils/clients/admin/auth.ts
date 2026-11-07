@@ -1,17 +1,26 @@
-import type { AdminTokenSet, ShopifyAuthCallbacks, ShopifyConfig } from '../../../../module'
+import type { ConsolaOptions } from 'consola'
+import type { Storage } from 'unstorage'
+
+import type { ModuleOptions, ShopifyAdminTokenSet, ShopifyAdminAuthCallbacks } from '../../../../module'
 
 import { createError } from 'h3'
+import { createStorage } from 'unstorage'
 
-import { resolveStatus, resolveStatusText } from '../errors'
+import { createUpstreamError } from '../errors'
 import { createStoreDomain } from '../transport'
 
-type AdminConfig = NonNullable<ShopifyConfig['clients']['admin']>
+type AdminConfig = NonNullable<NonNullable<ModuleOptions['clients']>['admin']>
 
-export type AdminAccessTokenOptions = ShopifyAuthCallbacks & {
+type AdminAccessTokenOptions = ShopifyAdminAuthCallbacks & {
   storage?: boolean
+  logger?: Partial<ConsolaOptions>
 }
 
-const pendingAccessTokenRequests = new Map<string, Promise<AdminTokenSet>>()
+const TOKEN_REFRESH_MARGIN_MS = 5 * 60 * 1000
+
+const pendingAccessTokenRequests = new Map<string, Promise<ShopifyAdminTokenSet>>()
+
+let memoryStorage: Storage<ShopifyAdminTokenSet> | undefined
 
 async function getTokenStorage(config: AdminConfig) {
   const storageBase = typeof config.tokenStorage === 'string'
@@ -19,22 +28,26 @@ async function getTokenStorage(config: AdminConfig) {
     : 'admin-token'
 
   return await import('nitropack/runtime')
-    .then(({ useStorage }) => useStorage<AdminTokenSet>(storageBase))
-    .catch(() => undefined)
+    .then(({ useStorage }) => useStorage<ShopifyAdminTokenSet>(storageBase))
+    .catch(() => memoryStorage ??= createStorage<ShopifyAdminTokenSet>())
 }
 
-function isTokenExpired(token: AdminTokenSet): boolean {
+function isTokenExpired(token: ShopifyAdminTokenSet): boolean {
   if (!token.expiresAt) return false
 
-  // Refresh 5 minutes before expiry
-  return Date.now() >= token.expiresAt - (5 * 60 * 1000)
+  return Date.now() >= token.expiresAt - TOKEN_REFRESH_MARGIN_MS
 }
 
 async function fetchAccessToken(
   storeDomain: string,
   params: Record<string, string>,
-): Promise<AdminTokenSet> {
+  logger?: Partial<ConsolaOptions>,
+): Promise<ShopifyAdminTokenSet> {
   const url = `${storeDomain}/admin/oauth/access_token`
+
+  const rejectUpstream = (error: unknown): never => {
+    throw createUpstreamError(502, `Failed to obtain an Admin API access token: ${error}`, error, logger)
+  }
 
   const response = await globalThis.fetch(url, {
     method: 'POST',
@@ -43,20 +56,20 @@ async function fetchAccessToken(
       'Accept': 'application/json',
     },
     body: new URLSearchParams(params),
-  })
+  }).catch(rejectUpstream)
 
   if (!response.ok) {
     const errorBody = await response.text().catch(() => '')
-    const status = resolveStatus(response.status)
 
-    throw createError({
-      status,
-      statusText: resolveStatusText(status),
-      message: `[shopify] Failed to obtain admin API access token: HTTP ${response.status}${errorBody ? ` - ${errorBody}` : ''}`,
-    })
+    throw createUpstreamError(
+      502,
+      `Failed to obtain an Admin API access token: HTTP ${response.status}${errorBody ? ` - ${errorBody}` : ''}`,
+      { status: response.status, data: errorBody },
+      logger,
+    )
   }
 
-  const data = await response.json() as {
+  const data = await response.json().catch(rejectUpstream) as {
     access_token: string
     refresh_token?: string
     expires_in?: number
@@ -66,8 +79,8 @@ async function fetchAccessToken(
   if (!data.access_token) {
     throw createError({
       status: 502,
-      statusText: resolveStatusText(502),
-      message: '[shopify] Failed to obtain admin API access token: missing `access_token` in response',
+      statusText: 'Bad Gateway',
+      message: '[shopify] Failed to obtain an Admin API access token: missing `access_token` in response',
     })
   }
 
@@ -86,7 +99,7 @@ export async function getAdminAccessToken(
   options: AdminAccessTokenOptions = {},
 ): Promise<string> {
   const { accessToken, clientId, clientSecret, refreshToken } = config
-  const { storage: store, onAuthRequest, onAuthToken, onAuthError } = options
+  const { storage: store, onAuthRequest, onAuthToken, onAuthError, logger } = options
 
   if (accessToken && !clientId && !clientSecret) {
     return accessToken
@@ -95,12 +108,14 @@ export async function getAdminAccessToken(
   if (!clientId || !clientSecret) {
     throw createError({
       status: 500,
-      statusText: resolveStatusText(500),
-      message: '[shopify] Failed to obtain admin API access token: missing `clientId` or `clientSecret` (provide both, or an `accessToken`)',
+      statusText: 'Internal Server Error',
+      message: '[shopify] Failed to obtain an Admin API access token: missing `clientId` or `clientSecret` (provide both, or an `accessToken`)',
     })
   }
 
-  let storedToken = store ? await getTokenStorage(config).then(storage => storage?.getItem('token')) : undefined
+  const tokenKey = `${shopName}:${clientId}`
+
+  let storedToken = store ? await getTokenStorage(config).then(storage => storage?.getItem(tokenKey)) : undefined
 
   if (!storedToken && accessToken) {
     storedToken = {
@@ -116,14 +131,15 @@ export async function getAdminAccessToken(
 
   const storeDomain = createStoreDomain(shopName)
 
-  const isRefresh = !!storedToken?.refreshToken
+  const storedRefreshToken = storedToken?.refreshToken
+  const isRefresh = !!storedRefreshToken
 
-  const params: Record<string, string> = isRefresh
+  const params: Record<string, string> = storedRefreshToken
     ? {
         grant_type: 'refresh_token',
         client_id: clientId,
         client_secret: clientSecret,
-        refresh_token: storedToken!.refreshToken!,
+        refresh_token: storedRefreshToken,
       }
     : {
         grant_type: 'client_credentials',
@@ -131,7 +147,7 @@ export async function getAdminAccessToken(
         client_secret: clientSecret,
       }
 
-  const pendingKey = `${shopName}:${clientId}:${params.grant_type}`
+  const pendingKey = `${tokenKey}:${params.grant_type}`
 
   let pendingAccessTokenRequest = pendingAccessTokenRequests.get(pendingKey)
 
@@ -140,10 +156,10 @@ export async function getAdminAccessToken(
       try {
         await onAuthRequest?.({ params })
 
-        const newToken = await fetchAccessToken(storeDomain, params)
+        const newToken = await fetchAccessToken(storeDomain, params, logger)
 
         if (store) {
-          await getTokenStorage(config).then(storage => storage?.setItem('token', newToken))
+          await getTokenStorage(config).then(storage => storage?.setItem(tokenKey, newToken))
         }
 
         await onAuthToken?.({ token: newToken, refresh: isRefresh })

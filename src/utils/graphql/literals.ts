@@ -1,4 +1,4 @@
-export interface GraphqlLiteral {
+export type GraphqlLiteral = {
   start: number
   end: number
   content: string
@@ -11,6 +11,10 @@ const PRECEDING_TAG = /(?<![\w$.])(?:gql|graphql)\s*$/i
 const ASSIGNED_BINDING = /(?:const|let|var)\s+(\w+)\s*=\s*$/
 
 export const GRAPHQL_MARKER = /#graphql|\/\*\s*GraphQL\s*\*\/|(?<![\w$.])(?:gql|graphql)\s*`/i
+
+export const INTERPOLATION = /\$\{\s*(\w+)\s*\}/g
+
+export const SCHEMA_LANGUAGE_FILE = /\.(?:gql|graphql)$/
 
 const DIVISION_OPERAND_END = /[)\]}\w$]/
 

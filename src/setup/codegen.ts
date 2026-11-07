@@ -2,6 +2,8 @@ import type { Nuxt } from '@nuxt/schema'
 
 import type { ShopifyConfig } from '../types'
 
+import { kebabCase } from 'scule'
+
 import { useLogger } from '../utils/log'
 import { getConfiguredClients } from '../utils/clients'
 import { clearGenerateFailures, getGenerateFailures } from '../utils/codegen'
@@ -18,7 +20,8 @@ function failBuildOnGenerateErrors(nuxt: Nuxt) {
     if (!failures.length) return
 
     throw new Error(
-      `[shopify] Type generation failed:\n${failures.map(failure => `  - ${failure}`).join('\n')}`,
+      `[shopify] Type generation failed:\n${failures.map(failure => `  - ${failure}`).join('\n')}\n`
+      + 'To build without generating types, for example without network access or credentials in CI, set `codegen: false` on the client',
     )
   })
 }
@@ -33,11 +36,11 @@ export default function setupCodegen(nuxt: Nuxt, config: ShopifyConfig) {
     if (!clientConfig) continue
 
     if (!clientConfig.codegen) {
-      logger.info(`Skipping type generation for ${clientType}: \`codegen\` is disabled`)
+      logger.info(`Skipping type generation for the ${kebabCase(clientType)} client: \`codegen\` is disabled`)
       continue
     }
 
-    logger.debug(`Setting up code generation for ${clientType}`)
+    logger.debug(`Setting up code generation for the ${kebabCase(clientType)} client`)
 
     registerTemplates(nuxt, config, clientType)
   }

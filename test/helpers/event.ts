@@ -1,18 +1,23 @@
+import type { SetCookie } from 'cookie-es'
 import type { H3Event } from 'h3'
 
 import { IncomingMessage, ServerResponse } from 'node:http'
 import { Socket } from 'node:net'
-import { createEvent } from 'h3'
+import { parse, parseSetCookie, stringifyCookie } from 'cookie-es'
+import { createEvent, getRequestHeader } from 'h3'
 
 export type TestEventInit = {
   method?: string
   path?: string
   headers?: Record<string, string>
   body?: unknown
+  remoteAddress?: string
 }
 
-export function createTestEvent({ method = 'GET', path = '/', headers = {}, body }: TestEventInit = {}): H3Event {
+export function createTestEvent({ method = 'GET', path = '/', headers = {}, body, remoteAddress }: TestEventInit = {}): H3Event {
   const req = new IncomingMessage(new Socket())
+
+  if (remoteAddress) Object.defineProperty(req.socket, 'remoteAddress', { value: remoteAddress })
 
   req.method = method
   req.url = path
@@ -33,7 +38,6 @@ export function createTestEvent({ method = 'GET', path = '/', headers = {}, body
   if (body !== undefined) {
     const raw = typeof body === 'string' ? body : JSON.stringify(body)
 
-    event.context.__rawBody = raw
     ;(event as unknown as { _requestBody: Buffer })._requestBody = Buffer.from(raw)
 
     req.headers['content-type'] ??= 'application/json'
@@ -42,7 +46,7 @@ export function createTestEvent({ method = 'GET', path = '/', headers = {}, body
   return event
 }
 
-export function getResponseHeaders(event: H3Event, name: string): string[] {
+function getResponseHeaders(event: H3Event, name: string): string[] {
   const header = event.node.res.getHeader(name)
 
   if (Array.isArray(header)) return header.map(String)
@@ -58,18 +62,23 @@ export function getSetCookieHeaders(event: H3Event): string[] {
   return getResponseHeaders(event, 'set-cookie')
 }
 
-export function getResponseCookies(event: H3Event): Record<string, string> {
-  return Object.fromEntries(getSetCookieHeaders(event).map((cookie) => {
-    const [pair] = cookie.split(';')
-
-    const separator = pair!.indexOf('=')
-
-    return [pair!.slice(0, separator), decodeURIComponent(pair!.slice(separator + 1))]
-  }))
+function isClearedCookie({ value, maxAge, expires }: SetCookie): boolean {
+  return !value
+    || (maxAge !== undefined && maxAge <= 0)
+    || (expires !== undefined && expires.getTime() <= Date.now())
 }
 
 export function toCookieHeader(event: H3Event): string {
-  return Object.entries(getResponseCookies(event))
-    .map(([name, value]) => `${name}=${encodeURIComponent(value)}`)
-    .join('; ')
+  const jar = new Map(Object.entries(parse(getRequestHeader(event, 'cookie') ?? '')))
+
+  for (const header of getSetCookieHeaders(event)) {
+    const cookie = parseSetCookie(header)
+
+    if (!cookie) throw new Error(`Unparsable Set-Cookie header: ${header}`)
+
+    if (isClearedCookie(cookie)) jar.delete(cookie.name)
+    else jar.set(cookie.name, cookie.value)
+  }
+
+  return stringifyCookie(Object.fromEntries(jar))
 }

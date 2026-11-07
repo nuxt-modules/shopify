@@ -20,7 +20,7 @@ const readSchemaDir = (path) => {
 }
 
 const schema = (dir, name) => {
-  const path = `${dir}/.nuxt/schema`
+  const path = `${dir}/.nuxt/shopify/schema`
 
   const version = readSchemaDir(path)
     .filter(file => file.startsWith(`${name}.`) && file.endsWith(SCHEMA_SUFFIX))

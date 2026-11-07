@@ -1,0 +1,128 @@
+import { createHmac } from 'node:crypto'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+import { createTestEvent } from '#test/helpers/event'
+
+const SECRET = 'shpss_super_secret'
+
+const runtimeConfig: { _shopify?: { webhooks?: { secret?: string }, clients?: { admin?: { clientSecret?: string } } } } = {}
+
+vi.mock('#imports', async () => ({
+  ...(await vi.importActual<Record<string, unknown>>('#test/helpers/stubs')),
+  useRuntimeConfig: () => runtimeConfig,
+}))
+
+const debug = vi.fn()
+
+vi.mock('#src/runtime/server/utils/log', () => ({
+  createLogger: () => ({ debug, warn: vi.fn(), error: vi.fn() }),
+}))
+
+const { validateWebhook } = await import('#src/runtime/server/utils/webhooks/validation')
+
+const createEvent = (body: string, hmac?: string) => createTestEvent({
+  method: 'POST',
+  path: '/api/webhooks/test',
+  headers: hmac ? { 'x-shopify-hmac-sha256': hmac } : {},
+  body,
+})
+
+const sign = (body: string, secret = SECRET) => createHmac('sha256', secret).update(Buffer.from(body)).digest('base64')
+
+beforeEach(() => {
+  runtimeConfig._shopify = { webhooks: { secret: SECRET } }
+})
+
+describe('webhook hmac validation', () => {
+  const body = JSON.stringify({ id: 1, topic: 'orders/create' })
+
+  it('accepts a correctly signed payload', async () => {
+    await expect(validateWebhook(createEvent(body, sign(body)))).resolves.toBeUndefined()
+  })
+
+  it('rejects a tampered payload', async () => {
+    const signature = sign(body)
+    const tampered = JSON.stringify({ id: 2, topic: 'orders/create' })
+
+    await expect(validateWebhook(createEvent(tampered, signature))).rejects.toMatchObject({ statusCode: 401 })
+  })
+
+  it('rejects a missing signature', async () => {
+    await expect(validateWebhook(createEvent(body))).rejects.toMatchObject({ statusCode: 401 })
+  })
+
+  it('rejects a signature that isn\'t base64 as not matching', async () => {
+    debug.mockClear()
+
+    await expect(validateWebhook(createEvent(body, '%%%not-base64%%%'))).rejects.toMatchObject({ statusCode: 401 })
+    expect(debug).toHaveBeenCalledWith(expect.stringContaining('does not match'))
+  })
+
+  it('checks the signature with Web Crypto, which every Nitro preset has, instead of Node\'s crypto module', async () => {
+    const verify = vi.spyOn(crypto.subtle, 'verify')
+
+    await validateWebhook(createEvent(body, sign(body)))
+
+    expect(verify).toHaveBeenCalledOnce()
+
+    verify.mockRestore()
+  })
+
+  it('rejects a signature of the wrong length as not matching', async () => {
+    debug.mockClear()
+
+    await expect(validateWebhook(createEvent(body, Buffer.from('short').toString('base64')))).rejects.toMatchObject({ statusCode: 401 })
+    expect(debug).toHaveBeenCalledWith(expect.stringContaining('does not match'))
+  })
+
+  it('rejects an empty body', async () => {
+    await expect(validateWebhook(createEvent('', sign('')))).rejects.toMatchObject({ statusCode: 401 })
+  })
+
+  it('rejects every request when no secret is configured in production', async () => {
+    runtimeConfig._shopify = { webhooks: undefined }
+
+    await expect(validateWebhook(createEvent(body, sign(body)))).rejects.toMatchObject({ statusCode: 401 })
+  })
+
+  it('checks the signature with the admin client secret when no webhook secret is set, since Shopify signs API subscriptions with it', async () => {
+    runtimeConfig._shopify = { clients: { admin: { clientSecret: SECRET } } }
+
+    await expect(validateWebhook(createEvent(body, sign(body)))).resolves.toBeUndefined()
+    await expect(validateWebhook(createEvent(body, sign(body, 'wrong_secret')))).rejects.toMatchObject({ statusCode: 401 })
+  })
+
+  it('prefers the webhook secret over the admin client secret', async () => {
+    runtimeConfig._shopify = { webhooks: { secret: SECRET }, clients: { admin: { clientSecret: 'shpss_admin' } } }
+
+    await expect(validateWebhook(createEvent(body, sign(body)))).resolves.toBeUndefined()
+  })
+})
+
+describe('webhook rejection logging', () => {
+  const body = JSON.stringify({ id: 1, topic: 'orders/create' })
+
+  const rejectionReason = async (event: ReturnType<typeof createEvent>) => {
+    debug.mockClear()
+
+    await validateWebhook(event).catch(() => {})
+
+    return debug.mock.calls.map(call => String(call[0])).join('\n')
+  }
+
+  it('says why a request without a signature was rejected', async () => {
+    expect(await rejectionReason(createEvent(body))).toContain('x-shopify-hmac-sha256')
+  })
+
+  it('says why a request with an empty body was rejected', async () => {
+    expect(await rejectionReason(createEvent('', sign('')))).toContain('body is empty')
+  })
+
+  it('says why a request with a bad signature was rejected', async () => {
+    expect(await rejectionReason(createEvent(body, sign(body, 'wrong_secret')))).toContain('does not match')
+  })
+
+  it('stays quiet for a valid request', async () => {
+    expect(await rejectionReason(createEvent(body, sign(body)))).toBe('')
+  })
+})

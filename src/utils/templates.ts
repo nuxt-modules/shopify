@@ -4,7 +4,7 @@ import type { ShopifyClientType, ShopifyConfig } from '../types'
 import type { ShopifyTemplateOptions } from './codegen'
 
 import { readFile } from 'node:fs/promises'
-import { dirname, basename, join, resolve } from 'node:path'
+import { dirname, basename, join, relative, resolve } from 'node:path'
 import {
   addTemplate,
   addTypeTemplate,
@@ -17,7 +17,9 @@ import {
   createIntrospectionGenerator,
   createTypesGenerator,
   createOperationsGenerator,
+  toPosix,
 } from './codegen'
+import { GRAPHQL_MARKER, SCHEMA_LANGUAGE_FILE } from './graphql/literals'
 
 function indexTemplate(types: string, operations: string) {
   return `
@@ -34,18 +36,15 @@ export function getIntrospectionFilename(clientType: ShopifyClientType, apiVersi
 
 function setupWatcher(nuxt: Nuxt, template: NuxtTemplate<ShopifyTemplateOptions>) {
   nuxt.hook('builder:watch', async (_event, file) => {
+    const path = resolve(nuxt.options.srcDir, file)
+    const projectPath = toPosix(relative(nuxt.options.rootDir, path))
+
     for (const document of template.options?.clientConfig?.documents ?? []) {
-      if (document.startsWith('!') || !minimatch(file, document)) continue
+      if (document.startsWith('!') || !minimatch(projectPath, document)) continue
 
-      const content = await readFile(resolve(nuxt.options.srcDir, file), 'utf8')
-        .catch(() => '')
+      const content = await readFile(path, 'utf8').catch(() => '')
 
-      if (
-        file.endsWith('.gql')
-        || file.endsWith('.graphql')
-        || content.includes('#graphql')
-        || content.includes('/* GraphQL */')
-      ) {
+      if (SCHEMA_LANGUAGE_FILE.test(path) || GRAPHQL_MARKER.test(content)) {
         return updateTemplates({
           filter: t => t.filename === template.options?.filename,
         })
