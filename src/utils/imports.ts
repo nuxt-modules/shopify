@@ -24,19 +24,7 @@ function autoImportDirectory(path: string, includeClient: boolean) {
   }
 }
 
-function autoImportFunction(name: string, resolver: Resolver) {
-  const imports = [{
-    from: resolver.resolve(`./runtime/utils/functions/${name}`),
-    name,
-  }]
-
-  addServerImports(imports)
-  addImports(imports)
-}
-
 export function registerFragmentImports(nuxt: Nuxt, config: ShopifyConfig) {
-  if (!config.fragments?.autoImport) return
-
   const includeClient = hasPublicClient(config)
 
   nuxt.options.watch = nuxt.options.watch || []
@@ -51,12 +39,12 @@ export function registerFragmentImports(nuxt: Nuxt, config: ShopifyConfig) {
 }
 
 export function registerFunctionImports(resolver: Resolver) {
-  const functionNames = [
-    'flattenConnection',
-    'parseGid',
+  const from = resolver.resolve('./runtime/utils/functions')
+  const imports = [
+    { from, name: 'flattenConnection' },
+    { from, name: 'parseGid' },
   ]
 
-  for (const name of functionNames) {
-    autoImportFunction(name, resolver)
-  }
+  addServerImports(imports)
+  addImports(imports)
 }

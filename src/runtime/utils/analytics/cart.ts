@@ -1,85 +1,42 @@
-import type {
-  AnalyticsEventName,
-  AnalyticsEventPayload,
-  ShopifyAnalyticsCart,
-  ShopifyAnalyticsCartLine,
-} from '../../../module'
+import type { AnalyticsCart, CartData, CartState } from '@shopify/hydrogen'
 
-const STORAGE_KEY = 'cartLastUpdatedAt'
+export function isCartSettled({ loading, pending, revalidating }: CartState): boolean {
+  const pendingCost = pending.cost ?? (pending.lines.size > 0 || pending.discountCodes.size > 0)
 
-type StoredUpdate = { id?: string, updatedAt?: string }
-
-export interface CartTrackerOptions {
-  publish: <E extends AnalyticsEventName>(event: E, payload: AnalyticsEventPayload<E>) => void
-  initialCart?: ShopifyAnalyticsCart | null
+  return !loading && !revalidating && !pendingCost && !pending.note && !pending.attributes
 }
 
-function readStoredUpdate(): StoredUpdate | null {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '') as StoredUpdate
-  }
-  catch {
-    return null
-  }
-}
+export function toAnalyticsCart(cart: CartData): AnalyticsCart | null {
+  if (!cart.id) return null
 
-function storeUpdate(cart: ShopifyAnalyticsCart): void {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ id: cart.id, updatedAt: cart.updatedAt }))
-  }
-  catch {
-    return
-  }
-}
+  return {
+    id: cart.id,
+    updatedAt: cart.updatedAt ?? new Date().toISOString(),
+    cost: cart.cost,
+    lines: {
+      nodes: cart.lines.nodes.flatMap(({ id, quantity, cost, merchandise }) => {
+        if (!merchandise?.product) return []
 
-export function createCartTracker({ publish, initialCart = null }: CartTrackerOptions) {
-  let prevCart = initialCart
+        const { product } = merchandise
 
-  const diffLines = (cart: ShopifyAnalyticsCart, previousLines: ShopifyAnalyticsCartLine[]) => {
-    const currentLines = cart.lines ?? []
-
-    for (const prevLine of previousLines) {
-      const currentLine = currentLines.find(line => line.id === prevLine.id)
-
-      if (!currentLine) {
-        publish('product_removed_from_cart', { cart, prevLine })
-      }
-      else if (prevLine.quantity < currentLine.quantity) {
-        publish('product_added_to_cart', { cart, prevLine, currentLine })
-      }
-      else if (prevLine.quantity > currentLine.quantity) {
-        publish('product_removed_from_cart', { cart, prevLine, currentLine })
-      }
-    }
-
-    for (const currentLine of currentLines) {
-      if (!previousLines.some(prevLine => prevLine.id === currentLine.id)) {
-        publish('product_added_to_cart', { cart, currentLine })
-      }
-    }
-  }
-
-  return (cart: ShopifyAnalyticsCart | null) => {
-    if (!cart?.id || !cart.updatedAt) return
-    if (cart.updatedAt === prevCart?.updatedAt) return
-
-    const stored = readStoredUpdate()
-
-    if (stored?.id === cart.id && stored?.updatedAt === cart.updatedAt) {
-      prevCart = cart
-
-      return
-    }
-
-    const previousLines = prevCart?.lines ?? []
-    const previous = prevCart
-
-    prevCart = cart
-
-    publish('cart_updated', { cart, prevCart: previous })
-
-    storeUpdate(cart)
-
-    diffLines(cart, previousLines)
+        return [{
+          id,
+          quantity,
+          merchandise: {
+            id: merchandise.id,
+            title: merchandise.title ?? product.title,
+            price: cost.amountPerQuantity,
+            sku: typeof merchandise.sku === 'string' ? merchandise.sku : null,
+            product: {
+              id: typeof product.id === 'string' ? product.id : '',
+              title: product.title,
+              vendor: typeof product.vendor === 'string' ? product.vendor : '',
+              productType: typeof product.productType === 'string' ? product.productType : undefined,
+              handle: product.handle,
+            },
+          },
+        }]
+      }),
+    },
   }
 }

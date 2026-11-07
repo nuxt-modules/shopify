@@ -1,5 +1,6 @@
 import type {
   AllOperations,
+  CustomFetchApi,
   RequestParams,
 } from '@shopify/graphql-client'
 
@@ -16,14 +17,15 @@ import { createConsola } from 'consola'
 import { MODULE_VERSION } from '../version'
 import { normalizeOperation } from '../graphql/normalize'
 
-export const PROXY_API_VERSION_HEADER = 'X-Shopify-Proxy-Api-Version'
-export const PROXY_CACHE_HEADER = 'X-Shopify-Proxy-Cache'
+export const SERVER_CACHE_HEADER = 'X-Shopify-Server-Cache'
 export const PRIVATE_TOKEN_HEADER = 'Shopify-Storefront-Private-Token'
 export const PUBLIC_TOKEN_HEADER = 'X-Shopify-Storefront-Access-Token'
 export const ADMIN_TOKEN_HEADER = 'X-Shopify-Access-Token'
 export const BUYER_IP_HEADER = 'Shopify-Storefront-Buyer-IP'
-export const SDK_VARIANT_HEADER = 'X-SDK-Variant'
-export const SDK_VERSION_HEADER = 'X-SDK-Version'
+const SDK_VARIANT_HEADER = 'X-SDK-Variant'
+const SDK_VERSION_HEADER = 'X-SDK-Version'
+
+export const CUSTOMER_ACCOUNT_PROXY_ROUTE = '/account/customer/api/:version/graphql'
 
 const API_VERSION_SEGMENT = /\/api\/[^/]+(?=\/|$)/
 
@@ -36,14 +38,12 @@ export const createApiUrl = (storeDomain: string, apiVersion: string, apiPrefix?
   'graphql.json',
 )
 
-export const isVersionedApiUrl = (apiUrl: string) => API_VERSION_SEGMENT.test(apiUrl)
-
 export const withApiVersion = (apiUrl: string, apiVersion: string) =>
   apiUrl.replace(API_VERSION_SEGMENT, `/api/${apiVersion}`)
 
 export const createTransport = <Operations extends AllOperations = AllOperations, Cache extends boolean | undefined = undefined>(
   config: ShopifyApiClientConfig,
-  transportOptions: { normalize?: boolean } = {},
+  transportOptions: { normalize?: boolean, fetch?: CustomFetchApi } = {},
 ): ShopifyApiClient<Operations, Cache> => {
   const {
     storeDomain,
@@ -57,6 +57,8 @@ export const createTransport = <Operations extends AllOperations = AllOperations
   if (!apiVersion) {
     throw new Error('[shopify] Failed to create client: API version is required')
   }
+
+  const trace = logger ? createConsola(logger).withTag('shopify').trace : undefined
 
   const clientConfig = {
     storeDomain,
@@ -75,7 +77,10 @@ export const createTransport = <Operations extends AllOperations = AllOperations
     url: apiUrl,
     headers: clientConfig.headers,
     retries,
-    logger: logger ? createConsola(logger).withTag('shopify').trace : undefined,
+    logger: trace
+      ? ({ type, content }) => trace({ type, content: 'requestParams' in content ? { ...content, requestParams: [content.requestParams[0]] } : content })
+      : undefined,
+    ...(transportOptions.fetch ? { customFetchApi: transportOptions.fetch } : {}),
   })
 
   const getHeaders: ShopifyApiClient<Operations>['getHeaders'] = customHeaders =>
@@ -107,13 +112,9 @@ export const createTransport = <Operations extends AllOperations = AllOperations
         cache,
       } = options
 
-      const proxied = apiVersion && !isVersionedApiUrl(apiUrl)
-
-      const requestHeaders = proxied
-        ? getHeaders({ ...headers, [PROXY_API_VERSION_HEADER]: apiVersion } as unknown as Record<string, string[]>)
-        : headers
-          ? getHeaders(headers as unknown as Record<string, string[]>)
-          : undefined
+      const requestHeaders = headers
+        ? getHeaders(headers as unknown as Record<string, string[]>)
+        : undefined
 
       props.push({
         ...(variables ? { variables } : {}),

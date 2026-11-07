@@ -5,6 +5,8 @@ import type {
   ResponseErrors,
   ReturnData,
 } from '@shopify/graphql-client'
+import type { ShopifyScriptTagsOptions } from '@shopify/hydrogen'
+import type { H3Event } from 'h3'
 
 import type { ShopifyConfig } from '../schemas'
 import type {
@@ -12,15 +14,7 @@ import type {
   ShopifyApiClientConfig,
   ShopifyApiClientRequestOptions,
 } from './client'
-import type {
-  AnalyticsEventName,
-  ShopAnalytics,
-} from './analytics'
-import type {
-  AdminTokenSet,
-  CustomerAccountTokenSet,
-  CustomerAccountUser,
-} from './auth'
+import type { ShopifyAdminTokenSet } from './auth'
 
 export type ShopifyConfigHookParams = {
   nuxt: Nuxt
@@ -47,14 +41,7 @@ export type ShopifyClientResponseHookParams<Operation extends keyof Operations, 
   options?: ShopifyApiClientRequestOptions<Operation, Operations, Cache>
 }
 
-export type ShopifyAnalyticsReadyHookParams = {
-  shop: ShopAnalytics | null
-}
-
-export type ShopifyAnalyticsPublishHookParams = {
-  event: AnalyticsEventName
-  payload: unknown
-}
+export type ShopifyAnalyticsReadyHookParams = Pick<ShopifyScriptTagsOptions, 'shop' | 'i18n'>
 
 export type ShopifyErrorHookParams = {
   errors: ResponseErrors
@@ -65,26 +52,8 @@ export type ShopifyTemplateHookParams = {
   config: Record<string, unknown>
 }
 
-export type ShopifyCustomerAccountAuthorizeHookParams = {
-  params: Record<string, string>
-}
-
-export type ShopifyCustomerAccountAuthSuccessHookParams = {
-  user: CustomerAccountUser
-  tokens: CustomerAccountTokenSet
-}
-
-export type ShopifyCustomerAccountAuthRefreshHookParams = {
-  tokens: CustomerAccountTokenSet
-}
-
-export type ShopifyCustomerAccountAuthLogoutHookParams = {
-  user: CustomerAccountUser | null
-  idToken?: string
-}
-
-export type ShopifyCustomerAccountAuthErrorHookParams = {
-  error: unknown
+export type ShopifyCustomerAccountAuthHookParams = {
+  event: H3Event
 }
 
 export type ShopifyAdminAuthRequestHookParams = {
@@ -92,7 +61,7 @@ export type ShopifyAdminAuthRequestHookParams = {
 }
 
 export type ShopifyAdminAuthTokenHookParams = {
-  token: AdminTokenSet
+  token: ShopifyAdminTokenSet
 }
 
 export type ShopifyAdminAuthErrorHookParams = {
@@ -105,8 +74,7 @@ export type ShopifyClientCallbackResult = void | Promise<void>
  * Lifecycle callbacks of a Shopify API client.
  *
  * The client itself is environment agnostic and never resolves a hook target on
- * its own - wire these to `nuxtApp.hooks` / `nitroApp.hooks` / `nuxt.hooks`, or
- * to anything else, at the call site.
+ * its own.
  */
 export type ShopifyClientCallbacks<Operations extends AllOperations, Cache extends boolean | undefined = undefined> = {
   /**
@@ -139,7 +107,7 @@ export type ShopifyClientCallbacks<Operations extends AllOperations, Cache exten
 /**
  * Lifecycle callbacks of an access token exchange.
  */
-export type ShopifyAuthCallbacks = {
+export type ShopifyAdminAuthCallbacks = {
   /**
    * Called with the token request body, before it is sent. May be mutated.
    */

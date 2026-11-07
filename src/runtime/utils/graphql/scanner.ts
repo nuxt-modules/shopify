@@ -1,4 +1,4 @@
-export interface GraphqlDefinition {
+export type GraphqlDefinition = {
   kind: 'fragment' | 'operation'
   name?: string
   start: number
@@ -23,7 +23,7 @@ function isKeywordAt(source: string, index: number, keyword: string) {
 }
 
 function skipComment(source: string, index: number) {
-  while (index < source.length && source[index] !== '\n') index++
+  while (index < source.length && source[index] !== '\n' && source[index] !== '\r') index++
 
   return index
 }
@@ -32,7 +32,9 @@ function skipString(source: string, index: number) {
   if (source.startsWith('"""', index)) {
     index += 3
 
-    while (index < source.length && !source.startsWith('"""', index)) index++
+    while (index < source.length && !source.startsWith('"""', index)) {
+      index += source.startsWith('\\"""', index) ? 4 : 1
+    }
 
     return Math.min(index + 3, source.length)
   }

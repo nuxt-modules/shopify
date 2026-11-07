@@ -1,17 +1,13 @@
 import defu from 'defu'
 
 export default defineEventHandler((event) => {
-  const { _shopify } = useRuntimeConfig(event)
+  const { _shopify, public: { _shopify: publicShopify } } = useRuntimeConfig(event)
 
-  return defu({
+  return defu(publicShopify, {
     clients: {
       admin: {
-        clientId: '<admin_client_id>',
-        clientSecret: '<admin_client_secret>',
+        apiVersion: _shopify?.clients.admin?.apiVersion,
       },
     },
-    webhooks: {
-      secret: '<webhooks_secret>',
-    },
-  }, _shopify)
+  })
 })

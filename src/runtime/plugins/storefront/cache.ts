@@ -1,0 +1,36 @@
+import defu from 'defu'
+import { createStorage } from 'unstorage'
+import lruCacheDriver from '../../utils/lru-driver'
+
+import { defineNuxtPlugin, useRuntimeConfig } from '#app'
+
+export default defineNuxtPlugin({
+  name: 'shopify:storefront:cache',
+
+  async setup(nuxtApp) {
+    if (import.meta.server) return
+
+    const { _shopify } = useRuntimeConfig().public
+
+    const storefrontCache = _shopify?.clients.storefront?.cache
+
+    if (!storefrontCache || !storefrontCache.browser) return
+
+    const config = typeof storefrontCache.browser === 'object' ? storefrontCache.browser : undefined
+
+    const storage = createStorage({
+      driver: lruCacheDriver({
+        ...(config?.max ? { max: config?.max } : {}),
+        ...(config?.maxSize ? { maxSize: config?.maxSize } : {}),
+        ...(config?.maxEntrySize ? { maxEntrySize: config?.maxEntrySize } : {}),
+        ...(config?.ttl ? { ttl: config?.ttl } : {}),
+      }),
+    })
+
+    const shopifyContext = nuxtApp.$shopify as { cache?: { storefront?: typeof storage } } ?? {}
+
+    shopifyContext.cache = defu({ storefront: storage }, shopifyContext.cache)
+
+    if (!nuxtApp.$shopify) nuxtApp.$shopify = shopifyContext
+  },
+})

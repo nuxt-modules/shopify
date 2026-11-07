@@ -4,6 +4,7 @@ packages:
   - docs
 
 linkWorkspacePackages: true
+preferWorkspacePackages: true
 
 allowBuilds:
   "@parcel/watcher": true

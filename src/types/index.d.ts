@@ -1,8 +1,11 @@
 import type { HookResult } from '@nuxt/schema'
+import type { CustomFetchApi } from '@shopify/graphql-client'
+import type { ShopifyRequestContext, ShopifyScriptsI18n } from '@shopify/hydrogen'
 import type { StorefrontOperations } from '@nuxtjs/shopify/storefront'
 import type { CustomerAccountOperations } from '@nuxtjs/shopify/customer-account'
 import type { AdminOperations } from '@nuxtjs/shopify/admin'
 import type { Storage, StorageValue } from 'unstorage'
+import type { H3Event } from 'h3'
 
 import type {
   ShopifyClientType,
@@ -15,23 +18,21 @@ import type {
   ShopifyAdminAuthErrorHookParams,
   ShopifyAdminAuthRequestHookParams,
   ShopifyAdminAuthTokenHookParams,
-  ShopifyAnalyticsPublishHookParams,
   ShopifyAnalyticsReadyHookParams,
   ShopifyClientHookParams,
   ShopifyClientOptionHookParams,
   ShopifyClientRequestHookParams,
   ShopifyClientResponseHookParams,
   ShopifyConfigHookParams,
-  ShopifyCustomerAccountAuthErrorHookParams,
-  ShopifyCustomerAccountAuthLogoutHookParams,
-  ShopifyCustomerAccountAuthorizeHookParams,
-  ShopifyCustomerAccountAuthRefreshHookParams,
-  ShopifyCustomerAccountAuthSuccessHookParams,
+  ShopifyCustomerAccountAuthHookParams,
   ShopifyErrorHookParams,
   ShopifyTemplateHookParams,
 } from './hooks'
 import type {
-  ShopifyAnalyticsContext,
+  ShopifyCustomerAccountContext,
+} from './auth'
+import type {
+  ShopifyScriptsShopContext,
 } from './analytics'
 
 type DeepPartial<T> = { [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P] }
@@ -61,47 +62,47 @@ declare module '@nuxt/schema' {
     /**
      * Called before the storefront introspection schema is generated
      */
-    'storefront:generate:introspection': ({ nuxt, config }: ShopifyTemplateHookParams) => HookResult
+    'shopify:storefront:generate:introspection': ({ nuxt, config }: ShopifyTemplateHookParams) => HookResult
 
     /**
      * Called before the storefront types are generated
      */
-    'storefront:generate:types': ({ nuxt, config }: ShopifyTemplateHookParams) => HookResult
+    'shopify:storefront:generate:types': ({ nuxt, config }: ShopifyTemplateHookParams) => HookResult
 
     /**
      * Called before the storefront operations are generated
      */
-    'storefront:generate:operations': ({ nuxt, config }: ShopifyTemplateHookParams) => HookResult
+    'shopify:storefront:generate:operations': ({ nuxt, config }: ShopifyTemplateHookParams) => HookResult
 
     /**
      * Called before the customer account introspection schema is generated
      */
-    'customer-account:generate:introspection': ({ nuxt, config }: ShopifyTemplateHookParams) => HookResult
+    'shopify:customer-account:generate:introspection': ({ nuxt, config }: ShopifyTemplateHookParams) => HookResult
 
     /**
      * Called before the customer account types are generated
      */
-    'customer-account:generate:types': ({ nuxt, config }: ShopifyTemplateHookParams) => HookResult
+    'shopify:customer-account:generate:types': ({ nuxt, config }: ShopifyTemplateHookParams) => HookResult
 
     /**
      * Called before the customer account operations are generated
      */
-    'customer-account:generate:operations': ({ nuxt, config }: ShopifyTemplateHookParams) => HookResult
+    'shopify:customer-account:generate:operations': ({ nuxt, config }: ShopifyTemplateHookParams) => HookResult
 
     /**
      * Called before the admin introspection schema is generated
      */
-    'admin:generate:introspection': ({ nuxt, config }: ShopifyTemplateHookParams) => HookResult
+    'shopify:admin:generate:introspection': ({ nuxt, config }: ShopifyTemplateHookParams) => HookResult
 
     /**
      * Called before the admin types are generated
      */
-    'admin:generate:types': ({ nuxt, config }: ShopifyTemplateHookParams) => HookResult
+    'shopify:admin:generate:types': ({ nuxt, config }: ShopifyTemplateHookParams) => HookResult
 
     /**
      * Called before the admin operations are generated
      */
-    'admin:generate:operations': ({ nuxt, config }: ShopifyTemplateHookParams) => HookResult
+    'shopify:admin:generate:operations': ({ nuxt, config }: ShopifyTemplateHookParams) => HookResult
   }
 }
 
@@ -123,71 +124,75 @@ declare module '#app' {
       cache?: {
         storefront?: Storage<StorageValue>
       }
-
-      analytics?: ShopifyAnalyticsContext
     }
   }
 
   interface RuntimeNuxtHooks {
     /**
-     * Called once analytics is ready (shop identity resolved and the Customer Privacy API loaded)
+     * Called once analytics is ready (shop identity resolved and Shopify's scripts started)
      */
-    'analytics:ready': ({ shop }: ShopifyAnalyticsReadyHookParams) => HookResult
-
-    /**
-     * Called whenever an analytics event is published, before it is dispatched to subscribers
-     */
-    'analytics:publish': ({ event, payload }: ShopifyAnalyticsPublishHookParams) => HookResult
+    'shopify:analytics:ready': ({ shop, i18n }: ShopifyAnalyticsReadyHookParams) => HookResult
 
     /**
      * Called before the storefront client is created within nuxt
      */
-    'storefront:client:configure': ({ config }: ShopifyClientOptionHookParams) => HookResult
+    'shopify:storefront:client:configure': ({ config }: ShopifyClientOptionHookParams) => HookResult
 
     /**
      * Called after the storefront client is created within nuxt
      */
-    'storefront:client:create': ({ client }: ShopifyClientHookParams<StorefrontOperations, true>) => HookResult
+    'shopify:storefront:client:create': ({ client }: ShopifyClientHookParams<StorefrontOperations, true>) => HookResult
 
     /**
      * Called before the storefront client sends a request within nuxt
      */
-    'storefront:client:request': ({ operation, options }: ShopifyClientRequestHookParams<keyof StorefrontOperations, StorefrontOperations, true>) => HookResult
+    'shopify:storefront:client:request': ({ operation, options }: ShopifyClientRequestHookParams<keyof StorefrontOperations, StorefrontOperations, true>) => HookResult
 
     /**
      * Called after the storefront client receives a response within nuxt
      */
-    'storefront:client:response': ({ response, operation, options }: ShopifyClientResponseHookParams<keyof StorefrontOperations, StorefrontOperations, true>) => HookResult
+    'shopify:storefront:client:response': ({ response, operation, options }: ShopifyClientResponseHookParams<keyof StorefrontOperations, StorefrontOperations, true>) => HookResult
 
     /**
-     * Called when the storefront client throws an error within nuxt
+     * Called whenever a storefront client response carries errors, whether or not `errors.throw` makes the request throw
      */
-    'storefront:client:errors': ({ errors }: ShopifyErrorHookParams) => HookResult
+    'shopify:storefront:client:errors': ({ errors }: ShopifyErrorHookParams) => HookResult
 
     /**
      * Called before the customer account client is created within nuxt
      */
-    'customer-account:client:configure': ({ config }: ShopifyClientOptionHookParams) => HookResult
+    'shopify:customer-account:client:configure': ({ config }: ShopifyClientOptionHookParams) => HookResult
 
     /**
      * Called after the customer account client is created within nuxt
      */
-    'customer-account:client:create': ({ client }: ShopifyClientHookParams<CustomerAccountOperations>) => HookResult
+    'shopify:customer-account:client:create': ({ client }: ShopifyClientHookParams<CustomerAccountOperations>) => HookResult
 
     /**
      * Called before the customer account client sends a request within nuxt
      */
-    'customer-account:client:request': ({ operation, options }: ShopifyClientRequestHookParams<keyof CustomerAccountOperations, CustomerAccountOperations>) => HookResult
+    'shopify:customer-account:client:request': ({ operation, options }: ShopifyClientRequestHookParams<keyof CustomerAccountOperations, CustomerAccountOperations>) => HookResult
 
     /**
      * Called after the customer account client receives a response within nuxt
      */
-    'customer-account:client:response': ({ response, operation, options }: ShopifyClientResponseHookParams<keyof CustomerAccountOperations, CustomerAccountOperations>) => HookResult
+    'shopify:customer-account:client:response': ({ response, operation, options }: ShopifyClientResponseHookParams<keyof CustomerAccountOperations, CustomerAccountOperations>) => HookResult
 
     /**
-     * Called when the storefront client receives a response containing GraphQL errors
+     * Called whenever a customer account client response carries errors, whether or not `errors.throw` makes the request throw
      */
-    'customer-account:client:errors': ({ errors }: ShopifyErrorHookParams) => HookResult
+    'shopify:customer-account:client:errors': ({ errors }: ShopifyErrorHookParams) => HookResult
+  }
+}
+
+declare module 'h3' {
+  interface H3EventContext {
+    shopifyMarket?: ShopifyScriptsI18n
+    shopifyRequestContext?: ShopifyRequestContext
+    shopifyRedirect?: (event: H3Event) => Promise<Response | null>
+    shopifyScripts?: (event: H3Event) => Promise<ShopifyScriptsShopContext>
+    shopifyCustomerAccount?: ShopifyCustomerAccountContext
+    shopifyStorefrontCache?: CustomFetchApi
   }
 }
 
@@ -196,124 +201,117 @@ declare module 'nitropack/types' {
     /**
      * Called before the storefront client is created within nitro
      */
-    'storefront:client:configure': ({ config }: ShopifyClientOptionHookParams) => HookResult
+    'shopify:storefront:client:configure': ({ config }: ShopifyClientOptionHookParams) => HookResult
 
     /**
      * Called after the storefront client is created within nitro
      */
-    'storefront:client:create': ({ client }: ShopifyClientHookParams<StorefrontOperations>) => HookResult
+    'shopify:storefront:client:create': ({ client }: ShopifyClientHookParams<StorefrontOperations>) => HookResult
 
     /**
      * Called before the storefront client sends a request within nitro
      */
-    'storefront:client:request': ({ operation, options }: ShopifyClientRequestHookParams<keyof StorefrontOperations, StorefrontOperations>) => HookResult
+    'shopify:storefront:client:request': ({ operation, options }: ShopifyClientRequestHookParams<keyof StorefrontOperations, StorefrontOperations>) => HookResult
 
     /**
      * Called after the storefront client receives a response within nitro
      */
-    'storefront:client:response': ({ response, operation, options }: ShopifyClientResponseHookParams<keyof StorefrontOperations, StorefrontOperations>) => HookResult
+    'shopify:storefront:client:response': ({ response, operation, options }: ShopifyClientResponseHookParams<keyof StorefrontOperations, StorefrontOperations>) => HookResult
 
     /**
-     * Called when the storefront client receives a response containing GraphQL errors
+     * Called whenever a storefront client response carries errors, whether or not `errors.throw` makes the request throw
      */
-    'storefront:client:errors': ({ errors }: ShopifyErrorHookParams) => HookResult
+    'shopify:storefront:client:errors': ({ errors }: ShopifyErrorHookParams) => HookResult
 
     /**
      * Called before the customer account client is created within nitro
      */
-    'customer-account:client:configure': ({ config }: ShopifyClientOptionHookParams) => HookResult
+    'shopify:customer-account:client:configure': ({ config }: ShopifyClientOptionHookParams) => HookResult
 
     /**
      * Called after the customer account client is created within nitro
      */
-    'customer-account:client:create': ({ client }: ShopifyClientHookParams<CustomerAccountOperations>) => HookResult
+    'shopify:customer-account:client:create': ({ client }: ShopifyClientHookParams<CustomerAccountOperations>) => HookResult
 
     /**
      * Called before the customer account client sends a request within nitro
      */
-    'customer-account:client:request': ({ operation, options }: ShopifyClientRequestHookParams<keyof CustomerAccountOperations, CustomerAccountOperations>) => HookResult
+    'shopify:customer-account:client:request': ({ operation, options }: ShopifyClientRequestHookParams<keyof CustomerAccountOperations, CustomerAccountOperations>) => HookResult
 
     /**
      * Called after the customer account client receives a response within nitro
      */
-    'customer-account:client:response': ({ response, operation, options }: ShopifyClientResponseHookParams<keyof CustomerAccountOperations, CustomerAccountOperations>) => HookResult
+    'shopify:customer-account:client:response': ({ response, operation, options }: ShopifyClientResponseHookParams<keyof CustomerAccountOperations, CustomerAccountOperations>) => HookResult
 
     /**
-     * Called when the customer account client receives a response containing GraphQL errors
+     * Called whenever a customer account client response carries errors, whether or not `errors.throw` makes the request throw
      */
-    'customer-account:client:errors': ({ errors }: ShopifyErrorHookParams) => HookResult
+    'shopify:customer-account:client:errors': ({ errors }: ShopifyErrorHookParams) => HookResult
 
     /**
-     * Called before redirecting the user to Shopify to start the customer account OAuth flow.
-     * The `params` object is the authorization request query and may be mutated (e.g. to add a `locale`).
+     * Called after the customer signed in on Shopify's login page
      */
-    'customer-account:auth:authorize': ({ params }: ShopifyCustomerAccountAuthorizeHookParams) => HookResult
+    'shopify:customer-account:auth:success': ({ event }: ShopifyCustomerAccountAuthHookParams) => HookResult
 
     /**
-     * Called after a successful customer account login, before the session is persisted.
+     * Called when the customer came back from Shopify's login page without being signed in
      */
-    'customer-account:auth:success': ({ user, tokens }: ShopifyCustomerAccountAuthSuccessHookParams) => HookResult
+    'shopify:customer-account:auth:error': ({ event }: ShopifyCustomerAccountAuthHookParams) => HookResult
 
     /**
-     * Called after the customer account access token has been refreshed.
+     * Called after the customer account access token has been refreshed
      */
-    'customer-account:auth:refresh': ({ tokens }: ShopifyCustomerAccountAuthRefreshHookParams) => HookResult
+    'shopify:customer-account:auth:refresh': ({ event }: ShopifyCustomerAccountAuthHookParams) => HookResult
 
     /**
-     * Called before the customer account session is cleared on logout.
+     * Called after the customer signed out
      */
-    'customer-account:auth:logout': ({ user, idToken }: ShopifyCustomerAccountAuthLogoutHookParams) => HookResult
+    'shopify:customer-account:auth:logout': ({ event }: ShopifyCustomerAccountAuthHookParams) => HookResult
 
     /**
-     * Called when the customer account OAuth flow fails.
+     * Called before the Admin API access token request is sent, with the request body as `params`, which may be mutated (e.g. to add a `scope`)
      */
-    'customer-account:auth:error': ({ error }: ShopifyCustomerAccountAuthErrorHookParams) => HookResult
+    'shopify:admin:auth:request': ({ params }: ShopifyAdminAuthRequestHookParams) => HookResult
 
     /**
-     * Called before the admin API access token request is sent.
-     * The `params` object is the token request body and may be mutated (e.g. to add a `scope`).
+     * Called after a new Admin API access token is obtained via the client credentials grant
      */
-    'admin:auth:request': ({ params }: ShopifyAdminAuthRequestHookParams) => HookResult
+    'shopify:admin:auth:success': ({ token }: ShopifyAdminAuthTokenHookParams) => HookResult
 
     /**
-     * Called after a new admin API access token is obtained via the client credentials grant.
+     * Called after the Admin API access token has been refreshed via the refresh token grant
      */
-    'admin:auth:success': ({ token }: ShopifyAdminAuthTokenHookParams) => HookResult
+    'shopify:admin:auth:refresh': ({ token }: ShopifyAdminAuthTokenHookParams) => HookResult
 
     /**
-     * Called after the admin API access token has been refreshed via the refresh token grant.
+     * Called when the Admin API access token request fails
      */
-    'admin:auth:refresh': ({ token }: ShopifyAdminAuthTokenHookParams) => HookResult
-
-    /**
-     * Called when the admin API access token request fails.
-     */
-    'admin:auth:error': ({ error }: ShopifyAdminAuthErrorHookParams) => HookResult
+    'shopify:admin:auth:error': ({ error }: ShopifyAdminAuthErrorHookParams) => HookResult
 
     /**
      * Called before the admin client is created within nitro
      */
-    'admin:client:configure': ({ config }: ShopifyClientOptionHookParams) => HookResult
+    'shopify:admin:client:configure': ({ config }: ShopifyClientOptionHookParams) => HookResult
 
     /**
      * Called after the admin client is created within nitro
      */
-    'admin:client:create': ({ client }: ShopifyClientHookParams<AdminOperations>) => HookResult
+    'shopify:admin:client:create': ({ client }: ShopifyClientHookParams<AdminOperations>) => HookResult
 
     /**
      * Called before the admin client sends a request within nitro
      */
-    'admin:client:request': ({ operation, options }: ShopifyClientRequestHookParams<keyof AdminOperations, AdminOperations>) => HookResult
+    'shopify:admin:client:request': ({ operation, options }: ShopifyClientRequestHookParams<keyof AdminOperations, AdminOperations>) => HookResult
 
     /**
      * Called after the admin client receives a response within nitro
      */
-    'admin:client:response': ({ response, operation, options }: ShopifyClientResponseHookParams<keyof AdminOperations, AdminOperations>) => HookResult
+    'shopify:admin:client:response': ({ response, operation, options }: ShopifyClientResponseHookParams<keyof AdminOperations, AdminOperations>) => HookResult
 
     /**
-     * Called when the admin client receives a response containing GraphQL errors
+     * Called whenever an admin client response carries errors, whether or not `errors.throw` makes the request throw
      */
-    'admin:client:errors': ({ errors }: ShopifyErrorHookParams) => HookResult
+    'shopify:admin:client:errors': ({ errors }: ShopifyErrorHookParams) => HookResult
   }
 }
 
@@ -326,53 +324,44 @@ export type {
 }
 
 export type {
-  AdminTokenSet,
-  CustomerAccountSession,
-  CustomerAccountSessionData,
-  CustomerAccountTokenSet,
-  CustomerAccountTokens,
-  CustomerAccountUser,
-  OpenIdConfiguration,
+  ShopifyScriptsShopContext,
+} from './analytics'
+
+export type {
+  ShopifyAdminTokenSet,
+  ShopifyCustomerAccountContext,
+  ShopifyCustomerAccountSession,
+  ShopifyCustomerAccountSessionData,
 } from './auth'
 
 export type {
   ShopifyApiClient,
   ShopifyApiClientConfig,
+  ShopifyApiClientFetch,
   ShopifyApiClientRequest,
   ShopifyApiClientRequestOptions,
+  ShopifyApiClientRequestParams,
+  ShopifyApiClientRequestStream,
   ShopifyClientConfig,
-  ShopifyClientDefinition,
   ShopifyClientKind,
   ShopifyClientOptions,
-  ShopifyClientSetupContext,
-  ShopifyGenericClientOptions,
   ShopifyInlineConfig,
 } from './client'
 
 export type {
-  ShopifyAuthCallbacks,
+  ShopifyAdminAuthCallbacks,
+  ShopifyAdminAuthErrorHookParams,
+  ShopifyAdminAuthRequestHookParams,
+  ShopifyAdminAuthTokenHookParams,
+  ShopifyAnalyticsReadyHookParams,
   ShopifyClientCallbackResult,
   ShopifyClientCallbacks,
+  ShopifyClientHookParams,
+  ShopifyClientOptionHookParams,
+  ShopifyClientRequestHookParams,
+  ShopifyClientResponseHookParams,
+  ShopifyConfigHookParams,
+  ShopifyCustomerAccountAuthHookParams,
+  ShopifyErrorHookParams,
+  ShopifyTemplateHookParams,
 } from './hooks'
-
-export type {
-  AnalyticsConsentFlags,
-  AnalyticsEmitter,
-  AnalyticsEventName,
-  AnalyticsEventPayload,
-  AnalyticsProductInput,
-  AnalyticsSubscriber,
-  CartViewPayload,
-  CartUpdatePayload,
-  CollectionViewPayload,
-  CustomerPrivacyApi,
-  PrivacyBanner,
-  ProductViewPayload,
-  SearchViewPayload,
-  ShopAnalytics,
-  ShopifyAnalyticsCart,
-  ShopifyAnalyticsCartLine,
-  ShopifyAnalyticsContext,
-  ShopifyAnalyticsShopContext,
-  TrackingConsent,
-} from './analytics'

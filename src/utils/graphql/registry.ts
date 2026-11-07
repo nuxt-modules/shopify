@@ -5,28 +5,26 @@ import { join, relative } from 'node:path'
 
 import { collectSpreads, scanDefinitions } from '../../runtime/utils/graphql/scanner'
 import { useLogger } from '../log'
-import { findGraphqlLiterals } from './literals'
+import { INTERPOLATION, SCHEMA_LANGUAGE_FILE, findGraphqlLiterals } from './literals'
 import { toPosix } from '../codegen'
 
 const SCANNABLE = /\.(?:ts|js|mjs|cjs|mts|cts|vue|gql|graphql)$/
-const SCHEMA_LANGUAGE = /\.(?:gql|graphql)$/
-const INTERPOLATION = /\$\{\s*(\w+)\s*\}/g
 
 const SKIPPED_DIRS = new Set(['node_modules', 'dist', '.nuxt', '.output', '.git', '.vercel'])
 
-export interface FragmentEntry {
+export type FragmentEntry = {
   name: string
   text: string
   spreads: string[]
   file: string
 }
 
-export interface FragmentRegistry {
+export type FragmentRegistry = {
   fragments: Map<string, FragmentEntry>
   provides: Map<string, Set<string>>
 }
 
-interface BindingLink {
+type BindingLink = {
   registry: FragmentRegistry
   binding: string
   interpolations: Set<string>
@@ -36,7 +34,9 @@ function createRegistry(): FragmentRegistry {
   return { fragments: new Map(), provides: new Map() }
 }
 
-const hasUnresolvedInterpolation = (text: string) => text.includes('${')
+const hasUnresolvedInterpolation = (text: string) => /(?<!\\)\$\{/.test(text)
+
+const escapeTemplateLiteral = (text: string) => text.replace(/\\|`|\$\{/g, match => `\\${match}`)
 
 async function listFiles(dir: string): Promise<string[]> {
   const entries = await readdir(dir, { withFileTypes: true, recursive: true }).catch(() => [])
@@ -48,8 +48,10 @@ async function listFiles(dir: string): Promise<string[]> {
 }
 
 function readDefinitions(file: string, code: string) {
-  if (SCHEMA_LANGUAGE.test(file)) {
-    return [{ definitions: scanDefinitions(code), interpolations: new Set<string>(), binding: undefined }]
+  if (SCHEMA_LANGUAGE_FILE.test(file)) {
+    const definitions = scanDefinitions(code).map(definition => ({ ...definition, text: escapeTemplateLiteral(definition.text) }))
+
+    return [{ definitions, interpolations: new Set<string>(), binding: undefined }]
   }
 
   return findGraphqlLiterals(code).map(literal => ({
@@ -84,7 +86,7 @@ function expandProvidesThroughInterpolations(links: Map<string, BindingLink>) {
   }
 }
 
-interface FragmentCollision {
+type FragmentCollision = {
   name: string
   kept: string
   ignored: string

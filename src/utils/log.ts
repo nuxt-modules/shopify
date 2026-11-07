@@ -1,17 +1,15 @@
-import type { ConsolaOptions } from 'consola'
+import type { ConsolaInstance, ConsolaOptions } from 'consola'
 
 import { useLogger as nuxtLogger } from '@nuxt/kit'
 
-type LoggerInstance = ReturnType<typeof nuxtLogger>
+let instance: ConsolaInstance | undefined
 
-let instance: LoggerInstance | undefined
-
-export function initLogger(options?: Partial<ConsolaOptions>): LoggerInstance {
+export function initLogger(options?: Partial<ConsolaOptions>): ConsolaInstance {
   instance = nuxtLogger('shopify', options)
 
   return instance
 }
 
-export function useLogger(): LoggerInstance {
+export function useLogger(): ConsolaInstance {
   return instance ??= nuxtLogger('shopify')
 }

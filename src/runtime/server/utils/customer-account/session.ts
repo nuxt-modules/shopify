@@ -1,59 +1,118 @@
+import type { WritableCustomerSessionManager } from '@shopify/hydrogen/customer-account'
 import type { H3Event, SessionConfig } from 'h3'
 import type { Storage } from 'unstorage'
 
-import type { CustomerAccountSession, CustomerAccountSessionData, CustomerAccountTokenSet, CustomerAccountUser, ShopifyConfig } from '../../../../module'
+import type { ShopifyCustomerAccountSession, ShopifyCustomerAccountSessionData, ShopifyConfig } from '../../../../module'
 
-import { createError, getCookie, getSession, useSession } from 'h3'
-import { useStorage } from 'nitropack/runtime'
+import { createCustomerSession } from '@shopify/hydrogen/customer-account'
+import { clearSession, createError, getCookie, getSession, updateSession } from 'h3'
+import { getRouteRules, useStorage } from 'nitropack/runtime'
+import { hash } from 'ohash'
 import { useRuntimeConfig } from '#imports'
 
-import { SESSION_DEFAULT_NAME, SESSION_PASSWORD_ENV } from '../../../utils/session'
+import { SESSION_DEFAULT_NAME, SESSION_PASSWORD_ENV, SESSION_PASSWORD_MIN_LENGTH, isUsableSessionPassword } from '../../../utils/session'
+import { getPublicRequestURL, getShopifyRequestContext } from '../routes'
 
-export type { CustomerAccountSession, CustomerAccountSessionData, CustomerAccountTokenSet, CustomerAccountUser } from '../../../../module'
+const HYDROGEN_SESSION_KEY = 'customerAccount'
+
+const DEFAULT_TOKEN_STORAGE = 'customer-account-token'
+
+type CustomerSessionWithInternals = ReturnType<typeof createCustomerSession>
+
+type HydrogenSessionItem = Record<string, unknown> & { tokens?: unknown }
+
+type StoredTokens = {
+  tokens: unknown
+  replaces?: string[]
+}
+
+const customerSessions = new Map<string, CustomerSessionWithInternals>()
+
+const tokenKeysWrittenBy = new WeakMap<H3Event, Set<string>>()
+
+export function requireCustomerAccountConfig(config?: ShopifyConfig): NonNullable<ShopifyConfig['clients']['customerAccount']> {
+  const customerAccount = config?.clients?.customerAccount
+
+  if (!customerAccount) {
+    throw createError({ status: 500, statusText: 'Internal Server Error', message: '[shopify] Customer account client is not configured' })
+  }
+
+  return customerAccount
+}
+
+export function getCustomerSession(config?: ShopifyConfig): CustomerSessionWithInternals {
+  const customerAccount = requireCustomerAccountConfig(config)
+  const shopId = config?.shopId
+
+  if (!shopId) {
+    throw createError({
+      status: 500,
+      statusText: 'Internal Server Error',
+      message: '[shopify] Failed to resolve the shop ID: set `shopId`, or enable the Customer Account API for your store so the module can look it up',
+    })
+  }
+
+  const key = `${shopId}:${customerAccount.clientId}`
+
+  let session = customerSessions.get(key)
+
+  if (!session) {
+    session = createCustomerSession({ shopId, customerAccountApiClientId: customerAccount.clientId })
+
+    customerSessions.set(key, session)
+  }
+
+  return session
+}
 
 export function getSessionConfig(config?: ShopifyConfig): SessionConfig {
   const session = config?.clients?.customerAccount?.session
-  const password = session?.password || globalThis.process?.env?.[SESSION_PASSWORD_ENV]
+  const candidates = [session?.password, globalThis.process?.env?.[SESSION_PASSWORD_ENV]]
+  const password = candidates.find(isUsableSessionPassword)
 
   if (!password) {
     throw createError({
       status: 500,
       statusText: 'Internal Server Error',
-      message: '[shopify] Failed to resolve the customer account session: no session password configured. '
+      message: `[shopify] Failed to resolve the customer account session: ${candidates.some(Boolean)
+        ? `the session password must be a random secret of at least ${SESSION_PASSWORD_MIN_LENGTH} characters`
+        : 'no session password configured'}. `
         + 'Set `shopify.clients.customerAccount.session.password` or the '
-        + `\`${SESSION_PASSWORD_ENV}\` environment variable.`,
+        + `\`${SESSION_PASSWORD_ENV}\` environment variable`,
     })
   }
 
   return {
-    name: session?.name ?? SESSION_DEFAULT_NAME,
+    name: session?.name || SESSION_DEFAULT_NAME,
     password,
     maxAge: session?.maxAge,
+    sessionHeader: false,
     cookie: {
       sameSite: 'lax',
-      secure: !import.meta.dev,
       ...session?.cookie,
       httpOnly: true,
     },
   }
 }
 
+function hasSessionCookie(event: H3Event, config: SessionConfig): boolean {
+  const { cache, isr } = getRouteRules(event)
+
+  return !(cache || isr) && !!getCookie(event, config.name || SESSION_DEFAULT_NAME)
+}
+
 async function readSession(event: H3Event, config: SessionConfig) {
-  if (!getCookie(event, config.name ?? SESSION_DEFAULT_NAME)) return null
+  if (!hasSessionCookie(event, config)) return null
 
-  return await getSession<CustomerAccountSessionData>(event, config)
+  return await getSession<ShopifyCustomerAccountSessionData>(event, config)
 }
 
-export function usesExternalTokenStorage(config?: ShopifyConfig): boolean {
-  return !!config?.clients?.customerAccount?.tokenStorage
-}
-
-export function getCustomerAccountTokenStorage(config?: ShopifyConfig): Storage<CustomerAccountTokenSet> {
+function getTokenStorage(config?: ShopifyConfig) {
   const tokenStorage = config?.clients?.customerAccount?.tokenStorage
 
-  const base = typeof tokenStorage === 'string' ? tokenStorage : 'customer-account-token'
+  if (!tokenStorage) return undefined
 
-  return useStorage<CustomerAccountTokenSet>(base)
+  return useStorage(typeof tokenStorage === 'string' ? tokenStorage : DEFAULT_TOKEN_STORAGE)
 }
 
 function getTokenStorageOptions(config?: ShopifyConfig) {
@@ -62,60 +121,112 @@ function getTokenStorageOptions(config?: ShopifyConfig) {
   return maxAge ? { ttl: maxAge } : undefined
 }
 
-async function storeCustomerAccountTokens(config: ShopifyConfig | undefined, id: string, tokens: CustomerAccountTokenSet): Promise<void> {
-  await getCustomerAccountTokenStorage(config).setItem(id, tokens, getTokenStorageOptions(config))
+function holdsTokens(data: ShopifyCustomerAccountSessionData): boolean {
+  return !!(data.tokenKey || (data.customerAccount as HydrogenSessionItem | undefined)?.tokens)
 }
 
-export async function setCustomerAccountSession(event: H3Event, data: { user: CustomerAccountUser, tokens: CustomerAccountTokenSet, loggedInAt: number }): Promise<void> {
-  const { _shopify } = useRuntimeConfig(event)
+function createTokenStore(event: H3Event, storage: Storage, options?: { ttl: number }) {
+  const written = tokenKeysWrittenBy.get(event) ?? new Set<string>()
 
-  const session = await useSession<CustomerAccountSessionData>(event, getSessionConfig(_shopify))
+  tokenKeysWrittenBy.set(event, written)
 
-  if (usesExternalTokenStorage(_shopify)) {
-    await session.update({ user: data.user, loggedInAt: data.loggedInAt })
+  return {
+    async read(key: string) {
+      const entry = await storage.getItem<StoredTokens>(key)
 
-    await storeCustomerAccountTokens(_shopify, session.id!, data.tokens)
-  }
-  else {
-    await session.update({ user: data.user, loggedInAt: data.loggedInAt, tokens: data.tokens })
+      if (!entry) return undefined
+
+      if (entry.replaces?.length && !written.has(key)) {
+        await Promise.all(entry.replaces.map(replaced => storage.removeItem(replaced)))
+        await storage.setItem(key, { tokens: entry.tokens }, options)
+      }
+
+      return entry.tokens
+    },
+
+    async write(tokens: unknown, currentKey?: string) {
+      const key = hash(tokens)
+
+      if (key === currentKey) return key
+
+      const current = currentKey ? await storage.getItem<StoredTokens>(currentKey) : null
+      const replaces = currentKey ? [currentKey, ...current?.replaces ?? []] : []
+
+      await storage.setItem(key, replaces.length ? { tokens, replaces } : { tokens }, options)
+
+      written.add(key)
+
+      return key
+    },
+
+    async remove(key: string) {
+      const entry = await storage.getItem<StoredTokens>(key)
+
+      await Promise.all([key, ...entry?.replaces ?? []].map(removed => storage.removeItem(removed)))
+    },
   }
 }
 
-export async function setCustomerAccountTokens(event: H3Event, tokens: CustomerAccountTokenSet): Promise<void> {
+export function createCustomerSessionManager(event: H3Event): WritableCustomerSessionManager {
   const { _shopify } = useRuntimeConfig(event)
 
-  const sessionConfig = getSessionConfig(_shopify)
+  const config = getSessionConfig(_shopify)
+  const storage = getTokenStorage(_shopify)
+  const tokenStore = storage ? createTokenStore(event, storage, getTokenStorageOptions(_shopify)) : undefined
 
-  if (!getCookie(event, sessionConfig.name ?? SESSION_DEFAULT_NAME)) {
-    throw createError({
-      status: 401,
-      statusText: 'Unauthorized',
-      message: '[shopify] Failed to store the customer account tokens: no authenticated customer account session',
-    })
+  return {
+    getSessionOrigin: () => getPublicRequestURL(event).origin,
+
+    async getSessionItem(key) {
+      const session = await readSession(event, config)
+
+      if (!session) return undefined
+
+      if (key !== HYDROGEN_SESSION_KEY || !tokenStore) return session.data[key as keyof ShopifyCustomerAccountSessionData]
+
+      const item = session.data.customerAccount as HydrogenSessionItem | undefined
+      const tokens = session.data.tokenKey ? await tokenStore.read(session.data.tokenKey) : undefined
+
+      return tokens ? { ...item, tokens } : item
+    },
+
+    async setSessionItem(key, value) {
+      const session = await getSession<ShopifyCustomerAccountSessionData>(event, config)
+
+      if (!holdsTokens(session.data)) session.createdAt = Date.now()
+
+      if (key !== HYDROGEN_SESSION_KEY || !tokenStore) {
+        await updateSession(event, config, { [key]: value })
+
+        return
+      }
+
+      const { tokens, ...item } = value as HydrogenSessionItem
+
+      if (!tokens && session.data.tokenKey) await tokenStore.remove(session.data.tokenKey)
+
+      await updateSession(event, config, {
+        tokenKey: tokens ? await tokenStore.write(tokens, session.data.tokenKey) : undefined,
+        customerAccount: Object.keys(item).length ? item : undefined,
+      })
+    },
+
+    async removeSessionItem(key) {
+      const session = await readSession(event, config)
+
+      if (!session) return
+
+      if (key !== HYDROGEN_SESSION_KEY || !tokenStore) {
+        await updateSession(event, config, { [key]: undefined })
+
+        return
+      }
+
+      if (session.data.tokenKey) await tokenStore.remove(session.data.tokenKey)
+
+      await updateSession(event, config, { tokenKey: undefined, customerAccount: undefined })
+    },
   }
-
-  const session = await useSession<CustomerAccountSessionData>(event, sessionConfig)
-
-  if (usesExternalTokenStorage(_shopify)) {
-    await storeCustomerAccountTokens(_shopify, session.id!, tokens)
-  }
-  else {
-    await session.update({ tokens })
-  }
-}
-
-export async function getCustomerAccountTokens(event: H3Event): Promise<CustomerAccountTokenSet | null> {
-  const { _shopify } = useRuntimeConfig(event)
-
-  const session = await readSession(event, getSessionConfig(_shopify))
-
-  if (!session?.data.user || !session.id) return null
-
-  if (usesExternalTokenStorage(_shopify)) {
-    return await getCustomerAccountTokenStorage(_shopify).getItem(session.id)
-  }
-
-  return session.data.tokens ?? null
 }
 
 /**
@@ -123,18 +234,16 @@ export async function getCustomerAccountTokens(event: H3Event): Promise<Customer
  *
  * @param event the current request event
  *
- * @returns resolved session data, logged in user and tokens if available
+ * @returns whether the customer is signed in
  */
-export async function getCustomerAccountSession(event: H3Event): Promise<CustomerAccountSession> {
+export async function getCustomerAccountSession(event: H3Event): Promise<ShopifyCustomerAccountSession> {
   const { _shopify } = useRuntimeConfig(event)
 
   const session = await readSession(event, getSessionConfig(_shopify))
 
-  return {
-    loggedIn: !!session?.data.user,
-    user: session?.data.user ?? null,
-    loggedInAt: session?.data.loggedInAt ?? null,
-  }
+  if (!session || !holdsTokens(session.data)) return { isLoggedIn: false }
+
+  return { isLoggedIn: await getCustomerSession(_shopify).isLoggedIn(createCustomerSessionManager(event), await getShopifyRequestContext(event)) }
 }
 
 /**
@@ -146,10 +255,10 @@ export async function getCustomerAccountSession(event: H3Event): Promise<Custome
  *
  * @throws a 401 unauthorized error when there is no active session
  */
-export async function requireCustomerAccountSession(event: H3Event): Promise<CustomerAccountSession> {
+export async function requireCustomerAccountSession(event: H3Event): Promise<ShopifyCustomerAccountSession> {
   const session = await getCustomerAccountSession(event)
 
-  if (!session.user) {
+  if (!session.isLoggedIn) {
     throw createError({
       status: 401,
       statusText: 'Unauthorized',
@@ -161,20 +270,18 @@ export async function requireCustomerAccountSession(event: H3Event): Promise<Cus
 }
 
 /**
- * Ends the customer account session and removes any stored tokens.
+ * Ends the customer account session locally and removes any stored tokens, without signing out of Shopify.
  *
  * @param event the current request event
  */
 export async function clearCustomerAccountSession(event: H3Event): Promise<void> {
   const { _shopify } = useRuntimeConfig(event)
 
-  const session = await useSession<CustomerAccountSessionData>(event, getSessionConfig(_shopify))
+  const config = getSessionConfig(_shopify)
 
-  const id = session.id
+  if (!hasSessionCookie(event, config)) return
 
-  await session.clear()
+  await createCustomerSessionManager(event).removeSessionItem(HYDROGEN_SESSION_KEY)
 
-  if (usesExternalTokenStorage(_shopify) && id) {
-    await getCustomerAccountTokenStorage(_shopify).removeItem(id)
-  }
+  await clearSession(event, config)
 }

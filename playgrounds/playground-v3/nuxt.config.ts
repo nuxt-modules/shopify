@@ -24,9 +24,5 @@ export default defineNuxtConfig({
     },
   },
 
-  srcDir: 'app/',
-
-  serverDir: 'server/',
-
   compatibilityDate: '2026-03-15',
 })

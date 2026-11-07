@@ -1,41 +1,15 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import type { ReturnData, OperationVariables } from '@shopify/graphql-client'
+import type { ReturnData } from '@shopify/graphql-client'
 import type { CustomerAccountOperations } from '@nuxtjs/shopify/customer-account'
-import type { MaybeRef, MaybeRefOrGetter } from 'vue'
+import type { MaybeRefOrGetter } from 'vue'
 
-import type { AsyncDataOptions, AsyncData, NuxtError } from '#app'
+import type { AsyncDataOptions } from '#app'
 import type { ShopifyApiClientRequestOptions } from '../../../module'
+import type { ShopifyAsyncData, ShopifyAsyncDataOptions } from '../../utils/clients/async'
 
 import { unref } from 'vue'
 import { createError, useAsyncData } from '#app'
 import { createAsyncDataKey, parseAsyncDataArguments } from '../../utils/clients/async'
 import { useCustomerAccount } from './client'
-
-type PickFrom<T, K extends Array<string>> = T extends Array<any> ? T : T extends Record<string, any> ? keyof T extends K[number] ? T : K[number] extends never ? T : Pick<T, K[number]> : T
-type KeysOf<T> = Array<T extends T ? keyof T extends string ? keyof T : never : never>
-
-type CustomerAccountDataRequestOptions<Operation extends keyof CustomerAccountOperations> = {
-  apiVersion?: ShopifyApiClientRequestOptions<Operation, CustomerAccountOperations>['apiVersion']
-  retries?: ShopifyApiClientRequestOptions<Operation, CustomerAccountOperations>['retries']
-  signal?: ShopifyApiClientRequestOptions<Operation, CustomerAccountOperations>['signal']
-  headers?: MaybeRef<ShopifyApiClientRequestOptions<Operation, CustomerAccountOperations>['headers']>
-  variables?: MaybeRef<{ [k in keyof OperationVariables<Operation, CustomerAccountOperations>['variables']]: MaybeRef<OperationVariables<Operation, CustomerAccountOperations>['variables'][k]> }>
-}
-
-type InferDataType<ResT, Options> = Options extends { transform: (data: ResT) => infer R }
-  ? R extends Promise<infer T> ? T : R
-  : ResT
-
-type InferPickType<ResT, Options> = Options extends { pick: infer P }
-  ? P extends KeysOf<ResT> ? PickFrom<ResT, P> : ResT
-  : ResT
-
-type CustomerAccountDataOptions<Operation extends keyof CustomerAccountOperations, ResT>
-  = CustomerAccountDataRequestOptions<Operation>
-    & Omit<AsyncDataOptions<ResT>, 'transform' | 'pick'> & {
-      transform?: (data: ResT) => any
-      pick?: KeysOf<ResT>
-    }
 
 /**
  * Runs a Customer Account API operation through `useAsyncData`.
@@ -48,20 +22,12 @@ type CustomerAccountDataOptions<Operation extends keyof CustomerAccountOperation
 export function useCustomerAccountData<
   Operation extends keyof CustomerAccountOperations,
   ResT = ReturnData<Operation, CustomerAccountOperations>,
-  Options extends CustomerAccountDataOptions<Operation, ResT> = CustomerAccountDataOptions<Operation, ResT>,
+  Options extends ShopifyAsyncDataOptions<Operation, CustomerAccountOperations, ResT> = ShopifyAsyncDataOptions<Operation, CustomerAccountOperations, ResT>,
   NuxtErrorDataT = unknown,
 >(
   operation: Operation,
   options?: Options,
-): AsyncData<
-    (Options extends { transform: any }
-      ? InferDataType<ResT, Options>
-      : Options extends { pick: any }
-        ? InferPickType<ResT, Options>
-        : ResT
-    ) | null | undefined,
-    (NuxtErrorDataT extends Error | NuxtError ? NuxtErrorDataT : NuxtError<NuxtErrorDataT>) | null | undefined
->
+): ShopifyAsyncData<ResT, Options, NuxtErrorDataT>
 
 /**
  * Runs a Customer Account API operation through `useAsyncData`.
@@ -75,35 +41,27 @@ export function useCustomerAccountData<
 export function useCustomerAccountData<
   Operation extends keyof CustomerAccountOperations,
   ResT = ReturnData<Operation, CustomerAccountOperations>,
-  Options extends CustomerAccountDataOptions<Operation, ResT> = CustomerAccountDataOptions<Operation, ResT>,
+  Options extends ShopifyAsyncDataOptions<Operation, CustomerAccountOperations, ResT> = ShopifyAsyncDataOptions<Operation, CustomerAccountOperations, ResT>,
   NuxtErrorDataT = unknown,
 >(
   key: MaybeRefOrGetter<string>,
   operation: Operation,
   options?: Options,
-): AsyncData<
-    (Options extends { transform: any }
-      ? InferDataType<ResT, Options>
-      : Options extends { pick: any }
-        ? InferPickType<ResT, Options>
-        : ResT
-    ) | null | undefined,
-    (NuxtErrorDataT extends Error | NuxtError ? NuxtErrorDataT : NuxtError<NuxtErrorDataT>) | null | undefined
->
+): ShopifyAsyncData<ResT, Options, NuxtErrorDataT>
 
 export function useCustomerAccountData<
   Operation extends keyof CustomerAccountOperations,
   ResT = ReturnData<Operation, CustomerAccountOperations>,
->(...args: any[]) {
+>(...args: unknown[]) {
   if (args.length < 1 || args.length > 4) {
     throw createError({
       status: 500,
       statusText: 'Internal Server Error',
-      message: '[shopify] [useCustomerAccountData] Invalid number of arguments',
+      message: '[shopify] Invalid number of arguments for `useCustomerAccountData`',
     })
   }
 
-  const { key, operation, options, autoKey } = parseAsyncDataArguments<Operation, CustomerAccountDataOptions<Operation, ResT>>(args)
+  const { key, operation, options, autoKey } = parseAsyncDataArguments<Operation, ShopifyAsyncDataOptions<Operation, CustomerAccountOperations, ResT>>(args)
 
   const { variables, headers, apiVersion, retries, signal, ...asyncOptions } = options ?? {}
 
@@ -123,12 +81,12 @@ export function useCustomerAccountData<
 
   const getHeaders = () => unref(headers)
 
-  const handler = () => useCustomerAccount().request(operation, {
+  const handler = (_nuxtApp: unknown, context?: { signal?: AbortSignal }) => useCustomerAccount().request(operation, {
     ...(variables ? { variables: getVariables() } : {}),
     ...(headers ? { headers: getHeaders() } : {}),
     ...(apiVersion ? { apiVersion } : {}),
     ...(retries !== undefined ? { retries } : {}),
-    ...(signal ? { signal } : {}),
+    ...(signal ?? context?.signal ? { signal: signal ?? context?.signal } : {}),
   } as ShopifyApiClientRequestOptions<Operation, CustomerAccountOperations, false>).then(r => (r.data ?? null) as ResT)
 
   const asyncDataOptions = {

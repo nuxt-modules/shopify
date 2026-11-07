@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { isLoggedIn, user, login, logout } = useCustomerAccountSession()
+const { isLoggedIn, login, logout } = useCustomerAccountSession()
 
 const customer = ref()
 
@@ -23,7 +23,7 @@ if (isLoggedIn.value) {
     <div v-if="isLoggedIn">
       <h1>Welcome, {{ customer?.firstName && customer?.lastName ? `${customer.firstName} ${customer.lastName}` : 'Nuxt User' }}!</h1>
 
-      <p>E-Mail: {{ user?.email ?? customer?.emailAddress?.emailAddress }}</p>
+      <p>E-Mail: {{ customer?.emailAddress?.emailAddress }}</p>
 
       <button @click="logout()">
         Log out

@@ -1,10 +1,10 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type {
   ApiClient,
   ApiClientConfig,
   AllOperations,
   ClientResponse,
   ClientStreamIterator,
+  CustomFetchApi,
   FetchResponseBody,
   ReturnData,
   ResponseWithType,
@@ -13,30 +13,20 @@ import type {
 import type { ConsolaOptions } from 'consola'
 import type { H3Event } from 'h3'
 import type { Storage, StorageValue } from 'unstorage'
-import type { Resolver } from '@nuxt/kit'
-import type { Nuxt } from '@nuxt/schema'
 
 import type {
-  PublicShopifyConfig,
+  ModuleOptions,
   ShopifyClientType,
-  ShopifyConfig,
 } from '../schemas'
 import type {
-  ShopifyAuthCallbacks,
   ShopifyClientCallbacks,
 } from './hooks'
-
-export type ShopifyClientSetupContext = {
-  nuxt: Nuxt
-  config: ShopifyConfig
-  resolver: Resolver
-}
 
 type CacheHeaderType = 'short' | 'long' | 'none' | string
 
 type ShopifyApiClientRequestCacheOptions = CacheHeaderType | {
-  client?: CacheHeaderType | { ttl?: number }
-  proxy?: CacheHeaderType
+  browser?: CacheHeaderType | { ttl?: number }
+  server?: CacheHeaderType
 }
 
 export type ShopifyApiClientRequestOptions<Operation extends keyof Operations, Operations extends AllOperations, Cache extends boolean | undefined = undefined> = ApiClientRequestOptions<Operation, Operations>
@@ -66,39 +56,19 @@ export type ShopifyApiClient<Operations extends AllOperations, Cache extends boo
 
 export type ShopifyClientKind = `${ShopifyClientType}`
 
-type ShopifyClientConfigs = {
-  storefront: NonNullable<ShopifyConfig['clients']['storefront']>
-  customerAccount: NonNullable<ShopifyConfig['clients']['customerAccount']>
-  admin: NonNullable<ShopifyConfig['clients']['admin']>
-}
-
-type ShopifyClientConfigOf<Kind extends ShopifyClientKind> = ShopifyClientConfigs[Kind]
-
 export type ShopifyInlineConfig<Kind extends ShopifyClientKind = ShopifyClientKind>
-  = & Partial<ShopifyClientConfigOf<Kind>>
-    & Pick<ShopifyConfig, 'name'>
-    & Partial<Pick<ShopifyConfig, 'logger' | 'errors'>>
+  = & NonNullable<NonNullable<ModuleOptions['clients']>[Kind]>
+    & Pick<ModuleOptions, 'name' | 'shopId' | 'logger' | 'errors'>
+    & { clients?: never }
 
 export type ShopifyClientConfig<Kind extends ShopifyClientKind = ShopifyClientKind>
-  = | ShopifyConfig
-    | PublicShopifyConfig
+  = | ModuleOptions
     | ShopifyInlineConfig<Kind>
-
-export type ShopifyClientDefinition<Kind extends ShopifyClientKind = ShopifyClientKind> = {
-  kind: Kind
-
-  createConfig: (config?: any) => ShopifyApiClientConfig
-
-  authHeader?: string
-  tracking?: boolean
-  cache?: boolean
-  cookies?: boolean
-}
 
 export type ShopifyClientOptions<
   Operations extends AllOperations = AllOperations,
   Cache extends boolean | undefined = undefined,
-> = ShopifyClientCallbacks<Operations, Cache> & ShopifyAuthCallbacks & {
+> = ShopifyClientCallbacks<Operations, Cache> & {
   /**
    * The request event.
    */
@@ -117,9 +87,11 @@ export type ShopifyClientOptions<
   buyerIp?: string | false
 
   /**
-   * Storage to cache responses in.
+   * Storage to cache responses in, as each request's `cache.browser` setting asks.
    */
-  cache?: Storage<StorageValue>
+  browserCache?: Storage<StorageValue>
+
+  serverCache?: CustomFetchApi
 
   /**
    * Resolves the access token to authenticate requests with.
@@ -127,7 +99,7 @@ export type ShopifyClientOptions<
   auth?: (() => string | Promise<string>) | false
 
   /**
-   * Overrides the API version to use for requests. Defaults to the module config's `apiVersion`, or the latest stable version if not set.
+   * Overrides the API version to use for requests. Defaults to the module config's `apiVersion`, or the version of the installed `@shopify/hydrogen` if not set.
    */
   apiVersion?: string
 
@@ -150,14 +122,4 @@ export type ShopifyClientOptions<
    * Whether responses carrying errors should throw. Defaults to the module config's `errors.throw`.
    */
   throwOnErrors?: boolean
-}
-
-export type ShopifyGenericClientOptions<
-  Operations extends AllOperations = AllOperations,
-  Cache extends boolean | undefined = undefined,
-> = ShopifyClientOptions<Operations, Cache> & {
-  /**
-   * Which client to create.
-   */
-  client: ShopifyClientKind
 }

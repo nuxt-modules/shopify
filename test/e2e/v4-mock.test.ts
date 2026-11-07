@@ -1,133 +1,69 @@
 import { describe, expect, it } from 'vitest'
-import { setup, $fetch } from '@nuxt/test-utils'
-import { access, readFile } from 'node:fs/promises'
+import { setup, $fetch, fetch, useTestContext } from '@nuxt/test-utils'
+import { existsSync } from 'node:fs'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { join } from 'node:path'
 
-import { ShopifyClientType } from '#src/schemas'
-import { getInterfaceExtensionFunction } from '#src/utils/codegen'
-import { expectedGraphqlProject, expectedStorefrontDocuments } from '#test/helpers/codegen'
+import { DEFAULT_API_VERSION } from '#src/runtime/utils/clients/defaults'
 
 const playgroundDir = fileURLToPath(new URL('../../playgrounds/playground-v4-mock', import.meta.url))
-const playgroundBuildDir = fileURLToPath(new URL('../../playgrounds/playground-v4-mock/.nuxt', import.meta.url))
-const playgroundStorefrontTypesDir = fileURLToPath(new URL('../../playgrounds/playground-v4-mock/.nuxt/shopify/storefront', import.meta.url))
+
+const product = { id: expect.stringMatching(/^gid:\/\/shopify\/Product\/\d+$/) }
 
 describe('test mock.shop integration with nuxt 4', async () => {
   await setup({
     server: true,
     rootDir: playgroundDir,
-  })
-
-  it('should correctly validate the module configuration', async () => {
-    const json = await $fetch('/api/config')
-
-    expect(json).toMatchObject({
-      name: process.env.NUXT_SHOPIFY_NAME,
-      errors: {
-        throw: true,
-      },
-      fragments: {
-        autoImport: true,
-        dirs: ['graphql'],
-      },
-      graphql: {
-        generateConfig: true,
-      },
-      clients: {
-        storefront: {
-          apiVersion: process.env.NUXT_SHOPIFY_CLIENTS_STOREFRONT_API_VERSION,
-          mock: true,
-          codegen: {
-            autoImport: true,
-          },
-          proxy: {
-            route: '_proxy/storefront',
-          },
-          retries: 0,
-          explorer: true,
-          documents: expectedStorefrontDocuments,
-          cache: {
-            client: {
-              ttl: 10000,
-            },
-            presets: {
-              long: {
-                maxAge: 3600,
-                staleMaxAge: 82800,
-                swr: true,
-              },
-              short: {
-                maxAge: 1,
-                staleMaxAge: 9,
-                swr: true,
-              },
-            },
-            proxy: {
-              driver: 'lru-cache',
-            },
-          },
-        },
-      },
-    })
+    nuxtConfig: {
+      routeRules: { '/**': { swr: 60 } },
+      shopify: { routeTemplates: { product: '/product/:productHandle' } },
+    },
   })
 
   it('should create a working storefront fetch client', async () => {
     const html = await $fetch('/')
 
-    // Check that we get 5 products
     expect(html).toContain('<p>Product count: 5</p>')
   })
 
-  it('should generate storefront api types', async () => {
-    const path = join(playgroundStorefrontTypesDir, 'storefront.types.d.ts')
+  it('should proxy storefront requests to mock.shop through Hydrogen\'s Storefront API proxy', async () => {
+    const response = await $fetch(`/api/${DEFAULT_API_VERSION}/graphql.json`, {
+      method: 'POST',
+      body: { query: '{ products(first: 2) { nodes { id } } }' },
+    }) as { data: { products: { nodes: unknown[] } } }
 
-    expect(await access(path).then(() => true).catch(() => false)).toBe(true)
-
-    // Read the types file content
-    const typesContent = await readFile(path, 'utf-8')
-
-    // Check that the types file exists and is not empty
-    expect(typesContent).toBeDefined()
-    expect(typesContent.length).toBeGreaterThan(0)
+    expect(response.data.products.nodes).toEqual([product, product])
   })
 
-  it('should generate storefront api operations', async () => {
-    const path = join(playgroundStorefrontTypesDir, 'storefront.operations.d.ts')
+  it('should redirect Shopify\'s product path to the app\'s product page', async () => {
+    const response = await fetch('/products/shirt?ref=email', { redirect: 'manual' })
 
-    expect(await access(path).then(() => true).catch(() => false)).toBe(true)
-
-    // Read the operations file content
-    const operationsContent = await readFile(path, 'utf-8')
-
-    // Check that it contains expected GraphQL operations
-    expect(operationsContent).toContain('FetchProductsQuery')
-    expect(operationsContent).toContain('FetchFirstThreeProductsQuery')
-
-    // Check that it contains expected GraphQL fragments
-    expect(operationsContent).toContain('ProductFieldsFragment')
-
-    // Check that it performs the necessary module type augmentation
-    const interfaceExtension = getInterfaceExtensionFunction(
-      ShopifyClientType.Storefront,
-      'GeneratedQueryTypes',
-      'GeneratedMutationTypes',
-    )
-    expect(operationsContent).toContain(interfaceExtension)
+    expect(response.status).toBe(301)
+    expect(response.headers.get('location')).toBe('/product/shirt?ref=email')
   })
 
-  it('should generate a graphql config for IDE support', async () => {
-    const path = join(playgroundBuildDir, 'graphql.config.mjs')
+  it('should redirect /admin to the store\'s admin', async () => {
+    const response = await fetch('/admin', { redirect: 'manual' })
 
-    expect(await access(path).then(() => true).catch(() => false)).toBe(true)
+    expect(response.status).toBe(301)
+    expect(response.headers.get('location')).toBe('https://mock.shop/admin')
+  })
 
-    const { projects, default: defaultExport } = await import(/* @vite-ignore */ pathToFileURL(path).href)
+  it('should keep the not found page when Shopify knows no redirect', async () => {
+    const response = await fetch('/no-such-page', { redirect: 'manual', headers: { accept: 'text/html' } })
 
-    expect(Object.keys(projects)).toEqual(['default'])
+    expect(response.status).toBe(404)
+  })
 
-    expect(projects).toStrictEqual({
-      default: expectedGraphqlProject(`.nuxt/shopify/schema/storefront.${process.env.NUXT_SHOPIFY_CLIENTS_STOREFRONT_API_VERSION}.schema.json`, expectedStorefrontDocuments),
+  it('should point the graphql config at the schema the build introspected', async () => {
+    const { rootDir, buildDir } = useTestContext().nuxt!.options
+
+    const { default: graphqlConfig } = await import(/* @vite-ignore */ pathToFileURL(join(buildDir, 'graphql.config.mjs')).href)
+
+    const projects = Object.entries<{ schema: string }>(graphqlConfig.projects)
+
+    expect(Object.fromEntries(projects.map(([name, { schema }]) => [name, existsSync(join(rootDir, schema))]))).toEqual({
+      default: true,
     })
-
-    expect(defaultExport).toEqual({ projects })
   })
 })

@@ -8,6 +8,8 @@ export default defineNuxtConfig({
   runtimeConfig: {
     shopify: {
       name: '',
+      shopId: '',
+      storefrontId: '',
 
       clients: {
         storefront: {
@@ -28,10 +30,10 @@ export default defineNuxtConfig({
       },
 
       webhooks: {
-        hooks: [
+        subscriptions: [
           {
             topic: 'ORDERS_CREATE',
-            uri: 'https://shopify.nuxtjs.org/api/webhooks/orders-create',
+            uri: 'https://your-app.com/api/webhooks/test',
           },
         ],
 
@@ -40,7 +42,7 @@ export default defineNuxtConfig({
 
       analytics: {
         consent: {
-          banner: true,
+          mode: 'default-banner',
         },
       },
     },

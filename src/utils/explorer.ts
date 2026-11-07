@@ -3,39 +3,71 @@ import type { H3Event } from 'h3'
 
 import type { ShopifyConfig } from '../types'
 
-import type { ShopifyClientType } from '../schemas'
-import { addDevServerHandler, addServerHandler, type Resolver } from '@nuxt/kit'
-import { defineEventHandler, setResponseHeader } from 'h3'
-import { kebabCase } from 'scule'
+import { randomUUID } from 'node:crypto'
 
-function createExplorerHandler(clientType: ShopifyClientType) {
+import { ShopifyClientType } from '../schemas'
+import { addDevServerHandler, type Resolver } from '@nuxt/kit'
+import { defineEventHandler, setResponseHeader } from 'h3'
+import { kebabCase, titleCase } from 'scule'
+
+import { assertLocalRequest } from '../runtime/server/utils/csrf'
+import { CUSTOMER_ACCOUNT_PROXY_ROUTE } from '../runtime/utils/clients/transport'
+import { addUncachedServerHandler } from './routes'
+
+const ADMIN_PROXY_ROUTE = '/_explorer/proxy/admin'
+
+function getExplorerEndpoint(config: ShopifyConfig, clientType: ShopifyClientType, token: string): string {
+  if (clientType === ShopifyClientType.Storefront) return `/api/${config.clients.storefront!.apiVersion}/graphql.json`
+
+  if (clientType === ShopifyClientType.CustomerAccount) return CUSTOMER_ACCOUNT_PROXY_ROUTE.replace(':version', config.clients.customerAccount!.apiVersion)
+
+  return `${ADMIN_PROXY_ROUTE}/${token}`
+}
+
+function createExplorerHandler(clientType: ShopifyClientType, endpoint: string) {
   return defineEventHandler(async (event: H3Event) => {
+    assertLocalRequest(event)
+
     const { renderGraphiQL } = await import('@graphql-yoga/render-graphiql')
 
     setResponseHeader(event, 'content-type', 'text/html')
 
     return renderGraphiQL({
-      title: `Explorer - ${clientType}`,
-      endpoint: `/_explorer/proxy/${kebabCase(clientType)}`,
+      title: `Explorer - ${titleCase(clientType)}`,
+      endpoint,
       defaultEditorToolsVisibility: true,
     })
   })
 }
 
-export function registerExplorer(resolver: Resolver, clientType: ShopifyClientType): string {
+export function registerExplorer(resolver: Resolver, config: ShopifyConfig, clientType: ShopifyClientType): string {
+  const admin = clientType === ShopifyClientType.Admin
+  const token = randomUUID()
+  const route = admin ? `/_explorer/admin/${token}` : `/_explorer/${kebabCase(clientType)}`
+
   addDevServerHandler({
-    handler: createExplorerHandler(clientType),
-    route: `/_explorer/${kebabCase(clientType)}`,
+    handler: createExplorerHandler(clientType, getExplorerEndpoint(config, clientType, token)),
+    route,
   })
 
-  addServerHandler({
-    handler: resolver.resolve('./runtime/server/utils/explorer/proxy'),
-    route: `/_explorer/proxy/${kebabCase(clientType)}`,
-  })
+  if (admin) {
+    addDevServerHandler({
+      handler: defineEventHandler(assertLocalRequest),
+      route: ADMIN_PROXY_ROUTE,
+    })
 
-  return `_explorer/${kebabCase(clientType)}`
+    addUncachedServerHandler({
+      method: 'post',
+      handler: resolver.resolve('./runtime/server/api/admin/explorer'),
+      route: `${ADMIN_PROXY_ROUTE}/${token}`,
+    })
+  }
+
+  return route
 }
 
-export function shouldEnableExplorer(nuxt: Nuxt, clientConfig: ShopifyConfig['clients'][ShopifyClientType]): boolean {
-  return !!(nuxt.options.dev && clientConfig?.explorer)
+export function shouldEnableExplorer(nuxt: Nuxt, config: ShopifyConfig, clientType: ShopifyClientType): boolean {
+  if (!nuxt.options.dev || !config.clients[clientType]?.explorer) return false
+
+  return clientType !== ShopifyClientType.CustomerAccount || !!config.clients.customerAccount?.proxy
 }

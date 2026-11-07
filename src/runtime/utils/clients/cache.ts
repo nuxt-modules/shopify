@@ -1,30 +1,31 @@
 import type { AllOperations, ClientResponse, ReturnData } from '@shopify/graphql-client'
+import type { CacheOptions } from '@shopify/hydrogen'
 import type { Storage, StorageValue } from 'unstorage'
-import type { CacheOptions } from 'nitropack'
 
 import type {
   ShopifyApiClientRequest,
   ShopifyApiClientRequestOptions,
 } from '../../../module'
 
+import { Cache } from '@shopify/hydrogen'
 import { hash } from 'ohash'
 
-import { PROXY_CACHE_HEADER } from './transport'
+import { SERVER_CACHE_HEADER } from './transport'
 
-type CachePresets = Record<string, Pick<CacheOptions, 'maxAge' | 'staleMaxAge' | 'swr'>>
+type CachePresets = Record<string, CacheOptions>
 
-function toCacheTtl(maxAge: number, staleMaxAge: number) {
-  const ttl = maxAge * 1000 + staleMaxAge * 1000
-
-  return ttl > 0 ? { ttl } : undefined
-}
+export const MUTATION = /\bmutation\b/
 
 function fromPreset(name: string, cachePresets?: CachePresets) {
   const preset = cachePresets?.[name]
 
   if (!preset) return undefined
 
-  return toCacheTtl(preset.maxAge ?? 0, preset.staleMaxAge ?? 0)
+  const { maxAge = 0, staleWhileRevalidate = 0 } = Cache(preset)
+
+  const ttl = (maxAge + staleWhileRevalidate) * 1000
+
+  return ttl > 0 ? { ttl } : undefined
 }
 
 function getLRUCacheSettings<
@@ -38,22 +39,22 @@ function getLRUCacheSettings<
     return fromPreset(options.cache, cachePresets)
   }
   else if (typeof options?.cache === 'object') {
-    if (typeof options.cache.client === 'string') {
-      return fromPreset(options.cache.client, cachePresets)
+    if (typeof options.cache.browser === 'string') {
+      return fromPreset(options.cache.browser, cachePresets)
     }
-    else if (typeof options.cache.client === 'object') return options.cache.client
+    else if (typeof options.cache.browser === 'object') return options.cache.browser
   }
 }
 
-function getProxyCacheHeaders<
+function getServerCacheHeaders<
   Operation extends keyof Operations,
   Operations extends AllOperations,
 >(options?: ShopifyApiClientRequestOptions<Operation, Operations, true>) {
   if (typeof options?.cache === 'string') {
-    return { [PROXY_CACHE_HEADER]: options.cache }
+    return { [SERVER_CACHE_HEADER]: options.cache }
   }
-  else if (typeof options?.cache === 'object' && typeof options.cache.proxy === 'string') {
-    return { [PROXY_CACHE_HEADER]: options.cache.proxy }
+  else if (typeof options?.cache === 'object' && typeof options.cache.server === 'string') {
+    return { [SERVER_CACHE_HEADER]: options.cache.server }
   }
 }
 
@@ -75,20 +76,20 @@ function detach<Data>(response: ClientResponse<Data>): ClientResponse<Data> {
   return { ...response, ...(response.data ? { data: structuredClone(response.data) } : {}) }
 }
 
-export default async function useCache<
-  Request extends ShopifyApiClientRequest<Operations, true>,
+export async function requestWithCache<
   Operation extends keyof Operations,
   Operations extends AllOperations,
+  Cache extends boolean | undefined,
 >(
   storage: Storage<StorageValue> | undefined,
-  request: Request,
+  request: ShopifyApiClientRequest<Operations, Cache>,
   operation: Operation,
-  options?: ShopifyApiClientRequestOptions<Operation, Operations, true>,
+  options?: ShopifyApiClientRequestOptions<Operation, Operations, Cache>,
   cachePresets?: CachePresets,
-  useProxy = true,
+  withServerCache = true,
 ): Promise<ClientResponse<ReturnData<Operation, Operations>>> {
-  const inMemoryConfig = storage ? getLRUCacheSettings(options, cachePresets) : undefined
-  const proxyCacheHeaders = useProxy ? getProxyCacheHeaders(options) : undefined
+  const inMemoryConfig = storage && !MUTATION.test(operation as string) ? getLRUCacheSettings(options, cachePresets) : undefined
+  const serverCacheHeaders = withServerCache ? getServerCacheHeaders(options) : undefined
 
   const cacheKey = storage && inMemoryConfig ? createCacheKey(operation, options) : undefined
 
@@ -102,7 +103,7 @@ export default async function useCache<
     ...options,
     headers: {
       ...options?.headers,
-      ...proxyCacheHeaders,
+      ...serverCacheHeaders,
     },
   } as typeof options)
 

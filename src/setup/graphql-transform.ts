@@ -10,18 +10,11 @@ import { join, relative, resolve, sep } from 'node:path'
 import { addVitePlugin } from '@nuxt/kit'
 import { minimatch } from 'minimatch'
 
-import { ShopifyClientType } from '../schemas'
 import { createGraphqlTransformPlugin } from '../utils/graphql/transform'
-import { getConfiguredClients } from '../utils/clients'
+import { DOCUMENT_ROUTING_ORDER, getConfiguredClients } from '../utils/clients'
 import { scanFragments } from '../utils/graphql/registry'
 import { useLogger } from '../utils/log'
 import { toPosix } from '../utils/codegen'
-
-const ROUTING_ORDER = [
-  ShopifyClientType.Admin,
-  ShopifyClientType.CustomerAccount,
-  ShopifyClientType.Storefront,
-]
 
 const AUTO_IMPORT_CHANGING_EVENTS = ['add', 'unlink'] as const
 
@@ -31,7 +24,7 @@ const within = (dirs: string[], path: string) =>
 function createClientRouter(nuxt: Nuxt, config: ShopifyConfig) {
   const configured = getConfiguredClients(config)
 
-  const order = ROUTING_ORDER
+  const order = DOCUMENT_ROUTING_ORDER
     .filter(clientType => configured.includes(clientType))
     .map(clientType => ({
       clientType,

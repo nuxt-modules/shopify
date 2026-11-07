@@ -8,7 +8,7 @@ export default defineCachedEventHandler(async (event) => {
 
   const query = await getValidatedQuery(event, schema.parse)
 
-  const storefront = useStorefront()
+  const storefront = useStorefront(event)
 
   const { data } = await storefront.request(`#graphql
     query FetchProducts(

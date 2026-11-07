@@ -20,16 +20,13 @@
         "src/**/*.{ts,vue}"
       ],
       "ignoreDependencies": [
-        "@graphql-codegen/import-types-preset",
         "@graphql-codegen/introspection",
-        "@shopify/api-codegen-preset",
-        "@graphql-tools/graphql-tag-pluck",
-        "@shopify/hydrogen"
+        "@graphql-tools/graphql-tag-pluck"
       ]
     },
     "playgrounds/playground-v3": {
       "entry": [
-        "app/**/*.{ts,vue}",
+        "pages/**/*.vue",
         "server/**/*.ts",
         "graphql/**/*.ts"
       ],

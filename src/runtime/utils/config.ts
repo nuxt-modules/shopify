@@ -1,8 +1,10 @@
 import type { TypeScriptPluginConfig } from '@graphql-codegen/typescript'
+import type { CacheOptions, CreateCartServerHandlersOptions, CreatePredictiveSearchServerHandlersOptions, I18nConfig, ShopifyRouteTemplates } from '@shopify/hydrogen'
 import type { ConsolaOptions } from 'consola'
-import type { CacheOptions, StorageMounts } from 'nitropack'
+import type { StorageMounts } from 'nitropack'
 import type { LRUDriverOptions } from 'unstorage/drivers/lru-cache'
 
+import { createCartServerHandlers, createPredictiveSearchServerHandlers } from '@shopify/hydrogen'
 import { kebabCase } from 'scule'
 import { z } from 'zod'
 
@@ -29,8 +31,6 @@ function enableable<S extends z.ZodTypeAny>(schema: S, fallback: z.output<S>, en
     .default((enabledByDefault ? fallback : false) as never)
     .transform((v): z.output<S> | false => (v === true || v == null ? fallback : v as z.output<S> | false))
 }
-
-const proxyRouteSchema = (route: string) => enableable(z.object({ route: z.string().optional().default(route) }), { route })
 
 const routeMethods = ['connect', 'delete', 'get', 'head', 'options', 'patch', 'post', 'put', 'trace'].join(',')
 
@@ -80,32 +80,51 @@ const defaultAdminDocuments = [
 ]
 
 const defaultCachePresets = {
-  short: { maxAge: 1, staleMaxAge: 9, swr: true },
-  long: { maxAge: 3600, staleMaxAge: 82800, swr: true },
-} as Record<string, Pick<CacheOptions, 'maxAge' | 'staleMaxAge' | 'swr'>>
+  short: { maxAge: 1, staleWhileRevalidate: 9 },
+  long: { maxAge: 3600, staleWhileRevalidate: 82800 },
+} as Record<string, CacheOptions>
 
-const defaultClientCacheOptions = { ttl: 10 * 1000 } as LRUDriverOptions
-const defaultProxyCacheOptions = { driver: 'lru-cache' } as StorageMounts[string]
+const defaultBrowserCacheOptions = { ttl: 10 * 1000 } as LRUDriverOptions
+const defaultServerCacheOptions = { driver: 'lru-cache', maxSize: 32 * 1024 * 1024, maxEntrySize: 4 * 1024 * 1024 } as StorageMounts[string]
 const defaultTokenStorageOptions = { driver: 'memory' } as StorageMounts[string]
+const defaultCustomerAccountTokenStorageOptions = { driver: 'lru-cache', max: 10_000 } as StorageMounts[string]
 
-const defaultCacheConfig = { client: defaultClientCacheOptions, proxy: defaultProxyCacheOptions, presets: defaultCachePresets }
+const defaultCacheConfig = { browser: defaultBrowserCacheOptions, server: defaultServerCacheOptions, presets: defaultCachePresets }
 
 const defaultCustomerAccountSessionOptions = { name: SESSION_DEFAULT_NAME, maxAge: 60 * 60 * 24 * 7 }
-const defaultCustomerAccountScope = ['openid', 'email', 'customer-account-api:full']
 
-const storageMountSchema = z.any().transform(v => v as StorageMounts[string] | string)
+const storageMountSchema = z.custom<StorageMounts[string] | string>()
+
+const cacheSecondsSchema = z.number().nonnegative()
+
+const cacheDurationSchema = z.union([
+  cacheSecondsSchema,
+  z.strictObject({
+    seconds: cacheSecondsSchema.optional(),
+    minutes: cacheSecondsSchema.optional(),
+    hours: cacheSecondsSchema.optional(),
+    days: cacheSecondsSchema.optional(),
+  }),
+])
+
+const cachePresetSchema = z.object({
+  mode: z.enum(['public', 'private']).optional(),
+  maxAge: cacheDurationSchema.optional(),
+  staleWhileRevalidate: cacheDurationSchema.optional(),
+  staleIfError: cacheDurationSchema.optional(),
+})
 
 const clientCacheSchema = z.object({
-  client: enableable(z.any().transform(v => v as LRUDriverOptions), defaultClientCacheOptions),
-  proxy: enableable(storageMountSchema, defaultProxyCacheOptions),
-  presets: z.record(z.string(), z.any().transform(v => v as Pick<CacheOptions, 'maxAge' | 'staleMaxAge' | 'swr'>)).optional().default(defaultCachePresets),
+  browser: enableable(z.custom<LRUDriverOptions>(), defaultBrowserCacheOptions),
+  server: enableable(storageMountSchema, defaultServerCacheOptions),
+  presets: z.record(z.string(), cachePresetSchema).optional().default(defaultCachePresets),
 })
 
 const codegenSchema = z.object({
   plugins: z.object({
-    typescript: z.any().transform(v => v as TypeScriptPluginConfig).optional(),
+    typescript: z.custom<TypeScriptPluginConfig>().optional(),
   }).optional(),
-  autoImport: z.boolean().optional().default(false),
+  globalTypes: z.boolean().optional().default(false),
 })
 
 const clientSchema = z.object({
@@ -116,17 +135,18 @@ const clientSchema = z.object({
   retries: z.number().int().min(MIN_RETRIES).max(MAX_RETRIES).optional().default(DEFAULT_RETRIES),
   explorer: z.boolean().optional().default(true),
   documents: z.array(z.string()).optional(),
-  codegen: enableable(codegenSchema, { autoImport: false }),
+  codegen: enableable(codegenSchema, { globalTypes: false }),
 })
 
 const storefrontClientSchema = clientSchema.extend({
   publicAccessToken: z.string().optional(),
   privateAccessToken: z.string().optional(),
+  buyerIpHeader: z.string().optional(),
   mock: z.boolean().optional(),
 
-  codegen: enableable(codegenSchema.extend({ autoImport: z.boolean().optional().default(true) }), { autoImport: true }),
+  codegen: enableable(codegenSchema.extend({ globalTypes: z.boolean().optional().default(true) }), { globalTypes: true }),
   documents: clientSchema.shape.documents.transform(v => v?.length ? v : defaultStorefrontDocuments),
-  proxy: proxyRouteSchema('_proxy/storefront'),
+  proxy: z.boolean({ error: 'Expected `true` or `false`: the Storefront API proxy is always served at `/api/<version>/graphql.json`' }).optional().default(true),
   cache: enableable(clientCacheSchema, defaultCacheConfig),
 })
 
@@ -135,51 +155,21 @@ const customerAccountSessionSchema = z.object({
   password: z.string().optional(),
   maxAge: z.number().optional(),
   cookie: z.object({
-    domain: z.string().optional(),
-    path: z.string().optional(),
     sameSite: z.enum(['lax', 'strict', 'none']).optional(),
-    secure: z.boolean().optional(),
   }).optional(),
 })
 
-const publicCustomerAccountSessionSchema = z.object({
-  name: z.string().optional().default(SESSION_DEFAULT_NAME),
-}).optional().default({ name: SESSION_DEFAULT_NAME })
-
-const defaultCustomerAccountRoutes = {
-  callback: '_auth/customer-account/callback',
-  logout: '_auth/customer-account/logout',
-  session: '_auth/customer-account/session',
-}
-
-const customerAccountRoutesSchema = z.object({
-  callback: z.string().optional().default(defaultCustomerAccountRoutes.callback),
-  logout: z.string().optional().default(defaultCustomerAccountRoutes.logout),
-  session: z.string().optional().default(defaultCustomerAccountRoutes.session),
-})
-
 const customerAccountClientSchema = clientSchema.extend({
-  apiURL: z.string().optional(),
-
   clientId: z.string().optional().default(''),
-  clientSecret: z.string().optional(),
-  scope: z.array(z.string()).optional().default(defaultCustomerAccountScope).transform(v => v?.length ? v : defaultCustomerAccountScope),
-
-  routes: customerAccountRoutesSchema.optional().default(defaultCustomerAccountRoutes),
 
   afterLogin: z.string().optional().default('/'),
   afterLogout: z.string().optional(),
 
   session: customerAccountSessionSchema.optional().transform(v => ({ ...defaultCustomerAccountSessionOptions, ...(v ?? {}) })),
-  tokenStorage: enableable(storageMountSchema, defaultTokenStorageOptions, false),
+  tokenStorage: enableable(storageMountSchema, defaultCustomerAccountTokenStorageOptions, false),
 
   documents: clientSchema.shape.documents.transform(v => v?.length ? v : defaultCustomerAccountDocuments),
-  proxy: proxyRouteSchema('_proxy/customer-account'),
-
-  dev: z.object({
-    tunnelURL: z.string().optional(),
-    bridgeURL: z.string().optional(),
-  }).optional().default({ bridgeURL: '_auth/customer-account/bridge' }).transform(v => v ? { tunnelURL: v.tunnelURL, bridgeURL: v.bridgeURL || '_auth/customer-account/bridge' } : v),
+  proxy: z.boolean({ error: 'Expected `true` or `false`: the customer account proxy is always served at `/account/customer/api/<version>/graphql`' }).optional().default(true),
 })
 
 const adminClientSchema = clientSchema.extend({
@@ -193,12 +183,12 @@ const adminClientSchema = clientSchema.extend({
 })
 
 const webhooksSchema = z.object({
-  secret: z.string(),
+  secret: z.string().optional(),
 
-  hooks: z.array(z.object({
+  subscriptions: z.array(z.object({
     uri: z.string(),
     topic: z.string(),
-    format: z.enum(['JSON', 'XML']).default('JSON').optional(),
+    format: z.enum(['JSON', 'XML']).optional().default('JSON'),
     filter: z.string().optional(),
     includeFields: z.array(z.string()).optional(),
     metafieldNamespaces: z.array(z.string()).optional(),
@@ -209,43 +199,72 @@ const webhooksSchema = z.object({
   })).optional(),
 })
 
+const shopIdentifierSchema = z.union([z.string(), z.number()]).transform(v => String(v))
+
+function validatedBy(create: (options: object) => unknown) {
+  return (options: object | undefined, context: z.RefinementCtx) => {
+    try {
+      create(options ?? {})
+    }
+    catch (error) {
+      context.addIssue({ code: 'custom', message: error instanceof Error ? error.message : String(error) })
+    }
+  }
+}
+
+const cartSchema = z.custom<Pick<CreateCartServerHandlersOptions, 'fragment'>>()
+  .optional()
+  .superRefine(validatedBy(createCartServerHandlers))
+
+const predictiveSearchSchema = z.custom<Omit<CreatePredictiveSearchServerHandlersOptions, 'path'>>()
+  .optional()
+  .refine(options => !options || !('path' in options), { error: 'The predictive search route is always served at `/api/predictive-search`, so `path` is not supported' })
+  .superRefine(validatedBy(createPredictiveSearchServerHandlers))
+
+const marketSchema = z.object({
+  country: z.custom<I18nConfig['country'] | ''>(value => typeof value === 'string', { error: 'Expected a country code, such as "US"' })
+    .transform(value => value.toUpperCase() as I18nConfig['country']),
+  language: z.custom<I18nConfig['language'] | ''>(value => typeof value === 'string', { error: 'Expected a language code, such as "EN"' })
+    .transform(value => value.toUpperCase() as I18nConfig['language']),
+  currency: z.string().toUpperCase().optional(),
+})
+
 const analyticsSchema = z.object({
-  domain: z.string().optional(),
-  shopId: z.union([z.string(), z.number()]).transform(v => String(v)).optional(),
-  storefrontId: z.union([z.string(), z.number()]).transform(v => String(v)).optional(),
-
-  language: z.string().optional(),
-  currency: z.string().optional(),
-
   autoPageView: z.boolean().optional().default(true),
 
   consent: z.object({
-    checkoutDomain: z.string().optional(),
-    storefrontAccessToken: z.string().optional(),
-
-    banner: enableable(z.object({
-      country: z.string().optional(),
-      language: z.string().optional(),
-    }), {}, false),
-  }).optional(),
+    mode: z.enum(['no-banner', 'default-banner', 'custom-banner']).optional().default('no-banner'),
+  }).optional().default({ mode: 'no-banner' }),
 })
 
 const storefrontClient = storefrontClientSchema
   .refine(client => client?.mock || client?.privateAccessToken || client?.publicAccessToken, {
-    error: 'Either a public or private access token must be provided for the storefront client',
+    error: 'Either a public or private access token must be provided for the storefront client, or `mock: true` to use mock.shop',
   })
 
 const customerAccountClient = customerAccountClientSchema
-  .transform(client => ({ ...client, afterLogout: client.afterLogout ?? client.afterLogin }))
-  .refine(client => client.clientId, { message: 'Client ID is required for the customer account client' })
+  .refine(client => client.clientId, { error: 'Client ID is required for the customer account client' })
 
 const adminClient = adminClientSchema
   .refine(client => client.accessToken || (client.clientId && client.clientSecret), {
-    message: 'Either an access token or both client ID and client secret must be provided for the admin client',
+    error: 'Either an access token or both client ID and client secret must be provided for the admin client',
   })
 
 export const configObjectSchema = z.object({
   name: z.string({ error: 'Shop name is required' }).min(1, { error: 'Shop name cannot be empty' }),
+
+  origin: z.union([z.literal(''), z.url({ protocol: /^https?$/ })], {
+    error: 'Expected the public origin of your app, such as "https://shop.example.com"',
+  }).optional(),
+
+  shopId: shopIdentifierSchema.refine(shopId => /^\d*$/.test(shopId), { error: 'Expected the numeric ID of your shop, such as "12345"' }).optional(),
+  storefrontId: shopIdentifierSchema.optional(),
+  defaultMarket: marketSchema.optional(),
+
+  routeTemplates: z.custom<ShopifyRouteTemplates>().optional().default({}),
+
+  cart: cartSchema,
+  predictiveSearch: predictiveSearchSchema,
 
   clients: z.object({
     [ShopifyClientType.Storefront]: storefrontClient.optional(),
@@ -270,39 +289,54 @@ export const configObjectSchema = z.object({
 
   webhooks: webhooksSchema.optional(),
 
-  analytics: enableable(analyticsSchema, { autoPageView: true }, false),
+  analytics: enableable(analyticsSchema, analyticsSchema.parse({}), false),
 
-  logger: z.any().transform(v => v as Partial<ConsolaOptions>).optional(),
+  logger: z.custom<Partial<ConsolaOptions>>().optional(),
 })
 
-export const publicConfigSchema = configObjectSchema.omit({ clients: true, fragments: true, webhooks: true }).extend({
+export const publicConfigSchema = configObjectSchema.omit({ clients: true, fragments: true, webhooks: true, origin: true, cart: true, predictiveSearch: true }).extend({
   clients: z.object({
     [ShopifyClientType.Storefront]: storefrontClientSchema.omit({
       privateAccessToken: true,
+      buyerIpHeader: true,
       explorer: true,
       documents: true,
       codegen: true,
       cache: true,
-      proxy: true,
     }).extend({
-      proxy: proxyRouteSchema('_proxy/storefront'),
-      cache: enableable(clientCacheSchema.omit({ proxy: true }), { client: defaultClientCacheOptions, presets: defaultCachePresets }),
+      cache: enableable(clientCacheSchema.omit({ server: true }), { browser: defaultBrowserCacheOptions, presets: defaultCachePresets }),
     }).optional(),
 
     [ShopifyClientType.CustomerAccount]: customerAccountClientSchema.omit({
       explorer: true,
       documents: true,
       codegen: true,
-      proxy: true,
-      clientSecret: true,
       session: true,
       tokenStorage: true,
+      afterLogin: true,
       afterLogout: true,
-    }).extend({
-      proxy: proxyRouteSchema('_proxy/customer-account'),
-      session: publicCustomerAccountSessionSchema,
     }).optional(),
   }).optional().default({}),
 
   errors: configObjectSchema.shape.errors,
 })
+
+export function findInvalidFeatures(error: z.ZodError): string[][] | undefined {
+  const features = error.issues.map(({ path }) => path.slice(0, path[0] === 'clients' ? 2 : 1).map(String))
+
+  if (features.some(feature => !feature.length || feature[0] === 'name')) return undefined
+
+  return [...new Map(features.map(feature => [feature.join('.'), feature])).values()]
+}
+
+export function withoutFeatures<T extends { clients?: object }>(input: T, features: string[][]): T {
+  const invalid = new Set(features.map(feature => feature.join('.')))
+
+  const keep = (prefix: string) => ([key]: [string, unknown]) => !invalid.has(`${prefix}${key}`)
+
+  const config = Object.fromEntries(Object.entries(input).filter(keep('')))
+
+  if (config.clients) config.clients = Object.fromEntries(Object.entries(config.clients).filter(keep('clients.')))
+
+  return config as T
+}

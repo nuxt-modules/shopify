@@ -2,6 +2,7 @@ import type { Nuxt } from '@nuxt/schema'
 
 import type { ShopifyConfig } from '../types'
 
+import { isPublicClient } from '../utils/clients'
 import { isResolvableFrom } from '../utils/install'
 import { useLogger } from '../utils/log'
 
@@ -15,21 +16,19 @@ export default function setupVite(nuxt: Nuxt, config: ShopifyConfig) {
 
   const deps: string[] = []
 
-  if (config.clients?.storefront || config.clients?.customerAccount || config.clients?.admin) {
+  if (config.analytics || config.clients?.storefront || config.clients?.customerAccount) {
     deps.push('@shopify/graphql-client')
   }
 
-  if (config.analytics) {
-    deps.push('@shopify/hydrogen-react')
+  if (config.analytics || config.clients?.storefront || config.clients?.customerAccount) {
+    deps.push('@shopify/hydrogen', '@shopify/hydrogen/customer-account', '@shopify/hydrogen/vue')
   }
 
-  const storefrontCache = config.clients?.storefront?.cache
+  const storefront = config.clients?.storefront
 
-  if (storefrontCache && storefrontCache.client) {
+  if (isPublicClient(storefront) && storefront?.cache && storefront.cache.browser) {
     deps.push('lru-cache')
   }
-
-  deps.push('zod')
 
   const include = nuxt.options.vite.optimizeDeps.include
   const missing: string[] = []
@@ -39,10 +38,10 @@ export default function setupVite(nuxt: Nuxt, config: ShopifyConfig) {
   const canNestUnderModule = resolvableFromRoot(MODULE_ID)
 
   for (const dep of deps) {
-    const id = resolvableFromRoot(dep)
-      ? dep
-      : canNestUnderModule
-        ? `${MODULE_ID} > ${dep}`
+    const id = canNestUnderModule
+      ? `${MODULE_ID} > ${dep}`
+      : resolvableFromRoot(dep)
+        ? dep
         : undefined
 
     if (!id) {

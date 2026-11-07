@@ -7,20 +7,14 @@ import { relative } from 'node:path'
 import { addTemplate } from '@nuxt/kit'
 
 import { ShopifyClientType } from '../schemas'
-import { getConfiguredClients } from '../utils/clients'
+import { DOCUMENT_ROUTING_ORDER, getConfiguredClients } from '../utils/clients'
 import { getIntrospectionFilename } from '../utils/templates'
 import { useLogger } from '../utils/log'
 import { toPosix } from '../utils/codegen'
 
-const PROJECT_ORDER = [
-  ShopifyClientType.Admin,
-  ShopifyClientType.CustomerAccount,
-  ShopifyClientType.Storefront,
-]
-
 const DIR_IGNORES = ['node_modules', 'dist', '.nuxt', '.output']
 
-interface GraphqlProject {
+type GraphqlProject = {
   schema: string
   documents: string[]
   exclude: string[]
@@ -64,7 +58,7 @@ export default function setupGraphqlConfig(nuxt: Nuxt, config: ShopifyConfig) {
 
   const projects: Record<string, GraphqlProject> = {}
 
-  for (const clientType of PROJECT_ORDER) {
+  for (const clientType of DOCUMENT_ROUTING_ORDER) {
     if (!configured.includes(clientType)) continue
 
     const clientConfig = config.clients[clientType]

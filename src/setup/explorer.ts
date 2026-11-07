@@ -2,7 +2,7 @@ import type { Nuxt } from '@nuxt/schema'
 
 import type { ShopifyConfig } from '../types'
 
-import { upperFirst } from 'scule'
+import { kebabCase } from 'scule'
 import { joinURL } from 'ufo'
 
 import { useLogger } from '../utils/log'
@@ -19,13 +19,11 @@ export default function setupExplorer(nuxt: Nuxt, config: ShopifyConfig, resolve
   const clients = getConfiguredClients(config)
 
   for (const clientType of clients) {
-    const clientConfig = config.clients[clientType]
-
-    if (shouldEnableExplorer(nuxt, clientConfig)) {
-      const path = registerExplorer(resolver, clientType)
+    if (shouldEnableExplorer(nuxt, config, clientType)) {
+      const path = registerExplorer(resolver, config, clientType)
 
       onDevServerURL(nuxt, origin =>
-        logger.info(`${upperFirst(clientType)} explorer available at: ${joinURL(origin, path)}`),
+        logger.info(`The ${kebabCase(clientType)} explorer is available at ${joinURL(origin, path)}`),
       )
     }
   }

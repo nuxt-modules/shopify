@@ -97,7 +97,7 @@ jobs:
         run: pnpm install --frozen-lockfile --ignore-scripts
 
       - name: Run tests
-        run: pnpm run prepare && pnpm run prepare:playgrounds && pnpm run test:coverage
+        run: pnpm run prepare && pnpm run test:coverage
 
   build:
     runs-on: ubuntu-latest

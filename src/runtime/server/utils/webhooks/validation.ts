@@ -1,6 +1,5 @@
 import type { H3Event } from 'h3'
 
-import { createHmac, timingSafeEqual } from 'node:crypto'
 import { readRawBody, createError } from 'h3'
 import { useRuntimeConfig } from '#imports'
 
@@ -9,12 +8,24 @@ import { getWebhookHmac } from './functions'
 
 const unauthorized = () => createError({ status: 401, statusText: 'Unauthorized' })
 
-function hasValidSignature(secret: string, body: Buffer, signature: string): boolean {
+function decodeBase64(value: string): Uint8Array<ArrayBuffer> | undefined {
   try {
-    const calculated = Buffer.from(createHmac('sha256', secret).update(body).digest('base64'))
-    const received = Buffer.from(signature)
+    return Uint8Array.from(atob(value), character => character.charCodeAt(0))
+  }
+  catch {
+    return undefined
+  }
+}
 
-    return calculated.length === received.length && timingSafeEqual(calculated, received)
+async function hasValidSignature(secret: string, body: Uint8Array<ArrayBuffer>, signature: string): Promise<boolean> {
+  const received = decodeBase64(signature)
+
+  if (!received) return false
+
+  try {
+    const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['verify'])
+
+    return await crypto.subtle.verify('HMAC', key, received, body)
   }
   catch (error) {
     createLogger().error('Failed to validate the webhook HMAC signature:', error)
@@ -30,13 +41,15 @@ function hasValidSignature(secret: string, body: Buffer, signature: string): boo
  *
  * @throws a 401 unauthorized error if validation fails
  */
-export const validate = async (event: H3Event) => {
+export const validateWebhook = async (event: H3Event) => {
   const { _shopify } = useRuntimeConfig(event)
 
-  if (!_shopify?.webhooks?.secret) {
+  const secret = _shopify?.webhooks?.secret || _shopify?.clients?.admin?.clientSecret
+
+  if (!secret) {
     if (!import.meta.dev) throw unauthorized()
 
-    createLogger().warn('Skipping webhook HMAC validation: no webhook secret is configured. Requests to this handler are unauthenticated')
+    createLogger().warn('Skipping webhook HMAC validation: neither `webhooks.secret` nor the admin client\'s `clientSecret` is configured. Requests to this handler are unauthenticated')
 
     return
   }
@@ -57,7 +70,7 @@ export const validate = async (event: H3Event) => {
     throw unauthorized()
   }
 
-  if (!hasValidSignature(_shopify.webhooks.secret, body, shopifyHmac)) {
+  if (!await hasValidSignature(secret, new Uint8Array(body), shopifyHmac)) {
     createLogger().debug('Rejected a webhook request: the HMAC signature does not match')
 
     throw unauthorized()

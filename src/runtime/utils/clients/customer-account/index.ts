@@ -1,72 +1,70 @@
 import type { CustomerAccountApiClient, CustomerAccountOperations } from '@nuxtjs/shopify/customer-account'
 
 import type {
+  ModuleOptions,
   ShopifyApiClientConfig,
-  ShopifyConfig,
-  PublicShopifyConfig,
   ShopifyClientConfig,
-  ShopifyClientDefinition,
   ShopifyClientOptions,
 } from '../../../../module'
+import type { ClientDefinition } from '../create'
+
+import { joinURL } from 'ufo'
 
 import {
+  CUSTOMER_ACCOUNT_PROXY_ROUTE,
   createStoreDomain,
 } from '../transport'
 import { createClient } from '../create'
+import { DEFAULT_API_VERSION, DEFAULT_RETRIES } from '../defaults'
 
-export const createCustomerAccountConfig = (config?: ShopifyConfig | PublicShopifyConfig): ShopifyApiClientConfig => {
+export const createCustomerAccountConfig = (config?: ModuleOptions): ShopifyApiClientConfig => {
   if (!config?.clients?.customerAccount) {
-    throw new Error('[shopify] Failed to create customer account client config: client is not configured (set `shopify.clients.customerAccount`)')
+    throw new Error('[shopify] Failed to create customer account client config: client is not configured (set `clients.customerAccount`)')
   }
 
   const {
     name,
+    shopId,
     logger,
 
     clients: {
       customerAccount: {
-        apiURL,
-        apiVersion,
         headers,
         retries,
-
-        clientId,
       },
     },
   } = config
 
+  const apiVersion = config.clients.customerAccount.apiVersion || DEFAULT_API_VERSION
+
   if (!name) {
-    throw new Error('[shopify] Failed to create customer account client config: missing shop name (set `shopify.name`)')
+    throw new Error('[shopify] Failed to create customer account client config: missing shop name (set `name`)')
   }
 
-  if (!clientId) {
-    throw new Error('[shopify] Failed to create customer account client config: missing `clientId`')
-  }
-
-  if (!apiURL) {
-    throw new Error('[shopify] Failed to create customer account client config: the customer account API URL could not be resolved')
+  if (!shopId) {
+    throw new Error('[shopify] Failed to create customer account client config: missing the shop ID (set `shopId`)')
   }
 
   return {
     storeDomain: createStoreDomain(name),
-    apiUrl: apiURL,
+    apiUrl: `https://shopify.com/${shopId}/account/customer/api/${apiVersion}/graphql`,
     apiVersion,
     logger,
-    retries,
+    retries: retries ?? DEFAULT_RETRIES,
     headers: {
       ...headers,
     },
   } satisfies ShopifyApiClientConfig
 }
 
-const definition: ShopifyClientDefinition<'customerAccount'> = {
+const definition: ClientDefinition<'customerAccount'> = {
   kind: 'customerAccount',
   createConfig: createCustomerAccountConfig,
+  createProxyUrl: ({ clients }, origin, apiVersion) => clients?.customerAccount?.proxy ? joinURL(origin, CUSTOMER_ACCOUNT_PROXY_ROUTE.replace(':version', apiVersion)) : undefined,
   authHeader: 'Authorization',
-  cookies: true,
 }
 
-export function createCustomerAccountClient(
+export function createCustomerAccountApiClient(
   config: ShopifyClientConfig<'customerAccount'>,
   options: ShopifyClientOptions<CustomerAccountOperations> = {},
 ): CustomerAccountApiClient {
