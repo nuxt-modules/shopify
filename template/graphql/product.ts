@@ -92,6 +92,7 @@ export const PRODUCT_FRAGMENT = `#graphql
       }
     }
     options(first: 250) {
+      name
       optionValues {
         name
       }
