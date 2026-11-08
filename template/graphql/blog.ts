@@ -4,7 +4,6 @@ export const ARTICLE_FRAGMENT = `#graphql
     title
     handle
     excerpt
-    content
     contentHtml
     publishedAt
     seo {
@@ -21,7 +20,11 @@ export const BLOG_FRAGMENT = `#graphql
     articles(first: 250) {
       edges {
         node {
-          ...ArticleFields
+          id
+          title
+          handle
+          excerpt
+          publishedAt
         }
       }
     }

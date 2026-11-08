@@ -2,7 +2,7 @@
 const { shopify: { shopName } } = useAppConfig()
 
 useSeoMeta({
-  title: `Home | ${shopName}`,
+  title: `${$t('home.label')} | ${shopName}`,
   description: $t('seo.description'),
 })
 </script>

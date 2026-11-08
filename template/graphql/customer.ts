@@ -7,12 +7,10 @@ export const ADDRESS_FRAGMENT = `#graphql
     address1
     address2
     city
-    province
     zip
-    country
     phoneNumber
     formatted
-    territoryCode
+    countryCode
     zoneCode
   }
 `
@@ -38,7 +36,6 @@ export const CUSTOMER_FRAGMENT = `#graphql
     id
     firstName
     lastName
-    displayName
     emailAddress {
       emailAddress
     }
@@ -55,7 +52,6 @@ export const ORDER_FRAGMENT = `#graphql
   fragment OrderFields on Order {
     id
     name
-    number
     processedAt
     financialStatus
     statusPageUrl
@@ -83,7 +79,6 @@ export const ORDER_DETAILS_FRAGMENT = `#graphql
   fragment OrderDetailsFields on Order {
     id
     name
-    number
     processedAt
     financialStatus
     fulfillmentStatus

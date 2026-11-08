@@ -1,8 +1,7 @@
 <script setup lang="ts">
-definePageMeta({ middleware: 'customer-account' })
-
 const { shopify: { shopName } } = useAppConfig()
-const localePath = useLocalePath()
+const { login } = useCustomerAccountSession()
+const route = useRoute()
 
 const { data: customer, error } = await useCustomerAccountData('account-orders', `#graphql
   query FetchAccountOrders($first: Int) {
@@ -21,10 +20,13 @@ const { data: customer, error } = await useCustomerAccountData('account-orders',
   transform: data => data?.customer,
 })
 
-if (error.value && error.value.status !== 401) {
+if (error.value?.status === 401) {
+  await login({ returnTo: route.fullPath })
+}
+else if (error.value) {
   throw createError({
-    status: 404,
-    statusText: $t('error.notFound'),
+    status: error.value.status,
+    statusText: error.value.statusText,
     message: error.value.message || $t('account.toast.error.get'),
     fatal: true,
   })
@@ -35,24 +37,9 @@ const orders = computed(() => flattenConnection(customer.value?.orders))
 useSeoMeta({
   title: `${$t('account.orders.title')} | ${shopName}`,
   description: $t('account.description'),
-  robots: 'noindex, nofollow',
 })
 </script>
 
 <template>
-  <UContainer class="py-6 lg:py-8">
-    <UBreadcrumb
-      :items="[
-        { label: $t('account.label'), to: localePath('/account') },
-        { label: $t('account.orders.title') },
-      ]"
-      class="mb-6 lg:mb-8"
-    />
-
-    <h1 class="text-4xl lg:text-5xl text-gray-900 font-extrabold mb-8 lg:mb-10">
-      {{ $t('account.orders.page.title') }}
-    </h1>
-
-    <AccountOrders :orders="orders" />
-  </UContainer>
+  <AccountOrders :orders="orders" />
 </template>

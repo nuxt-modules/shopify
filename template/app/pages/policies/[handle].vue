@@ -9,28 +9,24 @@ const route = useRoute()
 
 const handle = computed(() => route.params.handle as string)
 
-const { params: localization } = useLocalization()
-
-const { data: policies, error } = await useStorefrontData(localizedKey('policies'), `#graphql
-  query FetchPolicies($language: LanguageCode, $country: CountryCode)
-  @inContext(language: $language, country: $country) {
-    shop {
-      ...ShopPoliciesFields
-    }
-  }
-`, {
-  variables: localization,
-  transform: data => flattenPolicies(data?.shop),
-  cache: 'long',
-})
+const { data: policies, error } = await usePolicies()
 
 const policy = computed(() => policies.value?.find(p => p.handle === handle.value))
 
-if (!policy.value || error.value) {
+if (error.value) {
+  throw createError({
+    status: error.value.status,
+    statusText: error.value.statusText,
+    message: error.value.message,
+    fatal: true,
+  })
+}
+
+if (!policy.value) {
   throw createError({
     status: 404,
     statusText: `${$t('error.notFound')}: ${route.fullPath}`,
-    message: error.value?.message || $t('error.policy'),
+    message: $t('error.policy'),
     fatal: true,
   })
 }

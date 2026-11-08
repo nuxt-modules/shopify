@@ -1,13 +1,13 @@
 <script setup lang="ts">
 definePageMeta({
-  validate: route => typeof route.params.handle === 'string',
+  validate: route => typeof route.params.blogHandle === 'string',
 })
 
 const { shopify: { shopName } } = useAppConfig()
 const localePath = useLocalePath()
 const route = useRoute()
 
-const handle = computed(() => route.params.handle as string)
+const handle = computed(() => route.params.blogHandle as string)
 
 const { params: localization } = useLocalization()
 
@@ -27,11 +27,21 @@ const { data: blog, error } = await useStorefrontData(localizedKey('blog', handl
   cache: 'long',
 })
 
-if (!blog.value || error.value) {
+if (error.value) {
+  throw createError({
+    status: error.value.status,
+    statusText: error.value.statusText,
+    message: error.value.message,
+    fatal: true,
+  })
+}
+
+if (!blog.value) {
   throw createError({
     status: 404,
     statusText: `${$t('error.notFound')}: ${route.fullPath}`,
-    message: error.value?.message || $t('error.blog'),
+    message: $t('error.blog'),
+    fatal: true,
   })
 }
 
@@ -45,8 +55,8 @@ useSeoMeta({
   <UContainer class="py-6 lg:py-8">
     <UBreadcrumb
       :items="[
-        { label: $t('breadcrumb.blog') },
-        { label: blog?.title, to: localePath(`/blog/${handle}`) },
+        { label: $t('breadcrumb.blogs'), to: localePath('/blogs') },
+        { label: blog?.title, to: localePath(`/blogs/${handle}`) },
       ]"
       class="mb-6 lg:mb-8"
     />
@@ -62,7 +72,7 @@ useSeoMeta({
         :title="article.title"
         :date="article.publishedAt"
         :description="article.excerpt ?? undefined"
-        :to="localePath(`/blog/${handle}/${article.handle}`)"
+        :to="localePath(`/blogs/${handle}/${article.handle}`)"
       />
     </UBlogPosts>
   </UContainer>

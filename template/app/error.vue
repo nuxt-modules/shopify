@@ -3,46 +3,49 @@ import type { NuxtError } from '#app'
 
 import * as locales from '@nuxt/ui/locale'
 
+import { CartProvider } from '~/utils/cart'
+
 const props = defineProps<{
   error: NuxtError
 }>()
 
 const { shopify: { shopName } } = useAppConfig()
+const { localeProperties } = useI18n()
 const { language } = useLocalization()
-const { get } = useCart()
 const localePath = useLocalePath()
 
-const lang = computed(() => locales[language.value].code)
-const dir = computed(() => locales[language.value].dir)
+const uiLocale = computed(() => Object.values(locales).find(locale => locale.code === language.value) ?? locales.en)
 
 useHead({
   htmlAttrs: {
-    lang,
-    dir,
+    lang: () => localeProperties.value.language,
+    dir: () => uiLocale.value.dir,
   },
   title: shopName,
 })
-
-await callOnce('shopify-cart', get)
 </script>
 
 <template>
-  <UApp :locale="locales[language]">
-    <NuxtLayout>
-      <UError
-        :error="props.error"
-        :clear="false"
-      >
-        <template #links>
-          <UButton
-            @click="clearError({
-              redirect: localePath('/'),
-            })"
+  <UApp :locale="uiLocale">
+    <CartProvider>
+      <Suspense>
+        <NuxtLayout>
+          <UError
+            :error="props.error"
+            :clear="false"
           >
-            {{ $t('error.home') }}
-          </UButton>
-        </template>
-      </UError>
-    </NuxtLayout>
+            <template #links>
+              <UButton
+                @click="clearError({
+                  redirect: localePath('/'),
+                })"
+              >
+                {{ $t('error.home') }}
+              </UButton>
+            </template>
+          </UError>
+        </NuxtLayout>
+      </Suspense>
+    </CartProvider>
   </UApp>
 </template>

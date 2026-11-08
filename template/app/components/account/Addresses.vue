@@ -40,7 +40,7 @@ const addresses = computed(() => [...props.addresses].sort((a, b) =>
         :key="address.id"
         :address="address"
         :is-default="address.id === defaultAddressId"
-        @updated="emit('updated')"
+        @changed="emit('updated')"
       />
     </div>
 

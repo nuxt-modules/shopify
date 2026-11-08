@@ -1,79 +1,53 @@
 <script setup lang="ts">
-import type { FormSubmitEvent } from '#ui/types'
+import type { LocationQuery } from 'vue-router'
+
+import type { ProductFormData } from '~/utils/product-form'
+
+import { canAddToCart } from '@shopify/hydrogen'
 
 const props = defineProps<{
-  product?: ProductFieldsFragment
+  product: ProductFormFieldsFragment
+  query?: LocationQuery
+  loading?: boolean
 }>()
-
-const selectedVariant = defineModel<ProductVariantFieldsFragment>()
 
 const emit = defineEmits<{
-  submit: [FormSubmitEvent<typeof state>]
+  submit: []
 }>()
 
-const { add } = useCart()
+const open = useCartDrawer()
+const form = useProductForm()
 
-const handle = computed(() => selectedVariant.value?.product.handle)
+const quantity = ref(1)
 
-const state = reactive({
-  quantity: 1,
-  selectedOptions: selectedVariant.value?.selectedOptions,
-})
+const addable = computed(() => canAddToCart(props.product as ProductFormData, form.options))
+const soldOut = computed(() => form.selectedVariant?.availableForSale === false)
+const lowStock = computed(() => isLowStock(form.selectedVariant ?? undefined))
+const subscription = computed(() => hasSellingPlans(props.product))
 
-const { params: localization } = useLocalization()
-
-const { data } = await useStorefrontData(localizedKey('product-options', handle), `#graphql
-  query FetchProductOptions($handle: String, $language: LanguageCode, $country: CountryCode, $selectedOptions: [SelectedOptionInput!]) 
-  @inContext(language: $language, country: $country) {
-    product(handle: $handle) {
-      options(first: 250) {
-        ...ProductOptionFields
-      }
-
-      selectedOrFirstAvailableVariant(selectedOptions: $selectedOptions) {
-        ...ProductVariantFields
-      }
-    }
-  }
-`, {
-  variables: computed(() => productInputSchema.parse({
-    handle: handle.value,
-    selectedOptions: state.selectedOptions,
-    ...localization.value,
-  })),
-  transform: value => value.product,
-  watch: [() => state.selectedOptions],
-  cache: 'long',
-  lazy: true,
-})
-
-const loading = ref(false)
-
-const product = computed(() => data.value ?? props.product)
-
-const soldOut = computed(() => Boolean(props.product && isSoldOut(props.product)))
-const unavailable = computed(() => soldOut.value || !selectedVariant.value?.availableForSale)
-const lowStock = computed(() => isLowStock(selectedVariant.value))
-const subscription = computed(() => Boolean(props.product && hasSellingPlans(props.product)))
+const errors = computed(() => [
+  ...form.errors.userErrors,
+  ...form.errors.warnings,
+  ...form.errors.networkErrors,
+])
 
 const maxQuantity = computed(() => {
-  const quantity = selectedVariant.value?.quantityAvailable
+  const quantity = form.selectedVariant?.quantityAvailable
 
   return quantity && quantity > 0 ? Math.min(quantity, 10) : 10
 })
 
-watch(() => data.value?.selectedOrFirstAvailableVariant, variant => selectedVariant.value = variant ?? undefined)
+const label = computed(() => {
+  if (addable.value) return $t('product.add')
+  if (!form.selectedVariant) return $t('product.selectOptions')
 
-const onSubmit = async (event: FormSubmitEvent<typeof state>) => {
-  if (!selectedVariant.value) return
+  return soldOut.value ? $t('product.soldOut') : $t('product.unavailable')
+})
 
-  loading.value = true
+const openCart = () => {
+  open.value = true
 
-  await add(selectedVariant.value.id, event.data.quantity).finally(() => {
-    loading.value = false
-
-    emit('submit', event)
-  })
+  emit('submit')
 }
 </script>
 
@@ -81,20 +55,19 @@ const onSubmit = async (event: FormSubmitEvent<typeof state>) => {
   <div>
     <div class="flex-col lg:flex pb-6 lg:pb-8">
       <h1 class="text-4xl lg:text-5xl font-extrabold text-gray-900 mb-4">
-        {{ selectedVariant?.product?.title }}
+        {{ props.product.title }}
       </h1>
 
       <ProductPrice
-        v-if="selectedVariant"
-        :price="selectedVariant.price"
-        :compare-at-price="selectedVariant.compareAtPrice"
+        :price="form.selectedVariant?.price ?? props.product.priceRange.minVariantPrice"
+        :compare-at-price="form.selectedVariant?.compareAtPrice"
         class="inline-block lg:text-lg lg:mb-0"
         discount
       />
 
       <div class="flex flex-wrap items-center gap-2 mt-4">
         <UBadge
-          v-if="unavailable"
+          v-if="soldOut"
           color="neutral"
           variant="subtle"
           :label="$t('product.soldOut')"
@@ -104,7 +77,7 @@ const onSubmit = async (event: FormSubmitEvent<typeof state>) => {
           v-else-if="lowStock"
           color="warning"
           variant="subtle"
-          :label="$t('product.lowStock', { count: selectedVariant?.quantityAvailable ?? 0 })"
+          :label="$t('product.lowStock', { count: form.selectedVariant?.quantityAvailable ?? 0 })"
         />
 
         <UBadge
@@ -115,7 +88,7 @@ const onSubmit = async (event: FormSubmitEvent<typeof state>) => {
         />
 
         <UBadge
-          v-if="props.product?.isGiftCard"
+          v-if="props.product.isGiftCard"
           color="primary"
           variant="subtle"
           :label="$t('product.giftCard')"
@@ -125,26 +98,31 @@ const onSubmit = async (event: FormSubmitEvent<typeof state>) => {
 
     <USeparator class="mb-6 lg:mb-8" />
 
-    <UForm
-      v-if="product"
-      :state="state"
-      @submit="onSubmit"
-    >
-      <ProductOptionGroup
-        v-model="state.selectedOptions"
-        :options="product.options"
-        class="order-1 lg:order-2 mb-6 lg:mb-8"
-      />
+    <ProductOptionGroup
+      :product="props.product"
+      :query="props.query"
+      class="mb-6 lg:mb-8"
+    />
+
+    <form v-bind="form.formProps({ beforeSubmit: openCart })">
+      <input
+        type="hidden"
+        v-bind="form.register('merchandiseId', {})"
+      >
+
+      <input
+        type="hidden"
+        v-bind="form.register('quantity', { value: quantity })"
+      >
 
       <div class="flex justify-between items-center">
         <UFormField
-          name="quantity"
           :label="$t('product.quantity')"
           class="-mt-1"
           :ui="{ label: 'hidden' }"
         >
           <UInputNumber
-            v-model="state.quantity"
+            v-model="quantity"
             :min="1"
             :max="maxQuantity"
             class="w-24 lg:w-28"
@@ -153,15 +131,25 @@ const onSubmit = async (event: FormSubmitEvent<typeof state>) => {
         </UFormField>
 
         <UButton
-          type="submit"
+          v-bind="form.register('addToCart', {})"
           size="xl"
           variant="subtle"
-          :disabled="!selectedVariant || unavailable || loading"
-          :trailing-icon="loading ? 'i-lucide-loader-circle' : unavailable ? 'i-lucide-ban' : 'i-lucide-shopping-bag'"
-          :ui="{ trailingIcon: loading ? 'animate-spin size-5' : 'size-5' }"
-          :label="unavailable ? $t('product.soldOut') : $t('product.add')"
+          :loading="form.pending.value || (!form.selectedVariant && props.loading)"
+          :disabled="!addable"
+          :trailing-icon="addable ? 'i-lucide-shopping-bag' : 'i-lucide-ban'"
+          :ui="{ trailingIcon: 'size-5' }"
+          :label="label"
         />
       </div>
-    </UForm>
+
+      <p
+        v-for="error in errors"
+        :key="error.message"
+        role="alert"
+        class="mt-4 text-sm text-error"
+      >
+        {{ error.message }}
+      </p>
+    </form>
   </div>
 </template>

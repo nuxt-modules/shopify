@@ -3,20 +3,21 @@ import type { FormSubmitEvent } from '@nuxt/ui'
 
 import * as z from 'zod'
 
-const { isLoggedIn, login } = useCustomerAccountSession()
+const { isLoggedIn, login, logout } = useCustomerAccountSession()
+const { language } = useLocalization()
 const localePath = useLocalePath()
 const route = useRoute()
+const toast = useToast()
+const { t } = useI18n()
 
 const schema = z.object({
   email: z.email().optional(),
-  subscribeNewsletter: z.boolean().optional(),
 })
 
 type Schema = z.output<typeof schema>
 
 const state = reactive<Partial<Schema>>({
   email: undefined,
-  subscribeNewsletter: false,
 })
 
 const open = ref(false)
@@ -26,11 +27,22 @@ const onSubmit = async (event: FormSubmitEvent<Schema>) => {
 
   await login({
     loginHint: event.data.email,
-    returnTo: returnToOrders ? '/account/orders' : '/account',
+    locale: language.value,
+    returnTo: localePath(returnToOrders ? '/account/orders' : '/account'),
   })
 }
 
 watch(() => route.path, () => open.value = false)
+
+onMounted(() => {
+  if (route.query.login !== 'failed') return
+
+  toast.add({
+    title: t('account.toast.error.login'),
+    description: t('account.toast.error.tryAgain'),
+    color: 'error',
+  })
+})
 </script>
 
 <template>
@@ -90,16 +102,9 @@ watch(() => route.path, () => open.value = false)
               size="xl"
               trailing-icon="i-lucide-arrow-right"
               :placeholder="$t('account.profile.email')"
+              :aria-label="$t('account.profile.email')"
               :ui="{
                 trailingIcon: 'size-4',
-              }"
-            />
-
-            <UCheckbox
-              v-model="state.subscribeNewsletter"
-              :label="$t('account.subscribeNewsletter')"
-              :ui="{
-                label: 'text-sm',
               }"
             />
 
@@ -135,7 +140,7 @@ watch(() => route.path, () => open.value = false)
 
         <template v-else>
           <UButton
-            :to="localePath('/account')"
+            :to="localePath('/account/profile')"
             size="xl"
             class="w-full justify-center mb-4"
             :label="$t('account.menu.profile')"
@@ -152,12 +157,12 @@ watch(() => route.path, () => open.value = false)
           />
 
           <UButton
-            :to="localePath('/account/logout')"
             variant="outline"
             size="xl"
             class="w-full justify-center text-center"
             :label="$t('account.logout')"
             icon="i-lucide-log-out"
+            @click="logout()"
           />
         </template>
       </div>

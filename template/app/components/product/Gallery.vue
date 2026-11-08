@@ -1,17 +1,17 @@
 <script setup lang="ts">
 const props = defineProps<{
-  product: ProductFieldsFragment
-  selectedVariant?: ProductVariantFieldsFragment
+  product: ProductFormFieldsFragment
   thumbnails?: boolean
 }>()
 
+const selection = useProduct()
 const carousel = useTemplateRef('carousel')
 
 const images = computed(() => flattenConnection(props.product.images))
 const media = computed(() => flattenConnection(props.product.media))
 
 const sliderMedia = computed(() => {
-  const variantImage = props.selectedVariant?.image
+  const variantImage = selection.selectedVariant?.image
 
   if (!variantImage) return media.value
 
@@ -25,7 +25,7 @@ const sliderMedia = computed(() => {
   return selected ? [selected, ...rest] : media.value
 })
 
-watch(() => props.selectedVariant, () => carousel.value?.emblaApi?.scrollTo(0))
+watch(() => selection.selectedVariant?.id, () => carousel.value?.emblaApi?.scrollTo(0))
 </script>
 
 <template>
@@ -45,7 +45,8 @@ watch(() => props.selectedVariant, () => carousel.value?.emblaApi?.scrollTo(0))
     >
       <ProductMedia
         :media="item"
-        :loading="index === 0 ? 'eager' : 'lazy'"
+        loading="eager"
+        :fetchpriority="index === 0 ? 'high' : 'low'"
         :title="`${props.product.title}${index !== 0 ? ` (${index})` : ''}`"
       />
     </UCarousel>
@@ -66,7 +67,7 @@ watch(() => props.selectedVariant, () => carousel.value?.emblaApi?.scrollTo(0))
         v-for="(image, index) in images"
         :key="image.url"
         :image="image ?? undefined"
-        :title="`${props.product.title} Thumbnail ${index !== 0 ? ` (${index})` : ''}`"
+        :title="`${$t('product.thumbnail', { title: props.product.title })}${index !== 0 ? ` (${index})` : ''}`"
         class="col-span-6"
       />
     </div>

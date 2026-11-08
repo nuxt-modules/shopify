@@ -2,6 +2,8 @@
 import type { BadgeProps } from '#ui/types'
 import type { OrderFieldsFragment } from '#shopify/customer-account'
 
+import { formatMoney } from '@shopify/hydrogen'
+
 const props = defineProps<{
   order: OrderFieldsFragment
 }>()
@@ -15,12 +17,10 @@ const items = computed(() => flattenConnection(props.order.lineItems))
 
 const date = computed(() => new Intl.DateTimeFormat(locale.value, {
   dateStyle: 'medium',
+  timeZone: 'UTC',
 }).format(new Date(props.order.processedAt)))
 
-const total = computed(() => new Intl.NumberFormat(locale.value, {
-  style: 'currency',
-  currency: props.order.totalPrice.currencyCode,
-}).format(Number(props.order.totalPrice.amount)))
+const total = computed(() => formatMoney(props.order.totalPrice, { locale: locale.value }).toString())
 
 const status = computed(() => props.order.financialStatus)
 

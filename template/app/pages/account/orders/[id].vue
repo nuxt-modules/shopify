@@ -2,12 +2,14 @@
 import type { BadgeProps } from '#ui/types'
 import type { MoneyV2 } from '#shopify/customer-account'
 
+import { formatMoney } from '@shopify/hydrogen'
+
 definePageMeta({
-  middleware: 'customer-account',
-  validate: route => typeof route.params.id === 'string' && route.params.id.length > 0,
+  validate: route => typeof route.params.id === 'string' && /^\d+$/.test(route.params.id),
 })
 
 const { shopify: { shopName } } = useAppConfig()
+const { login } = useCustomerAccountSession()
 const localePath = useLocalePath()
 const { locale } = useI18n()
 const route = useRoute()
@@ -29,11 +31,22 @@ const { data: order, error } = await useCustomerAccountData(key, `#graphql
   transform: data => data?.order,
 })
 
-if (!order.value || (error.value && error.value.status !== 401)) {
+if (error.value?.status === 401) {
+  await login({ returnTo: route.fullPath })
+}
+else if (error.value) {
+  throw createError({
+    status: error.value.status,
+    statusText: error.value.statusText,
+    message: error.value.message || $t('account.toast.error.get'),
+    fatal: true,
+  })
+}
+else if (!order.value) {
   throw createError({
     status: 404,
     statusText: `${$t('error.notFound')}: ${route.fullPath}`,
-    message: error.value?.message || $t('account.orders.notFound'),
+    message: $t('account.orders.notFound'),
     fatal: true,
   })
 }
@@ -41,15 +54,10 @@ if (!order.value || (error.value && error.value.status !== 401)) {
 const items = computed(() => flattenConnection(order.value?.lineItems))
 
 const date = computed(() => order.value
-  ? new Intl.DateTimeFormat(locale.value, { dateStyle: 'long' }).format(new Date(order.value.processedAt))
+  ? new Intl.DateTimeFormat(locale.value, { dateStyle: 'long', timeZone: 'UTC' }).format(new Date(order.value.processedAt))
   : '')
 
-const money = (value?: MoneyV2 | null) => value
-  ? new Intl.NumberFormat(locale.value, {
-      style: 'currency',
-      currency: value.currencyCode,
-    }).format(Number(value.amount))
-  : undefined
+const money = (value?: MoneyV2 | null) => value ? formatMoney(value, { locale: locale.value }).toString() : undefined
 
 const totals = computed(() => [
   { label: $t('account.orders.detail.subtotal'), value: money(order.value?.subtotal) },
@@ -90,26 +98,25 @@ const fulfillmentColors: Record<string, BadgeProps['color']> = {
 useSeoMeta({
   title: `${order.value?.name} | ${shopName}`,
   description: $t('account.description'),
-  robots: 'noindex, nofollow',
 })
 </script>
 
 <template>
-  <UContainer class="py-6 lg:py-8">
-    <UBreadcrumb
-      :items="[
-        { label: $t('account.label'), to: localePath('/account') },
-        { label: $t('account.orders.title'), to: localePath('/account/orders') },
-        { label: order?.name },
-      ]"
-      class="mb-6 lg:mb-8"
+  <div>
+    <UButton
+      :to="localePath('/account/orders')"
+      variant="link"
+      color="neutral"
+      icon="i-lucide-arrow-left"
+      :label="$t('account.orders.back')"
+      class="mb-4 px-0"
     />
 
     <div class="flex flex-wrap items-start justify-between gap-4 mb-8 lg:mb-10">
       <div>
-        <h1 class="text-4xl lg:text-5xl text-gray-900 font-extrabold mb-3">
+        <h2 class="text-3xl lg:text-4xl text-gray-900 font-extrabold mb-3">
           {{ order?.name }}
-        </h1>
+        </h2>
 
         <p class="text-muted mb-3">
           {{ $t('account.orders.detail.placed', { date }) }}
@@ -149,9 +156,9 @@ useSeoMeta({
 
     <div class="grid gap-8 lg:grid-cols-3 lg:gap-10">
       <section class="lg:col-span-2">
-        <h2 class="text-2xl lg:text-3xl text-gray-900 font-bold mb-6">
+        <h3 class="text-2xl lg:text-3xl text-gray-900 font-bold mb-6">
           {{ $t('account.orders.detail.items') }}
-        </h2>
+        </h3>
 
         <UCard :ui="{ body: 'divide-y divide-default' }">
           <div
@@ -194,9 +201,9 @@ useSeoMeta({
 
       <div class="flex flex-col gap-8">
         <section>
-          <h2 class="text-2xl lg:text-3xl text-gray-900 font-bold mb-6">
+          <h3 class="text-2xl lg:text-3xl text-gray-900 font-bold mb-6">
             {{ $t('account.orders.detail.summary') }}
-          </h2>
+          </h3>
 
           <UCard :ui="{ body: 'flex flex-col gap-3' }">
             <div
@@ -219,9 +226,9 @@ useSeoMeta({
           v-for="address in addresses"
           :key="address.label"
         >
-          <h2 class="text-lg text-gray-900 font-bold mb-3">
+          <h3 class="text-lg text-gray-900 font-bold mb-3">
             {{ address.label }}
-          </h2>
+          </h3>
 
           <UCard>
             <address class="not-italic text-sm text-muted">
@@ -237,5 +244,5 @@ useSeoMeta({
         </section>
       </div>
     </div>
-  </UContainer>
+  </div>
 </template>

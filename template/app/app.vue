@@ -1,17 +1,28 @@
 <script setup lang="ts">
+import type { CartDataFromHandlers, CartGetData, CartServerHandlers } from '@shopify/hydrogen'
+
 import * as locales from '@nuxt/ui/locale'
 
-const { shopify: { shopName } } = useAppConfig()
-const { language } = useLocalization()
-const { get } = useCart()
+import { CartProvider } from '~/utils/cart'
 
-const lang = computed(() => locales[language.value].code)
-const dir = computed(() => locales[language.value].dir)
+const { shopify: { shopName } } = useAppConfig()
+const { localeProperties } = useI18n()
+const { language } = useLocalization()
+const route = useRoute()
+
+const { data: cart } = await useFetch<CartGetData<CartDataFromHandlers<CartServerHandlers>>>('/api/cart', {
+  key: 'cart',
+  immediate: !!route.meta.cart,
+})
+
+if (import.meta.server && route.meta.cart) useResponseHeader('cache-control').value = 'private, no-store'
+
+const uiLocale = computed(() => Object.values(locales).find(locale => locale.code === language.value) ?? locales.en)
 
 useHead({
   htmlAttrs: {
-    lang,
-    dir,
+    lang: () => localeProperties.value.language,
+    dir: () => uiLocale.value.dir,
   },
 
   title: shopName,
@@ -28,14 +39,14 @@ useHead({
     { name: 'twitter:image:height', content: '600' },
   ],
 })
-
-await callOnce('shopify-cart', get)
 </script>
 
 <template>
-  <UApp :locale="locales[language]">
-    <NuxtLayout>
-      <NuxtPage />
-    </NuxtLayout>
+  <UApp :locale="uiLocale">
+    <CartProvider :initial-data="cart ?? undefined">
+      <NuxtLayout>
+        <NuxtPage />
+      </NuxtLayout>
+    </CartProvider>
   </UApp>
 </template>
