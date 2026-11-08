@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { ProductProvider } from '~/utils/product-form'
+
 const props = defineProps<{
   product: ProductFieldsFragment
   carousel?: boolean
@@ -19,6 +21,12 @@ const compareAtPrice = computed(() => displayCompareAtPrice(props.product, varia
 
 const soldOut = computed(() => isSoldOut(props.product))
 const discount = computed(() => discountPercentage(price.value, compareAtPrice.value))
+
+const formProduct = computed(() => ({
+  ...props.product,
+  selectedOrFirstAvailableVariant: props.product.selectedOrFirstAvailableVariant ?? null,
+  adjacentVariants: [],
+}))
 </script>
 
 <template>
@@ -120,10 +128,12 @@ const discount = computed(() => discountPercentage(price.value, compareAtPrice.v
         :product="props.product"
       />
 
-      <CartAdd
+      <ProductProvider
         v-else
-        :product="props.product"
-      />
+        :product="formProduct"
+      >
+        <CartAdd :product="formProduct" />
+      </ProductProvider>
     </div>
   </UCard>
 </template>

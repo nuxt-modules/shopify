@@ -1,16 +1,18 @@
 <script setup lang="ts">
+import type { ProductFormData } from '~/utils/product-form'
+
+import { canAddToCart } from '@shopify/hydrogen'
+
 const props = defineProps<{
-  product: ProductFieldsFragment
+  product: ProductFieldsFragment & Pick<ProductFormData, 'selectedOrFirstAvailableVariant' | 'adjacentVariants'>
 }>()
 
 const open = useCartDrawer()
-const { formProps, register } = useCartForm()
+const form = useProductForm()
 
 const soldOut = computed(() => isSoldOut(props.product))
 
-const variant = computed(() => props.product.selectedOrFirstAvailableVariant)
-
-const addable = computed(() => !props.product.requiresSellingPlan && !!variant.value?.availableForSale)
+const addable = computed(() => canAddToCart(props.product, form.options))
 
 const label = computed(() => {
   if (addable.value) return $t('product.add')
@@ -20,16 +22,14 @@ const label = computed(() => {
 </script>
 
 <template>
-  <form v-bind="formProps({ beforeSubmit: () => { open = true } })">
+  <form v-bind="form.formProps({ beforeSubmit: () => { open = true } })">
     <input
-      v-if="variant"
       type="hidden"
-      v-bind="register('merchandiseId', { value: variant.id })"
+      v-bind="form.register('merchandiseId', {})"
     >
 
     <UButton
-      type="submit"
-      v-bind="register('add')"
+      v-bind="form.register('addToCart', {})"
       color="neutral"
       variant="ghost"
       :disabled="!addable"
