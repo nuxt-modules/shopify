@@ -15,9 +15,16 @@ declare module '@nuxtjs/shopify/customer-account' {
   }
 }
 
-const storefrontRequests: unknown[] = []
-const customerAccountRequests: unknown[] = []
-const storefrontSignals: unknown[] = []
+type Request = { variables?: Record<string, unknown>, headers?: unknown, cache?: unknown, signal?: AbortSignal }
+
+const storefrontRequests: Request[] = []
+const customerAccountRequests: Request[] = []
+
+const recordRequest = (requests: Request[]) => (_operation: string, { variables, headers, cache, signal }: Request) => {
+  requests.push({ variables: structuredClone(variables), headers, cache, signal })
+
+  return Promise.resolve({ data: {} })
+}
 
 vi.mock('#app', () => ({
   createError: (error: unknown) => new Error(JSON.stringify(error)),
@@ -29,67 +36,57 @@ vi.mock('#app', () => ({
 }))
 
 vi.mock('#src/runtime/composables/storefront/client.ts', () => ({
-  useStorefront: () => ({
-    request: (_operation: string, options: { variables?: Record<string, unknown>, signal?: AbortSignal }) => {
-      storefrontRequests.push(structuredClone(options.variables))
-      storefrontSignals.push(options.signal)
-
-      return Promise.resolve({ data: {} })
-    },
-  }),
+  useStorefront: () => ({ request: recordRequest(storefrontRequests) }),
 }))
 
 vi.mock('#src/runtime/composables/customer-account/client.ts', () => ({
-  useCustomerAccount: () => ({
-    request: (_operation: string, options: { variables?: Record<string, unknown> }) => {
-      customerAccountRequests.push(structuredClone(options.variables))
-
-      return Promise.resolve({ data: {} })
-    },
-  }),
+  useCustomerAccount: () => ({ request: recordRequest(customerAccountRequests) }),
 }))
 
 const { useStorefrontData } = await import('#src/runtime/composables/storefront/async')
 const { useCustomerAccountData } = await import('#src/runtime/composables/customer-account/async')
 
 type Refreshable = { key: unknown, refresh: (signal?: AbortSignal) => Promise<unknown> }
+type UseData = (...args: unknown[]) => Refreshable
+
+const clients = [
+  { name: 'storefront', composable: 'useStorefrontData', useData: useStorefrontData as unknown as UseData, requests: storefrontRequests },
+  { name: 'customer account', composable: 'useCustomerAccountData', useData: useCustomerAccountData as unknown as UseData, requests: customerAccountRequests },
+]
 
 beforeEach(() => {
   storefrontRequests.length = 0
   customerAccountRequests.length = 0
-  storefrontSignals.length = 0
+})
+
+describe('async data arguments', () => {
+  it.each(clients)('names $composable when it gets no arguments', ({ composable, useData }) => {
+    expect(() => useData()).toThrow(`\`${composable}\``)
+  })
+
+  it.each(clients)('names $composable when it gets too many arguments', ({ composable, useData }) => {
+    expect(() => useData('key', 'query { shop { name } }', {}, 'auto', 'extra')).toThrow(`\`${composable}\``)
+  })
 })
 
 describe('async data variables', () => {
-  it('re-reads storefront ref variables on every request', async () => {
+  it.each(clients)('re-reads $name ref variables on every request', async ({ useData, requests }) => {
     const handle = ref('first')
 
-    const { refresh } = useStorefrontData('key', 'query' as never, { variables: { handle } } as never) as unknown as Refreshable
+    const { refresh } = useData('key', 'query', { variables: { handle } })
 
     await refresh()
     handle.value = 'second'
     await refresh()
 
-    expect(storefrontRequests).toStrictEqual([{ handle: 'first' }, { handle: 'second' }])
+    expect(requests.map(request => request.variables)).toStrictEqual([{ handle: 'first' }, { handle: 'second' }])
   })
 
-  it('re-reads customer account ref variables on every request', async () => {
-    const id = ref('1')
-
-    const { refresh } = useCustomerAccountData('key', 'query' as never, { variables: { id } } as never) as unknown as Refreshable
-
-    await refresh()
-    id.value = '2'
-    await refresh()
-
-    expect(customerAccountRequests).toStrictEqual([{ id: '1' }, { id: '2' }])
-  })
-
-  it('leaves the caller\'s variables object untouched', async () => {
+  it.each(clients)('leaves the caller\'s $name variables object untouched', async ({ useData }) => {
     const handle = ref('first')
     const variables = { handle }
 
-    const { refresh } = useStorefrontData('key', 'query' as never, { variables } as never) as unknown as Refreshable
+    const { refresh } = useData('key', 'query', { variables })
 
     await refresh()
 
@@ -99,30 +96,54 @@ describe('async data variables', () => {
 })
 
 describe('async data requests', () => {
-  it('reads the options of a call without a key, even when the compiler added none', async () => {
-    const { refresh } = useStorefrontData('query { shop { name } }' as never, { variables: { first: 1 } } as never) as unknown as Refreshable
+  it.each(clients)('reads the options of a $name call without a key, even when the compiler added none', async ({ useData, requests }) => {
+    const { refresh } = useData('query { shop { name } }', { variables: { first: 1 } })
 
     await refresh()
 
-    expect(storefrontRequests).toStrictEqual([{ first: 1 }])
+    expect(requests.map(request => request.variables)).toStrictEqual([{ first: 1 }])
   })
 
-  it('lets Nuxt cancel a request it no longer needs', async () => {
+  it.each(clients)('re-reads $name ref headers on every request', async ({ useData, requests }) => {
+    const headers = ref({ 'x-test': 'first' })
+
+    const { refresh } = useData('key', 'query { shop { name } }', { headers })
+
+    await refresh()
+    headers.value = { 'x-test': 'second' }
+    await refresh()
+
+    expect(requests.map(request => request.headers)).toStrictEqual([{ 'x-test': 'first' }, { 'x-test': 'second' }])
+  })
+
+  it('re-reads the storefront ref cache option on every request', async () => {
+    const cache = ref('short')
+
+    const { refresh } = useStorefrontData('key', 'query { shop { name } }' as never, { cache } as never) as unknown as Refreshable
+
+    await refresh()
+    cache.value = 'long'
+    await refresh()
+
+    expect(storefrontRequests.map(request => request.cache)).toStrictEqual(['short', 'long'])
+  })
+
+  it.each(clients)('lets Nuxt cancel a $name request it no longer needs', async ({ useData, requests }) => {
     const controller = new AbortController()
-    const { refresh } = useStorefrontData('key', 'query { shop { name } }' as never) as unknown as Refreshable
+    const { refresh } = useData('key', 'query { shop { name } }')
 
     await refresh(controller.signal)
 
-    expect(storefrontSignals).toStrictEqual([controller.signal])
+    expect(requests.map(request => request.signal)).toStrictEqual([controller.signal])
   })
 
-  it('keeps the caller\'s own signal over Nuxt\'s', async () => {
+  it.each(clients)('keeps the caller\'s own signal over Nuxt\'s for $name requests', async ({ useData, requests }) => {
     const own = new AbortController().signal
-    const { refresh } = useStorefrontData('key', 'query { shop { name } }' as never, { signal: own } as never) as unknown as Refreshable
+    const { refresh } = useData('key', 'query { shop { name } }', { signal: own })
 
     await refresh(new AbortController().signal)
 
-    expect(storefrontSignals).toStrictEqual([own])
+    expect(requests.map(request => request.signal)).toStrictEqual([own])
   })
 })
 
