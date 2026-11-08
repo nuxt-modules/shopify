@@ -27,11 +27,20 @@ const { data: page, error } = await useStorefrontData(localizedKey('page', handl
   cache: 'long',
 })
 
-if (!page.value || error.value) {
+if (error.value) {
+  throw createError({
+    status: error.value.status,
+    statusText: error.value.statusText,
+    message: error.value.message,
+    fatal: true,
+  })
+}
+
+if (!page.value) {
   throw createError({
     status: 404,
     statusText: `${$t('error.notFound')}: ${route.fullPath}`,
-    message: error.value?.message || $t('error.page'),
+    message: $t('error.page'),
     fatal: true,
   })
 }

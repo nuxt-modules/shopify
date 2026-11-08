@@ -5,10 +5,7 @@ const props = defineProps<{
   image?: Partial<Image>
   title?: string
   loading?: 'eager' | 'lazy'
-}>()
-
-const emits = defineEmits<{
-  (e: 'load'): void
+  fetchpriority?: 'high' | 'low'
 }>()
 
 const imgLoading = ref(props.loading === 'eager' ? false : true)
@@ -17,8 +14,6 @@ const url = computed(() => props.image?.url)
 
 const handleImageLoad = () => requestAnimationFrame(() => {
   imgLoading.value = false
-
-  emits('load')
 })
 </script>
 
@@ -36,10 +31,9 @@ const handleImageLoad = () => requestAnimationFrame(() => {
       :width="props.image?.width ?? undefined"
       :height="props.image?.height ?? undefined"
       sizes="xs:100vw md:50vw lg:40vw xl:25vw"
-      class="aspect-square max-w-full max-h-full animate-pop-up select-none object-contain"
+      class="aspect-square max-w-full max-h-full select-none object-contain"
       :loading="props.loading ?? 'lazy'"
-      :fetchpriority="props.loading === 'eager' ? 'high' : undefined"
-      :placeholder="props.loading === 'eager' ? false : true"
+      :fetchpriority="props.fetchpriority ?? (props.loading === 'eager' ? 'high' : undefined)"
       @load="handleImageLoad"
     />
   </div>

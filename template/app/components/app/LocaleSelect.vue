@@ -40,6 +40,7 @@ const change = async (locale: Locale) => {
                 :variant="item.active ? 'subtle' : 'outline'"
                 :color="item.active ? 'primary' : 'neutral'"
                 :trailing-icon="item.active ? 'i-lucide-check' : ''"
+                :aria-pressed="item.active"
                 class="justify-between"
                 :ui="{
                   trailingIcon: 'ms-auto',
@@ -68,6 +69,7 @@ const change = async (locale: Locale) => {
                 :variant="item.active ? 'subtle' : 'outline'"
                 :color="item.active ? 'primary' : 'neutral'"
                 :trailing-icon="item.active ? 'i-lucide-check' : ''"
+                :aria-pressed="item.active"
                 :label="item.label"
                 :ui="{
                   trailingIcon: 'ms-auto',

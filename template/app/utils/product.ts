@@ -1,6 +1,6 @@
 import type { MoneyV2 } from '#shopify/storefront'
 
-export const isDiscounted = (price: MoneyV2, compareAtPrice?: MoneyV2 | null) => {
+export const isDiscounted = (price: MoneyV2, compareAtPrice?: MoneyV2 | null): compareAtPrice is MoneyV2 => {
   if (!price || !compareAtPrice) return false
 
   return Number(compareAtPrice.amount) > Number(price.amount)
@@ -9,8 +9,8 @@ export const isDiscounted = (price: MoneyV2, compareAtPrice?: MoneyV2 | null) =>
 export const discountPercentage = (price: MoneyV2, compareAtPrice?: MoneyV2 | null) => {
   if (!isDiscounted(price, compareAtPrice)) return 0
 
-  const current = Number(price!.amount)
-  const original = Number(compareAtPrice!.amount)
+  const current = Number(price.amount)
+  const original = Number(compareAtPrice.amount)
 
   return Math.round(((original - current) / original) * 100)
 }
@@ -37,7 +37,7 @@ export const displayCompareAtPrice = (product: ProductFieldsFragment, variant?: 
 
 export const isSoldOut = (product: ProductFieldsFragment) => !product.availableForSale
 
-export const hasSellingPlans = (product: ProductFieldsFragment) =>
+export const hasSellingPlans = (product: ProductFormFieldsFragment) =>
   flattenConnection(product.sellingPlanGroups).length > 0
 
 export const isLowStock = (variant?: ProductVariantFieldsFragment, threshold = 5) => {

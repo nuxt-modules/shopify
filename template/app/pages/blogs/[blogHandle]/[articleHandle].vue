@@ -1,20 +1,20 @@
 <script setup lang="ts">
 definePageMeta({
   validate: route =>
-    typeof route.params.handle === 'string'
-    && typeof route.params.article === 'string',
+    typeof route.params.blogHandle === 'string'
+    && typeof route.params.articleHandle === 'string',
 })
 
 const { shopify: { shopName } } = useAppConfig()
 const localePath = useLocalePath()
 const route = useRoute()
 
-const handle = computed(() => route.params.handle as string)
-const article = computed(() => route.params.article as string)
+const handle = computed(() => route.params.blogHandle as string)
+const article = computed(() => route.params.articleHandle as string)
 
 const { params: localization } = useLocalization()
 
-const { data: blog, error } = await useStorefrontData(localizedKey('blog', article), `#graphql
+const { data: blog, error } = await useStorefrontData(localizedKey('article', handle, article), `#graphql
   query FetchBlogArticle($handle: String!, $article: String!, $language: LanguageCode, $country: CountryCode)
   @inContext(language: $language, country: $country) {
     blog(handle: $handle) {
@@ -36,11 +36,21 @@ const { data: blog, error } = await useStorefrontData(localizedKey('blog', artic
 
 const articleData = computed(() => blog.value?.articleByHandle)
 
-if (!articleData.value || error.value) {
+if (error.value) {
+  throw createError({
+    status: error.value.status,
+    statusText: error.value.statusText,
+    message: error.value.message,
+    fatal: true,
+  })
+}
+
+if (!articleData.value) {
   throw createError({
     status: 404,
     statusText: `${$t('error.notFound')}: ${route.fullPath}`,
-    message: error.value?.message || $t('error.article'),
+    message: $t('error.article'),
+    fatal: true,
   })
 }
 
@@ -54,9 +64,9 @@ useSeoMeta({
   <UContainer class="py-6 lg:py-8">
     <UBreadcrumb
       :items="[
-        { label: $t('breadcrumb.blog') },
-        { label: blog?.title, to: localePath(`/blog/${handle}`) },
-        { label: articleData?.title, to: localePath(`/blog/${handle}/${article}`) },
+        { label: $t('breadcrumb.blogs'), to: localePath('/blogs') },
+        { label: blog?.title, to: localePath(`/blogs/${handle}`) },
+        { label: articleData?.title, to: localePath(`/blogs/${handle}/${article}`) },
       ]"
       class="mb-8"
     />

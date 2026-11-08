@@ -3,21 +3,24 @@ export const MENU_ITEM_FRAGMENT = `#graphql
     title
     url
     resource {
+      __typename
       ...on Collection {
-        __typename
+        handle
+      }
+      ...on Product {
         handle
       }
       ...on Blog {
-        __typename
         handle
       }
       ...on Page {
-        __typename
         handle
       }
       ...on Article {
-        __typename
         handle
+        blog {
+          handle
+        }
       }
     }
   }

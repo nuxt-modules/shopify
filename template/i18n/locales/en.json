@@ -14,7 +14,7 @@
     "breadcrumb": {
         "collections": "Collections",
         "products": "Products",
-        "blog": "Blog"
+        "blogs": "Blogs"
     },
     "localization": {
         "title": "Country and language",
@@ -29,19 +29,26 @@
         "subtotal": "Subtotal",
         "checkout": "Checkout",
         "open": "Open Cart",
-        "toast": {
-            "add": "Item added to cart.",
-            "update": "Cart updated.",
-            "remove": "Item removed from cart.",
-            "view": "View cart",
-            "error": {
-                "init": "Could not initialize cart.",
-                "get": "Could not retrieve cart.",
-                "add": "Could not add item to cart.",
-                "update": "Could not update item in cart.",
-                "remove": "Could not remove item from cart.",
-                "tryAgain": "Please try again."
-            }
+        "increase": "Increase quantity",
+        "decrease": "Decrease quantity",
+        "remove": "Remove item",
+        "error": "Your cart could not be updated.",
+        "continue": "Continue shopping",
+        "total": "Total",
+        "taxes": "Taxes and shipping are calculated at checkout.",
+        "view": "View cart",
+        "discount": {
+            "label": "Discount code",
+            "placeholder": "Discount code",
+            "apply": "Apply",
+            "remove": "Remove discount code {code}",
+            "applied": "Applied",
+            "notApplicable": "Not applicable to your cart"
+        },
+        "note": {
+            "label": "Order note",
+            "placeholder": "Add a note to your order",
+            "save": "Save note"
         }
     },
     "search": {
@@ -51,7 +58,13 @@
         "queries": "Search for",
         "products": "Products",
         "collections": "Collections",
-        "articles": "Articles"
+        "articles": "Articles",
+        "error": "Search results could not be loaded.",
+        "all": "All results for “{term}”",
+        "results": "Results for “{term}”",
+        "submit": "Search",
+        "count": "No results for “{term}” | 1 result for “{term}” | {count} results for “{term}”",
+        "prompt": "Enter a search term to find products."
     },
     "account": {
         "label": "Account",
@@ -59,7 +72,6 @@
         "greeting": "Welcome back, {name}",
         "welcome": "Welcome to your account",
         "logout": "Log out",
-        "subscribeNewsletter": "Email me with news and offers",
         "menu": {
             "title": "Your user account",
             "profile": "Profile",
@@ -68,7 +80,6 @@
         },
         "signIn": {
             "title": "Sign in or create account",
-            "description": "Access your profile, track your orders and manage your details.",
             "action": "Sign in"
         },
         "profile": {
@@ -90,9 +101,6 @@
         },
         "orders": {
             "title": "Orders",
-            "page": {
-                "title": "Your order overview"
-            },
             "empty": "You haven't placed any orders yet.",
             "browse": "Start shopping",
             "view": "View order",
@@ -107,7 +115,6 @@
                 "VOIDED": "Voided",
                 "EXPIRED": "Expired"
             },
-            "viewAll": "View all orders",
             "notFound": "This order could not be found.",
             "detail": {
                 "placed": "Placed on {date}",
@@ -134,15 +141,16 @@
                 "RESTOCKED": "Restocked",
                 "SCHEDULED": "Scheduled",
                 "UNFULFILLED": "Unfulfilled"
-            }
+            },
+            "back": "Back to orders"
         },
         "toast": {
             "error": {
                 "get": "Could not load your account.",
+                "login": "Could not sign you in.",
                 "tryAgain": "Please try again."
             }
         },
-        "recommended": "You might also like",
         "cancel": "Cancel",
         "addresses": {
             "title": "Address book",
@@ -190,14 +198,17 @@
     "product": {
         "add": "Add",
         "choose": "Choose",
+        "selectOptions": "Select options",
         "quantity": "Quantity",
         "options": {
             "title": "Choose Options",
             "description": "Select the options you want to add to your cart."
         },
         "view": "View product",
+        "thumbnail": "{title} thumbnail",
         "recommendations": "You may also like",
         "soldOut": "Sold out",
+        "unavailable": "Unavailable",
         "giftCard": "Gift card",
         "subscription": "Subscription available",
         "priceFrom": "From {price}",
@@ -206,11 +217,14 @@
     },
     "collection": {
         "products": {
-            "loading": "Loading products...",
             "notFound": "No products found."
         },
         "all": "All Collections",
-        "description": "Browse every collection in the store."
+        "description": "Browse every collection in the store.",
+        "allProducts": {
+            "title": "All products",
+            "description": "Browse every product in the store."
+        }
     },
     "policies": {
         "title": "Policies",
@@ -219,16 +233,28 @@
     },
     "filters": {
         "title": "Filters",
-        "clear": "Clear Filters"
+        "clear": "Clear Filters",
+        "apply": "Apply",
+        "active": "Filter",
+        "remove": "Remove filter: {filter}",
+        "price": {
+            "minimum": "Minimum price in {currency}",
+            "maximum": "Maximum price in {currency}",
+            "range": "{min} – {max}",
+            "from": "From {min}",
+            "upTo": "Up to {max}"
+        }
     },
     "home": {
         "title": "Nuxt Shopify Demo Store",
+        "label": "Home",
         "description": "This is a demo store built with Nuxt 4 and the Shopify Storefront API. It showcases how to build a fully functional e-commerce storefront with Nuxt UI.",
         "products": {
             "newest": "Newest Products",
             "bestsellers": "Bestsellers"
         }
     },
+    "logo": "Nuxt Shopify Store Logo",
     "seo": {
         "description": "Welcome to our demo store! Explore our collections and find the perfect items for you. Enjoy a seamless shopping experience with Nuxt and Shopify."
     },
@@ -241,5 +267,22 @@
         "article": "Article not found",
         "page": "Page not found",
         "policy": "Policy not found"
+    },
+    "blogs": {
+        "title": "Blogs",
+        "description": "Stories and news from our store.",
+        "empty": "No blogs have been published yet."
+    },
+    "sort": {
+        "label": "Sort by",
+        "featured": "Featured",
+        "bestSelling": "Best selling",
+        "relevance": "Relevance",
+        "titleAscending": "Alphabetically, A–Z",
+        "titleDescending": "Alphabetically, Z–A",
+        "priceAscending": "Price, low to high",
+        "priceDescending": "Price, high to low",
+        "createdAscending": "Date, old to new",
+        "createdDescending": "Date, new to old"
     }
 }

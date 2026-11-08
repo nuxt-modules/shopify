@@ -5,7 +5,7 @@ const { data: policies } = await useMenu('footer')
 
 const { t } = useI18n()
 
-const analytics = useShopifyAnalytics()
+const showCookiePreferences = () => window.privacyBanner?.showPreferences()
 
 const items = computed<NavigationMenuItem[]>(() => [
   {
@@ -101,7 +101,7 @@ const items = computed<NavigationMenuItem[]>(() => [
           v-if="policies?.length"
           variant="pill"
           :items="[...policies, {
-            onSelect: () => analytics.showPreferences(),
+            onSelect: showCookiePreferences,
             label: $t('footer.cookies'),
           }]"
           :ui="{

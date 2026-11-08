@@ -2,20 +2,16 @@
 const { shopify: { shopName } } = useAppConfig()
 const localePath = useLocalePath()
 
-const { params: localization } = useLocalization()
+const { data: policies, error } = await usePolicies()
 
-const { data: policies } = await useStorefrontData(localizedKey('policies'), `#graphql
-  query FetchPolicies($language: LanguageCode, $country: CountryCode)
-  @inContext(language: $language, country: $country) {
-    shop {
-      ...ShopPoliciesFields
-    }
-  }
-`, {
-  variables: localization,
-  transform: data => flattenPolicies(data?.shop),
-  cache: 'long',
-})
+if (error.value) {
+  throw createError({
+    status: error.value.status,
+    statusText: error.value.statusText,
+    message: error.value.message,
+    fatal: true,
+  })
+}
 
 useSeoMeta({
   title: `${$t('policies.title')} | ${shopName}`,

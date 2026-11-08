@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ProductFilter, ProductSortKeys } from '#shopify/storefront'
+import type { ProductSortKeys } from '#shopify/storefront'
 
 const props = defineProps<{
   first?: number
@@ -8,7 +8,6 @@ const props = defineProps<{
   before?: string
   sortKey?: ProductSortKeys
   reverse?: boolean
-  filters?: ProductFilter[]
   loading?: 'eager' | 'lazy'
 }>()
 
@@ -21,7 +20,6 @@ const before = computed(() => props.before ? String(props.before) : undefined)
 
 const sortKey = computed(() => props.sortKey ? String(props.sortKey) : undefined)
 const reverse = computed(() => props.reverse ? Boolean(props.reverse) : undefined)
-const filters = computed(() => props.filters ? props.filters : undefined)
 
 const { params: localization } = useLocalization()
 
@@ -56,7 +54,6 @@ const { data: products } = await useStorefrontData(key, `#graphql
     before: before.value,
     sortKey: sortKey.value,
     reverse: reverse.value,
-    filters: filters.value,
     ...localization.value,
   })),
   transform: data => flattenConnection(data?.products),

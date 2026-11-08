@@ -7,11 +7,11 @@ const props = defineProps<{
 
 const localePath = useLocalePath()
 
-const url = computed(() => localePath(`/product/${props.product.handle}`))
+const url = computed(() => localePath(`/products/${props.product.handle}`))
 const images = computed(() => flattenConnection(props.product.images))
-const variants = computed(() => flattenConnection(props.product.variants))
 
-const variant = computed(() => props.product.selectedOrFirstAvailableVariant ?? variants.value[0])
+const variant = computed(() => props.product.selectedOrFirstAvailableVariant)
+const choosable = computed(() => props.product.options.some(option => option.optionValues.length > 1))
 
 const range = computed(() => hasPriceRange(props.product))
 const price = computed(() => displayPrice(props.product, variant.value ?? undefined))
@@ -102,7 +102,7 @@ const discount = computed(() => discountPercentage(price.value, compareAtPrice.v
         :to="url"
         class="grow"
       >
-        <p class="font-headings text-xl me-12">
+        <p class="text-xl me-12">
           {{ props.product.title }}
         </p>
 
@@ -116,7 +116,7 @@ const discount = computed(() => discountPercentage(price.value, compareAtPrice.v
       </NuxtLink>
 
       <CartChoose
-        v-if="variants.length > 1 && !soldOut"
+        v-if="choosable && !soldOut"
         :product="props.product"
       />
 

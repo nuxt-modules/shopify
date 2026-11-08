@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { formatMoney } from '@shopify/hydrogen'
+
 const props = defineProps<{
   price: PriceFieldsFragment
   compareAtPrice?: PriceFieldsFragment | null
@@ -11,10 +13,7 @@ const { locale } = useI18n()
 const format = (money?: PriceFieldsFragment | null) => {
   if (!money?.currencyCode) return ''
 
-  return new Intl.NumberFormat(locale.value, {
-    style: 'currency',
-    currency: money.currencyCode,
-  }).format(Number(money.amount))
+  return formatMoney(money, { locale: locale.value }).toString()
 }
 
 const price = computed(() => format(props.price))

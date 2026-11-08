@@ -1,3 +1,5 @@
+import type { CountryCode } from '#shopify/customer-account'
+
 import { z } from 'zod'
 
 const optionalText = (max: number) => z
@@ -5,7 +7,6 @@ const optionalText = (max: number) => z
   .trim()
   .max(max)
   .optional()
-  .transform(value => value || undefined)
 
 export const customerOrdersInputSchema = z.object({
   first: z.number().min(1).max(50).default(10),
@@ -20,8 +21,8 @@ export const customerAddressesInputSchema = z.object({
 })
 
 export const customerUpdateInputSchema = z.object({
-  firstName: optionalText(255),
-  lastName: optionalText(255),
+  firstName: optionalText(255).transform(value => value || undefined),
+  lastName: optionalText(255).transform(value => value || undefined),
 })
 
 export const customerAddressInputSchema = z.object({
@@ -32,7 +33,7 @@ export const customerAddressInputSchema = z.object({
   address2: optionalText(255),
   city: z.string().trim().min(1).max(255),
   zip: z.string().trim().min(1).max(32),
-  territoryCode: z.string().trim().length(2).toUpperCase(),
+  countryCode: z.string().trim().length(2).toUpperCase().transform(code => code as CountryCode),
   zoneCode: optionalText(32),
   phoneNumber: optionalText(32),
 })

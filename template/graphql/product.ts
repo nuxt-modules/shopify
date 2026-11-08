@@ -4,8 +4,6 @@ export const PRODUCT_VARIANT_FRAGMENT = `#graphql
     title
     availableForSale
     quantityAvailable
-    currentlyNotInStock
-    requiresShipping
     selectedOptions {
       name
       value
@@ -31,7 +29,6 @@ export const MEDIA_FRAGMENT = `#graphql
     __typename
     id
     alt
-    mediaContentType
     previewImage {
       ...ImageFields
     }
@@ -61,10 +58,8 @@ export const MEDIA_FRAGMENT = `#graphql
 
 export const PRODUCT_OPTION_FRAGMENT = `#graphql
   fragment ProductOptionFields on ProductOption {
-    id
     name
     optionValues {
-      id
       name
       firstSelectableVariant {
         ...ProductVariantFields
@@ -72,24 +67,10 @@ export const PRODUCT_OPTION_FRAGMENT = `#graphql
       swatch {
         color
         image {
-          alt
-          id
-          mediaContentType
           previewImage {
             ...ImageFields
           }
         }
-      }
-    }
-  }
-`
-
-export const PRODUCT_VARIANT_CONNECTION_FRAGMENT = `#graphql
-  fragment ProductVariantConnectionFields on ProductVariantConnection {
-    edges {
-      cursor
-      node {
-        ...ProductVariantFields
       }
     }
   }
@@ -100,17 +81,52 @@ export const PRODUCT_FRAGMENT = `#graphql
     id
     handle
     title
-    vendor
-    description
-    productType
-    tags
     availableForSale
     isGiftCard
     requiresSellingPlan
-    totalInventory
-    featuredImage {
-      ...ImageFields
+    images(first: 250) {
+      edges {
+        node {
+          ...ImageFields
+        }
+      }
     }
+    options(first: 250) {
+      optionValues {
+        name
+      }
+    }
+    priceRange {
+      minVariantPrice {
+        ...PriceFields
+      }
+      maxVariantPrice {
+        ...PriceFields
+      }
+    }
+    compareAtPriceRange {
+      minVariantPrice {
+        ...PriceFields
+      }
+      maxVariantPrice {
+        ...PriceFields
+      }
+    }
+    selectedOrFirstAvailableVariant {
+      ...ProductVariantFields
+    }
+  }
+`
+
+export const PRODUCT_FORM_FRAGMENT = `#graphql
+  fragment ProductFormFields on Product {
+    id
+    handle
+    title
+    isGiftCard
+    requiresSellingPlan
+    encodedVariantExistence
+    encodedVariantAvailability
     images(first: 250) {
       edges {
         node {
@@ -132,17 +148,6 @@ export const PRODUCT_FRAGMENT = `#graphql
       minVariantPrice {
         ...PriceFields
       }
-      maxVariantPrice {
-        ...PriceFields
-      }
-    }
-    compareAtPriceRange {
-      minVariantPrice {
-        ...PriceFields
-      }
-      maxVariantPrice {
-        ...PriceFields
-      }
     }
     sellingPlanGroups(first: 5) {
       edges {
@@ -151,10 +156,10 @@ export const PRODUCT_FRAGMENT = `#graphql
         }
       }
     }
-    variants(first: 250) {
-      ...ProductVariantConnectionFields
+    selectedOrFirstAvailableVariant(selectedOptions: $selectedOptions, ignoreUnknownOptions: true, caseInsensitiveMatch: true) {
+      ...ProductVariantFields
     }
-    selectedOrFirstAvailableVariant {
+    adjacentVariants(selectedOptions: $selectedOptions, ignoreUnknownOptions: true, caseInsensitiveMatch: true) {
       ...ProductVariantFields
     }
   }
@@ -163,21 +168,8 @@ export const PRODUCT_FRAGMENT = `#graphql
 export const PRODUCT_CONNECTION_FRAGMENT = `#graphql
   fragment ProductConnectionFields on ProductConnection {
     edges {
-      cursor
       node {
         ...ProductFields
-      }
-    }
-    filters {
-      id
-      label
-      presentation
-      type
-      values {
-        count
-        id
-        input
-        label
       }
     }
     pageInfo {
@@ -189,36 +181,18 @@ export const PRODUCT_CONNECTION_FRAGMENT = `#graphql
   }
 `
 
-export const PRODUCT_FILTERS_FRAGMENT = `#graphql
-  fragment ProductFilterFields on ProductConnection {
-    filters {
+export const FILTER_FRAGMENT = `#graphql
+  fragment FilterFields on Filter {
+    id
+    label
+    type
+    values {
+      count
       id
       label
-      presentation
-      type
-      values {
-        count
-        id
-        label
-        input
-        swatch {
-          image {
-            id
-            alt
-            mediaContentType
-            image {
-              ...ImageFields
-            }
-          }
-        }
-        image {
-          id
-          alt
-          mediaContentType
-          image {
-            ...ImageFields
-          }
-        }
+      input
+      swatch {
+        color
       }
     }
   }

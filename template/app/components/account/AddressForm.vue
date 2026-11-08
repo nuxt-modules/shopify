@@ -26,7 +26,7 @@ const schema = customerAddressInputSchema.extend({
 
 type Schema = z.output<typeof schema>
 
-const state = reactive<Partial<Schema>>({})
+const state = reactive<Partial<z.input<typeof schema>>>({})
 
 const reset = () => {
   state.firstName = props.address?.firstName ?? undefined
@@ -36,7 +36,7 @@ const reset = () => {
   state.address2 = props.address?.address2 ?? undefined
   state.city = props.address?.city ?? undefined
   state.zip = props.address?.zip ?? undefined
-  state.territoryCode = props.address?.territoryCode ?? country.value.toUpperCase()
+  state.countryCode = props.address?.countryCode ?? country.value.toUpperCase()
   state.zoneCode = props.address?.zoneCode ?? undefined
   state.phoneNumber = props.address?.phoneNumber ?? undefined
   state.defaultAddress = props.isDefault || undefined
@@ -161,11 +161,11 @@ watch(open, value => value && reset(), { immediate: true })
         <div class="grid gap-4 sm:grid-cols-2">
           <UFormField
             :label="$t('account.addresses.fields.country')"
-            name="territoryCode"
+            name="countryCode"
             required
           >
             <USelectMenu
-              v-model="state.territoryCode"
+              v-model="state.countryCode"
               :items="countries"
               value-key="value"
               autocomplete="country"

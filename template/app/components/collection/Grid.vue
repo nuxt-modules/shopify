@@ -9,7 +9,7 @@ const first = computed(() => props.first ?? 10)
 
 const { params: localization } = useLocalization()
 
-const { data: collections } = await useStorefrontData(localizedKey('collections'), `#graphql
+const { data: collections } = await useStorefrontData(localizedKey('collections', () => String(first.value)), `#graphql
   query FetchCollections($first: Int, $language: LanguageCode, $country: CountryCode)
   @inContext(language: $language, country: $country) {
     collections(
@@ -36,7 +36,7 @@ const { data: collections } = await useStorefrontData(localizedKey('collections'
       class="mb-4"
       :title="collection.title"
       :description="collection.description"
-      :to="localePath(`/collection/${collection.handle}`)"
+      :to="localePath(`/collections/${collection.handle}`)"
       reverse
     >
       <NuxtImg

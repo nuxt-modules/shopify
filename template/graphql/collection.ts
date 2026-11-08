@@ -17,7 +17,6 @@ export const COLLECTION_FRAGMENT = `#graphql
 export const COLLECTION_CONNECTION_FRAGMENT = `#graphql
   fragment CollectionConnectionFields on CollectionConnection {
     edges {
-      cursor
       node {
         ...CollectionFields
       }

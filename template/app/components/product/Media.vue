@@ -3,6 +3,7 @@ defineProps<{
   media: MediaFieldsFragment
   title?: string
   loading?: 'eager' | 'lazy'
+  fetchpriority?: 'high' | 'low'
 }>()
 </script>
 
@@ -10,7 +11,7 @@ defineProps<{
   <iframe
     v-if="media.__typename === 'ExternalVideo'"
     :src="media.embedUrl"
-    :title="media.alt ?? title"
+    :title="media.alt || title"
     class="aspect-square w-full rounded-md bg-elevated"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
     allowfullscreen
@@ -35,7 +36,8 @@ defineProps<{
   <ProductImage
     v-else
     :image="media.__typename === 'MediaImage' ? (media.image ?? undefined) : (media.previewImage ?? undefined)"
-    :title="media.alt ?? title"
+    :title="media.alt || title"
     :loading="loading"
+    :fetchpriority="fetchpriority"
   />
 </template>

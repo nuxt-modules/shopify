@@ -1,100 +1,80 @@
 <script setup lang="ts">
-const { open, loading, quantity, lines, total, checkoutUrl } = useCart()
-const { cart } = useShopifyAnalytics()
+const open = useCartDrawer()
+const localePath = useLocalePath()
 const route = useRoute()
+
+const totalQuantity = useCart(state => state.data.totalQuantity)
+const hasLines = useCart(state => state.data.lines.nodes.length > 0)
+
+const openDrawer = (event: MouseEvent) => {
+  if (route.meta.cart) return
+
+  event.preventDefault()
+
+  open.value = true
+}
+
+onMounted(() => window.Shopify?.actions?.openCart?.configure({
+  handler: async () => {
+    open.value = true
+  },
+}))
 
 watch(() => route.path, () => open.value = false)
 </script>
 
 <template>
-  <USlideover
-    v-model:open="open"
-    :title="$t('cart.title')"
-    :description="$t('cart.description')"
-    :ui="{ description: 'sr-only', body: 'flex flex-col gap-y-6' }"
-  >
-    <div class="relative">
-      <UButton
-        icon="i-lucide-shopping-cart"
-        variant="ghost"
-        color="neutral"
-        :label="$t('cart.open')"
-        :ui="{
-          label: 'sr-only',
-          base: 'px-1.5 lg:px-2',
-        }"
-      />
+  <div class="relative">
+    <UButton
+      :to="localePath('/cart')"
+      icon="i-lucide-shopping-cart"
+      variant="ghost"
+      color="neutral"
+      :label="$t('cart.open')"
+      aria-haspopup="dialog"
+      :ui="{
+        label: 'sr-only',
+        base: 'px-1.5 lg:px-2',
+      }"
+      @click="openDrawer"
+    />
 
-      <ClientOnly>
-        <UBadge
-          v-if="quantity"
-          class="absolute font-bold rounded-full -top-1.5 -right-2 px-1.5 font-mono lg:text-xs lg:-right-3 lg:-top-2"
-          size="xs"
+    <UBadge
+      v-if="totalQuantity"
+      class="absolute font-bold rounded-full -top-1.5 -right-2 px-1.5 font-mono lg:text-xs lg:-right-3 lg:-top-2"
+      size="xs"
+    >
+      {{ totalQuantity }}
+    </UBadge>
+
+    <USlideover
+      v-model:open="open"
+      :title="$t('cart.title')"
+      :description="$t('cart.description')"
+      :ui="{ description: 'sr-only', body: 'flex flex-col' }"
+    >
+      <template #body>
+        <CartLines class="grow" />
+      </template>
+
+      <template #footer>
+        <div
+          v-if="hasLines"
+          class="flex flex-col gap-6 w-full"
         >
-          {{ quantity }}
-        </UBadge>
-      </ClientOnly>
-    </div>
+          <CartDiscounts />
 
-    <template #body>
-      <TransitionGroup
-        enter-to-class="opacity-100"
-        leave-to-class="opacity-0"
-        leave-from-class="opacity-100"
-        enter-from-class="opacity-0"
-      >
-        <CartLineItem
-          v-for="line in lines"
-          :key="line.id"
-          :line="line"
-          class="shrink-0 duration-300"
-        />
-      </TransitionGroup>
+          <CartSummary />
 
-      <p
-        v-if="lines.length === 0"
-        class="my-auto text-center"
-      >
-        {{ $t('cart.empty') }}
-      </p>
-
-      <ShopifyCartView :data="{ cart }" />
-    </template>
-
-    <template #footer>
-      <div
-        v-if="total"
-        class="flex justify-between items-center w-full"
-        :class="{
-          'animate-pulse': loading,
-        }"
-      >
-        <div class="flex items-center gap-2">
-          <p class="font-medium inline-block">
-            {{ $t('cart.subtotal') }}:
-            <ProductPrice :price="total" />
-          </p>
-
-          <Icon
-            v-if="loading"
-            name="i-lucide-loader-circle"
-            class="animate-spin"
+          <UButton
+            :to="localePath('/cart')"
+            variant="link"
+            color="neutral"
+            class="self-center"
+            :label="$t('cart.view')"
           />
         </div>
-
-        <UButton
-          variant="ghost"
-          color="neutral"
-          :to="checkoutUrl"
-          :label="$t('cart.checkout')"
-          size="xl"
-          trailing-icon="i-lucide-arrow-right"
-          :ui="{
-            trailingIcon: 'size-4',
-          }"
-          :disabled="loading || lines.length === 0"
-        />
-      </div>
-    </template>
-  </USlideover>
+      </template>
+    </USlideover>
+  </div>
 </template>

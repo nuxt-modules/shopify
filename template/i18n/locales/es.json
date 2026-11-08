@@ -14,7 +14,7 @@
     "breadcrumb": {
         "collections": "Colecciones",
         "products": "Productos",
-        "blog": "Blog"
+        "blogs": "Blogs"
     },
     "localization": {
         "title": "País e idioma",
@@ -29,19 +29,26 @@
         "subtotal": "Subtotal",
         "checkout": "Finalizar compra",
         "open": "Abrir carrito",
-        "toast": {
-            "add": "Artículo añadido al carrito.",
-            "update": "Carrito actualizado.",
-            "remove": "Artículo eliminado del carrito.",
-            "view": "Ver carrito",
-            "error": {
-                "init": "No se pudo inicializar el carrito.",
-                "get": "No se pudo recuperar el carrito.",
-                "add": "No se pudo añadir el artículo al carrito.",
-                "update": "No se pudo actualizar el artículo del carrito.",
-                "remove": "No se pudo eliminar el artículo del carrito.",
-                "tryAgain": "Inténtalo de nuevo."
-            }
+        "increase": "Aumentar cantidad",
+        "decrease": "Reducir cantidad",
+        "remove": "Eliminar artículo",
+        "error": "No se pudo actualizar tu carrito.",
+        "continue": "Seguir comprando",
+        "total": "Total",
+        "taxes": "Los impuestos y el envío se calculan al finalizar la compra.",
+        "view": "Ver carrito",
+        "discount": {
+            "label": "Código de descuento",
+            "placeholder": "Código de descuento",
+            "apply": "Aplicar",
+            "remove": "Eliminar el código de descuento {code}",
+            "applied": "Aplicado",
+            "notApplicable": "No aplicable a tu carrito"
+        },
+        "note": {
+            "label": "Nota del pedido",
+            "placeholder": "Añade una nota a tu pedido",
+            "save": "Guardar nota"
         }
     },
     "search": {
@@ -51,7 +58,13 @@
         "queries": "Buscar",
         "products": "Productos",
         "collections": "Colecciones",
-        "articles": "Artículos"
+        "articles": "Artículos",
+        "error": "No se pudieron cargar los resultados de búsqueda.",
+        "all": "Todos los resultados para «{term}»",
+        "results": "Resultados para «{term}»",
+        "submit": "Buscar",
+        "count": "Ningún resultado para «{term}» | 1 resultado para «{term}» | {count} resultados para «{term}»",
+        "prompt": "Introduce un término de búsqueda para encontrar productos."
     },
     "account": {
         "label": "Cuenta",
@@ -59,7 +72,6 @@
         "greeting": "Bienvenido de nuevo, {name}",
         "welcome": "Bienvenido a tu cuenta",
         "logout": "Cerrar sesión",
-        "subscribeNewsletter": "Quiero recibir novedades y ofertas por correo",
         "menu": {
             "title": "Tu cuenta de usuario",
             "profile": "Perfil",
@@ -68,7 +80,6 @@
         },
         "signIn": {
             "title": "Inicia sesión o crea una cuenta",
-            "description": "Accede a tu perfil, sigue tus pedidos y gestiona tus datos.",
             "action": "Iniciar sesión"
         },
         "profile": {
@@ -90,9 +101,6 @@
         },
         "orders": {
             "title": "Pedidos",
-            "page": {
-                "title": "Resumen de tus pedidos"
-            },
             "empty": "Todavía no has realizado ningún pedido.",
             "browse": "Empezar a comprar",
             "view": "Ver pedido",
@@ -107,7 +115,6 @@
                 "VOIDED": "Anulado",
                 "EXPIRED": "Caducado"
             },
-            "viewAll": "Ver todos los pedidos",
             "notFound": "No se ha encontrado este pedido.",
             "detail": {
                 "placed": "Realizado el {date}",
@@ -134,15 +141,16 @@
                 "RESTOCKED": "Devuelto al stock",
                 "SCHEDULED": "Programado",
                 "UNFULFILLED": "Sin enviar"
-            }
+            },
+            "back": "Volver a los pedidos"
         },
         "toast": {
             "error": {
                 "get": "No se pudo cargar tu cuenta.",
+                "login": "No se pudo iniciar sesión.",
                 "tryAgain": "Inténtalo de nuevo."
             }
         },
-        "recommended": "También te puede gustar",
         "cancel": "Cancelar",
         "addresses": {
             "title": "Libreta de direcciones",
@@ -190,14 +198,17 @@
     "product": {
         "add": "Añadir",
         "choose": "Elegir",
+        "selectOptions": "Selecciona opciones",
         "quantity": "Cantidad",
         "options": {
             "title": "Elegir opciones",
             "description": "Selecciona las opciones que quieres añadir al carrito."
         },
         "view": "Ver producto",
+        "thumbnail": "Miniatura de {title}",
         "recommendations": "También te puede gustar",
         "soldOut": "Agotado",
+        "unavailable": "No disponible",
         "giftCard": "Tarjeta regalo",
         "subscription": "Suscripción disponible",
         "priceFrom": "Desde {price}",
@@ -206,11 +217,14 @@
     },
     "collection": {
         "products": {
-            "loading": "Cargando productos...",
             "notFound": "No se han encontrado productos."
         },
         "all": "Todas las colecciones",
-        "description": "Explora todas las colecciones de la tienda."
+        "description": "Explora todas las colecciones de la tienda.",
+        "allProducts": {
+            "title": "Todos los productos",
+            "description": "Explora todos los productos de la tienda."
+        }
     },
     "policies": {
         "title": "Políticas",
@@ -219,16 +233,28 @@
     },
     "filters": {
         "title": "Filtros",
-        "clear": "Borrar filtros"
+        "clear": "Borrar filtros",
+        "apply": "Aplicar",
+        "active": "Filtro",
+        "remove": "Quitar filtro: {filter}",
+        "price": {
+            "minimum": "Precio mínimo en {currency}",
+            "maximum": "Precio máximo en {currency}",
+            "range": "{min} – {max}",
+            "from": "Desde {min}",
+            "upTo": "Hasta {max}"
+        }
     },
     "home": {
         "title": "Nuxt Shopify Demo Store",
+        "label": "Inicio",
         "description": "Esta es una tienda de demostración creada con Nuxt 4 y la Storefront API de Shopify. Muestra cómo crear un storefront de comercio electrónico totalmente funcional con Nuxt UI.",
         "products": {
             "newest": "Productos más nuevos",
             "bestsellers": "Más vendidos"
         }
     },
+    "logo": "Logotipo de la tienda Nuxt Shopify",
     "seo": {
         "description": "¡Bienvenido a nuestra tienda de demostración! Explora nuestras colecciones y encuentra los artículos perfectos para ti. Disfruta de una experiencia de compra fluida con Nuxt y Shopify."
     },
@@ -241,5 +267,22 @@
         "article": "Artículo no encontrado",
         "page": "Página no encontrada",
         "policy": "Política no encontrada"
+    },
+    "blogs": {
+        "title": "Blogs",
+        "description": "Historias y novedades de nuestra tienda.",
+        "empty": "Todavía no se ha publicado ningún blog."
+    },
+    "sort": {
+        "label": "Ordenar por",
+        "featured": "Destacados",
+        "bestSelling": "Más vendidos",
+        "relevance": "Relevancia",
+        "titleAscending": "Alfabéticamente, A–Z",
+        "titleDescending": "Alfabéticamente, Z–A",
+        "priceAscending": "Precio, de menor a mayor",
+        "priceDescending": "Precio, de mayor a menor",
+        "createdAscending": "Fecha, de más antiguo a más reciente",
+        "createdDescending": "Fecha, de más reciente a más antiguo"
     }
 }

@@ -1,5 +1,7 @@
 import type { Locale } from '#i18n'
 
+import { parseURL } from 'ufo'
+
 type Split<S extends string, D extends string>
   = string extends S ? string[]
     : S extends '' ? []
@@ -31,7 +33,7 @@ export const useLocalization = () => {
   }
 }
 
-export const useLocalizations = async () => {
+const useLocalizations = async () => {
   const { params } = useLocalization()
 
   const { data: localization } = await useStorefrontData(localizedKey('localizations'), `#graphql
@@ -61,7 +63,9 @@ export const useLocalizations = async () => {
 export const useLocaleSelect = async () => {
   const { getLanguage, getCountry } = useLocalization()
   const switchLocalePath = useSwitchLocalePath()
-  const { locale, locales } = useI18n()
+  const { locale, locales, setLocaleCookie } = useI18n()
+  const cartId = useCart(state => state.data.id)
+  const storefront = useStorefront()
 
   const localization = await useLocalizations()
 
@@ -106,7 +110,35 @@ export const useLocaleSelect = async () => {
     return [...seen.values()]
   })
 
-  const select = async (locale: Locale) => await navigateTo(switchLocalePath(locale))
+  const select = async (locale: Locale) => {
+    setLocaleCookie(locale)
+
+    if (cartId.value) {
+      await storefront.request(`#graphql
+        mutation UpdateCartCountry($cartId: ID!, $countryCode: CountryCode!) {
+          cartBuyerIdentityUpdate(cartId: $cartId, buyerIdentity: { countryCode: $countryCode }) {
+            cart {
+              id
+            }
+          }
+        }
+      `, {
+        variables: {
+          cartId: cartId.value,
+          countryCode: localizationParamsSchema.shape.country.parse(getCountry(locale)),
+        },
+      }).catch(() => undefined)
+    }
+
+    const { pathname, search, hash } = parseURL(switchLocalePath(locale))
+    const params = new URLSearchParams(search)
+
+    for (const key of [...params.keys()]) {
+      if (key.startsWith('filter.') || key === 'after' || key === 'before') params.delete(key)
+    }
+
+    await navigateTo(`${pathname}${params.size ? `?${params}` : ''}${hash}`, { external: true })
+  }
 
   return {
     countries,
@@ -116,27 +148,7 @@ export const useLocaleSelect = async () => {
 }
 
 export const useCountries = async () => {
-  const { language, country } = useLocalization()
-  const { locale } = useI18n()
-
-  const { data: localization } = await useStorefrontData(`countries-${locale.value}`, `#graphql
-    query AvailableCountries($language: LanguageCode, $country: CountryCode)
-    @inContext(language: $language, country: $country) {
-      localization {
-        availableCountries {
-          isoCode
-          name
-        }
-      }
-    }
-  `, {
-    variables: localizationParamsSchema.parse({
-      language: language.value,
-      country: country.value,
-    }),
-    transform: data => data?.localization,
-    cache: 'long',
-  })
+  const localization = await useLocalizations()
 
   return computed(() => (localization.value?.availableCountries ?? [])
     .map(({ isoCode, name }) => ({ label: name, value: String(isoCode) }))

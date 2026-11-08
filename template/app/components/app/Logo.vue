@@ -24,8 +24,9 @@ const { data: logo } = await useStorefrontData('logo', `#graphql
     class="flex items-center gap-1 mr-4 shrink-0 font-bold"
   >
     <NuxtImg
-      :src="logo?.url"
-      :alt="logo?.altText || 'Nuxt Shopify Store Logo'"
+      v-if="logo"
+      :src="logo.url"
+      :alt="logo?.altText || $t('logo')"
       provider="shopify"
       class="h-7 w-auto mb-0.5"
       width="50"
