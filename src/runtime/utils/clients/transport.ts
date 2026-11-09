@@ -16,12 +16,14 @@ import { createConsola } from 'consola'
 
 import { MODULE_VERSION } from '../version'
 import { normalizeOperation } from '../graphql/normalize'
+import { REQUEST_TIMEOUT_MS } from './defaults'
 
 export const SERVER_CACHE_HEADER = 'X-Shopify-Server-Cache'
 export const PRIVATE_TOKEN_HEADER = 'Shopify-Storefront-Private-Token'
 export const PUBLIC_TOKEN_HEADER = 'X-Shopify-Storefront-Access-Token'
 export const ADMIN_TOKEN_HEADER = 'X-Shopify-Access-Token'
 export const BUYER_IP_HEADER = 'Shopify-Storefront-Buyer-IP'
+export const STOREFRONT_ID_HEADER = 'Shopify-Storefront-Id'
 const SDK_VARIANT_HEADER = 'X-SDK-Variant'
 const SDK_VERSION_HEADER = 'X-SDK-Version'
 
@@ -78,6 +80,16 @@ export function createTransport<Operations extends AllOperations = AllOperations
     },
   } satisfies ShopifyApiClientConfig
 
+  const fetchApi: CustomFetchApi = transportOptions.fetch ?? ((url, init) => globalThis.fetch(url, init))
+
+  const customFetchApi: CustomFetchApi | undefined = import.meta.client
+    ? transportOptions.fetch
+    : (url, init) => {
+        const deadline = AbortSignal.timeout(REQUEST_TIMEOUT_MS)
+
+        return fetchApi(url, { ...init, signal: init?.signal ? AbortSignal.any([init.signal, deadline]) : deadline })
+      }
+
   const graphqlClient = createGraphQLClient({
     url: apiUrl,
     headers: clientConfig.headers,
@@ -85,7 +97,7 @@ export function createTransport<Operations extends AllOperations = AllOperations
     logger: trace
       ? ({ type, content }) => trace({ type, content: 'requestParams' in content ? { ...content, requestParams: [content.requestParams[0]] } : content })
       : undefined,
-    ...(transportOptions.fetch ? { customFetchApi: transportOptions.fetch } : {}),
+    ...(customFetchApi ? { customFetchApi } : {}),
   })
 
   const getHeaders: ShopifyApiClient<Operations>['getHeaders'] = customHeaders =>

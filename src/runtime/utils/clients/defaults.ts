@@ -8,6 +8,8 @@ export const MAX_RETRIES = 3
 
 export const DEFAULT_THROW_ERRORS = true
 
+export const REQUEST_TIMEOUT_MS = 30_000
+
 export const DEFAULT_API_VERSION = CUSTOMER_ACCOUNT_API_VERSION
 
 const API_VERSION_PATTERN = /^(?:unstable|2\d{3}-\d{2})$/

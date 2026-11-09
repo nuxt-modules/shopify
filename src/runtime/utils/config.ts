@@ -155,7 +155,9 @@ const customerAccountSessionSchema = z.object({
   password: z.string().optional(),
   maxAge: z.number().optional(),
   cookie: z.object({
-    sameSite: z.enum(['lax', 'strict', 'none']).optional(),
+    sameSite: z.enum(['lax', 'none'], {
+      error: 'Expected "lax" or "none": with "strict", sign-in fails, because the browser doesn\'t send the cookie when Shopify sends the customer back',
+    }).optional(),
   }).optional(),
 })
 

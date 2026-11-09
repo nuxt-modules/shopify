@@ -14,6 +14,7 @@ import {
   BUYER_IP_HEADER,
   PRIVATE_TOKEN_HEADER,
   PUBLIC_TOKEN_HEADER,
+  STOREFRONT_ID_HEADER,
   createTransport,
   withApiVersion,
 } from '#src/runtime/utils/clients/transport'
@@ -225,6 +226,10 @@ describe('client-level apiVersion option', () => {
 })
 
 describe('client config resolution', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
   it('sends the private token in preference to the public one', () => {
     const config = createStorefrontConfig({
       name: 'shop',
@@ -233,6 +238,38 @@ describe('client config resolution', () => {
 
     expect(config.headers).toMatchObject({ [PRIVATE_TOKEN_HEADER]: 'private' })
     expect(config.headers).not.toHaveProperty(PUBLIC_TOKEN_HEADER)
+  })
+
+  it('tells Shopify which storefront a server request belongs to, as Hydrogen\'s client does', () => {
+    const config = createStorefrontConfig({
+      name: 'shop',
+      storefrontId: '1000000001',
+      clients: { storefront: { apiVersion: API_VERSION, privateAccessToken: 'private', retries: 0 } },
+    } as never)
+
+    expect(config.headers).toMatchObject({ [STOREFRONT_ID_HEADER]: '1000000001' })
+  })
+
+  it('leaves the storefront ID of browser requests to Hydrogen\'s proxy', () => {
+    vi.stubGlobal('__NUXT_CLIENT__', true)
+
+    const config = createStorefrontConfig({
+      name: 'shop',
+      storefrontId: '1000000001',
+      clients: { storefront: { apiVersion: API_VERSION, publicAccessToken: 'public', retries: 0 } },
+    } as never)
+
+    expect(config.headers).not.toHaveProperty(STOREFRONT_ID_HEADER)
+  })
+
+  it('does not send the storefront ID to mock.shop', () => {
+    const config = createStorefrontConfig({
+      name: 'shop',
+      storefrontId: '1000000001',
+      clients: { storefront: { apiVersion: API_VERSION, mock: true, retries: 0 } },
+    } as never)
+
+    expect(config.headers).not.toHaveProperty(STOREFRONT_ID_HEADER)
   })
 
   it('builds the customer account API URL from the shop ID and the configured version, as Hydrogen does', () => {
@@ -397,5 +434,64 @@ describe('buyer ip header', () => {
 
       expect(client.config.headers).not.toHaveProperty(BUYER_IP_HEADER)
     })
+  })
+})
+
+describe('request timeout', () => {
+  afterEach(() => {
+    vi.restoreAllMocks()
+    vi.unstubAllGlobals()
+  })
+
+  function stubHangingShopify() {
+    const fetchMock = vi.fn((_url: string, init?: RequestInit) => new Promise<Response>((_resolve, reject) => {
+      if (init?.signal?.aborted) reject(init.signal.reason)
+
+      init?.signal?.addEventListener('abort', () => reject(init.signal!.reason))
+    }))
+
+    vi.stubGlobal('fetch', fetchMock)
+
+    return fetchMock
+  }
+
+  it('gives up on a request Shopify never answers after Hydrogen\'s 30 seconds', async () => {
+    const deadline = new AbortController()
+    const timeout = vi.spyOn(AbortSignal, 'timeout').mockReturnValue(deadline.signal)
+
+    stubHangingShopify()
+
+    const pending = createStorefrontApiClient(storefront, { throwOnErrors: false }).request('query Shop { shop { name } }')
+
+    deadline.abort(new DOMException('The operation was aborted due to timeout', 'TimeoutError'))
+
+    const { errors } = await pending
+
+    expect(timeout).toHaveBeenCalledWith(30_000)
+    expect(errors).toBeDefined()
+  })
+
+  it('still stops when the caller aborts before the deadline', async () => {
+    stubHangingShopify()
+
+    const caller = new AbortController()
+
+    const pending = createStorefrontApiClient(storefront, { throwOnErrors: false }).request('query Shop { shop { name } }', { signal: caller.signal })
+
+    caller.abort()
+
+    await expect(pending).resolves.toBeDefined()
+  })
+
+  it('leaves the requests of the browser to the browser', async () => {
+    vi.stubGlobal('__NUXT_CLIENT__', true)
+
+    const timeout = vi.spyOn(AbortSignal, 'timeout')
+
+    vi.stubGlobal('fetch', vi.fn(async () => Response.json({ data: { shop: { name: 'Shop' } } })))
+
+    await createStorefrontApiClient(storefront, { throwOnErrors: false }).request('query Shop { shop { name } }')
+
+    expect(timeout).not.toHaveBeenCalled()
   })
 })

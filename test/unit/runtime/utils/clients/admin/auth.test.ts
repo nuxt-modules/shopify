@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest'
 
 import { getAdminAccessToken } from '#src/runtime/utils/clients/admin/auth'
 
@@ -9,6 +9,10 @@ vi.mock('nitropack/runtime', async () => {
 
   return { useStorage: () => storage }
 })
+
+const { warnUnmountedStorage } = vi.hoisted(() => ({ warnUnmountedStorage: vi.fn() }))
+
+vi.mock('#src/runtime/utils/storage', () => ({ warnUnmountedStorage }))
 
 const credentials = { clientId: 'client-id', clientSecret: 'client-secret' }
 
@@ -183,6 +187,44 @@ describe('admin access token failures', () => {
       expect.objectContaining({ type: 'error', args: [expect.stringContaining(`Failed to obtain an Admin API access token: ${detail}`)] }),
       expect.anything(),
     )
+  })
+
+  it('gives up on a token endpoint that never answers after Hydrogen\'s 30 seconds, instead of stalling every admin request', async () => {
+    const deadline = new AbortController()
+    const timeout = vi.spyOn(AbortSignal, 'timeout').mockReturnValue(deadline.signal)
+
+    onTestFinished(() => timeout.mockRestore())
+
+    vi.stubGlobal('fetch', vi.fn((_url: string, init?: RequestInit) => new Promise<Response>((_resolve, reject) => {
+      if (init?.signal?.aborted) reject(init.signal.reason)
+
+      init?.signal?.addEventListener('abort', () => reject(init.signal!.reason))
+    })))
+
+    const pending = getAdminAccessToken('slow-shop', credentials as never)
+
+    deadline.abort(new DOMException('The operation was aborted due to timeout', 'TimeoutError'))
+
+    await expect(pending).rejects.toMatchObject({ statusCode: 502 })
+    expect(timeout).toHaveBeenCalledWith(30_000)
+  })
+
+  it('warns when nothing is mounted at the configured token storage, as the tokens then end up in Nitro\'s memory', async () => {
+    const logger = { reporters: [{ log: vi.fn() }] }
+
+    stubTokenEndpoint()
+
+    await getAdminAccessToken('shop', { ...credentials, tokenStorage: 'missing-admin-tokens' } as never, { storage: true, logger })
+
+    expect(warnUnmountedStorage).toHaveBeenCalledWith(expect.anything(), 'missing-admin-tokens', logger)
+  })
+
+  it('checks the default token storage mount as well', async () => {
+    stubTokenEndpoint()
+
+    await getAdminAccessToken('default-mount-shop', credentials as never, { storage: true })
+
+    expect(warnUnmountedStorage).toHaveBeenCalledWith(expect.anything(), 'admin-token', undefined)
   })
 
   it('reports a bad gateway when the token response carries no access token', async () => {

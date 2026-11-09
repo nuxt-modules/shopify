@@ -7,6 +7,8 @@ import { useStorage } from 'nitropack/runtime'
 
 import { useRuntimeConfig } from '#imports'
 import { MUTATION } from '../../../utils/clients/cache'
+import { REQUEST_TIMEOUT_MS } from '../../../utils/clients/defaults'
+import { warnUnmountedStorage } from '../../../utils/storage'
 import {
   BUYER_IP_HEADER,
   PRIVATE_TOKEN_HEADER,
@@ -23,9 +25,14 @@ function hasData(body: unknown): boolean {
 }
 
 export function createStorefrontServerCache(event: H3Event): CustomFetchApi {
-  const cacheConfig = useRuntimeConfig(event)._shopify?.clients.storefront?.cache || undefined
+  const { _shopify } = useRuntimeConfig(event)
 
-  const storage = useStorage(typeof cacheConfig?.server === 'string' ? cacheConfig.server : DEFAULT_SERVER_CACHE_BASE)
+  const cacheConfig = _shopify?.clients.storefront?.cache || undefined
+
+  const base = typeof cacheConfig?.server === 'string' ? cacheConfig.server : DEFAULT_SERVER_CACHE_BASE
+  const storage = useStorage(base)
+
+  warnUnmountedStorage(storage, base, _shopify?.logger)
 
   const fetchWithCache = createFetchWithCache({
     cache: {
@@ -52,6 +59,7 @@ export function createStorefrontServerCache(event: H3Event): CustomFetchApi {
       key: ['storefront-api', url, init.body, preset, headers.get(PUBLIC_TOKEN_HEADER), headers.get(PRIVATE_TOKEN_HEADER)],
       strategy: Cache(options),
       shouldCacheResponse: async ({ json }) => hasData(await json?.().catch(() => undefined)),
+      backgroundSignal: () => AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     })
   }
 }

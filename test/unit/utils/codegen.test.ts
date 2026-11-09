@@ -71,7 +71,7 @@ const succeeds = () => Promise.resolve([{ content: '{"__schema":{}}' }])
 const fails = () => Promise.reject(new Error('Failed to load schema from https://mock.shop/api:\nconnect ETIMEDOUT 23.227.38.74:443'))
 const invalid = () => Promise.reject(new Error('Type Shop must define one or more fields.'))
 
-const MOCK_API_SCHEMA = [{ [`https://mock.shop/api/${API_VERSION}/graphql.json`]: { headers: {} } }]
+const MOCK_API_SCHEMA = [{ [`https://mock.shop/api/${API_VERSION}/graphql.json`]: { headers: {}, timeout: 30_000 } }]
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -105,6 +105,12 @@ describe('introspection source', () => {
     expect(schemaOfCall(0)).toEqual(MOCK_API_SCHEMA)
   })
 
+  it('gives up on an introspection request that Shopify hasn\'t answered after 30 seconds, like the runtime clients', async () => {
+    await introspect(pathFor('missing.json'))
+
+    expect(schemaOfCall(0)).toEqual([{ [`https://mock.shop/api/${API_VERSION}/graphql.json`]: expect.objectContaining({ timeout: 30_000 }) }])
+  })
+
   it('asks the storefront api like the runtime client does, so custom headers win over the token', async () => {
     await createIntrospectionGenerator({
       filename: FILENAME,
@@ -114,7 +120,7 @@ describe('introspection source', () => {
     } as never, pathFor('missing.json')).getContents({ nuxt })
 
     expect(schemaOfCall(0)).toEqual([{
-      [`https://test-shop.myshopify.com/api/${API_VERSION}/graphql.json`]: { headers: { 'X-Shopify-Storefront-Access-Token': 'custom', 'X-Custom': '1' } },
+      [`https://test-shop.myshopify.com/api/${API_VERSION}/graphql.json`]: { headers: { 'X-Shopify-Storefront-Access-Token': 'custom', 'X-Custom': '1' }, timeout: 30_000 },
     }])
   })
 
@@ -127,7 +133,7 @@ describe('introspection source', () => {
     } as never, pathFor('missing.json')).getContents({ nuxt })
 
     expect(schemaOfCall(0)).toEqual([{
-      [`https://test-shop.myshopify.com/admin/api/${API_VERSION}/graphql.json`]: { headers: { 'X-Shopify-Access-Token': 'shpat_test', 'X-Custom': '1' } },
+      [`https://test-shop.myshopify.com/admin/api/${API_VERSION}/graphql.json`]: { headers: { 'X-Shopify-Access-Token': 'shpat_test', 'X-Custom': '1' }, timeout: 30_000 },
     }])
   })
 

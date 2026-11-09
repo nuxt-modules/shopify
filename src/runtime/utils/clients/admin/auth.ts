@@ -6,6 +6,8 @@ import type { ModuleOptions, ShopifyAdminTokenSet, ShopifyAdminAuthCallbacks } f
 import { createError } from 'h3'
 import { createStorage } from 'unstorage'
 
+import { warnUnmountedStorage } from '../../storage'
+import { REQUEST_TIMEOUT_MS } from '../defaults'
 import { createUpstreamError } from '../errors'
 import { createStoreDomain } from '../transport'
 
@@ -22,13 +24,19 @@ const pendingAccessTokenRequests = new Map<string, Promise<ShopifyAdminTokenSet>
 
 let memoryStorage: Storage<ShopifyAdminTokenSet> | undefined
 
-async function getTokenStorage(config: AdminConfig) {
+async function getTokenStorage(config: AdminConfig, logger?: Partial<ConsolaOptions>) {
   const storageBase = typeof config.tokenStorage === 'string'
     ? config.tokenStorage
     : 'admin-token'
 
   return await import('nitropack/runtime')
-    .then(({ useStorage }) => useStorage<ShopifyAdminTokenSet>(storageBase))
+    .then(({ useStorage }) => {
+      const storage = useStorage<ShopifyAdminTokenSet>(storageBase)
+
+      warnUnmountedStorage(storage, storageBase, logger)
+
+      return storage
+    })
     .catch(() => memoryStorage ??= createStorage<ShopifyAdminTokenSet>())
 }
 
@@ -56,6 +64,7 @@ async function fetchAccessToken(
       'Accept': 'application/json',
     },
     body: new URLSearchParams(params),
+    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
   }).catch(rejectUpstream)
 
   if (!response.ok) {
@@ -115,7 +124,7 @@ export async function getAdminAccessToken(
 
   const tokenKey = `${shopName}:${clientId}`
 
-  let storedToken = store ? await getTokenStorage(config).then(storage => storage?.getItem(tokenKey)) : undefined
+  let storedToken = store ? await getTokenStorage(config, logger).then(storage => storage?.getItem(tokenKey)) : undefined
 
   if (!storedToken && accessToken) {
     storedToken = {
@@ -159,7 +168,7 @@ export async function getAdminAccessToken(
         const newToken = await fetchAccessToken(storeDomain, params, logger)
 
         if (store) {
-          await getTokenStorage(config).then(storage => storage?.setItem(tokenKey, newToken))
+          await getTokenStorage(config, logger).then(storage => storage?.setItem(tokenKey, newToken))
         }
 
         await onAuthToken?.({ token: newToken, refresh: isRefresh })

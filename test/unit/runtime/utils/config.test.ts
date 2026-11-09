@@ -317,12 +317,17 @@ describe('customer account session cookie', () => {
   it('only takes `sameSite`, since a `__Host-` cookie needs `Secure`, the root path and no domain', () => {
     const session = configObjectSchema.parse({
       name: 'shop',
-      clients: { customerAccount: { clientId: 'cid', session: { cookie: { domain: 'shop.example.com', path: '/account', secure: false, sameSite: 'strict' } } } },
+      clients: { customerAccount: { clientId: 'cid', session: { cookie: { domain: 'shop.example.com', path: '/account', secure: false, sameSite: 'none' } } } },
     }).clients.customerAccount?.session
 
-    expect(session?.cookie).toStrictEqual({ sameSite: 'strict' })
+    expect(session?.cookie).toStrictEqual({ sameSite: 'none' })
     expectTypeOf<keyof NonNullable<NonNullable<NonNullable<NonNullable<z.input<typeof configObjectSchema>['clients']>['customerAccount']>['session']>['cookie']>>()
       .toEqualTypeOf<'sameSite'>()
+  })
+
+  it('refuses `strict`, because the browser then drops the cookie when Shopify sends the customer back and sign-in fails', () => {
+    expect(issues({ name: 'shop', clients: { customerAccount: { clientId: 'cid', session: { cookie: { sameSite: 'strict' } } } } }))
+      .toContain('sign-in fails')
   })
 })
 

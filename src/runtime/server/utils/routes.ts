@@ -30,10 +30,12 @@ import { pickShopifyCookies } from '../../utils/cookies'
 
 const SHOPIFY_API_PROXY = /^\/__shopify(?:\/|$)/
 
+const AJAX_CART_ENDPOINT = /^(?:\/[a-z]{2}(?:-[a-z]{2})?)?\/cart(?:\.(?:js|json)|\/(?:add|update|change|clear)(?:\.(?:js|json))?)$/i
+
 const SHOPIFY_ENDPOINTS = [
   /^\/api\/(?:unstable|2\d{3}-\d{2})\/graphql\.json$/,
   /^\/__shopify\/api\/collect$/,
-  /^(?:\/[a-z]{2}(?:-[a-z]{2})?)?\/cart(?:\.(?:js|json)|\/(?:add|update|change|clear)(?:\.(?:js|json))?)$/i,
+  AJAX_CART_ENDPOINT,
   /^\/checkout$/,
   /^\/cart\/\d+:\d+(?:,\d+:\d+)*$/,
   /^\/buy\/(?:[\w.-]+|~[\w-]+):[1-9]\d*(?:,(?:[\w.-]+|~[\w-]+):[1-9]\d*)*$/,
@@ -77,6 +79,10 @@ export function isCustomerAccountEndpoint(pathname: string): boolean {
 
 export function isCartEndpoint(pathname: string): boolean {
   return pathname === CART_PATH
+}
+
+export function isAjaxCartEndpoint(pathname: string): boolean {
+  return AJAX_CART_ENDPOINT.test(pathname)
 }
 
 export function isShopifyApiProxyPath(pathname: string): boolean {
@@ -192,7 +198,7 @@ function hasBuyerIp(requestContext: ShopifyRequestContext): requestContext is Sh
 export function createHydrogenStorefrontClient(requestContext: ShopifyRequestContext, { name, storefrontId, clients: { storefront } }: ShopifyConfig): StorefrontClient {
   const config = {
     storeDomain: storefront?.mock ? MOCK_STORE_DOMAIN : createStoreDomain(name),
-    storefrontId: storefrontId || undefined,
+    storefrontId: storefront?.mock ? undefined : storefrontId || undefined,
     apiVersion: storefront?.apiVersion,
   }
 

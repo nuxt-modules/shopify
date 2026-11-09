@@ -20,6 +20,7 @@ import {
   createHydrogenStorefrontClient,
   getShopifyRedirect,
   getShopifyRequestContext,
+  isAjaxCartEndpoint,
   isCartEndpoint,
   isCustomerAccountEndpoint,
   isShopifyApiProxyPath,
@@ -153,7 +154,7 @@ export default defineEventHandler(async (event) => {
 
   if (isShopifyApiProxyPath(pathname) && (!shopifyEndpoint || event.method !== 'POST')) return
 
-  if (isCartEndpoint(pathname) && event.method !== 'GET' && event.method !== 'HEAD') assertSameSite(event)
+  if ((isCartEndpoint(pathname) || isAjaxCartEndpoint(pathname)) && event.method !== 'GET' && event.method !== 'HEAD') assertSameSite(event)
 
   const requestContext = shopifyEndpoint
     ? await getShopifyRequestContext(event)

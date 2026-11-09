@@ -31,6 +31,10 @@ vi.mock('nitropack/runtime', () => ({
   getRouteRules: (event: { context: { _nitro?: { routeRules?: object } } }) => event.context._nitro?.routeRules ?? {},
 }))
 
+const { warnUnmountedStorage } = vi.hoisted(() => ({ warnUnmountedStorage: vi.fn() }))
+
+vi.mock('#src/runtime/utils/storage', () => ({ warnUnmountedStorage }))
+
 const {
   clearCustomerAccountSession,
   createCustomerSessionManager,
@@ -102,10 +106,10 @@ describe('getSessionConfig', () => {
   })
 
   it('keeps the cookie http-only even when the config turns it off', () => {
-    configure({ session: { password: SESSION_PASSWORD, cookie: { httpOnly: false, sameSite: 'strict' } } })
+    configure({ session: { password: SESSION_PASSWORD, cookie: { httpOnly: false, sameSite: 'none' } } })
 
     expect(getSessionConfig(runtimeConfig._shopify as never).cookie).toMatchObject({
-      sameSite: 'strict',
+      sameSite: 'none',
       httpOnly: true,
     })
   })
@@ -380,12 +384,21 @@ describe('token storage', () => {
     expect(useTokenStorage('customer-account-token').items.size).toBe(1)
   })
 
+  it('checks the default token storage mount as well, as token storage switched on only at runtime has nothing mounted there', async () => {
+    configure({ tokenStorage: true })
+
+    await signIn()
+
+    expect(warnUnmountedStorage).toHaveBeenCalledWith(storages.get('customer-account-token'), 'customer-account-token', undefined)
+  })
+
   it('uses a custom token storage mount when one is named', async () => {
     configure({ tokenStorage: 'redis-tokens' })
 
     await signIn()
 
     expect(storages.has('redis-tokens')).toBe(true)
+    expect(warnUnmountedStorage).toHaveBeenCalledWith(storages.get('redis-tokens'), 'redis-tokens', undefined)
   })
 
   it('deletes the stored session when Hydrogen removes it', async () => {

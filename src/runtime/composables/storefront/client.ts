@@ -12,7 +12,9 @@ import { createStorefrontApiClient } from '../../utils/clients/storefront'
  * @returns a Storefront API client instance
  */
 export function useStorefront(event?: H3Event): StorefrontApiClient<true> {
-  const { public: { _shopify } } = useRuntimeConfig()
+  const runtimeConfig = useRuntimeConfig()
+
+  const _shopify = import.meta.server ? runtimeConfig._shopify : runtimeConfig.public._shopify
 
   const nuxtApp = useNuxtApp()
 

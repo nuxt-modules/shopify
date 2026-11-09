@@ -11,6 +11,7 @@ import { hash } from 'ohash'
 import { useRuntimeConfig } from '#imports'
 
 import { DEFAULT_SESSION_NAME, SESSION_PASSWORD_ENV, SESSION_PASSWORD_MIN_LENGTH, isUsableSessionPassword } from '../../../utils/session'
+import { warnUnmountedStorage } from '../../../utils/storage'
 import { getPublicRequestURL, getShopifyRequestContext } from '../routes'
 
 const HYDROGEN_SESSION_KEY = 'customerAccount'
@@ -112,7 +113,12 @@ function getTokenStorage(config?: ShopifyConfig) {
 
   if (!tokenStorage) return undefined
 
-  return useStorage(typeof tokenStorage === 'string' ? tokenStorage : DEFAULT_TOKEN_STORAGE)
+  const base = typeof tokenStorage === 'string' ? tokenStorage : DEFAULT_TOKEN_STORAGE
+  const storage = useStorage(base)
+
+  warnUnmountedStorage(storage, base, config?.logger)
+
+  return storage
 }
 
 function getTokenStorageOptions(config?: ShopifyConfig) {

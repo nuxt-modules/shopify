@@ -18,7 +18,7 @@ import { useLogger } from './log'
 import { resolveInstalledPath } from './install'
 import { createAdminConfig } from '../runtime/utils/clients/admin'
 import { getAdminAccessToken } from '../runtime/utils/clients/admin/auth'
-import { DEFAULT_API_VERSION } from '../runtime/utils/clients/defaults'
+import { DEFAULT_API_VERSION, REQUEST_TIMEOUT_MS } from '../runtime/utils/clients/defaults'
 import { createStorefrontConfig } from '../runtime/utils/clients/storefront'
 import { ADMIN_TOKEN_HEADER } from '../runtime/utils/clients/transport'
 
@@ -278,13 +278,13 @@ async function getIntrospectionSource(options: ShopifyTemplateOptions) {
   if (clientType === ShopifyClientType.Storefront) {
     const { apiUrl, headers } = createStorefrontConfig({ name: shopName, clients: { storefront: clientConfig as NonNullable<ShopifyConfig['clients']['storefront']> } })
 
-    return [{ [apiUrl]: { headers: headers as Record<string, string> } }]
+    return [{ [apiUrl]: { headers: headers as Record<string, string>, timeout: REQUEST_TIMEOUT_MS } }]
   }
 
   const adminConfig = clientConfig as NonNullable<ShopifyConfig['clients']['admin']>
   const { apiUrl, headers } = createAdminConfig({ name: shopName, clients: { admin: adminConfig } })
 
-  return [{ [apiUrl]: { headers: { ...headers as Record<string, string>, [ADMIN_TOKEN_HEADER]: await getAdminAccessToken(shopName, adminConfig) } } }]
+  return [{ [apiUrl]: { headers: { ...headers as Record<string, string>, [ADMIN_TOKEN_HEADER]: await getAdminAccessToken(shopName, adminConfig) }, timeout: REQUEST_TIMEOUT_MS } }]
 }
 
 function getTypescriptPluginConfig(config: ShopifyConfig['clients'][ShopifyClientType]) {

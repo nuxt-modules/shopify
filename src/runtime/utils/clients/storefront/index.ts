@@ -11,6 +11,7 @@ import type { ClientDefinition } from '../create'
 import {
   PRIVATE_TOKEN_HEADER,
   PUBLIC_TOKEN_HEADER,
+  STOREFRONT_ID_HEADER,
   createApiUrl,
   createStoreDomain,
 } from '../transport'
@@ -27,6 +28,7 @@ export function createStorefrontConfig(config?: ModuleOptions): ShopifyApiClient
   const {
     name,
     logger,
+    storefrontId,
 
     clients: {
       storefront: {
@@ -63,6 +65,7 @@ export function createStorefrontConfig(config?: ModuleOptions): ShopifyApiClient
     headers: {
       ...(privateAccessToken ? { [PRIVATE_TOKEN_HEADER]: privateAccessToken } : {}),
       ...(!privateAccessToken && publicAccessToken ? { [PUBLIC_TOKEN_HEADER]: publicAccessToken } : {}),
+      ...(storefrontId && !mock && !import.meta.client ? { [STOREFRONT_ID_HEADER]: String(storefrontId) } : {}),
       ...headers,
     },
   }
