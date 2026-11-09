@@ -105,7 +105,7 @@
     "h3": "^1.15.11",
     "lru-cache": "^11.5.3",
     "magic-string": "^0.30.21",
-    "minimatch": "^10.2.6",
+    "minimatch": "^11.0.5",
     "nitropack": "^2.13.4",
     "ohash": "^2.0.12",
     "pkg-types": "^2.3.3",
