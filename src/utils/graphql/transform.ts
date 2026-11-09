@@ -21,8 +21,9 @@ function collectFragmentInsertions(code: string, file: string, options: GraphqlT
   const registry = options.resolveRegistry(file)
 
   const insertions: Insertion[] = []
+  const dependencies = new Set<string>()
 
-  if (!registry) return insertions
+  if (!registry) return { insertions, dependencies }
 
   for (const literal of findGraphqlLiterals(code)) {
     const definitions = scanDefinitions(literal.content)
@@ -39,11 +40,18 @@ function collectFragmentInsertions(code: string, file: string, options: GraphqlT
       for (const name of collectSpreads(definition.text)) spreads.add(name)
     }
 
-    for (const [, binding] of literal.content.matchAll(INTERPOLATION)) {
-      for (const name of registry.provides.get(binding!) ?? []) alreadyDefined.add(name)
+    const bindings = [...literal.content.matchAll(INTERPOLATION)].map(([, binding]) => binding!)
+
+    for (const binding of bindings) {
+      for (const name of registry.provides.get(binding) ?? []) alreadyDefined.add(name)
     }
 
     const missing = resolveFragments(spreads, registry, alreadyDefined)
+
+    const unresolved = bindings.every(binding => registry.provides.has(binding))
+      && [...spreads, ...missing.flatMap(fragment => fragment.spreads)].some(name => !alreadyDefined.has(name) && !registry.fragments.has(name))
+
+    for (const dependency of unresolved ? registry.files : missing.map(fragment => fragment.file)) dependencies.add(dependency)
 
     if (!missing.length) continue
 
@@ -53,19 +61,7 @@ function collectFragmentInsertions(code: string, file: string, options: GraphqlT
     })
   }
 
-  return insertions
-}
-
-function rewrite(code: string, file: string, options: GraphqlTransformOptions) {
-  const insertions = collectFragmentInsertions(code, file, options)
-
-  if (!insertions.length) return
-
-  const source = new MagicString(code)
-
-  for (const insertion of insertions) source.appendLeft(insertion.at, insertion.text)
-
-  return source
+  return { insertions, dependencies }
 }
 
 export function createGraphqlTransformPlugin(options: GraphqlTransformOptions) {
@@ -73,17 +69,23 @@ export function createGraphqlTransformPlugin(options: GraphqlTransformOptions) {
     name: 'shopify:graphql',
     enforce: 'post' as const,
 
-    transform(code: string, id: string) {
+    transform(this: { addWatchFile: (id: string) => void }, code: string, id: string) {
       if (!TRANSFORMABLE.test(id) || !GRAPHQL_MARKER.test(code)) return
 
       const file = id.split('?')[0]!
-      const transformed = rewrite(code, file, options)
+      const { insertions, dependencies } = collectFragmentInsertions(code, file, options)
 
-      if (!transformed) return
+      for (const dependency of dependencies) this.addWatchFile(dependency)
+
+      if (!insertions.length) return
+
+      const source = new MagicString(code)
+
+      for (const insertion of insertions) source.appendLeft(insertion.at, insertion.text)
 
       return {
-        code: transformed.toString(),
-        map: transformed.generateMap({ source: file, includeContent: true, hires: true }),
+        code: source.toString(),
+        map: source.generateMap({ source: file, includeContent: true, hires: true }),
       }
     },
   }

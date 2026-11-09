@@ -6,41 +6,14 @@ import { addTemplate } from '@nuxt/kit'
 import { relative } from 'pathe'
 
 import { ShopifyClientType } from '../schemas'
-import { DOCUMENT_ROUTING_ORDER, getConfiguredClients } from '../utils/clients'
+import { DOCUMENT_ROUTING_ORDER, getConfiguredClients, splitDocuments } from '../utils/clients'
 import { getIntrospectionFilename } from '../utils/templates'
 import { useLogger } from '../utils/log'
-
-const DIR_IGNORES = ['node_modules', 'dist', '.nuxt', '.output']
 
 type GraphqlProject = {
   schema: string
   documents: string[]
   exclude: string[]
-}
-
-function splitDocuments(documents: string[]): Pick<GraphqlProject, 'documents' | 'exclude'> {
-  const include: string[] = []
-  const exclude: string[] = []
-
-  for (const entry of documents) {
-    if (!entry.startsWith('!')) {
-      include.push(entry)
-      continue
-    }
-
-    const glob = entry.slice(1)
-    exclude.push(DIR_IGNORES.includes(glob) ? `**/${glob}/**` : glob)
-  }
-
-  for (const dir of DIR_IGNORES) {
-    exclude.push(`**/${dir}/**`)
-  }
-  exclude.push('**/*.d.ts')
-
-  return {
-    documents: [...new Set(include)],
-    exclude: [...new Set(exclude)],
-  }
 }
 
 export default function setupGraphqlConfig(nuxt: Nuxt, config: ShopifyConfig) {
@@ -64,10 +37,12 @@ export default function setupGraphqlConfig(nuxt: Nuxt, config: ShopifyConfig) {
     if (!clientConfig || !clientConfig.codegen) continue
 
     const name = clientType === ShopifyClientType.Storefront ? 'default' : clientType
+    const { include, exclude } = splitDocuments(clientConfig.documents ?? [])
 
     projects[name] = {
       schema: `${buildDir}/${getIntrospectionFilename(clientType, clientConfig.apiVersion)}`,
-      ...splitDocuments(clientConfig.documents ?? []),
+      documents: include,
+      exclude,
     }
   }
 

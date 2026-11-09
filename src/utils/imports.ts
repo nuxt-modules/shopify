@@ -27,14 +27,8 @@ function autoImportDirectory(path: string, includeClient: boolean) {
 export function registerFragmentImports(nuxt: Nuxt, config: ShopifyConfig) {
   const includeClient = hasPublicClient(config)
 
-  nuxt.options.watch = nuxt.options.watch || []
-
   for (const dir of config.fragments.dirs) {
-    const fragmentsPath = join(nuxt.options.rootDir, dir)
-
-    autoImportDirectory(fragmentsPath, includeClient)
-
-    nuxt.options.watch.push(fragmentsPath)
+    autoImportDirectory(join(nuxt.options.rootDir, dir), includeClient)
   }
 }
 

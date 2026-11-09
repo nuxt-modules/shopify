@@ -1,5 +1,6 @@
 import type { Resolver } from '@nuxt/kit'
 import type { Nuxt } from '@nuxt/schema'
+import type { MinimatchOptions } from 'minimatch'
 
 import type { ShopifyConfig } from '../types'
 
@@ -11,6 +12,7 @@ import {
   addServerImports,
   addServerPlugin,
 } from '@nuxt/kit'
+import { Minimatch, braceExpand } from 'minimatch'
 import { kebabCase, pascalCase } from 'scule'
 
 import { CUSTOMER_ACCOUNT_PROXY_ROUTE } from '../runtime/utils/clients/transport'
@@ -27,6 +29,36 @@ export const DOCUMENT_ROUTING_ORDER = [
   ShopifyClientType.CustomerAccount,
   ShopifyClientType.Storefront,
 ]
+
+const GLOB_MAGIC = /[*?[\]{}()]/
+
+export function splitDocuments(documents: string[]) {
+  return {
+    include: documents.filter(entry => !entry.startsWith('!')),
+    exclude: documents.filter(entry => entry.startsWith('!')).map(entry => entry.slice(1)),
+  }
+}
+
+function compileDocuments(patterns: string[], options?: MinimatchOptions) {
+  return patterns.flatMap((entry) => {
+    const pattern = entry.replace(/\\/g, '/').replace(/^\.\//, '')
+    const folders = braceExpand(pattern).filter(glob => !GLOB_MAGIC.test(glob.slice(glob.lastIndexOf('/') + 1)))
+
+    return [pattern, ...folders.map(folder => `${folder}/**`)].map(glob => new Minimatch(glob, options))
+  })
+}
+
+function matchesAny(patterns: Minimatch[], path: string) {
+  return patterns.some(pattern => pattern.pattern === path || pattern.match(path))
+}
+
+export function createDocumentMatcher(documents: string[]) {
+  const { include, exclude } = splitDocuments(documents)
+  const included = compileDocuments(include)
+  const excluded = compileDocuments(exclude, { dot: true })
+
+  return (path: string) => matchesAny(included, path) && !matchesAny(excluded, path)
+}
 
 export function registerClientServerImports(clientType: ShopifyClientType, resolver: Resolver) {
   addServerImports([{

@@ -9,26 +9,43 @@ import { API_VERSION } from '#test/helpers/api-version'
 
 const updateTemplates = vi.fn()
 const addTypeTemplate = vi.fn((template: unknown, _context?: unknown) => template)
+const layerDirectories: Array<{ shared: string }> = []
 
 vi.mock('@nuxt/kit', () => ({
   addTemplate: (template: unknown) => template,
   addTypeTemplate: (template: unknown, context?: unknown) => addTypeTemplate(template, context),
+  getLayerDirectories: () => layerDirectories,
   updateTemplates: (...args: unknown[]) => updateTemplates(...args),
 }))
+
+const generatorDocuments: Array<{ revision: number }> = []
+
+vi.mock('#src/utils/codegen', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('#src/utils/codegen')>()
+
+  return {
+    ...actual,
+    createOperationsGenerator: (...args: Parameters<typeof actual.createOperationsGenerator>) => {
+      generatorDocuments.push(args[1]!)
+
+      return actual.createOperationsGenerator(...args)
+    },
+  }
+})
 
 const { registerTemplates } = await import('#src/utils/templates')
 
 let rootDir: string
 let watch: (event: string, file: string) => Promise<unknown>
 
-async function project(files: Record<string, string>) {
+async function project(files: Record<string, string>, documents = ['app/**/*.{ts,vue,graphql}']) {
   for (const [name, content] of Object.entries(files)) {
     await mkdir(join(rootDir, name, '..'), { recursive: true })
     await writeFile(join(rootDir, name), content)
   }
 
   const nuxt = {
-    options: { rootDir, srcDir: join(rootDir, 'app'), buildDir: join(rootDir, '.nuxt'), alias: {}, nitro: {} },
+    options: { rootDir, srcDir: join(rootDir, 'app'), buildDir: join(rootDir, '.nuxt'), alias: {}, nitro: {}, watch: [] as string[] },
     hook: (name: string, hook: typeof watch) => {
       if (name === 'builder:watch') watch = hook
     },
@@ -36,13 +53,16 @@ async function project(files: Record<string, string>) {
 
   registerTemplates(nuxt as never, {
     name: 'shop',
-    clients: { storefront: { apiVersion: API_VERSION, documents: ['app/**/*.{ts,vue,graphql}'] } },
+    clients: { storefront: { apiVersion: API_VERSION, documents } },
   } as never, ShopifyClientType.Storefront)
+
+  return nuxt
 }
 
 beforeEach(async () => {
   rootDir = await mkdtemp(join(tmpdir(), '.shopify-watcher-'))
   updateTemplates.mockClear()
+  layerDirectories.length = 0
 })
 
 afterEach(async () => {
@@ -62,6 +82,20 @@ describe('regenerating operation types in development', () => {
     expect(updateTemplates).toHaveBeenCalledOnce()
   })
 
+  it('watches the shared folder of every layer, which the Nuxt 4 watcher leaves out, so documents there regenerate the operation types', async () => {
+    layerDirectories.push({ shared: `${join(rootDir, 'shared')}/` }, { shared: `${join(rootDir, 'layers/base/shared')}/` })
+
+    const nuxt = await project({ 'shared/queries/shop.ts': 'export const query = `#graphql\n  query Shop { shop { name } }\n`' }, ['**/*.ts'])
+
+    registerTemplates(nuxt as never, { name: 'shop', clients: { storefront: { apiVersion: API_VERSION, documents: ['**/*.ts'] } } } as never, ShopifyClientType.Storefront)
+
+    expect(nuxt.options.watch).toStrictEqual([`${join(rootDir, 'shared')}/`, `${join(rootDir, 'layers/base/shared')}/`])
+
+    await watch('change', join(rootDir, 'shared/queries/shop.ts'))
+
+    expect(updateTemplates).toHaveBeenCalledOnce()
+  })
+
   it('stays quiet for a file without GraphQL', async () => {
     await project({ 'app/utils/math.ts': 'export const add = (a: number, b: number) => a + b' })
 
@@ -74,6 +108,48 @@ describe('regenerating operation types in development', () => {
     await project({ 'server/api/shop.ts': 'export const query = `#graphql\n  query Shop { shop { name } }\n`' })
 
     await watch('change', join(rootDir, 'server/api/shop.ts'))
+
+    expect(updateTemplates).not.toHaveBeenCalled()
+  })
+
+  it('regenerates when the last operation is removed from a file it saw with GraphQL', async () => {
+    await project({ 'app/pages/index.vue': 'const query = `#graphql\n  query Shop { shop { name } }\n`' })
+
+    await watch('change', join(rootDir, 'app/pages/index.vue'))
+
+    await writeFile(join(rootDir, 'app/pages/index.vue'), 'const query = undefined')
+
+    await watch('change', join(rootDir, 'app/pages/index.vue'))
+
+    expect(updateTemplates).toHaveBeenCalledTimes(2)
+  })
+
+  it('regenerates when a file with operations is deleted', async () => {
+    await project({ 'app/pages/index.vue': 'const query = `#graphql\n  query Shop { shop { name } }\n`' })
+
+    await watch('change', join(rootDir, 'app/pages/index.vue'))
+
+    await rm(join(rootDir, 'app/pages/index.vue'))
+
+    await watch('unlink', join(rootDir, 'app/pages/index.vue'))
+
+    expect(updateTemplates).toHaveBeenCalledTimes(2)
+  })
+
+  it('moves the operations generator to a new revision on each change it regenerates for, so its cache expires', async () => {
+    generatorDocuments.length = 0
+
+    await project({ 'app/pages/index.vue': 'const query = `#graphql\n  query Shop { shop { name } }\n`' })
+
+    await watch('change', join(rootDir, 'app/pages/index.vue'))
+
+    expect(generatorDocuments.at(-1)?.revision).toBe(1)
+  })
+
+  it('stays quiet for a GraphQL file in a folder that a ! entry excludes', async () => {
+    await project({ 'app/legacy/shop.ts': 'export const query = `#graphql\n  query Shop { shop { name } }\n`' }, ['app/**/*.ts', '!app/legacy'])
+
+    await watch('change', join(rootDir, 'app/legacy/shop.ts'))
 
     expect(updateTemplates).not.toHaveBeenCalled()
   })

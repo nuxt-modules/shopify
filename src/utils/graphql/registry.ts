@@ -1,16 +1,15 @@
 import type { GraphqlDefinition } from '../../runtime/utils/graphql/scanner'
 
 import { readFile, readdir } from 'node:fs/promises'
-import { join, resolve, sep } from 'node:path'
-import { relative } from 'pathe'
+import { join } from 'node:path'
+import { normalize, relative } from 'pathe'
 
+import { IGNORED_DIRS } from '../../runtime/utils/config'
 import { collectSpreads, scanDefinitions } from '../../runtime/utils/graphql/scanner'
 import { useLogger } from '../log'
 import { INTERPOLATION, SCHEMA_LANGUAGE_FILE, findGraphqlLiterals } from './literals'
 
 const SCANNABLE = /\.(?:ts|js|mjs|cjs|mts|cts|vue|gql|graphql)$/
-
-const SKIPPED_DIRS = new Set(['node_modules', 'dist', '.nuxt', '.output', '.git', '.vercel'])
 
 export type FragmentEntry = {
   name: string
@@ -20,6 +19,7 @@ export type FragmentEntry = {
 }
 
 export type FragmentRegistry = {
+  files: Set<string>
   fragments: Map<string, FragmentEntry>
   provides: Map<string, Set<string>>
 }
@@ -31,17 +31,17 @@ type BindingLink = {
 }
 
 export function within(dirs: string[], path: string) {
-  return dirs.some(dir => path === dir || path.startsWith(dir + sep))
-}
+  const file = normalize(path)
 
-export function touchesFragments(dirs: string[], file: string, srcDir: string, rootDir: string) {
-  const resolvedAgainstEachBase = [resolve(srcDir, file), resolve(rootDir, file)]
+  return dirs.some((dir) => {
+    const base = normalize(dir).replace(/\/+$/, '')
 
-  return resolvedAgainstEachBase.some(path => within(dirs, path))
+    return file === base || file.startsWith(`${base}/`)
+  })
 }
 
 function createRegistry(): FragmentRegistry {
-  return { fragments: new Map(), provides: new Map() }
+  return { files: new Set(), fragments: new Map(), provides: new Map() }
 }
 
 const hasUnresolvedInterpolation = (text: string) => /(?<!\\)\$\{/.test(text)
@@ -53,7 +53,7 @@ async function listFiles(dir: string): Promise<string[]> {
 
   return entries
     .filter(entry => entry.isFile() && SCANNABLE.test(entry.name))
-    .filter(entry => !relative(dir, entry.parentPath).split('/').some(part => SKIPPED_DIRS.has(part)))
+    .filter(entry => !relative(dir, entry.parentPath).split('/').some(part => IGNORED_DIRS.includes(part)))
     .map(entry => join(entry.parentPath, entry.name))
 }
 
@@ -129,13 +129,15 @@ export async function scanFragments(
 
       if (!client) continue
 
-      const code = await readFile(file, 'utf8').catch(() => '')
-
-      if (!code || !code.includes('fragment')) continue
-
       let registry = registries.get(client)
 
       if (!registry) registries.set(client, registry = createRegistry())
+
+      registry.files.add(file)
+
+      const code = await readFile(file, 'utf8').catch(() => '')
+
+      if (!code || !code.includes('fragment')) continue
 
       for (const { definitions, interpolations, binding } of readDefinitions(file, code)) {
         const fragments = definitions.filter((definition): definition is GraphqlDefinition & { name: string } =>

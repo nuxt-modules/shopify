@@ -1,4 +1,11 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { createRequire } from 'node:module'
+import { tmpdir } from 'node:os'
+import { dirname, join } from 'node:path'
+import { pathToFileURL } from 'node:url'
+
+import { relative } from 'pathe'
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { resolver } from '#test/helpers/nuxt'
 
@@ -23,8 +30,9 @@ vi.mock('@nuxt/kit', () => ({
   useLogger: () => ({ debug: vi.fn(), info: vi.fn(), warn, error: vi.fn() }),
 }))
 
-const { ShopifyClientType } = await import('#src/schemas')
+const { ShopifyClientType, configObjectSchema } = await import('#src/schemas')
 const {
+  createDocumentMatcher,
   getConfiguredClients,
   getPresetBuyerIpHeader,
   hasPublicClient,
@@ -32,9 +40,13 @@ const {
   registerCustomerAccountRoutes,
   registerCustomerAccountSession,
   registerShopifyRoutes,
+  splitDocuments,
   warnInsecureCustomerAccountDevServer,
 } = await import('#src/utils/clients')
 const { CUSTOMER_ACCOUNT_ROUTES, STOREFRONT_ROUTES } = await import('#src/utils/routes')
+
+const codegenRequire = createRequire(import.meta.resolve('@graphql-codegen/cli'))
+const { CodeFileLoader } = await import(pathToFileURL(codegenRequire.resolve('@graphql-tools/code-file-loader')).href) as typeof import('@graphql-tools/code-file-loader')
 
 const storefront = (client: Record<string, unknown>) => ({ clients: { storefront: client } } as never)
 
@@ -189,6 +201,111 @@ describe('registerCustomerAccountRoutes', () => {
     registerCustomerAccountRoutes({ clientId: 'client', proxy: false } as never, resolver as never)
 
     expect(addServerHandler).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ route: '/account/session' }))
+  })
+})
+
+describe('createDocumentMatcher', () => {
+  const FILES = [
+    'shop.ts',
+    'app/shop.ts',
+    'app/shop.admin.ts',
+    'app/legacy/shop.ts',
+    'app/pages/[handle].ts',
+    'app/pages/h.ts',
+    'legacy/shop.ts',
+    'legacy/old/shop.ts',
+    'old/shop.ts',
+    'node_modules/dependency/shop.ts',
+    'packages/ui/node_modules/dependency/shop.ts',
+    'types/shop.d.ts',
+    '.storybook/shop.ts',
+    '.storybook/shop.admin.ts',
+  ]
+
+  const PROJECT = [
+    'app/pages/index.vue',
+    'app/pages/(account)/orders.vue',
+    'app/pages/(admin)/dashboard.ts',
+    'app/pages/account/index.vue',
+    'app/components/shop.customer.vue',
+    'app/graphql/customer-account/orders.ts',
+    'server/api/admin.get.ts',
+    'server/api/products.get.ts',
+    'server/utils/admin/customers.ts',
+    'shared/queries/shop.graphql',
+    'packages/ui/node_modules/dependency/shop.ts',
+    'types/shop.d.ts',
+  ]
+
+  let files: string
+  let project: string
+
+  function createTree(paths: string[]) {
+    const root = mkdtempSync(join(tmpdir(), 'nuxt-shopify-documents-'))
+
+    for (const path of paths) {
+      mkdirSync(dirname(join(root, path)), { recursive: true })
+      writeFileSync(join(root, path), '')
+    }
+
+    return root
+  }
+
+  beforeAll(() => {
+    files = createTree(FILES)
+    project = createTree(PROJECT)
+  })
+
+  afterAll(() => {
+    for (const root of [files, project]) rmSync(root, { recursive: true, force: true })
+  })
+
+  async function filesCodegenReads(root: string, documents: string[]) {
+    const { include, exclude } = splitDocuments(documents)
+    const paths = await Promise.all(include.map(pattern => new CodeFileLoader().resolveGlobs(pattern, { cwd: root, ignore: exclude })))
+
+    return [...new Set(paths.flat().map(path => relative(root, path)))].sort()
+  }
+
+  it.each([
+    '**/*.ts !legacy',
+    '**/*.ts !app/legacy',
+    '**/*.ts !**/legacy',
+    '**/*.ts !./legacy',
+    '**/*.ts !{legacy,old}',
+    '**/*.ts !legacy/*',
+    '**/*.ts !legacy/**',
+    '**/*.ts !**/legacy/**',
+    '**/*.ts !**/*.admin.ts',
+    '**/*.ts !node_modules',
+    '**/*.ts !**/node_modules/**',
+    '**/*.ts !**/*.d.ts',
+    '**/*.ts !app/pages/[handle].ts',
+    'app\\**\\*.ts !app\\legacy',
+    './app/**/*.ts',
+    'legacy',
+    'legacy/',
+    'app/pages/[handle].ts',
+    '.storybook/**/*.ts !**/*.admin.ts',
+  ])('keeps the files codegen keeps for %s', async (row) => {
+    const documents = row.split(' ')
+    const kept = await filesCodegenReads(files, documents)
+
+    expect(kept).not.toStrictEqual([])
+    expect(FILES.filter(createDocumentMatcher(documents)).sort()).toStrictEqual(kept)
+  })
+
+  it.each(Object.values(ShopifyClientType))('keeps the files codegen keeps for the default %s documents', async (clientType) => {
+    const { clients } = configObjectSchema.parse({
+      name: 'shop',
+      clients: { storefront: { publicAccessToken: 'token' }, customerAccount: { clientId: 'id' }, admin: { accessToken: 'token' } },
+    })
+
+    const documents = clients[clientType]!.documents!
+    const kept = await filesCodegenReads(project, documents)
+
+    expect(kept).not.toStrictEqual([])
+    expect(PROJECT.filter(createDocumentMatcher(documents)).sort()).toStrictEqual(kept)
   })
 })
 

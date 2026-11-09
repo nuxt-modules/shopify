@@ -10,7 +10,7 @@ import { clearGenerateFailures, getGenerateFailures } from '../utils/codegen'
 import { registerTemplates } from '../utils/templates'
 
 function failBuildOnGenerateFailures(nuxt: Nuxt) {
-  if (nuxt.options.dev || nuxt.options._prepare) return
+  if (nuxt.options.dev || nuxt.options._prepare || nuxt.options.test) return
 
   clearGenerateFailures()
 

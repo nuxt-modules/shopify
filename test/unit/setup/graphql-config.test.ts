@@ -59,11 +59,7 @@ export const projects = {
     ],
     "exclude": [
       "**/admin/**",
-      "**/node_modules/**",
-      "**/dist/**",
-      "**/.nuxt/**",
-      "**/.output/**",
-      "**/*.d.ts"
+      "node_modules"
     ]
   }
 }

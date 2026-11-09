@@ -4,10 +4,10 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { buildSchema, introspectionFromSchema } from 'graphql'
 import { kebabCase } from 'scule'
-import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterAll, beforeAll, beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest'
 
 import { ShopifyClientType, configObjectSchema } from '#src/schemas'
-import { clearGenerateFailures, createOperationsGenerator, getGenerateFailures } from '#src/utils/codegen'
+import { clearGenerateFailures, createOperationsGenerator, createTypesGenerator, getGenerateFailures } from '#src/utils/codegen'
 import { API_VERSION } from '#test/helpers/api-version'
 
 const HYDROGEN_STOREFRONT_SCHEMA = fileURLToPath(import.meta.resolve('@shopify/hydrogen/storefront.schema.json'))
@@ -81,6 +81,7 @@ beforeAll(() => {
 
   writeProjectFile('server/utils/admin/customers.ts', 'export const customers = `#graphql\n  query AdminCustomers { customers(first: 5) { nodes { id } } }\n`\n')
   writeProjectFile('app/queries/shop.ts', 'export const shop = `#graphql\n  query ShopName { shop { name } }\n`\n')
+  writeProjectFile('packages/ui/node_modules/dependency/shop.ts', 'export const shop = `#graphql\n  query DependencyShop { shop { name } }\n`\n')
 })
 
 afterAll(() => {
@@ -101,6 +102,15 @@ describe('document routing', () => {
     expect(contents).not.toContain('AdminCustomersQuery')
   }, CODEGEN_TIMEOUT)
 
+  it('leaves out operations in a nested dependency folder', async () => {
+    const generateOperations = createOperationsGenerator(storedSchema(ShopifyClientType.Storefront))!
+    const contents = await generateOperations(operationsData(ShopifyClientType.Storefront))
+
+    expect(getGenerateFailures()).toEqual([])
+    expect(contents).toContain('export type ShopNameQuery =')
+    expect(contents).not.toContain('DependencyShopQuery')
+  }, CODEGEN_TIMEOUT)
+
   it('types admin operations against the admin schema only', async () => {
     const generateOperations = createOperationsGenerator(storedSchema(ShopifyClientType.Admin))!
     const contents = await generateOperations(operationsData(ShopifyClientType.Admin))
@@ -108,5 +118,74 @@ describe('document routing', () => {
     expect(getGenerateFailures()).toEqual([])
     expect(contents).toContain('export type AdminCustomersQuery =')
     expect(contents).not.toContain('ShopNameQuery')
+  }, CODEGEN_TIMEOUT)
+})
+
+describe('codegen plugins', () => {
+  it('loads its codegen plugins from the module, not from the app, whose own copies may be another major version', async () => {
+    const app = mkdtempSync(join(tmpdir(), 'nuxt-shopify-app-'))
+    const appPlugin = join(app, 'node_modules/@graphql-codegen/typescript')
+
+    mkdirSync(appPlugin, { recursive: true })
+    writeFileSync(join(appPlugin, 'package.json'), JSON.stringify({ name: '@graphql-codegen/typescript', version: '0.0.0', type: 'module', main: 'index.js' }))
+    writeFileSync(join(appPlugin, 'index.js'), 'export const plugin = () => "export type FromTheApp = true"\n')
+
+    const cwd = vi.spyOn(process, 'cwd').mockReturnValue(app)
+
+    onTestFinished(() => {
+      cwd.mockRestore()
+      rmSync(app, { recursive: true, force: true })
+    })
+
+    const generateTypes = createTypesGenerator(storedSchema(ShopifyClientType.Admin))!
+
+    const contents = await generateTypes({
+      nuxt: { options: { dev: false, _prepare: false, rootDir: app }, callHook: vi.fn(() => Promise.resolve()) },
+      options: {
+        filename: 'shopify/admin/admin.types.d.ts',
+        shopName: 'test-shop',
+        clientType: ShopifyClientType.Admin,
+        clientConfig: { apiVersion: API_VERSION, codegen: { globalTypes: false } },
+      },
+    } as never)
+
+    expect(contents).not.toContain('FromTheApp')
+    expect(contents).toContain('export type Customer =')
+  }, CODEGEN_TIMEOUT)
+
+  it('loads a codegen plugin that the app adds through a hook from the app, when the module has no copy of it', async () => {
+    const app = mkdtempSync(join(tmpdir(), 'nuxt-shopify-app-'))
+    const appPlugin = join(app, 'node_modules/codegen-app-banner')
+
+    mkdirSync(appPlugin, { recursive: true })
+    writeFileSync(join(appPlugin, 'package.json'), JSON.stringify({ name: 'codegen-app-banner', version: '0.0.0', type: 'module', main: 'index.js' }))
+    writeFileSync(join(appPlugin, 'index.js'), 'export const plugin = () => "export type FromTheAppPlugin = true"\n')
+
+    onTestFinished(() => {
+      rmSync(app, { recursive: true, force: true })
+    })
+
+    const generateTypes = createTypesGenerator(storedSchema(ShopifyClientType.Admin))!
+
+    const contents = await generateTypes({
+      nuxt: {
+        options: { dev: false, _prepare: false, rootDir: app },
+        callHook: vi.fn((_hook: string, { config }: { config: { plugins: unknown[] } }) => {
+          config.plugins.push('app-banner')
+
+          return Promise.resolve()
+        }),
+      },
+      options: {
+        filename: 'shopify/admin/admin.types.d.ts',
+        shopName: 'test-shop',
+        clientType: ShopifyClientType.Admin,
+        clientConfig: { apiVersion: API_VERSION, codegen: { globalTypes: false } },
+      },
+    } as never)
+
+    expect(getGenerateFailures()).toEqual([])
+    expect(contents).toContain('export type FromTheAppPlugin = true')
+    expect(contents).toContain('export type Customer =')
   }, CODEGEN_TIMEOUT)
 })
