@@ -34,28 +34,27 @@ function enableable<S extends z.ZodTypeAny>(schema: S, fallback: z.output<S>, en
 
 const routeMethods = ['connect', 'delete', 'get', 'head', 'options', 'patch', 'post', 'put', 'trace'].join(',')
 
-const getDefaultDocuments = (clientType: string, { exclude }: { exclude?: boolean } = {}) => {
-  const clientName = kebabCase(clientType)
-  const fileEndings = ['gql', 'graphql', 'ts', 'js', ...(clientType !== ShopifyClientType.Admin ? ['vue'] : [])].join(',')
+function getDefaultDocuments(name: string, { exclude }: { exclude?: boolean } = {}) {
+  const kebabName = kebabCase(name)
+  const fileEndings = ['gql', 'graphql', 'ts', 'js', ...(name !== ShopifyClientType.Admin ? ['vue'] : [])].join(',')
 
   return [
-    `${exclude ? '!' : ''}**/*.${clientName}.{${fileEndings}}`,
-    `${exclude ? '!' : ''}**/${clientName}.{${fileEndings}}`,
-    `${exclude ? '!' : ''}**/*.${clientName}.{${routeMethods}}.{ts,js}`,
-    `${exclude ? '!' : ''}**/${clientName}.{${routeMethods}}.{ts,js}`,
-    `${exclude ? '!' : ''}**/${clientName}/**/*.{${fileEndings}}`,
-    `${exclude ? '!' : ''}**/${clientName}/*.{${fileEndings}}`,
-    `${exclude ? '!' : ''}**/(${clientName})/**/*.{${fileEndings}}`,
-    `${exclude ? '!' : ''}**/(${clientName})/*.{${fileEndings}}`,
+    `${exclude ? '!' : ''}**/*.${kebabName}.{${fileEndings}}`,
+    `${exclude ? '!' : ''}**/${kebabName}.{${fileEndings}}`,
+    `${exclude ? '!' : ''}**/*.${kebabName}.{${routeMethods}}.{ts,js}`,
+    `${exclude ? '!' : ''}**/${kebabName}.{${routeMethods}}.{ts,js}`,
+    `${exclude ? '!' : ''}**/${kebabName}/**/*.{${fileEndings}}`,
+    `${exclude ? '!' : ''}**/${kebabName}/*.{${fileEndings}}`,
   ]
 }
 
-const ignores = [
-  '!node_modules',
-  '!dist',
-  '!.nuxt',
-  '!.output',
-]
+export const IGNORED_DIRS = ['node_modules', 'dist', '.nuxt', '.output']
+
+const ignoredDocuments = [...IGNORED_DIRS.map(dir => `!**/${dir}/**`), '!**/*.d.ts']
+
+function resolveDocuments(defaults: string[]) {
+  return (documents?: string[]) => [...new Set([...(documents?.length ? documents : defaults), ...ignoredDocuments])]
+}
 
 const defaultStorefrontDocuments = [
   '**/*.{gql,graphql,ts,js,vue}',
@@ -64,20 +63,15 @@ const defaultStorefrontDocuments = [
   ...getDefaultDocuments(ShopifyClientType.CustomerAccount, { exclude: true }),
   ...getDefaultDocuments('customer', { exclude: true }),
   ...getDefaultDocuments('account', { exclude: true }),
-  ...ignores,
 ]
 
 const defaultCustomerAccountDocuments = [
   ...getDefaultDocuments(ShopifyClientType.CustomerAccount),
   ...getDefaultDocuments('customer'),
   ...getDefaultDocuments('account'),
-  ...ignores,
 ]
 
-const defaultAdminDocuments = [
-  ...getDefaultDocuments(ShopifyClientType.Admin),
-  ...ignores,
-]
+const defaultAdminDocuments = getDefaultDocuments(ShopifyClientType.Admin)
 
 const defaultCachePresets = {
   short: { maxAge: 1, staleWhileRevalidate: 9 },
@@ -145,7 +139,7 @@ const storefrontClientSchema = clientSchema.extend({
   mock: z.boolean().optional(),
 
   codegen: enableable(codegenSchema.extend({ globalTypes: z.boolean().optional().default(true) }), { globalTypes: true }),
-  documents: clientSchema.shape.documents.transform(v => v?.length ? v : defaultStorefrontDocuments),
+  documents: clientSchema.shape.documents.transform(resolveDocuments(defaultStorefrontDocuments)),
   proxy: z.boolean({ error: 'Expected `true` or `false`: the Storefront API proxy is always served at `/api/<version>/graphql.json`' }).optional().default(true),
   cache: enableable(clientCacheSchema, defaultCacheConfig),
 })
@@ -170,7 +164,7 @@ const customerAccountClientSchema = clientSchema.extend({
   session: customerAccountSessionSchema.optional().transform(v => ({ ...defaultCustomerAccountSessionOptions, ...(v ?? {}) })),
   tokenStorage: enableable(storageMountSchema, defaultCustomerAccountTokenStorageOptions, false),
 
-  documents: clientSchema.shape.documents.transform(v => v?.length ? v : defaultCustomerAccountDocuments),
+  documents: clientSchema.shape.documents.transform(resolveDocuments(defaultCustomerAccountDocuments)),
   proxy: z.boolean({ error: 'Expected `true` or `false`: the customer account proxy is always served at `/account/customer/api/<version>/graphql`' }).optional().default(true),
 })
 
@@ -181,7 +175,7 @@ const adminClientSchema = clientSchema.extend({
   refreshToken: z.string().optional(),
 
   tokenStorage: enableable(storageMountSchema, defaultAdminTokenStorageOptions),
-  documents: clientSchema.shape.documents.transform(v => v?.length ? v : defaultAdminDocuments),
+  documents: clientSchema.shape.documents.transform(resolveDocuments(defaultAdminDocuments)),
 })
 
 const webhooksSchema = z.object({

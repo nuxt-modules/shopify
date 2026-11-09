@@ -9,10 +9,12 @@ import { basename, dirname, resolve } from 'node:path'
 import { generate } from '@graphql-codegen/cli'
 import { preset, pluckConfig } from '@shopify/graphql-codegen'
 import { LogLevels } from 'consola'
+import { resolveModuleURL } from 'exsolve'
 import { kebabCase, upperFirst } from 'scule'
 import defu from 'defu'
 
 import { ShopifyClientType } from '../schemas'
+import { splitDocuments } from './clients'
 import { GRAPHQL_MARKER } from './graphql/literals'
 import { useLogger } from './log'
 import { resolveInstalledPath } from './install'
@@ -32,9 +34,9 @@ const HYDROGEN_SCHEMAS: Partial<Record<ShopifyClientType, string>> = {
 const INTROSPECTION_ATTEMPTS = 3
 const INTROSPECTION_RETRY_DELAY = 5000
 
-const TRANSPORT_ERROR_PATTERN = /Failed to load schema|ETIMEDOUT|ECONNREFUSED|ECONNRESET|ENOTFOUND|EAI_AGAIN|socket hang up|network|fetch failed|timeout/i
+const TRANSPORT_ERROR_PATTERN = /\b(?:ETIMEDOUT|ECONNREFUSED|ECONNRESET|ENOTFOUND|EAI_AGAIN|ENETUNREACH|EHOSTUNREACH)\b|socket hang up|other side closed|fetch failed|Timeout Error|aborted due to timeout/
 
-const GLOB_MAGIC = /[*?[\]{}()]/
+const loadPlugin = (rootDir: string) => (name: string) => import(resolveModuleURL(name, { from: [import.meta.url, rootDir], cache: false }))
 
 const EXACT_UTILITY_TYPE = 'export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };'
 
@@ -47,6 +49,11 @@ type ShopifyTemplateOptions = {
   shopName: string
   clientType: ShopifyClientType
   clientConfig: ShopifyConfig['clients'][ShopifyClientType]
+}
+
+type DocumentState = {
+  revision: number
+  graphqlFiles: Set<string>
 }
 
 type IntrospectionGenerator = {
@@ -145,43 +152,38 @@ export function clearGenerateFailures() {
   generateFailures.clear()
 }
 
-async function findDocumentParseFailure(documents: string[] | undefined, cwd: string): Promise<Error | undefined> {
-  if (!documents?.length) return undefined
+async function scanDocuments(documents: string[] | undefined, cwd: string): Promise<{ failure?: Error, files: Set<string> }> {
+  const files = new Set<string>()
+  const { include, exclude: ignore } = splitDocuments(documents ?? [])
 
-  const include: string[] = []
-  const ignore: string[] = []
-
-  for (const pointer of documents) {
-    if (!pointer.startsWith('!')) {
-      include.push(pointer)
-      continue
-    }
-
-    const pattern = pointer.slice(1)
-
-    ignore.push(GLOB_MAGIC.test(pattern) ? pattern : `${pattern}/**`)
-  }
-
-  if (!include.length) return undefined
+  if (!include.length) return { files }
 
   const { CodeFileLoader } = await import('@graphql-tools/code-file-loader')
 
   const loader = new CodeFileLoader({ pluckConfig })
 
+  let failure: Error | undefined
+
   for (const pointer of include) {
     for (const path of await loader.resolveGlobs(pointer, { cwd, ignore })) {
-      if (!GRAPHQL_MARKER.test(await readFile(resolve(cwd, path), 'utf8').catch(() => ''))) continue
+      const file = resolve(cwd, path)
+
+      if (!GRAPHQL_MARKER.test(await readFile(file, 'utf8').catch(() => ''))) continue
+
+      files.add(file)
+
+      if (failure) continue
 
       try {
         await loader.load(path, { cwd, noRequire: true, noSilentErrors: true })
       }
       catch (error) {
-        return new Error(String(error))
+        failure = new Error(String(error))
       }
     }
   }
 
-  return undefined
+  return { failure, files }
 }
 
 function reportGenerateFailure(nuxt: Nuxt, filename: string, error: unknown): '' {
@@ -189,7 +191,7 @@ function reportGenerateFailure(nuxt: Nuxt, filename: string, error: unknown): ''
 
   useLogger().error(`${message}\nTypes for this client are unavailable`)
 
-  if (!nuxt.options.dev && !nuxt.options._prepare) {
+  if (!nuxt.options.dev && !nuxt.options._prepare && !nuxt.options.test) {
     generateFailures.add(message)
   }
 
@@ -273,7 +275,9 @@ async function getIntrospectionCacheKey(path: string): Promise<string | undefine
 async function getIntrospectionSource(options: ShopifyTemplateOptions) {
   const { shopName, clientType, clientConfig } = options
 
-  if (clientType === ShopifyClientType.CustomerAccount) return getHydrogenSchema(clientType)
+  if (clientType === ShopifyClientType.CustomerAccount || (clientType === ShopifyClientType.Storefront && clientConfig?.apiVersion === DEFAULT_API_VERSION)) {
+    return getHydrogenSchema(clientType)
+  }
 
   if (clientType === ShopifyClientType.Storefront) {
     const { apiUrl, headers } = createStorefrontConfig({ name: shopName, clients: { storefront: clientConfig as NonNullable<ShopifyConfig['clients']['storefront']> } })
@@ -309,12 +313,12 @@ function getTypescriptPluginConfig(config: ShopifyConfig['clients'][ShopifyClien
 }
 
 async function generateIntrospection(nuxt: Nuxt, options: ShopifyTemplateOptions, path: string, retryFallback: boolean) {
-  const stored = hasCurrentIntrospection(path, retryFallback)
+  if (hasCurrentIntrospection(path, retryFallback)) return await readFile(path, 'utf8')
 
   let schema: Types.ConfiguredOutput['schema']
 
   try {
-    schema = stored ? path : await getIntrospectionSource(options)
+    schema = await getIntrospectionSource(options)
   }
   catch (error) {
     return reportGenerateFailure(nuxt, options.filename, error)
@@ -340,6 +344,7 @@ async function generateIntrospection(nuxt: Nuxt, options: ShopifyTemplateOptions
 
   const { contents, fallback } = await runIntrospection(nuxt, options, generatorConfig, config => ({
     overwrite: true,
+    pluginLoader: loadPlugin(nuxt.options.rootDir),
     ignoreNoDocuments: true,
     silent: useLogger().level < LogLevels.verbose,
     generates: {
@@ -347,7 +352,7 @@ async function generateIntrospection(nuxt: Nuxt, options: ShopifyTemplateOptions
     },
   }))
 
-  if (contents && !stored) {
+  if (contents) {
     await mkdir(dirname(path), { recursive: true })
     await writeFile(path, contents)
 
@@ -408,6 +413,7 @@ export function createTypesGenerator(introspection: Pick<IntrospectionGenerator,
 
     const generated = await runGenerate(data.nuxt, data.options, generatorConfig, config => ({
       overwrite: true,
+      pluginLoader: loadPlugin(data.nuxt.options.rootDir),
       ignoreNoDocuments: true,
       silent: useLogger().level < LogLevels.verbose,
       generates: {
@@ -425,11 +431,24 @@ export function createTypesGenerator(introspection: Pick<IntrospectionGenerator,
   }
 }
 
-export function createOperationsGenerator(introspection: Pick<IntrospectionGenerator, 'getSchema'>): NuxtTemplate<ShopifyTemplateOptions>['getContents'] {
+export function createOperationsGenerator(
+  introspection: Pick<IntrospectionGenerator, 'getSchema'>,
+  documents: DocumentState = { revision: 0, graphqlFiles: new Set() },
+): NuxtTemplate<ShopifyTemplateOptions>['getContents'] {
+  let cached: { key: string, contents: string } | undefined
+
   return async (data) => {
     const schema = await introspection.getSchema(data.nuxt)
 
     if (!schema) return ''
+
+    const schemaKey = await getIntrospectionCacheKey(schema)
+    const revision = documents.revision
+    const cacheKey = schemaKey && `${schemaKey}:${revision}`
+
+    if (cacheKey && cached?.key === cacheKey) {
+      return cached.contents
+    }
 
     const generatorConfig = {
       schema,
@@ -456,29 +475,34 @@ export function createOperationsGenerator(introspection: Pick<IntrospectionGener
       config: generatorConfig,
     })
 
-    const parseFailure = await findDocumentParseFailure(generatorConfig.documents, data.nuxt.options.rootDir)
+    const { failure, files } = await scanDocuments(generatorConfig.documents, data.nuxt.options.rootDir)
 
-    if (parseFailure) {
-      return reportGenerateFailure(data.nuxt, data.options.filename, parseFailure)
+    if (documents.revision === revision) documents.graphqlFiles = files
+
+    const generated = failure
+      ? reportGenerateFailure(data.nuxt, data.options.filename, failure)
+      : await runGenerate(data.nuxt, data.options, generatorConfig, config => ({
+          cwd: data.nuxt.options.rootDir,
+          overwrite: true,
+          pluginLoader: loadPlugin(data.nuxt.options.rootDir),
+          ignoreNoDocuments: true,
+          silent: useLogger().level < LogLevels.verbose,
+          generates: {
+            [data.options.filename]: config,
+          },
+          pluckConfig: pluckConfig as GenerateInput['pluckConfig'],
+        }))
+
+    const contents = generated && data.options.clientConfig?.codegen && data.options.clientConfig.codegen.globalTypes
+      ? generated + createGlobalDeclarations(generated, data.options.filename)
+      : generated
+
+    if (cacheKey && documents.revision === revision) {
+      cached = { key: cacheKey, contents }
     }
 
-    const contents = await runGenerate(data.nuxt, data.options, generatorConfig, config => ({
-      cwd: data.nuxt.options.rootDir,
-      overwrite: true,
-      ignoreNoDocuments: true,
-      silent: useLogger().level < LogLevels.verbose,
-      generates: {
-        [data.options.filename]: config,
-      },
-      pluckConfig: pluckConfig as GenerateInput['pluckConfig'],
-    }))
-
-    if (!contents || !data.options.clientConfig?.codegen || !data.options.clientConfig.codegen.globalTypes) {
-      return contents
-    }
-
-    return contents + createGlobalDeclarations(contents, data.options.filename)
+    return contents
   }
 }
 
-export type { ShopifyTemplateOptions }
+export type { DocumentState, ShopifyTemplateOptions }

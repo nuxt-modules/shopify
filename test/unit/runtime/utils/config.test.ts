@@ -97,36 +97,29 @@ describe('defaults', () => {
       '!**/admin.{connect,delete,get,head,options,patch,post,put,trace}.{ts,js}',
       '!**/admin/**/*.{gql,graphql,ts,js}',
       '!**/admin/*.{gql,graphql,ts,js}',
-      '!**/(admin)/**/*.{gql,graphql,ts,js}',
-      '!**/(admin)/*.{gql,graphql,ts,js}',
       '!**/*.customer-account.{gql,graphql,ts,js,vue}',
       '!**/customer-account.{gql,graphql,ts,js,vue}',
       '!**/*.customer-account.{connect,delete,get,head,options,patch,post,put,trace}.{ts,js}',
       '!**/customer-account.{connect,delete,get,head,options,patch,post,put,trace}.{ts,js}',
       '!**/customer-account/**/*.{gql,graphql,ts,js,vue}',
       '!**/customer-account/*.{gql,graphql,ts,js,vue}',
-      '!**/(customer-account)/**/*.{gql,graphql,ts,js,vue}',
-      '!**/(customer-account)/*.{gql,graphql,ts,js,vue}',
       '!**/*.customer.{gql,graphql,ts,js,vue}',
       '!**/customer.{gql,graphql,ts,js,vue}',
       '!**/*.customer.{connect,delete,get,head,options,patch,post,put,trace}.{ts,js}',
       '!**/customer.{connect,delete,get,head,options,patch,post,put,trace}.{ts,js}',
       '!**/customer/**/*.{gql,graphql,ts,js,vue}',
       '!**/customer/*.{gql,graphql,ts,js,vue}',
-      '!**/(customer)/**/*.{gql,graphql,ts,js,vue}',
-      '!**/(customer)/*.{gql,graphql,ts,js,vue}',
       '!**/*.account.{gql,graphql,ts,js,vue}',
       '!**/account.{gql,graphql,ts,js,vue}',
       '!**/*.account.{connect,delete,get,head,options,patch,post,put,trace}.{ts,js}',
       '!**/account.{connect,delete,get,head,options,patch,post,put,trace}.{ts,js}',
       '!**/account/**/*.{gql,graphql,ts,js,vue}',
       '!**/account/*.{gql,graphql,ts,js,vue}',
-      '!**/(account)/**/*.{gql,graphql,ts,js,vue}',
-      '!**/(account)/*.{gql,graphql,ts,js,vue}',
-      '!node_modules',
-      '!dist',
-      '!.nuxt',
-      '!.output',
+      '!**/node_modules/**',
+      '!**/dist/**',
+      '!**/.nuxt/**',
+      '!**/.output/**',
+      '!**/*.d.ts',
     ])
 
     expect(clients.admin?.documents).toStrictEqual([
@@ -136,12 +129,11 @@ describe('defaults', () => {
       '**/admin.{connect,delete,get,head,options,patch,post,put,trace}.{ts,js}',
       '**/admin/**/*.{gql,graphql,ts,js}',
       '**/admin/*.{gql,graphql,ts,js}',
-      '**/(admin)/**/*.{gql,graphql,ts,js}',
-      '**/(admin)/*.{gql,graphql,ts,js}',
-      '!node_modules',
-      '!dist',
-      '!.nuxt',
-      '!.output',
+      '!**/node_modules/**',
+      '!**/dist/**',
+      '!**/.nuxt/**',
+      '!**/.output/**',
+      '!**/*.d.ts',
     ])
 
     expect(clients.customerAccount?.documents).toStrictEqual([
@@ -151,28 +143,23 @@ describe('defaults', () => {
       '**/customer-account.{connect,delete,get,head,options,patch,post,put,trace}.{ts,js}',
       '**/customer-account/**/*.{gql,graphql,ts,js,vue}',
       '**/customer-account/*.{gql,graphql,ts,js,vue}',
-      '**/(customer-account)/**/*.{gql,graphql,ts,js,vue}',
-      '**/(customer-account)/*.{gql,graphql,ts,js,vue}',
       '**/*.customer.{gql,graphql,ts,js,vue}',
       '**/customer.{gql,graphql,ts,js,vue}',
       '**/*.customer.{connect,delete,get,head,options,patch,post,put,trace}.{ts,js}',
       '**/customer.{connect,delete,get,head,options,patch,post,put,trace}.{ts,js}',
       '**/customer/**/*.{gql,graphql,ts,js,vue}',
       '**/customer/*.{gql,graphql,ts,js,vue}',
-      '**/(customer)/**/*.{gql,graphql,ts,js,vue}',
-      '**/(customer)/*.{gql,graphql,ts,js,vue}',
       '**/*.account.{gql,graphql,ts,js,vue}',
       '**/account.{gql,graphql,ts,js,vue}',
       '**/*.account.{connect,delete,get,head,options,patch,post,put,trace}.{ts,js}',
       '**/account.{connect,delete,get,head,options,patch,post,put,trace}.{ts,js}',
       '**/account/**/*.{gql,graphql,ts,js,vue}',
       '**/account/*.{gql,graphql,ts,js,vue}',
-      '**/(account)/**/*.{gql,graphql,ts,js,vue}',
-      '**/(account)/*.{gql,graphql,ts,js,vue}',
-      '!node_modules',
-      '!dist',
-      '!.nuxt',
-      '!.output',
+      '!**/node_modules/**',
+      '!**/dist/**',
+      '!**/.nuxt/**',
+      '!**/.output/**',
+      '!**/*.d.ts',
     ])
   })
 })
@@ -207,14 +194,25 @@ describe('retries', () => {
   })
 })
 
-describe('storefront documents', () => {
-  it('keeps a configured document list as given', () => {
+describe('documents', () => {
+  it.each([
+    ['storefront', storefront],
+    ['customerAccount', { clientId: 'cid' }],
+    ['admin', { accessToken: 'shpat_x' }],
+  ] as const)('keeps a configured %s document list, and still skips dependency and build folders and declaration files', (clientType, client) => {
     const config = configObjectSchema.parse({
       name: 'shop',
-      clients: { storefront: { ...storefront, documents: ['app/graphql/**/*.ts'] } },
+      clients: { [clientType]: { ...client, documents: ['app/graphql/**/*.ts', '!**/node_modules/**'] } },
     })
 
-    expect(config.clients.storefront?.documents).toStrictEqual(['app/graphql/**/*.ts'])
+    expect(config.clients[clientType]?.documents).toStrictEqual([
+      'app/graphql/**/*.ts',
+      '!**/node_modules/**',
+      '!**/dist/**',
+      '!**/.nuxt/**',
+      '!**/.output/**',
+      '!**/*.d.ts',
+    ])
   })
 })
 

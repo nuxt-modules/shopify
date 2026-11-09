@@ -8,12 +8,11 @@ import type { ShopifyConfig } from '../types'
 import { join } from 'node:path'
 
 import { addVitePlugin } from '@nuxt/kit'
-import { minimatch } from 'minimatch'
 import { relative } from 'pathe'
 
 import { createGraphqlTransformPlugin } from '../utils/graphql/transform'
-import { DOCUMENT_ROUTING_ORDER, getConfiguredClients } from '../utils/clients'
-import { scanFragments, touchesFragments, within } from '../utils/graphql/registry'
+import { DOCUMENT_ROUTING_ORDER, createDocumentMatcher, getConfiguredClients } from '../utils/clients'
+import { scanFragments, within } from '../utils/graphql/registry'
 import { useLogger } from '../utils/log'
 
 const AUTO_IMPORT_CHANGING_EVENTS = ['add', 'unlink'] as const
@@ -23,25 +22,14 @@ function createClientRouter(nuxt: Nuxt, config: ShopifyConfig) {
 
   const order = DOCUMENT_ROUTING_ORDER
     .filter(clientType => configured.includes(clientType))
-    .map(clientType => ({
-      clientType,
-      include: (config.clients[clientType]?.documents ?? []).filter(entry => !entry.startsWith('!')),
-      exclude: (config.clients[clientType]?.documents ?? []).filter(entry => entry.startsWith('!')).map(entry => entry.slice(1)),
-    }))
+    .map(clientType => ({ clientType, matches: createDocumentMatcher(config.clients[clientType]?.documents ?? []) }))
 
   return (file: string) => {
     const path = relative(nuxt.options.rootDir, file)
 
     if (!path || path.startsWith('..')) return undefined
 
-    const segments = path.split('/')
-
-    for (const { clientType, include, exclude } of order) {
-      if (!include.some(pattern => minimatch(path, pattern))) continue
-      if (exclude.some(pattern => segments.includes(pattern) || minimatch(path, pattern))) continue
-
-      return clientType
-    }
+    return order.find(({ matches }) => matches(path))?.clientType
   }
 }
 
@@ -70,59 +58,32 @@ export default async function setupGraphqlTransform(nuxt: Nuxt, config: ShopifyC
 
   await rebuild()
 
-  const transformed = new Set<string>()
+  let scheduled: Promise<void> | undefined
+  let scanning: Promise<void> = Promise.resolve()
 
-  let server: ViteDevServer | undefined
+  const scan = () => {
+    scheduled = undefined
 
-  function invalidateTransformedModules() {
-    if (!server) return
-
-    for (const id of transformed) {
-      for (const environment of Object.values(server.environments ?? {})) {
-        for (const module of environment.moduleGraph.getModulesByFile(id) ?? []) {
-          environment.moduleGraph.invalidateModule(module)
-        }
-      }
-
-      for (const module of server.moduleGraph.getModulesByFile(id) ?? []) {
-        server.moduleGraph.invalidateModule(module)
-      }
-    }
-
-    server.ws.send({ type: 'full-reload' })
+    return scanning = rebuild()
   }
 
-  const base = createGraphqlTransformPlugin({
-    resolveRegistry: (file) => {
-      const clientType = routeFile(file)
-
-      return clientType ? registries.get(clientType) : undefined
-    },
-  })
-
   const plugin = {
-    ...base,
+    ...createGraphqlTransformPlugin({
+      resolveRegistry: (file) => {
+        const clientType = routeFile(file)
 
-    transform(code: string, id: string) {
-      const result = base.transform(code, id)
+        return clientType ? registries.get(clientType) : undefined
+      },
+    }),
 
-      if (result) transformed.add(id.split('?')[0]!)
+    watchChange(id: string) {
+      if (!within(dirs, id)) return
 
-      return result
+      return scheduled ??= scanning.then(scan, scan)
     },
 
     configureServer(devServer: ViteDevServer) {
-      server = devServer
-
       for (const dir of dirs) devServer.watcher.add(dir)
-
-      devServer.watcher.on('change', async (file) => {
-        if (!within(dirs, file)) return
-
-        await rebuild()
-
-        invalidateTransformedModules()
-      })
 
       for (const event of AUTO_IMPORT_CHANGING_EVENTS) {
         devServer.watcher.on(event, (file) => {
@@ -143,13 +104,5 @@ export default async function setupGraphqlTransform(nuxt: Nuxt, config: ShopifyC
     if (Array.isArray(nitroConfig.rollupConfig.plugins)) {
       nitroConfig.rollupConfig.plugins.push(plugin)
     }
-  })
-
-  nuxt.hook('builder:watch', async (_event, file) => {
-    if (!touchesFragments(dirs, file, nuxt.options.srcDir, nuxt.options.rootDir)) return
-
-    await rebuild()
-
-    invalidateTransformedModules()
   })
 }

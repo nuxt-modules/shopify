@@ -1,19 +1,20 @@
 import type { Nuxt, NuxtTemplate } from '@nuxt/schema'
 
 import type { ShopifyClientType, ShopifyConfig } from '../types'
-import type { ShopifyTemplateOptions } from './codegen'
+import type { DocumentState, ShopifyTemplateOptions } from './codegen'
 
 import { readFile } from 'node:fs/promises'
 import { dirname, basename, join, resolve } from 'node:path'
 import {
   addTemplate,
   addTypeTemplate,
+  getLayerDirectories,
   updateTemplates,
 } from '@nuxt/kit'
-import { minimatch } from 'minimatch'
 import { relative } from 'pathe'
 import { kebabCase } from 'scule'
 
+import { createDocumentMatcher } from './clients'
 import {
   createIntrospectionGenerator,
   createTypesGenerator,
@@ -34,22 +35,33 @@ export function getIntrospectionFilename(clientType: ShopifyClientType, apiVersi
   return `${OUTPUT_DIR}/schema/${kebabCase(clientType)}.${apiVersion}.schema.json`
 }
 
-function watchDocuments(nuxt: Nuxt, template: NuxtTemplate<ShopifyTemplateOptions>) {
+function watchDocuments(nuxt: Nuxt, template: NuxtTemplate<ShopifyTemplateOptions>, documents: DocumentState) {
+  const matches = createDocumentMatcher(template.options?.clientConfig?.documents ?? [])
+
+  nuxt.options.watch ||= []
+
+  for (const { shared } of getLayerDirectories(nuxt)) {
+    if (!nuxt.options.watch.includes(shared)) nuxt.options.watch.push(shared)
+  }
+
   nuxt.hook('builder:watch', async (_event, file) => {
     const path = resolve(nuxt.options.srcDir, file)
-    const projectPath = relative(nuxt.options.rootDir, path)
 
-    for (const document of template.options?.clientConfig?.documents ?? []) {
-      if (document.startsWith('!') || !minimatch(projectPath, document)) continue
+    if (!matches(relative(nuxt.options.rootDir, path))) return
 
-      const content = await readFile(path, 'utf8').catch(() => '')
+    const content = await readFile(path, 'utf8').catch(() => '')
+    const hasGraphql = SCHEMA_LANGUAGE_FILE.test(path) || GRAPHQL_MARKER.test(content)
 
-      if (SCHEMA_LANGUAGE_FILE.test(path) || GRAPHQL_MARKER.test(content)) {
-        return updateTemplates({
-          filter: t => t.filename === template.options?.filename,
-        })
-      }
-    }
+    if (!hasGraphql && !documents.graphqlFiles.has(path)) return
+
+    if (hasGraphql) documents.graphqlFiles.add(path)
+    else documents.graphqlFiles.delete(path)
+
+    documents.revision++
+
+    return updateTemplates({
+      filter: t => t.filename === template.options?.filename,
+    })
   })
 }
 
@@ -92,10 +104,12 @@ export function registerTemplates(
     },
   }, context)
 
+  const documents: DocumentState = { revision: 0, graphqlFiles: new Set() }
+
   const operationsFilename = `${OUTPUT_DIR}/${kebabCase(clientType)}/${kebabCase(clientType)}.operations`
   const operations = addTypeTemplate<ShopifyTemplateOptions>({
     filename: `${operationsFilename}.d.ts`,
-    getContents: createOperationsGenerator(introspection),
+    getContents: createOperationsGenerator(introspection, documents),
     options: {
       filename: `${operationsFilename}.d.ts`,
       shopName: config.name,
@@ -104,7 +118,7 @@ export function registerTemplates(
     },
   }, context)
 
-  watchDocuments(nuxt, operations)
+  watchDocuments(nuxt, operations, documents)
 
   const index = addTypeTemplate<ShopifyTemplateOptions>({
     filename: `${OUTPUT_DIR}/${kebabCase(clientType)}/index.d.ts`,
