@@ -1,8 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { API_VERSION } from '#test/helpers/api-version'
+import { createLoggerStub } from '#test/helpers/logger'
+import { resolver } from '#test/helpers/nuxt'
 
-const logger = { start: vi.fn(), success: vi.fn(), debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() }
+const logger = createLoggerStub()
 
 const runtimeConfig: { shopify?: Record<string, unknown>, public: { shopify?: Record<string, unknown> } } = { public: {} }
 
@@ -22,7 +24,7 @@ const setupSteps = vi.hoisted(() => ({
 vi.mock('@nuxt/kit', async importOriginal => ({
   ...await importOriginal<object>(),
   defineNuxtModule: (definition: unknown) => definition,
-  createResolver: () => ({ resolve: (path: string) => path }),
+  createResolver: () => resolver,
   useRuntimeConfig: () => runtimeConfig,
 }))
 
@@ -72,6 +74,24 @@ describe('module setup', () => {
 
     expect(logger.error).toHaveBeenCalledWith(expect.stringContaining('Skipping `clients.admin`'))
     expect(setupSteps.setupClients).toHaveBeenCalledWith(nuxt, expect.objectContaining({ clients: { storefront: expect.objectContaining({ publicAccessToken: 'public-token' }) } }), expect.anything())
+  })
+
+  it('leaves a session password from the environment out of the build without calling it unrecognized', async () => {
+    const password = 'p'.repeat(32)
+
+    process.env.NUXT_SHOPIFY_CLIENTS_CUSTOMER_ACCOUNT_SESSION_PASSWORD = password
+
+    try {
+      await shopifyModule.setup({ name: 'shop', shopId: '1234', clients: { customerAccount: { apiVersion: API_VERSION, clientId: 'cid', session: { password } } } }, createNuxt())
+    }
+    finally {
+      delete process.env.NUXT_SHOPIFY_CLIENTS_CUSTOMER_ACCOUNT_SESSION_PASSWORD
+    }
+
+    const [, config] = setupSteps.setupClients.mock.calls[0] as [unknown, { clients: { customerAccount: { session: { password?: string } } } }]
+
+    expect(config.clients.customerAccount.session.password).toBeUndefined()
+    expect(logger.warn).not.toHaveBeenCalledWith(expect.stringContaining('Unrecognized configuration value'))
   })
 
   it('treats an empty API version as unset, so the default applies', async () => {

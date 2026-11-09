@@ -69,7 +69,7 @@ vi.mock('#imports', () => ({ useRuntimeConfig: () => runtimeConfig }))
 
 const logError = vi.fn()
 
-vi.mock('#src/runtime/utils/analytics/shop', () => ({
+vi.mock('#src/runtime/utils/shop', () => ({
   createShopResolver: () => () => Promise.resolve({ shop: {}, i18n: { country: 'US', language: 'EN' } }),
 }))
 

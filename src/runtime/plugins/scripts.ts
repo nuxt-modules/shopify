@@ -8,8 +8,8 @@ import { defineNuxtPlugin, useHead, useNuxtApp, useRequestEvent, useRouter, useR
 import { useStorefront } from '../composables/storefront/client'
 import { createLogger } from '../utils/log'
 import { trackPageViews } from '../utils/analytics/page-view'
-import { createNavigation, toScriptsHead, toScriptsOptions } from '../utils/analytics/scripts'
-import { createShopResolver } from '../utils/analytics/shop'
+import { createNavigation, toScriptsHead, toScriptsOptions } from '../utils/scripts'
+import { createShopResolver } from '../utils/shop'
 
 type ConsentMode = NonNullable<ConsentConfig['mode']>
 

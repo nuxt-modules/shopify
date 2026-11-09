@@ -18,7 +18,7 @@ import { createClient, isInlineConfig } from '../create'
 import { DEFAULT_API_VERSION, DEFAULT_RETRIES } from '../defaults'
 import { getAdminAccessToken } from './auth'
 
-export const createAdminConfig = (config?: ModuleOptions): ShopifyApiClientConfig => {
+export function createAdminConfig(config?: ModuleOptions): ShopifyApiClientConfig {
   if (!config?.clients?.admin) {
     throw new Error('[shopify] Failed to create admin client config: client is not configured (set `clients.admin`)')
   }
@@ -52,7 +52,7 @@ export const createAdminConfig = (config?: ModuleOptions): ShopifyApiClientConfi
       ...(accessToken ? { [ADMIN_TOKEN_HEADER]: accessToken } : {}),
       ...headers,
     },
-  } satisfies ShopifyApiClientConfig
+  }
 }
 
 const definition: ClientDefinition<'admin'> = {

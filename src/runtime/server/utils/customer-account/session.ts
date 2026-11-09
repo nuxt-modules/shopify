@@ -10,7 +10,7 @@ import { getRouteRules, useStorage } from 'nitropack/runtime'
 import { hash } from 'ohash'
 import { useRuntimeConfig } from '#imports'
 
-import { SESSION_DEFAULT_NAME, SESSION_PASSWORD_ENV, SESSION_PASSWORD_MIN_LENGTH, isUsableSessionPassword } from '../../../utils/session'
+import { DEFAULT_SESSION_NAME, SESSION_PASSWORD_ENV, SESSION_PASSWORD_MIN_LENGTH, isUsableSessionPassword } from '../../../utils/session'
 import { getPublicRequestURL, getShopifyRequestContext } from '../routes'
 
 const HYDROGEN_SESSION_KEY = 'customerAccount'
@@ -40,7 +40,7 @@ export function requireCustomerAccountConfig(config?: ShopifyConfig): NonNullabl
   return customerAccount
 }
 
-export function getCustomerSession(config?: ShopifyConfig): CustomerSessionWithInternals {
+export function getHydrogenCustomerSession(config?: ShopifyConfig): CustomerSessionWithInternals {
   const customerAccount = requireCustomerAccountConfig(config)
   const shopId = config?.shopId
 
@@ -83,7 +83,7 @@ export function getSessionConfig(config?: ShopifyConfig): SessionConfig {
   }
 
   return {
-    name: session?.name || SESSION_DEFAULT_NAME,
+    name: session?.name || DEFAULT_SESSION_NAME,
     password,
     maxAge: session?.maxAge,
     sessionHeader: false,
@@ -98,7 +98,7 @@ export function getSessionConfig(config?: ShopifyConfig): SessionConfig {
 function hasSessionCookie(event: H3Event, config: SessionConfig): boolean {
   const { cache, isr } = getRouteRules(event)
 
-  return !(cache || isr) && !!getCookie(event, config.name || SESSION_DEFAULT_NAME)
+  return !(cache || isr) && !!getCookie(event, config.name || DEFAULT_SESSION_NAME)
 }
 
 async function readSession(event: H3Event, config: SessionConfig) {
@@ -234,7 +234,7 @@ export function createCustomerSessionManager(event: H3Event): WritableCustomerSe
  *
  * @param event the current request event
  *
- * @returns whether the customer is signed in
+ * @returns the session, `{ isLoggedIn }`, which tells whether the customer is signed in
  */
 export async function getCustomerAccountSession(event: H3Event): Promise<ShopifyCustomerAccountSession> {
   const { _shopify } = useRuntimeConfig(event)
@@ -243,7 +243,7 @@ export async function getCustomerAccountSession(event: H3Event): Promise<Shopify
 
   if (!session || !holdsTokens(session.data)) return { isLoggedIn: false }
 
-  return { isLoggedIn: await getCustomerSession(_shopify).isLoggedIn(createCustomerSessionManager(event), await getShopifyRequestContext(event)) }
+  return { isLoggedIn: await getHydrogenCustomerSession(_shopify).isLoggedIn(createCustomerSessionManager(event), await getShopifyRequestContext(event)) }
 }
 
 /**
@@ -262,7 +262,7 @@ export async function requireCustomerAccountSession(event: H3Event): Promise<Sho
     throw createError({
       status: 401,
       statusText: 'Unauthorized',
-      message: '[shopify] No authenticated customer account session',
+      message: '[shopify] No customer account session: the customer is not logged in',
     })
   }
 

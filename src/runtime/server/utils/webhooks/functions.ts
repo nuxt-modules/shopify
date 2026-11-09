@@ -1,6 +1,6 @@
 import type { H3Event } from 'h3'
 
-import { getHeaders } from 'h3'
+import { getRequestHeader } from 'h3'
 
 /**
  * Gets the topic from the webhook request headers.
@@ -9,7 +9,9 @@ import { getHeaders } from 'h3'
  *
  * @returns The webhook topic
  */
-export const getWebhookTopic = (event: H3Event) => getHeaders(event)['x-shopify-topic']
+export function getWebhookTopic(event: H3Event) {
+  return getRequestHeader(event, 'x-shopify-topic')
+}
 
 /**
  * Gets the HMAC signature from the webhook request headers.
@@ -18,7 +20,9 @@ export const getWebhookTopic = (event: H3Event) => getHeaders(event)['x-shopify-
  *
  * @returns The webhook HMAC
  */
-export const getWebhookHmac = (event: H3Event) => getHeaders(event)['x-shopify-hmac-sha256']
+export function getWebhookHmac(event: H3Event) {
+  return getRequestHeader(event, 'x-shopify-hmac-sha256')
+}
 
 /**
  * Gets the shop domain from the webhook request headers.
@@ -27,7 +31,9 @@ export const getWebhookHmac = (event: H3Event) => getHeaders(event)['x-shopify-h
  *
  * @returns The shop domain
  */
-export const getWebhookShopDomain = (event: H3Event) => getHeaders(event)['x-shopify-shop-domain']
+export function getWebhookShopDomain(event: H3Event) {
+  return getRequestHeader(event, 'x-shopify-shop-domain')
+}
 
 /**
  * Gets the API version from the webhook request headers.
@@ -36,7 +42,9 @@ export const getWebhookShopDomain = (event: H3Event) => getHeaders(event)['x-sho
  *
  * @returns The API version
  */
-export const getWebhookApiVersion = (event: H3Event) => getHeaders(event)['x-shopify-api-version']
+export function getWebhookApiVersion(event: H3Event) {
+  return getRequestHeader(event, 'x-shopify-api-version')
+}
 
 /**
  * Gets the webhook ID from the request headers.
@@ -45,7 +53,9 @@ export const getWebhookApiVersion = (event: H3Event) => getHeaders(event)['x-sho
  *
  * @returns The webhook ID
  */
-export const getWebhookId = (event: H3Event) => getHeaders(event)['x-shopify-webhook-id']
+export function getWebhookId(event: H3Event) {
+  return getRequestHeader(event, 'x-shopify-webhook-id')
+}
 
 /**
  * Gets the webhook triggered at timestamp from the request headers.
@@ -54,7 +64,9 @@ export const getWebhookId = (event: H3Event) => getHeaders(event)['x-shopify-web
  *
  * @returns The webhook triggered at timestamp
  */
-export const getWebhookTriggeredAt = (event: H3Event) => getHeaders(event)['x-shopify-triggered-at']
+export function getWebhookTriggeredAt(event: H3Event) {
+  return getRequestHeader(event, 'x-shopify-triggered-at')
+}
 
 /**
  * Gets the webhook event ID from the request headers.
@@ -63,4 +75,6 @@ export const getWebhookTriggeredAt = (event: H3Event) => getHeaders(event)['x-sh
  *
  * @returns The webhook event ID
  */
-export const getWebhookEventId = (event: H3Event) => getHeaders(event)['x-shopify-event-id']
+export function getWebhookEventId(event: H3Event) {
+  return getRequestHeader(event, 'x-shopify-event-id')
+}

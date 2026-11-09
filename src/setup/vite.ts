@@ -17,11 +17,7 @@ export default function setupVite(nuxt: Nuxt, config: ShopifyConfig) {
   const deps: string[] = []
 
   if (config.analytics || config.clients?.storefront || config.clients?.customerAccount) {
-    deps.push('@shopify/graphql-client')
-  }
-
-  if (config.analytics || config.clients?.storefront || config.clients?.customerAccount) {
-    deps.push('@shopify/hydrogen', '@shopify/hydrogen/customer-account', '@shopify/hydrogen/vue')
+    deps.push('@shopify/graphql-client', '@shopify/hydrogen', '@shopify/hydrogen/customer-account', '@shopify/hydrogen/vue')
   }
 
   const storefront = config.clients?.storefront

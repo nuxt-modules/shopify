@@ -41,7 +41,7 @@ async function hasValidSignature(secret: string, body: Uint8Array<ArrayBuffer>, 
  *
  * @throws a 401 unauthorized error if validation fails
  */
-export const validateWebhook = async (event: H3Event) => {
+export async function validateWebhook(event: H3Event) {
   const { _shopify } = useRuntimeConfig(event)
 
   const secret = _shopify?.webhooks?.secret || _shopify?.clients?.admin?.clientSecret

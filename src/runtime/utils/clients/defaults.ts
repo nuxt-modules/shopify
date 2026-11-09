@@ -1,4 +1,3 @@
-import { getCurrentSupportedApiVersions } from '@shopify/graphql-client'
 import { CUSTOMER_ACCOUNT_API_VERSION } from '@shopify/hydrogen/customer-account'
 
 export const DEFAULT_RETRIES = 0
@@ -13,6 +12,6 @@ export const DEFAULT_API_VERSION = CUSTOMER_ACCOUNT_API_VERSION
 
 const API_VERSION_PATTERN = /^(?:unstable|2\d{3}-\d{2})$/
 
-export const isApiVersion = (version: string) => API_VERSION_PATTERN.test(version)
-
-export const isSupportedApiVersion = (version: string) => getCurrentSupportedApiVersions().includes(version)
+export function isApiVersion(version: string) {
+  return API_VERSION_PATTERN.test(version)
+}

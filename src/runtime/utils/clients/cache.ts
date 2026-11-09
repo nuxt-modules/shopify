@@ -28,7 +28,7 @@ function fromPreset(name: string, cachePresets?: CachePresets) {
   return ttl > 0 ? { ttl } : undefined
 }
 
-function getLRUCacheSettings<
+function getBrowserCacheOptions<
   Operation extends keyof Operations,
   Operations extends AllOperations,
 >(
@@ -88,10 +88,10 @@ export async function requestWithCache<
   cachePresets?: CachePresets,
   withServerCache = true,
 ): Promise<ClientResponse<ReturnData<Operation, Operations>>> {
-  const inMemoryConfig = storage && !MUTATION.test(operation as string) ? getLRUCacheSettings(options, cachePresets) : undefined
+  const browserCacheOptions = storage && !MUTATION.test(operation as string) ? getBrowserCacheOptions(options, cachePresets) : undefined
   const serverCacheHeaders = withServerCache ? getServerCacheHeaders(options) : undefined
 
-  const cacheKey = storage && inMemoryConfig ? createCacheKey(operation, options) : undefined
+  const cacheKey = storage && browserCacheOptions ? createCacheKey(operation, options) : undefined
 
   if (storage && cacheKey) {
     const cached = await storage.getItemRaw(cacheKey) as ClientResponse<ReturnData<Operation, Operations>> | null
@@ -108,7 +108,7 @@ export async function requestWithCache<
   } as typeof options)
 
   if (storage && cacheKey && !response.errors) {
-    await storage.setItemRaw(cacheKey, detach(response), inMemoryConfig)
+    await storage.setItemRaw(cacheKey, detach(response), browserCacheOptions)
   }
 
   return response

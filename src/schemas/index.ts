@@ -1,17 +1,10 @@
-import type { Nuxt } from '@nuxt/schema'
-
-import { z } from 'zod'
+import type { z } from 'zod'
 
 import {
   ShopifyClientType,
   configObjectSchema,
   publicConfigSchema,
 } from '../runtime/utils/config'
-import { resolveConfig } from './resolve'
-
-export const configSchema = configObjectSchema
-  .extend({ _nuxt: z.any().optional().transform(v => v as Nuxt | undefined) })
-  .transform(({ _nuxt, ...config }) => resolveConfig(config, _nuxt))
 
 export type ModuleOptions = z.input<typeof configObjectSchema>
 export type PublicModuleOptions = z.input<typeof publicConfigSchema>

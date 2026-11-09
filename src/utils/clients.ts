@@ -116,14 +116,14 @@ export function registerCustomerAccountSession(resolver: Resolver) {
   })))
 
   addRouteMiddleware({
-    name: 'customer-account',
+    name: 'shopify:customer-account',
     path: resolver.resolve('./runtime/middleware/customer-account'),
     global: false,
   })
 
   addPlugin(resolver.resolve('./runtime/plugins/customer-account/session'))
 
-  useLogger().debug('Registered customer account route middleware `customer-account`')
+  useLogger().debug('Registered customer account route middleware `shopify:customer-account`')
 }
 
 export function isPublicClient(storefront: ShopifyConfig['clients']['storefront']): boolean {

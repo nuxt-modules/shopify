@@ -3,7 +3,7 @@ import type { ShopifyScriptTagDescriptors } from '@shopify/hydrogen'
 
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { createNavigation, toScriptsHead, toScriptsOptions } from '#src/runtime/utils/analytics/scripts'
+import { createNavigation, toScriptsHead, toScriptsOptions } from '#src/runtime/utils/scripts'
 
 type Router = Parameters<typeof createNavigation>[0]
 

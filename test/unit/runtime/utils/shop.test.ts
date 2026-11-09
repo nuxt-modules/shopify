@@ -1,12 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { createLoggerStub } from '#test/helpers/logger'
+
 const { warn } = vi.hoisted(() => ({ warn: vi.fn() }))
 
 vi.mock('#src/runtime/utils/log', () => ({
-  createLogger: () => ({ debug: vi.fn(), info: vi.fn(), warn, error: vi.fn() }),
+  createLogger: () => createLoggerStub({ warn }),
 }))
 
-const { createShopResolver } = await import('#src/runtime/utils/analytics/shop')
+const { createShopResolver } = await import('#src/runtime/utils/shop')
 
 const localized = {
   shop: { id: 'gid://shopify/Shop/1' },

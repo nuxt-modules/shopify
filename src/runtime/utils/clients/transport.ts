@@ -29,22 +29,27 @@ export const CUSTOMER_ACCOUNT_PROXY_ROUTE = '/account/customer/api/:version/grap
 
 const API_VERSION_SEGMENT = /\/api\/[^/]+(?=\/|$)/
 
-export const createStoreDomain = (name: string) => `https://${name}.myshopify.com`
+export function createStoreDomain(name: string) {
+  return `https://${name}.myshopify.com`
+}
 
-export const createApiUrl = (storeDomain: string, apiVersion: string, apiPrefix?: string) => joinURL(
-  storeDomain,
-  apiPrefix ? `${apiPrefix}/api` : 'api',
-  apiVersion,
-  'graphql.json',
-)
+export function createApiUrl(storeDomain: string, apiVersion: string, apiPrefix?: string) {
+  return joinURL(
+    storeDomain,
+    apiPrefix ? `${apiPrefix}/api` : 'api',
+    apiVersion,
+    'graphql.json',
+  )
+}
 
-export const withApiVersion = (apiUrl: string, apiVersion: string) =>
-  apiUrl.replace(API_VERSION_SEGMENT, `/api/${apiVersion}`)
+export function withApiVersion(apiUrl: string, apiVersion: string) {
+  return apiUrl.replace(API_VERSION_SEGMENT, `/api/${apiVersion}`)
+}
 
-export const createTransport = <Operations extends AllOperations = AllOperations, Cache extends boolean | undefined = undefined>(
+export function createTransport<Operations extends AllOperations = AllOperations, Cache extends boolean | undefined = undefined>(
   config: ShopifyApiClientConfig,
   transportOptions: { normalize?: boolean, fetch?: CustomFetchApi } = {},
-): ShopifyApiClient<Operations, Cache> => {
+): ShopifyApiClient<Operations, Cache> {
   const {
     storeDomain,
     apiUrl,
@@ -113,7 +118,7 @@ export const createTransport = <Operations extends AllOperations = AllOperations
       } = options
 
       const requestHeaders = headers
-        ? getHeaders(headers as unknown as Record<string, string[]>)
+        ? getHeaders(headers)
         : undefined
 
       props.push({

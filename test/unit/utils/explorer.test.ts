@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ShopifyClientType } from '#src/schemas'
 import { API_VERSION } from '#test/helpers/api-version'
 import { createTestEvent } from '#test/helpers/event'
+import { resolver } from '#test/helpers/nuxt'
 
 const devServerHandlers: Array<{ route: string, handler: (event: H3Event) => unknown }> = []
 
@@ -16,7 +17,7 @@ vi.mock('@nuxt/kit', () => ({
   extendRouteRules: vi.fn(),
 }))
 
-const { registerExplorer, shouldEnableExplorer } = await import('#src/utils/explorer')
+const { assertLocalRequest, registerExplorer, shouldEnableExplorer } = await import('#src/utils/explorer')
 
 const config = {
   clients: {
@@ -25,8 +26,6 @@ const config = {
     admin: { apiVersion: API_VERSION, explorer: true },
   },
 }
-
-const resolver = { resolve: (path: string) => path }
 
 const local = (path: string) => createTestEvent({ path, headers: { host: 'localhost:3005' }, remoteAddress: '127.0.0.1' })
 
@@ -119,5 +118,28 @@ describe('explorer endpoints', () => {
     expect(shouldEnableExplorer(nuxt as never, config as never, ShopifyClientType.CustomerAccount)).toBe(true)
     expect(shouldEnableExplorer(nuxt as never, { clients: { customerAccount: { explorer: true, proxy: false } } } as never, ShopifyClientType.CustomerAccount)).toBe(false)
     expect(shouldEnableExplorer({ options: { dev: false } } as never, config as never, ShopifyClientType.Storefront)).toBe(false)
+  })
+})
+
+describe('assertLocalRequest', () => {
+  const request = (host: string, remoteAddress: string) => createTestEvent({ method: 'POST', headers: { host }, remoteAddress })
+
+  it.each([
+    ['localhost:3005', '127.0.0.1'],
+    ['127.0.0.1:3005', '127.0.0.1'],
+    ['[::1]:3005', '::1'],
+    ['localhost:3005', '::ffff:127.0.0.1'],
+    ['local.tryhydrogen.dev:5173', '127.0.0.1'],
+  ])('allows a request to %s from %s', (host, remoteAddress) => {
+    expect(() => assertLocalRequest(request(host, remoteAddress))).not.toThrow()
+  })
+
+  it.each([
+    ['abc123.ngrok.app', '127.0.0.1'],
+    ['shop.example.com', '127.0.0.1'],
+    ['192.168.1.20:3005', '192.168.1.20'],
+    ['localhost:3005', '192.168.1.20'],
+  ])('rejects a request to %s from %s', (host, remoteAddress) => {
+    expect(() => assertLocalRequest(request(host, remoteAddress))).toThrow(expect.objectContaining({ statusCode: 403 }))
   })
 })

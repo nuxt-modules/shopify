@@ -1,14 +1,14 @@
 import type { StorefrontApiClient } from '@nuxtjs/shopify/storefront'
 import type { ShopifyScriptsI18n } from '@shopify/hydrogen'
 
-import type { PublicShopifyConfig, ShopifyScriptsShopContext } from '../../../module'
+import type { PublicShopifyConfig, ShopifyScriptsShopContext } from '../../module'
 
-import { createLogger } from '../log'
+import { createLogger } from './log'
 
 type ShopConfig = Pick<PublicShopifyConfig, 'name' | 'shopId' | 'storefrontId' | 'defaultMarket' | 'analytics'>
 
 const SHOP_QUERY = `#graphql
-  query ShopifyAnalyticsShop($country: CountryCode, $language: LanguageCode)
+  query ShopifyShopContext($country: CountryCode, $language: LanguageCode)
   @inContext(country: $country, language: $language) {
     shop { id }
     localization {

@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { resolver } from '#test/helpers/nuxt'
+
 const addPlugin = vi.fn()
 const addServerHandler = vi.fn()
 
@@ -25,7 +27,7 @@ function setup(storefront: Record<string, unknown>) {
 
   const config = { name: 'shop', clients: { storefront } }
 
-  setupStorefrontClient(nuxt as never, config as never, { resolve: (path: string) => path } as never)
+  setupStorefrontClient(nuxt as never, config as never, resolver)
 
   return {
     storage: nuxt.options.nitro.storage,
@@ -78,7 +80,7 @@ describe('storefront routes', () => {
 describe('storefront cache', () => {
   const cache = { browser: { ttl: 1000 }, server: { driver: 'redis' }, presets: {} }
 
-  const BROWSER_CACHE_PLUGIN = './runtime/plugins/storefront/cache'
+  const BROWSER_CACHE_PLUGIN = { src: './runtime/plugins/storefront/cache', mode: 'client' }
   const SERVER_CACHE_MIDDLEWARE = { middleware: true, handler: './runtime/server/middleware/storefront/cache' }
 
   beforeEach(() => {

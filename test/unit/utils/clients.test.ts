@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { resolver } from '#test/helpers/nuxt'
+
 const warn = vi.fn()
 
 const serverHandlers: Array<{ handler: string }> = []
@@ -7,12 +9,13 @@ const serverHandlers: Array<{ handler: string }> = []
 const addServerHandler = vi.fn((handler: { handler: string }) => void serverHandlers.push(handler))
 const addServerPlugin = vi.fn()
 const addPlugin = vi.fn()
+const addRouteMiddleware = vi.fn()
 const extendRouteRules = vi.fn()
 
 vi.mock('@nuxt/kit', () => ({
   addImports: vi.fn(),
   addPlugin,
-  addRouteMiddleware: vi.fn(),
+  addRouteMiddleware,
   addServerHandler,
   addServerImports: vi.fn(),
   addServerPlugin,
@@ -27,12 +30,11 @@ const {
   hasPublicClient,
   isPublicClient,
   registerCustomerAccountRoutes,
+  registerCustomerAccountSession,
   registerShopifyRoutes,
   warnInsecureCustomerAccountDevServer,
 } = await import('#src/utils/clients')
 const { CUSTOMER_ACCOUNT_ROUTES, STOREFRONT_ROUTES } = await import('#src/utils/routes')
-
-const resolver = { resolve: (path: string) => path }
 
 const storefront = (client: Record<string, unknown>) => ({ clients: { storefront: client } } as never)
 
@@ -187,6 +189,22 @@ describe('registerCustomerAccountRoutes', () => {
     registerCustomerAccountRoutes({ clientId: 'client', proxy: false } as never, resolver as never)
 
     expect(addServerHandler).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ route: '/account/session' }))
+  })
+})
+
+describe('registerCustomerAccountSession', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('registers the route middleware under the name pages put in definePageMeta', () => {
+    registerCustomerAccountSession(resolver as never)
+
+    expect(addRouteMiddleware).toHaveBeenCalledExactlyOnceWith({
+      name: 'shopify:customer-account',
+      path: './runtime/middleware/customer-account',
+      global: false,
+    })
   })
 })
 

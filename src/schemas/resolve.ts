@@ -5,8 +5,7 @@ import type { ShopifyConfig } from '../types'
 import { getCurrentSupportedApiVersions } from '@shopify/graphql-client'
 import { kebabCase } from 'scule'
 
-import { ShopifyClientType, configObjectSchema, publicConfigSchema } from '../runtime/utils/config'
-import { isSupportedApiVersion } from '../runtime/utils/clients/defaults'
+import { ShopifyClientType, publicConfigSchema } from '../runtime/utils/config'
 import { resolveShopId } from '../runtime/utils/clients/customer-account/discovery'
 import { useLogger } from '../utils/log'
 import { SESSION_PASSWORD_ENV, SESSION_PASSWORD_MIN_LENGTH, isUsableSessionPassword } from '../runtime/utils/session'
@@ -20,13 +19,11 @@ function findUnrecognizedOptions(input: unknown, output: unknown, path: string[]
     : [[...path, key].join('.')])
 }
 
-export function warnUnrecognizedOptions(input: unknown) {
-  const parsed = configObjectSchema.safeParse(input)
+export const CONFIGURATION_DOCS_URL = 'https://shopify.nuxtjs.org/essentials/configuration'
 
-  if (!parsed.success) return
-
-  for (const option of findUnrecognizedOptions(input, parsed.data)) {
-    useLogger().warn(`Unrecognized configuration value \`shopify.${option}\` is ignored. See https://shopify.nuxtjs.org/essentials/configuration`)
+export function warnUnrecognizedOptions(input: unknown, config: ShopifyConfig) {
+  for (const option of findUnrecognizedOptions(input, config)) {
+    useLogger().warn(`Unrecognized configuration value \`shopify.${option}\` is ignored. See ${CONFIGURATION_DOCS_URL}`)
   }
 }
 
@@ -60,7 +57,7 @@ function warnUnsupportedApiVersions(config: ShopifyConfig) {
   for (const clientType of Object.values(ShopifyClientType)) {
     const client = config.clients[clientType]
 
-    if (!client || isSupportedApiVersion(client.apiVersion)) continue
+    if (!client || getCurrentSupportedApiVersions().includes(client.apiVersion)) continue
 
     logger.warn(
       `The ${kebabCase(clientType)} client uses API version \`${client.apiVersion}\`, `
@@ -107,9 +104,7 @@ async function resolveSessionPassword(config: ShopifyConfig, nuxt: Nuxt) {
   }
 }
 
-export async function resolveConfig(config: ShopifyConfig, nuxt?: Nuxt): Promise<ShopifyConfig> {
-  if (!nuxt) return config
-
+export async function resolveConfig(config: ShopifyConfig, nuxt: Nuxt): Promise<ShopifyConfig> {
   warnCustomerAccountProxyOptOut(config)
   warnNonRootBaseURL(config, nuxt)
   warnUnsupportedApiVersions(config)

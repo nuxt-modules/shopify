@@ -4,20 +4,17 @@ import { join } from 'node:path'
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { createLoggerStub } from '#test/helpers/logger'
+
 const warnings: string[] = []
 const fragmentDirs: string[] = []
 
 vi.mock('#src/utils/log', () => ({
   initLogger: () => undefined,
-  useLogger: () => ({
-    warn: (message: string) => void warnings.push(message),
-    debug: vi.fn(),
-    info: vi.fn(),
-    error: vi.fn(),
-  }),
+  useLogger: () => createLoggerStub({ warn: (message: string) => void warnings.push(message) }),
 }))
 
-const { scanFragments } = await import('#src/utils/graphql/registry')
+const { scanFragments, touchesFragments } = await import('#src/utils/graphql/registry')
 
 const toStorefront = () => 'storefront'
 
@@ -99,5 +96,27 @@ describe('fragments from schema language files', () => {
     const pasted = new Function(`return \`${fragment!.text}\``)() as string
 
     expect(pasted).toBe(graphql)
+  })
+})
+
+describe('fragment watching', () => {
+  const dirs = ['/project/graphql']
+  const srcDir = '/project/app'
+  const rootDir = '/project'
+
+  it('matches a path reported relative to srcDir', () => {
+    expect(touchesFragments(dirs, '../graphql/fragments/product.ts', srcDir, rootDir)).toBe(true)
+  })
+
+  it('matches a path reported relative to rootDir', () => {
+    expect(touchesFragments(dirs, 'graphql/fragments/product.ts', srcDir, rootDir)).toBe(true)
+  })
+
+  it('ignores files outside the fragment directories', () => {
+    expect(touchesFragments(dirs, 'components/Product.vue', srcDir, rootDir)).toBe(false)
+  })
+
+  it('does not match a sibling directory sharing the prefix', () => {
+    expect(touchesFragments(dirs, '../graphql-extra/product.ts', srcDir, rootDir)).toBe(false)
   })
 })

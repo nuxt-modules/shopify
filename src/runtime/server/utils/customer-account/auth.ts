@@ -7,7 +7,7 @@ import { useNitroApp } from 'nitropack/runtime'
 import { useRuntimeConfig } from '#imports'
 
 import { getShopifyRequestContext } from '../routes'
-import { createCustomerSessionManager, getCustomerAccountSession, getCustomerSession } from './session'
+import { createCustomerSessionManager, getCustomerAccountSession, getHydrogenCustomerSession } from './session'
 
 export async function getValidCustomerAccessToken(event?: H3Event): Promise<string> {
   if (!event) {
@@ -16,7 +16,7 @@ export async function getValidCustomerAccessToken(event?: H3Event): Promise<stri
 
   const { _shopify } = useRuntimeConfig(event)
 
-  const customerSession = getCustomerSession(_shopify)
+  const customerSession = getHydrogenCustomerSession(_shopify)
   const sessionManager = createCustomerSessionManager(event)
   const requestContext = await getShopifyRequestContext(event)
 

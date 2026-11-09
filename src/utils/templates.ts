@@ -4,20 +4,20 @@ import type { ShopifyClientType, ShopifyConfig } from '../types'
 import type { ShopifyTemplateOptions } from './codegen'
 
 import { readFile } from 'node:fs/promises'
-import { dirname, basename, join, relative, resolve } from 'node:path'
+import { dirname, basename, join, resolve } from 'node:path'
 import {
   addTemplate,
   addTypeTemplate,
   updateTemplates,
 } from '@nuxt/kit'
 import { minimatch } from 'minimatch'
+import { relative } from 'pathe'
 import { kebabCase } from 'scule'
 
 import {
   createIntrospectionGenerator,
   createTypesGenerator,
   createOperationsGenerator,
-  toPosix,
 } from './codegen'
 import { GRAPHQL_MARKER, SCHEMA_LANGUAGE_FILE } from './graphql/literals'
 
@@ -34,10 +34,10 @@ export function getIntrospectionFilename(clientType: ShopifyClientType, apiVersi
   return `${OUTPUT_DIR}/schema/${kebabCase(clientType)}.${apiVersion}.schema.json`
 }
 
-function setupWatcher(nuxt: Nuxt, template: NuxtTemplate<ShopifyTemplateOptions>) {
+function watchDocuments(nuxt: Nuxt, template: NuxtTemplate<ShopifyTemplateOptions>) {
   nuxt.hook('builder:watch', async (_event, file) => {
     const path = resolve(nuxt.options.srcDir, file)
-    const projectPath = toPosix(relative(nuxt.options.rootDir, path))
+    const projectPath = relative(nuxt.options.rootDir, path)
 
     for (const document of template.options?.clientConfig?.documents ?? []) {
       if (document.startsWith('!') || !minimatch(projectPath, document)) continue
@@ -102,7 +102,7 @@ export function registerTemplates(
     },
   })
 
-  setupWatcher(nuxt, operations)
+  watchDocuments(nuxt, operations)
 
   const index = addTypeTemplate<ShopifyTemplateOptions>({
     filename: `${OUTPUT_DIR}/${kebabCase(clientType)}/index.d.ts`,

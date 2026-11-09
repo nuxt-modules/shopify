@@ -17,7 +17,7 @@ import {
 import { createClient } from '../create'
 import { DEFAULT_API_VERSION, DEFAULT_RETRIES } from '../defaults'
 
-export const createCustomerAccountConfig = (config?: ModuleOptions): ShopifyApiClientConfig => {
+export function createCustomerAccountConfig(config?: ModuleOptions): ShopifyApiClientConfig {
   if (!config?.clients?.customerAccount) {
     throw new Error('[shopify] Failed to create customer account client config: client is not configured (set `clients.customerAccount`)')
   }
@@ -54,7 +54,7 @@ export const createCustomerAccountConfig = (config?: ModuleOptions): ShopifyApiC
     headers: {
       ...headers,
     },
-  } satisfies ShopifyApiClientConfig
+  }
 }
 
 const definition: ClientDefinition<'customerAccount'> = {

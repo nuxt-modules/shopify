@@ -16,7 +16,7 @@ import {
   MIN_RETRIES,
   isApiVersion,
 } from './clients/defaults'
-import { SESSION_DEFAULT_NAME } from './session'
+import { DEFAULT_SESSION_NAME } from './session'
 
 export enum ShopifyClientType {
   Storefront = 'storefront',
@@ -86,12 +86,12 @@ const defaultCachePresets = {
 
 const defaultBrowserCacheOptions = { ttl: 10 * 1000 } as LRUDriverOptions
 const defaultServerCacheOptions = { driver: 'lru-cache', maxSize: 32 * 1024 * 1024, maxEntrySize: 4 * 1024 * 1024 } as StorageMounts[string]
-const defaultTokenStorageOptions = { driver: 'memory' } as StorageMounts[string]
+const defaultAdminTokenStorageOptions = { driver: 'memory' } as StorageMounts[string]
 const defaultCustomerAccountTokenStorageOptions = { driver: 'lru-cache', max: 10_000 } as StorageMounts[string]
 
 const defaultCacheConfig = { browser: defaultBrowserCacheOptions, server: defaultServerCacheOptions, presets: defaultCachePresets }
 
-const defaultCustomerAccountSessionOptions = { name: SESSION_DEFAULT_NAME, maxAge: 60 * 60 * 24 * 7 }
+const defaultCustomerAccountSessionOptions = { name: DEFAULT_SESSION_NAME, maxAge: 60 * 60 * 24 * 7 }
 
 const storageMountSchema = z.custom<StorageMounts[string] | string>()
 
@@ -178,7 +178,7 @@ const adminClientSchema = clientSchema.extend({
   clientSecret: z.string().optional(),
   refreshToken: z.string().optional(),
 
-  tokenStorage: enableable(storageMountSchema, defaultTokenStorageOptions),
+  tokenStorage: enableable(storageMountSchema, defaultAdminTokenStorageOptions),
   documents: clientSchema.shape.documents.transform(v => v?.length ? v : defaultAdminDocuments),
 })
 
@@ -234,21 +234,8 @@ const analyticsSchema = z.object({
 
   consent: z.object({
     mode: z.enum(['no-banner', 'default-banner', 'custom-banner']).optional().default('no-banner'),
-  }).optional().default({ mode: 'no-banner' }),
+  }).prefault({}),
 })
-
-const storefrontClient = storefrontClientSchema
-  .refine(client => client?.mock || client?.privateAccessToken || client?.publicAccessToken, {
-    error: 'Either a public or private access token must be provided for the storefront client, or `mock: true` to use mock.shop',
-  })
-
-const customerAccountClient = customerAccountClientSchema
-  .refine(client => client.clientId, { error: 'Client ID is required for the customer account client' })
-
-const adminClient = adminClientSchema
-  .refine(client => client.accessToken || (client.clientId && client.clientSecret), {
-    error: 'Either an access token or both client ID and client secret must be provided for the admin client',
-  })
 
 export const configObjectSchema = z.object({
   name: z.string({ error: 'Shop name is required' }).min(1, { error: 'Shop name cannot be empty' }),
@@ -267,25 +254,35 @@ export const configObjectSchema = z.object({
   predictiveSearch: predictiveSearchSchema,
 
   clients: z.object({
-    [ShopifyClientType.Storefront]: storefrontClient.optional(),
-    [ShopifyClientType.Admin]: adminClient.optional(),
-    [ShopifyClientType.CustomerAccount]: customerAccountClient.optional(),
+    [ShopifyClientType.Storefront]: storefrontClientSchema
+      .refine(client => client?.mock || client?.privateAccessToken || client?.publicAccessToken, {
+        error: 'Either a public or private access token must be provided for the storefront client, or `mock: true` to use mock.shop',
+      })
+      .optional(),
+    [ShopifyClientType.Admin]: adminClientSchema
+      .refine(client => client.accessToken || (client.clientId && client.clientSecret), {
+        error: 'Either an access token or both client ID and client secret must be provided for the admin client',
+      })
+      .optional(),
+    [ShopifyClientType.CustomerAccount]: customerAccountClientSchema
+      .refine(client => client.clientId, { error: 'Client ID is required for the customer account client' })
+      .optional(),
   }).optional().default({}),
 
   errors: z.object({
     throw: z.boolean().optional().default(DEFAULT_THROW_ERRORS),
-  }).optional().default({ throw: DEFAULT_THROW_ERRORS }),
+  }).prefault({}),
 
   fragments: z.object({
     dirs: z.array(z.string()).optional().default(['graphql']),
     autoImport: z.boolean().optional().default(true),
-  }).optional().default({ dirs: ['graphql'], autoImport: true }),
+  }).prefault({}),
 
   graphql: z.object({
     generateConfig: z.boolean().optional().default(true),
     normalize: z.boolean().optional().default(true),
     injectFragments: z.boolean().optional().default(true),
-  }).optional().default({ generateConfig: true, normalize: true, injectFragments: true }),
+  }).prefault({}),
 
   webhooks: webhooksSchema.optional(),
 
@@ -317,8 +314,6 @@ export const publicConfigSchema = configObjectSchema.omit({ clients: true, fragm
       afterLogout: true,
     }).optional(),
   }).optional().default({}),
-
-  errors: configObjectSchema.shape.errors,
 })
 
 export function findInvalidFeatures(error: z.ZodError): string[][] | undefined {

@@ -9,8 +9,6 @@ import { flattenConnection } from '@shopify/hydrogen'
 
 const PAGE_SIZE = 250
 
-export const WEBHOOK_GID_PREFIX = 'gid://shopify/WebhookSubscription/'
-
 type ConfiguredSubscription = NonNullable<NonNullable<ShopifyConfig['webhooks']>['subscriptions']>[number]
 
 type MetafieldIdentifier = {
@@ -224,15 +222,20 @@ const deleteSubscription = async (client: AdminApiClient, id: string) => {
 }
 
 export const getShopifyConfig = async () => {
-  const config = await loadNuxt({
+  const nuxt = await loadNuxt({
     dotenv: true,
   })
 
-  if (!config?.options?.runtimeConfig?._shopify) {
-    throw new Error('[shopify] Failed to load the Shopify configuration: module is not configured')
-  }
+  try {
+    if (!nuxt.options.runtimeConfig._shopify) {
+      throw new Error('[shopify] Failed to load the Shopify configuration: module is not configured')
+    }
 
-  return config.options.runtimeConfig._shopify
+    return nuxt.options.runtimeConfig._shopify
+  }
+  finally {
+    await nuxt.close()
+  }
 }
 
 export const getSubscribedWebhooks = async (config: ShopifyConfig) => {

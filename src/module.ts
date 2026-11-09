@@ -19,10 +19,8 @@ import setupExplorer from './setup/explorer'
 import setupVite from './setup/vite'
 import setupWebhooks from './setup/webhooks'
 
-import { configSchema } from './schemas'
-import { warnPublicOptions, warnUnrecognizedOptions } from './schemas/resolve'
-import { findInvalidFeatures, withoutFeatures } from './runtime/utils/config'
-import { getConfiguredClients } from './utils/clients'
+import { CONFIGURATION_DOCS_URL, resolveConfig, warnPublicOptions, warnUnrecognizedOptions } from './schemas/resolve'
+import { configObjectSchema, findInvalidFeatures, withoutFeatures } from './runtime/utils/config'
 import { initLogger } from './utils/log'
 
 export default defineNuxtModule<ModuleOptions>({
@@ -55,7 +53,7 @@ export default defineNuxtModule<ModuleOptions>({
 
     let input = rawConfig
 
-    let moduleOptions = await configSchema.safeParseAsync({ ...input, _nuxt: nuxt })
+    let moduleOptions = configObjectSchema.safeParse(input)
 
     const invalidFeatures = !moduleOptions.success && (nuxt.options.dev || nuxt.options._prepare)
       ? findInvalidFeatures(moduleOptions.error)
@@ -65,18 +63,17 @@ export default defineNuxtModule<ModuleOptions>({
       logger.error(`Skipping ${invalidFeatures.map(feature => `\`${feature.join('.')}\``).join(', ')}: invalid configuration\n${z.prettifyError(moduleOptions.error)}`)
 
       input = withoutFeatures(input, invalidFeatures)
-      moduleOptions = await configSchema.safeParseAsync({ ...input, _nuxt: nuxt })
+      moduleOptions = configObjectSchema.safeParse(input)
     }
 
     if (moduleOptions.success) {
       logger.start('Starting setup')
 
-      const config = moduleOptions.data
+      warnUnrecognizedOptions(input, moduleOptions.data)
 
-      warnUnrecognizedOptions(input)
+      const config = await resolveConfig(moduleOptions.data, nuxt)
+
       warnPublicOptions(runtimeConfig.public.shopify, config)
-
-      logger.debug(`Configured clients: ${getConfiguredClients(config).join(', ') || 'none'}`)
 
       await nuxt.callHook('shopify:config', { nuxt, config })
 
@@ -97,7 +94,7 @@ export default defineNuxtModule<ModuleOptions>({
       logger.success('Finished setup')
     }
     else if (Object.keys(rawConfig ?? {}).length) {
-      const reference = 'See the module configuration reference: https://shopify.nuxtjs.org/essentials/configuration'
+      const reference = `See the module configuration reference: ${CONFIGURATION_DOCS_URL}`
 
       if (!nuxt.options.dev && !nuxt.options._prepare) {
         throw new Error(`[shopify] Invalid module configuration\n${z.prettifyError(moduleOptions.error)}\n${reference}`)
@@ -108,7 +105,7 @@ export default defineNuxtModule<ModuleOptions>({
     }
     else {
       logger.info('Skipping setup: no module configuration provided')
-      logger.info('See the module configuration reference: https://shopify.nuxtjs.org/essentials/configuration')
+      logger.info(`See the module configuration reference: ${CONFIGURATION_DOCS_URL}`)
     }
   },
 })

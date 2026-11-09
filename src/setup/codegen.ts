@@ -9,7 +9,7 @@ import { getConfiguredClients } from '../utils/clients'
 import { clearGenerateFailures, getGenerateFailures } from '../utils/codegen'
 import { registerTemplates } from '../utils/templates'
 
-function failBuildOnGenerateErrors(nuxt: Nuxt) {
+function failBuildOnGenerateFailures(nuxt: Nuxt) {
   if (nuxt.options.dev || nuxt.options._prepare) return
 
   clearGenerateFailures()
@@ -45,5 +45,5 @@ export default function setupCodegen(nuxt: Nuxt, config: ShopifyConfig) {
     registerTemplates(nuxt, config, clientType)
   }
 
-  failBuildOnGenerateErrors(nuxt)
+  failBuildOnGenerateFailures(nuxt)
 }
