@@ -10,6 +10,10 @@ const storages = new Map<string, ReturnType<typeof createStorage>>()
 
 const fetchMock = vi.fn<typeof fetch>()
 
+const { warnUnmountedStorage } = vi.hoisted(() => ({ warnUnmountedStorage: vi.fn() }))
+
+vi.mock('#src/runtime/utils/storage', () => ({ warnUnmountedStorage }))
+
 vi.mock('#imports', async () => ({
   ...(await vi.importActual<Record<string, unknown>>('#test/helpers/stubs')),
   useRuntimeConfig: () => runtimeConfig,
@@ -130,6 +134,32 @@ describe('storefront server cache', () => {
     expect(fetchMock).toHaveBeenCalledTimes(2)
   })
 
+  it('gives the background refresh its own deadline, since the request that served the stale entry is done', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+
+    await serverClient().request(QUERY, { cache: 'short' })
+    await settle()
+
+    vi.setSystemTime(Date.now() + 2000)
+
+    const deadlines: AbortSignal[] = []
+    const timeout = vi.spyOn(AbortSignal, 'timeout').mockImplementation(() => {
+      const deadline = new AbortController().signal
+
+      deadlines.push(deadline)
+
+      return deadline
+    })
+
+    await serverClient().request(QUERY, { cache: 'short' })
+    await settle()
+
+    timeout.mockRestore()
+
+    expect(deadlines).toHaveLength(2)
+    expect(fetchMock.mock.calls.at(-1)![1]?.signal).toBe(deadlines[1])
+  })
+
   it('sends a cached request without the visitor\'s cookies, language or IP and without the preset header', async () => {
     configure(undefined, { privateAccessToken: 'private-token', buyerIpHeader: 'x-forwarded-for' })
 
@@ -207,5 +237,23 @@ describe('storefront server cache', () => {
 
     expect([...storages.keys()]).toStrictEqual([base])
     expect(await storages.get(base)!.getKeys()).toHaveLength(1)
+  })
+
+  it('warns when nothing is mounted at the configured name, as the entries then end up in Nitro\'s memory', async () => {
+    const logger = { reporters: [{ log: vi.fn() }] }
+
+    configure({ server: 'missing-cache', presets: PRESETS })
+
+    Object.assign(runtimeConfig._shopify!, { logger })
+
+    await serverClient().request(QUERY, { cache: 'short' })
+
+    expect(warnUnmountedStorage).toHaveBeenCalledWith(storages.get('missing-cache'), 'missing-cache', logger)
+  })
+
+  it('checks the default name as well, as a server cache switched on only at runtime has nothing mounted there', async () => {
+    await serverClient().request(QUERY, { cache: 'short' })
+
+    expect(warnUnmountedStorage).toHaveBeenCalledWith(storages.get('storefront-cache'), 'storefront-cache', undefined)
   })
 })

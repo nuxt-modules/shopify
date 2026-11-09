@@ -254,6 +254,25 @@ describe('routes middleware', () => {
     expect(handleShopifyRoutes).not.toHaveBeenCalled()
   })
 
+  it.each([
+    ['/cart/add.js', 'cross-site'],
+    ['/cart/change', 'same-site'],
+    ['/cart/update.json', 'cross-site'],
+    ['/de-de/cart/clear.js', 'same-site'],
+  ])('refuses a post to the AJAX cart at %s from a %s page, as it changes the same cart', async (path, site) => {
+    const event = createTestEvent({ method: 'POST', path, headers: { 'host': 'shop.test', 'origin': 'https://evil.example', 'sec-fetch-site': site } })
+
+    await expect(handler(event)).rejects.toMatchObject({ statusCode: 403 })
+    expect(handleShopifyRoutes).not.toHaveBeenCalled()
+  })
+
+  it('serves AJAX cart reads and the app\'s own AJAX cart posts', async () => {
+    await handler(createTestEvent({ path: '/cart.js', headers: { 'host': 'shop.test', 'sec-fetch-site': 'cross-site' } }))
+    await handler(createTestEvent({ method: 'POST', path: '/cart/add.js', headers: { 'host': 'shop.test', 'origin': 'http://shop.test', 'sec-fetch-site': 'same-origin' } }))
+
+    expect(handleShopifyRoutes).toHaveBeenCalledTimes(2)
+  })
+
   it('refuses a cart post from another site when the cart follows the customer session', async () => {
     enableCustomerAccount()
 

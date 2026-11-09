@@ -4,7 +4,7 @@ import { useRuntimeConfig } from '#imports'
 import { assertSameSite } from '../../utils/csrf'
 import { readGraphqlBody } from '../../utils/graphql'
 import { createCustomerAccountConfig } from '../../../utils/clients/customer-account'
-import { DEFAULT_API_VERSION, isApiVersion } from '../../../utils/clients/defaults'
+import { DEFAULT_API_VERSION, REQUEST_TIMEOUT_MS, isApiVersion } from '../../../utils/clients/defaults'
 import { createUpstreamError, resolveStatus } from '../../../utils/clients/errors'
 import { withApiVersion } from '../../../utils/clients/transport'
 import { getValidCustomerAccessToken } from '../../utils/customer-account/auth'
@@ -39,6 +39,7 @@ export default defineEventHandler(async (event) => {
       'Authorization': accessToken,
     },
     body,
+    timeout: REQUEST_TIMEOUT_MS,
   }).catch((error) => {
     throw createUpstreamError(resolveStatus(error.status), `The Customer Account API rejected the request: ${error.message}${error.data === undefined ? '' : ` ${JSON.stringify(error.data)}`}`, error, _shopify?.logger)
   })

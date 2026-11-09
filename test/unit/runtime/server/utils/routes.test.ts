@@ -514,6 +514,36 @@ describe('Shopify\'s cookies from Hydrogen\'s storefront client', () => {
   })
 })
 
+describe('the storefront ID from Hydrogen\'s storefront client', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  async function sentStorefrontId(storefront: Record<string, unknown>) {
+    const config = { name: 'shop', storefrontId: '1000000001', clients: { storefront: { apiVersion: API_VERSION, publicAccessToken: 'public', ...storefront } }, defaultMarket: { country: 'US', language: 'EN' } }
+    const fetchMock = vi.fn<typeof fetch>(async () => Response.json({ data: { shop: { id: '1' } } }))
+
+    runtimeConfig._shopify = config
+
+    vi.stubGlobal('fetch', fetchMock)
+
+    const event = createTestEvent({ method: 'POST', path: '/api/cart', headers: { host: 'shop.test' } })
+    const requestContext = await getShopifyRequestContext(event)
+
+    await createHydrogenStorefrontClient(requestContext, config as never).graphql('query { shop { id } }')
+
+    return new Headers(fetchMock.mock.calls[0]![1]?.headers).get('shopify-storefront-id')
+  }
+
+  it('sends it to the store', async () => {
+    expect(await sentStorefrontId({})).toBe('1000000001')
+  })
+
+  it('leaves it out for mock.shop, like the module\'s own client', async () => {
+    expect(await sentStorefrontId({ mock: true })).toBeNull()
+  })
+})
+
 describe('applyShopifyResponseHeaders', () => {
   const PRIVATE = 'private, no-store, max-age=0, must-revalidate'
   const SHARED = 'public, s-maxage=60'

@@ -76,6 +76,7 @@ export function createMemoryStorage() {
     setItem: (key: string, value: unknown, _options?: unknown) => Promise.resolve(void items.set(key, structuredClone(value))),
     getItem: (key: string) => Promise.resolve(items.has(key) ? structuredClone(items.get(key)) : null),
     removeItem: (key: string) => Promise.resolve(void items.delete(key)),
+    getMount: (key = '') => ({ base: `${key}:` }),
   }
 }
 

@@ -10,8 +10,11 @@ let baseURL = '/'
 
 const payload: { prerenderedAt?: number } = {}
 
+const serverConfig = { name: 'shop', clients: { storefront: { privateAccessToken: 'private' } } }
+const publicConfig = { name: 'shop', clients: { storefront: { publicAccessToken: 'public' } } }
+
 vi.mock('#imports', () => ({
-  useRuntimeConfig: () => ({ app: { baseURL }, public: { _shopify: {} } }),
+  useRuntimeConfig: () => ({ app: { baseURL }, _shopify: serverConfig, public: { _shopify: publicConfig } }),
   useNuxtApp: () => ({ payload, hooks: { callHook: vi.fn() } }),
   useRequestURL: () => new URL('https://app.example.workers.dev/'),
   useRequestEvent: () => requestEvent,
@@ -42,6 +45,22 @@ describe('useStorefront', () => {
 
     expect(lastOptions()).toMatchObject({ event: requestEvent, serverCache })
     expect(lastOptions()?.origin).toBeUndefined()
+  })
+
+  it('renders with the server config, so SSR requests use the private token and the buyer IP like server routes', () => {
+    vi.stubGlobal('__NUXT_SERVER__', true)
+
+    useStorefront()
+
+    expect(createStorefrontApiClient.mock.calls.at(-1)?.[0]).toBe(serverConfig)
+  })
+
+  it('uses the public config in the browser, which never sees the private token', () => {
+    vi.stubGlobal('__NUXT_CLIENT__', true)
+
+    useStorefront()
+
+    expect(createStorefrontApiClient.mock.calls.at(-1)?.[0]).toBe(publicConfig)
   })
 
   it('reaches Shopify through its own origin in the browser, without a server cache', () => {

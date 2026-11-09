@@ -107,6 +107,12 @@ describe('customer account proxy', () => {
     expect(lastCall().options.body).toEqual({ query, variables: { first: 5 } })
   })
 
+  it('gives up on the Customer Account API after Hydrogen\'s 30 seconds, as its proxies do', async () => {
+    await handler(proxyEvent())
+
+    expect(lastCall().options).toMatchObject({ timeout: 30_000 })
+  })
+
   it('posts the operation name upstream, so Shopify can run one operation of a document with several', async () => {
     const document = 'query Customer { customer { id } } query Orders { customer { orders(first: 1) { nodes { id } } } }'
 
