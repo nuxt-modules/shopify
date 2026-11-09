@@ -2,7 +2,7 @@ import type { WritableCustomerSessionManager } from '@shopify/hydrogen/customer-
 import type { H3Event, SessionConfig } from 'h3'
 import type { Storage } from 'unstorage'
 
-import type { ShopifyCustomerAccountSession, ShopifyCustomerAccountSessionData, ShopifyConfig } from '../../../../module'
+import type { ShopifyCustomerAccountSession, ShopifyConfig } from '../../../../module'
 
 import { createCustomerSession } from '@shopify/hydrogen/customer-account'
 import { clearSession, createError, getCookie, getSession, updateSession } from 'h3'
@@ -21,6 +21,11 @@ const DEFAULT_TOKEN_STORAGE = 'customer-account-token'
 type CustomerSessionWithInternals = ReturnType<typeof createCustomerSession>
 
 type HydrogenSessionItem = Record<string, unknown> & { tokens?: unknown }
+
+type CustomerAccountSessionData = {
+  tokenKey?: string
+  customerAccount?: unknown
+}
 
 type StoredTokens = {
   tokens: unknown
@@ -105,7 +110,7 @@ function hasSessionCookie(event: H3Event, config: SessionConfig): boolean {
 async function readSession(event: H3Event, config: SessionConfig) {
   if (!hasSessionCookie(event, config)) return null
 
-  return await getSession<ShopifyCustomerAccountSessionData>(event, config)
+  return await getSession<CustomerAccountSessionData>(event, config)
 }
 
 function getTokenStorage(config?: ShopifyConfig) {
@@ -127,7 +132,7 @@ function getTokenStorageOptions(config?: ShopifyConfig) {
   return maxAge ? { ttl: maxAge } : undefined
 }
 
-function holdsTokens(data: ShopifyCustomerAccountSessionData): boolean {
+function holdsTokens(data: CustomerAccountSessionData): boolean {
   return !!(data.tokenKey || (data.customerAccount as HydrogenSessionItem | undefined)?.tokens)
 }
 
@@ -188,7 +193,7 @@ export function createCustomerSessionManager(event: H3Event): WritableCustomerSe
 
       if (!session) return undefined
 
-      if (key !== HYDROGEN_SESSION_KEY || !tokenStore) return session.data[key as keyof ShopifyCustomerAccountSessionData]
+      if (key !== HYDROGEN_SESSION_KEY || !tokenStore) return session.data[key as keyof CustomerAccountSessionData]
 
       const item = session.data.customerAccount as HydrogenSessionItem | undefined
       const tokens = session.data.tokenKey ? await tokenStore.read(session.data.tokenKey) : undefined
@@ -197,7 +202,7 @@ export function createCustomerSessionManager(event: H3Event): WritableCustomerSe
     },
 
     async setSessionItem(key, value) {
-      const session = await getSession<ShopifyCustomerAccountSessionData>(event, config)
+      const session = await getSession<CustomerAccountSessionData>(event, config)
 
       if (!holdsTokens(session.data)) session.createdAt = Date.now()
 

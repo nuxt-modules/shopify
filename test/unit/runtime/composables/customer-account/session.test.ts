@@ -15,7 +15,7 @@ const state = new Map<string, ReturnType<typeof ref>>()
 const fetchSession = vi.fn()
 
 let configured = true
-let requestEvent: { context: { shopifyCustomerAccount?: CustomerAccountContext } } | undefined
+let requestEvent: { context: { _shopify?: { customerAccount?: CustomerAccountContext } } } | undefined
 
 vi.mock('#imports', async () => ({
   ...(await vi.importActual<Record<string, unknown>>('#test/helpers/stubs')),
@@ -48,7 +48,7 @@ const { useCustomerAccountSession } = await import('#src/runtime/composables/cus
 function onServer(customerAccount?: CustomerAccountContext) {
   vi.stubGlobal('__NUXT_SERVER__', true)
 
-  requestEvent = { context: customerAccount ? { shopifyCustomerAccount: customerAccount } : {} }
+  requestEvent = { context: customerAccount ? { _shopify: { customerAccount } } : {} }
 }
 
 beforeEach(() => {

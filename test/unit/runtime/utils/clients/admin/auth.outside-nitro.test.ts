@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import { createAdminApiClient } from '#src/runtime/utils/clients'
+import { createAdminApiClient } from '#src/runtime/utils/clients/admin'
 
 vi.mock('nitropack/runtime', () => {
   throw new Error('nitropack/runtime only resolves inside a Nitro build')

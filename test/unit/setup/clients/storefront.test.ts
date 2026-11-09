@@ -81,28 +81,26 @@ describe('storefront cache', () => {
   const cache = { browser: { ttl: 1000 }, server: { driver: 'redis' }, presets: {} }
 
   const BROWSER_CACHE_PLUGIN = { src: './runtime/plugins/storefront/cache', mode: 'client' }
-  const SERVER_CACHE_MIDDLEWARE = { middleware: true, handler: './runtime/server/middleware/storefront/cache' }
 
   beforeEach(() => {
     addPlugin.mockClear()
     addServerHandler.mockClear()
   })
 
-  it('sets up the browser and server cache of a public client, and hands the server cache to server rendering', () => {
+  it('sets up the browser cache and the server cache storage of a public client', () => {
     const { storage } = setup({ publicAccessToken: 'public', cache })
 
     expect(addPlugin).toHaveBeenCalledWith(BROWSER_CACHE_PLUGIN)
     expect(storage).toStrictEqual({ 'storefront-cache': cache.server })
-    expect(addServerHandler).toHaveBeenCalledWith(SERVER_CACHE_MIDDLEWARE)
   })
 
   it.each([
     ['without a server cache', { publicAccessToken: 'public', cache: { server: false } }],
     ['without any cache', { publicAccessToken: 'public', cache: false }],
-  ])('leaves server rendering alone %s', (_, storefront) => {
-    setup(storefront)
+  ])('mounts no server cache storage %s', (_, storefront) => {
+    const { storage } = setup(storefront)
 
-    expect(addServerHandler).not.toHaveBeenCalledWith(SERVER_CACHE_MIDDLEWARE)
+    expect(storage).toBeUndefined()
   })
 
   it('sets up no cache for a server-only client, which has no browser client to cache for', () => {
@@ -110,6 +108,12 @@ describe('storefront cache', () => {
 
     expect(addPlugin).not.toHaveBeenCalledWith(BROWSER_CACHE_PLUGIN)
     expect(storage).toBeUndefined()
-    expect(addServerHandler).not.toHaveBeenCalledWith(SERVER_CACHE_MIDDLEWARE)
+  })
+
+  it('registers no middleware of its own for the server cache, which the routes middleware hands to server rendering', () => {
+    setup({ publicAccessToken: 'public', cache })
+
+    expect(addServerHandler).toHaveBeenCalledOnce()
+    expect(addServerHandler).toHaveBeenCalledWith({ middleware: true, handler: './runtime/server/middleware/routes' })
   })
 })

@@ -34,7 +34,7 @@ Deploy to Cloudflare:
 Run the following command to clone the shop template:
 
 ```sh
-npx @nuxtjs/shopify@latest init ./my-shop
+npx nuxi@latest init -t gh:nuxt-modules/shopify/template ./my-shop
 ```
 
 Now you can navigate to the `my-shop` directory:

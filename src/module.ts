@@ -45,13 +45,12 @@ export default defineNuxtModule<ModuleOptions>({
 
     const logger = initLogger(rawConfig?.logger)
 
-    const { storefront, admin, customerAccount } = rawConfig?.clients ?? {}
+    const clients = rawConfig?.clients && Object.fromEntries(Object.entries<{ apiVersion?: string } | undefined>(rawConfig.clients).map(([type, client]) => [
+      type,
+      client && !client.apiVersion ? { ...client, apiVersion: undefined } : client,
+    ]))
 
-    for (const client of [storefront, admin, customerAccount]) {
-      if (client && !client.apiVersion) delete client.apiVersion
-    }
-
-    let input = rawConfig
+    let input = clients ? { ...rawConfig, clients } : rawConfig
 
     let moduleOptions = configObjectSchema.safeParse(input)
 
@@ -112,11 +111,8 @@ export default defineNuxtModule<ModuleOptions>({
 
 export { ShopifyClientType } from './schemas'
 
-export {
-  createShopifyApiClient,
-  createStorefrontApiClient,
-  createCustomerAccountApiClient,
-  createAdminApiClient,
-} from './runtime/utils/clients'
+export { createAdminApiClient } from './runtime/utils/clients/admin'
+export { createCustomerAccountApiClient } from './runtime/utils/clients/customer-account'
+export { createStorefrontApiClient } from './runtime/utils/clients/storefront'
 
 export type * from './types/index'

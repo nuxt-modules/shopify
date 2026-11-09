@@ -9,7 +9,7 @@ export default defineNuxtPlugin({
 
       const { event } = ssrContext
 
-      const redirect = await event.context.shopifyRedirect?.(event)
+      const redirect = await event.context._shopify?.redirect?.(event)
       const location = redirect?.headers.get('location')
 
       if (redirect && location) await nuxtApp.runWithContext(() => navigateTo(location, { external: true, redirectCode: redirect.status }))

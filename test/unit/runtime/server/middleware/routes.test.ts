@@ -396,7 +396,7 @@ describe('routes middleware', () => {
 
     await handler(event)
 
-    expect(event.context.shopifyCustomerAccount).toEqual({
+    expect(event.context._shopify?.customerAccount).toEqual({
       getSession: expect.any(Function),
       getAccessToken: expect.any(Function),
     })
@@ -408,7 +408,7 @@ describe('routes middleware', () => {
 
     await handler(event)
 
-    expect(event.context.shopifyCustomerAccount).toBeUndefined()
+    expect(event.context._shopify?.customerAccount).toBeUndefined()
   })
 
   it('hands Hydrogen the app\'s route templates', async () => {
@@ -451,8 +451,8 @@ describe('routes middleware', () => {
 
     await handler(event)
 
-    expect(event.context.shopifyRedirect).toBeInstanceOf(Function)
-    expect(event.context.shopifyScripts).toBeInstanceOf(Function)
+    expect(event.context._shopify?.redirect).toBeInstanceOf(Function)
+    expect(event.context._shopify?.scripts).toBeInstanceOf(Function)
 
     runtimeConfig._shopify.analytics = false
     runtimeConfig._shopify.clients = {}
@@ -461,7 +461,30 @@ describe('routes middleware', () => {
 
     await handler(withoutStorefront)
 
-    expect(withoutStorefront.context.shopifyRedirect).toBeUndefined()
+    expect(withoutStorefront.context._shopify?.redirect).toBeUndefined()
+  })
+
+  it('hands the server cache to server rendering when the storefront client has one', async () => {
+    runtimeConfig._shopify.clients = { storefront: { apiVersion: API_VERSION, publicAccessToken: 'public', cache: { server: {}, presets: {} } } }
+
+    const event = createTestEvent({ path: '/products/shirt', headers: { host: 'shop.test' } })
+
+    await handler(event)
+
+    expect(event.context._shopify?.storefrontCache).toBeInstanceOf(Function)
+  })
+
+  it.each([
+    ['its server cache turned off', { server: false, presets: {} }],
+    ['no cache at all', false],
+  ])('hands server rendering no server cache with %s', async (_, cache) => {
+    runtimeConfig._shopify.clients = { storefront: { apiVersion: API_VERSION, publicAccessToken: 'public', cache } }
+
+    const event = createTestEvent({ path: '/products/shirt', headers: { host: 'shop.test' } })
+
+    await handler(event)
+
+    expect(event.context._shopify?.storefrontCache).toBeUndefined()
   })
 
   it('keeps a Shopify response without cache headers of its own out of shared caches, whatever the route rules say', async () => {

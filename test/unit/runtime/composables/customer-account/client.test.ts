@@ -29,7 +29,7 @@ const lastOptions = () => createCustomerAccountApiClient.mock.calls.at(-1)?.[1] 
 function renderEvent() {
   const getAccessToken = vi.fn(() => Promise.resolve('access-token'))
 
-  return { getAccessToken, event: { context: { shopifyCustomerAccount: { getAccessToken } } } }
+  return { getAccessToken, event: { context: { _shopify: { customerAccount: { getAccessToken } } } } }
 }
 
 afterEach(() => {

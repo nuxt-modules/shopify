@@ -1,3 +1,4 @@
+import type { Types } from '@graphql-codegen/plugin-helpers'
 import type { Nuxt } from '@nuxt/schema'
 import type {
   AllOperations,
@@ -47,9 +48,9 @@ export type ShopifyErrorHookParams = {
   errors: ResponseErrors
 }
 
-export type ShopifyTemplateHookParams = {
+export type ShopifyCodegenHookParams = {
   nuxt: Nuxt
-  config: Record<string, unknown>
+  config: Types.ConfiguredOutput
 }
 
 export type ShopifyCustomerAccountAuthHookParams = {

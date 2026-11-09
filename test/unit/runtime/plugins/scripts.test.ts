@@ -40,7 +40,7 @@ const { createShopResolver } = await import('#src/runtime/utils/shop')
 function serverRequest(context: Record<string, unknown> = {}) {
   const resolve = createShopResolver({ name: 'my-shop', analytics } as never, () => ({ request }) as never)
 
-  return { context: { ...context, shopifyScripts: (event: { context: { shopifyMarket?: never } }) => resolve(event.context.shopifyMarket) } }
+  return { context: { ...context, _shopify: { scripts: (event: { context: { shopifyMarket?: never } }) => resolve(event.context.shopifyMarket) } } }
 }
 
 const ROUTE_TEMPLATES = { product: '/product/:productHandle' }

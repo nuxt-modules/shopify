@@ -3,7 +3,7 @@ import type { Nuxt } from '@nuxt/schema'
 
 import type { ShopifyConfig } from '../../types'
 
-import { addPlugin, addServerHandler } from '@nuxt/kit'
+import { addPlugin } from '@nuxt/kit'
 
 import { ShopifyClientType } from '../../schemas'
 import {
@@ -49,10 +49,6 @@ export default function setupStorefrontClient(nuxt: Nuxt, config: ShopifyConfig,
   const cache = isPublicClient(storefront) && typeof storefront.cache === 'object' ? storefront.cache : undefined
 
   registerStorageMount(nuxt, 'storefront-cache', cache?.server)
-
-  if (cache?.server) {
-    addServerHandler({ middleware: true, handler: resolver.resolve('./runtime/server/middleware/storefront/cache') })
-  }
 
   if (cache?.browser) {
     addPlugin({ src: resolver.resolve('./runtime/plugins/storefront/cache'), mode: 'client' })

@@ -1,10 +1,5 @@
 import type { H3Event } from 'h3'
 
-export type ShopifyCustomerAccountSessionData = {
-  tokenKey?: string
-  customerAccount?: unknown
-}
-
 export type ShopifyCustomerAccountSession = {
   isLoggedIn: boolean
 }

@@ -102,6 +102,16 @@ describe('module setup', () => {
     expect(setupSteps.setupClients).toHaveBeenCalledWith(nuxt, expect.objectContaining({ clients: { storefront: expect.objectContaining({ apiVersion: expect.stringMatching(/^\d{4}-\d{2}$/) }) } }), expect.anything())
   })
 
+  it('keeps the empty API version declared in runtime config, so its environment variable still applies at runtime', async () => {
+    const runtimeStorefront = { apiVersion: '', publicAccessToken: 'public-token' }
+
+    runtimeConfig.shopify = { clients: { storefront: runtimeStorefront } }
+
+    await shopifyModule.setup({ name: 'shop' }, createNuxt())
+
+    expect(runtimeStorefront).toStrictEqual({ apiVersion: '', publicAccessToken: 'public-token' })
+  })
+
   it('lets runtime config override the module options, and public runtime config override both', async () => {
     runtimeConfig.shopify = { name: 'private-shop', storefrontId: 'private' }
     runtimeConfig.public.shopify = { storefrontId: 'public' }

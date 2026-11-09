@@ -26,7 +26,7 @@ import type {
   ShopifyConfigHookParams,
   ShopifyCustomerAccountAuthHookParams,
   ShopifyErrorHookParams,
-  ShopifyTemplateHookParams,
+  ShopifyCodegenHookParams,
 } from './hooks'
 import type {
   ShopifyCustomerAccountContext,
@@ -62,47 +62,47 @@ declare module '@nuxt/schema' {
     /**
      * Called before the storefront introspection schema is generated
      */
-    'shopify:storefront:generate:introspection': ({ nuxt, config }: ShopifyTemplateHookParams) => HookResult
+    'shopify:storefront:generate:introspection': ({ nuxt, config }: ShopifyCodegenHookParams) => HookResult
 
     /**
      * Called before the storefront types are generated
      */
-    'shopify:storefront:generate:types': ({ nuxt, config }: ShopifyTemplateHookParams) => HookResult
+    'shopify:storefront:generate:types': ({ nuxt, config }: ShopifyCodegenHookParams) => HookResult
 
     /**
      * Called before the storefront operations are generated
      */
-    'shopify:storefront:generate:operations': ({ nuxt, config }: ShopifyTemplateHookParams) => HookResult
+    'shopify:storefront:generate:operations': ({ nuxt, config }: ShopifyCodegenHookParams) => HookResult
 
     /**
      * Called before the customer account introspection schema is generated
      */
-    'shopify:customer-account:generate:introspection': ({ nuxt, config }: ShopifyTemplateHookParams) => HookResult
+    'shopify:customer-account:generate:introspection': ({ nuxt, config }: ShopifyCodegenHookParams) => HookResult
 
     /**
      * Called before the customer account types are generated
      */
-    'shopify:customer-account:generate:types': ({ nuxt, config }: ShopifyTemplateHookParams) => HookResult
+    'shopify:customer-account:generate:types': ({ nuxt, config }: ShopifyCodegenHookParams) => HookResult
 
     /**
      * Called before the customer account operations are generated
      */
-    'shopify:customer-account:generate:operations': ({ nuxt, config }: ShopifyTemplateHookParams) => HookResult
+    'shopify:customer-account:generate:operations': ({ nuxt, config }: ShopifyCodegenHookParams) => HookResult
 
     /**
      * Called before the admin introspection schema is generated
      */
-    'shopify:admin:generate:introspection': ({ nuxt, config }: ShopifyTemplateHookParams) => HookResult
+    'shopify:admin:generate:introspection': ({ nuxt, config }: ShopifyCodegenHookParams) => HookResult
 
     /**
      * Called before the admin types are generated
      */
-    'shopify:admin:generate:types': ({ nuxt, config }: ShopifyTemplateHookParams) => HookResult
+    'shopify:admin:generate:types': ({ nuxt, config }: ShopifyCodegenHookParams) => HookResult
 
     /**
      * Called before the admin operations are generated
      */
-    'shopify:admin:generate:operations': ({ nuxt, config }: ShopifyTemplateHookParams) => HookResult
+    'shopify:admin:generate:operations': ({ nuxt, config }: ShopifyCodegenHookParams) => HookResult
   }
 }
 
@@ -189,10 +189,12 @@ declare module 'h3' {
   interface H3EventContext {
     shopifyMarket?: ShopifyScriptsI18n
     shopifyRequestContext?: ShopifyRequestContext
-    shopifyRedirect?: (event: H3Event) => Promise<Response | null>
-    shopifyScripts?: (event: H3Event) => Promise<ShopifyScriptsShopContext>
-    shopifyCustomerAccount?: ShopifyCustomerAccountContext
-    shopifyStorefrontCache?: CustomFetchApi
+    _shopify?: {
+      redirect?: (event: H3Event) => Promise<Response | null>
+      scripts?: (event: H3Event) => Promise<ShopifyScriptsShopContext>
+      customerAccount?: ShopifyCustomerAccountContext
+      storefrontCache?: (event: H3Event) => CustomFetchApi
+    }
   }
 }
 
@@ -331,7 +333,6 @@ export type {
   ShopifyAdminTokenSet,
   ShopifyCustomerAccountContext,
   ShopifyCustomerAccountSession,
-  ShopifyCustomerAccountSessionData,
 } from './auth'
 
 export type {
@@ -363,5 +364,5 @@ export type {
   ShopifyConfigHookParams,
   ShopifyCustomerAccountAuthHookParams,
   ShopifyErrorHookParams,
-  ShopifyTemplateHookParams,
+  ShopifyCodegenHookParams,
 } from './hooks'
