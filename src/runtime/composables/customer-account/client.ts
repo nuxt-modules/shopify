@@ -17,7 +17,7 @@ export function useCustomerAccount(event?: H3Event): CustomerAccountApiClient {
   const nuxtApp = useNuxtApp()
 
   const requestEvent = event ?? (import.meta.server ? useRequestEvent() : undefined)
-  const serverContext = import.meta.server ? requestEvent?.context.shopifyCustomerAccount : undefined
+  const serverContext = import.meta.server ? requestEvent?.context._shopify?.customerAccount : undefined
 
   return createCustomerAccountApiClient(_shopify!, {
     event: requestEvent,

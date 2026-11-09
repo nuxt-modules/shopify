@@ -43,7 +43,7 @@ export function useCustomerAccountSession() {
       })
     }
 
-    const serverContext = requestEvent?.context.shopifyCustomerAccount
+    const serverContext = requestEvent?.context._shopify?.customerAccount
 
     return requestEvent && serverContext ? serverContext.getSession(requestEvent) : Promise.resolve(emptySession())
   }

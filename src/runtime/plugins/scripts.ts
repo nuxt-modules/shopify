@@ -73,7 +73,7 @@ export default defineNuxtPlugin({
     if (import.meta.server) {
       const event = useRequestEvent()
 
-      scripts.value = event?.context.shopifyScripts ? await event.context.shopifyScripts(event) : null
+      scripts.value = event?.context._shopify?.scripts ? await event.context._shopify.scripts(event) : null
 
       if (scripts.value) render(scripts.value)
 

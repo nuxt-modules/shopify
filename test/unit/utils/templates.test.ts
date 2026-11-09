@@ -8,10 +8,11 @@ import { ShopifyClientType } from '#src/schemas'
 import { API_VERSION } from '#test/helpers/api-version'
 
 const updateTemplates = vi.fn()
+const addTypeTemplate = vi.fn((template: unknown, _context?: unknown) => template)
 
 vi.mock('@nuxt/kit', () => ({
   addTemplate: (template: unknown) => template,
-  addTypeTemplate: (template: unknown) => template,
+  addTypeTemplate: (template: unknown, context?: unknown) => addTypeTemplate(template, context),
   updateTemplates: (...args: unknown[]) => updateTemplates(...args),
 }))
 
@@ -75,5 +76,22 @@ describe('regenerating operation types in development', () => {
     await watch('change', join(rootDir, 'server/api/shop.ts'))
 
     expect(updateTemplates).not.toHaveBeenCalled()
+  })
+})
+
+describe('type references', () => {
+  it.each(Object.values(ShopifyClientType))('references the %s types in the app, Nitro and node tsconfigs, as typed server routes carry even admin results into the app', (clientType) => {
+    addTypeTemplate.mockClear()
+
+    const nuxt = {
+      options: { rootDir, srcDir: join(rootDir, 'app'), buildDir: join(rootDir, '.nuxt'), alias: {}, nitro: {} },
+      hook: vi.fn(),
+    }
+
+    registerTemplates(nuxt as never, { name: 'shop', clients: { [clientType]: { apiVersion: API_VERSION, documents: [] } } } as never, clientType)
+
+    expect(addTypeTemplate).toHaveBeenCalledTimes(3)
+
+    for (const [, called] of addTypeTemplate.mock.calls) expect(called).toStrictEqual({ nuxt: true, nitro: true, node: true })
   })
 })

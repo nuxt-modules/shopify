@@ -15,6 +15,7 @@ import { assertSameSite } from '../utils/csrf'
 import { customerAccountContext } from '../utils/customer-account/auth'
 import { createCustomerSessionManager, getHydrogenCustomerSession, requireCustomerAccountConfig } from '../utils/customer-account/session'
 import { createLogger } from '../utils/log'
+import { createStorefrontServerCache } from '../utils/storefront/cache'
 import {
   applyShopifyResponseHeaders,
   createHydrogenStorefrontClient,
@@ -137,13 +138,13 @@ export default defineEventHandler(async (event) => {
 
   const storefront = !!(_shopify.clients.storefront || _shopify.analytics)
   const customerAccount = !!_shopify.clients.customerAccount
+  const serverCache = !!(_shopify.clients.storefront?.cache && _shopify.clients.storefront.cache.server)
 
-  if (storefront) {
-    event.context.shopifyRedirect = getShopifyRedirect
-    event.context.shopifyScripts = resolveShopifyScripts
+  event.context._shopify = {
+    ...(storefront ? { redirect: getShopifyRedirect, scripts: resolveShopifyScripts } : {}),
+    ...(customerAccount ? { customerAccount: customerAccountContext } : {}),
+    ...(serverCache ? { storefrontCache: createStorefrontServerCache } : {}),
   }
-
-  if (customerAccount) event.context.shopifyCustomerAccount = customerAccountContext
 
   const { pathname, searchParams } = getRequestURL(event)
 

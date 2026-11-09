@@ -78,6 +78,8 @@ export function registerTemplates(
     write: true,
   })
 
+  const context = { nuxt: true, nitro: true, node: true }
+
   const typesFilename = `${OUTPUT_DIR}/${kebabCase(clientType)}/${kebabCase(clientType)}.types`
   const types = addTypeTemplate<ShopifyTemplateOptions>({
     filename: `${typesFilename}.d.ts`,
@@ -88,7 +90,7 @@ export function registerTemplates(
       clientType,
       clientConfig,
     },
-  })
+  }, context)
 
   const operationsFilename = `${OUTPUT_DIR}/${kebabCase(clientType)}/${kebabCase(clientType)}.operations`
   const operations = addTypeTemplate<ShopifyTemplateOptions>({
@@ -100,27 +102,14 @@ export function registerTemplates(
       clientType,
       clientConfig,
     },
-  })
+  }, context)
 
   watchDocuments(nuxt, operations)
 
   const index = addTypeTemplate<ShopifyTemplateOptions>({
     filename: `${OUTPUT_DIR}/${kebabCase(clientType)}/index.d.ts`,
     getContents: () => indexTemplate(types.filename, operations.filename).trimStart(),
-  })
+  }, context)
 
-  const typesDir = `./${dirname(index.filename)}`
-
-  nuxt.options.alias[`#shopify/${kebabCase(clientType)}`] ??= typesDir
-
-  const typescript = nuxt.options.nitro.typescript ??= {}
-  const tsConfig = typescript.tsConfig ??= {}
-
-  tsConfig.include = [...tsConfig.include ?? [], typesDir]
-
-  nuxt.hook('prepare:types', ({ nodeTsConfig }) => {
-    if (!nodeTsConfig) return
-
-    nodeTsConfig.include = [...nodeTsConfig.include ?? [], typesDir]
-  })
+  nuxt.options.alias[`#shopify/${kebabCase(clientType)}`] ??= `./${dirname(index.filename)}`
 }

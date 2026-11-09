@@ -303,7 +303,7 @@ describe('refresh route', () => {
 
     const { event } = await send('/account', { cookie })
 
-    await expect(event.context.shopifyCustomerAccount!.getAccessToken(event)).resolves.toBe('refreshed-access-token')
+    await expect(event.context._shopify!.customerAccount!.getAccessToken(event)).resolves.toBe('refreshed-access-token')
     expect(fetchMock).not.toHaveBeenCalled()
   })
 
@@ -517,7 +517,7 @@ describe('server rendering', () => {
 
     const { event } = await send('/account', { cookie })
 
-    await expect(event.context.shopifyCustomerAccount!.getSession(event)).resolves.toEqual({ isLoggedIn: true })
+    await expect(event.context._shopify!.customerAccount!.getSession(event)).resolves.toEqual({ isLoggedIn: true })
   })
 
   it('renders a cached page for an anonymous visitor, although the request that triggered it is signed in', async () => {
@@ -527,8 +527,8 @@ describe('server rendering', () => {
 
     cachedRender.context = incoming.context
 
-    await expect(cachedRender.context.shopifyCustomerAccount!.getSession(cachedRender)).resolves.toEqual({ isLoggedIn: false })
-    await expect(cachedRender.context.shopifyCustomerAccount!.getAccessToken(cachedRender)).rejects.toMatchObject({ statusCode: 401 })
+    await expect(cachedRender.context._shopify!.customerAccount!.getSession(cachedRender)).resolves.toEqual({ isLoggedIn: false })
+    await expect(cachedRender.context._shopify!.customerAccount!.getAccessToken(cachedRender)).rejects.toMatchObject({ statusCode: 401 })
   })
 
   it('keeps the pages of a visitor who signed out cacheable', async () => {
@@ -539,7 +539,7 @@ describe('server rendering', () => {
 
     setResponseHeader(event, 'cache-control', 'public, s-maxage=60')
 
-    await event.context.shopifyCustomerAccount!.getSession(event)
+    await event.context._shopify!.customerAccount!.getSession(event)
 
     applyShopifyResponseHeaders(event)
 
@@ -554,7 +554,7 @@ describe('server rendering', () => {
 
     setResponseHeader(event, 'cache-control', 'public, s-maxage=60')
 
-    await event.context.shopifyCustomerAccount!.getSession(event)
+    await event.context._shopify!.customerAccount!.getSession(event)
 
     applyShopifyResponseHeaders(event)
 
@@ -578,6 +578,6 @@ describe('without a customer account client', () => {
 
     expect(location).toBe('')
     expect(event.handled).toBe(false)
-    expect(event.context.shopifyCustomerAccount).toBeUndefined()
+    expect(event.context._shopify?.customerAccount).toBeUndefined()
   })
 })

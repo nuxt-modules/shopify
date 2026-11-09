@@ -39,7 +39,7 @@ describe('useStorefront', () => {
   it('calls Shopify directly during SSR, caching through the server cache', () => {
     vi.stubGlobal('__NUXT_SERVER__', true)
 
-    requestEvent = { context: { shopifyStorefrontCache: serverCache } }
+    requestEvent = { context: { _shopify: { storefrontCache: () => serverCache } } }
 
     useStorefront()
 

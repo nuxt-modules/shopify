@@ -6,10 +6,9 @@ import { afterEach, beforeEach, describe, expect, expectTypeOf, it, vi } from 'v
 import { createStorage } from 'unstorage'
 
 import { configObjectSchema } from '#src/schemas'
-import { createAdminConfig } from '#src/runtime/utils/clients/admin'
+import { createAdminApiClient, createAdminConfig } from '#src/runtime/utils/clients/admin'
 import { createCustomerAccountApiClient, createCustomerAccountConfig } from '#src/runtime/utils/clients/customer-account'
 import { createStorefrontApiClient, createStorefrontConfig } from '#src/runtime/utils/clients/storefront'
-import { createShopifyApiClient } from '#src/runtime/utils/clients'
 import {
   BUYER_IP_HEADER,
   PRIVATE_TOKEN_HEADER,
@@ -44,19 +43,19 @@ const customerAccount = {
   },
 }
 
-describe('createShopifyApiClient', () => {
-  it('creates the client its `client` option names', () => {
-    expect(createShopifyApiClient(storefront as never, { client: 'storefront' }).config.apiUrl).toBe(`https://shop.myshopify.com/api/${API_VERSION}/graphql.json`)
-    expect(createShopifyApiClient(admin as never, { client: 'admin' }).config.apiUrl).toBe(`https://shop.myshopify.com/admin/api/${API_VERSION}/graphql.json`)
-    expect(createShopifyApiClient(customerAccount as never, { client: 'customerAccount', auth: () => 'token' }).config.apiUrl).toBe(`https://shopify.com/1234/account/customer/api/${API_VERSION}/graphql`)
+describe('client factories', () => {
+  it('create each client from its own config', () => {
+    expect(createStorefrontApiClient(storefront).config.apiUrl).toBe(`https://shop.myshopify.com/api/${API_VERSION}/graphql.json`)
+    expect(createAdminApiClient(admin).config.apiUrl).toBe(`https://shop.myshopify.com/admin/api/${API_VERSION}/graphql.json`)
+    expect(createCustomerAccountApiClient(customerAccount, { auth: () => 'token' }).config.apiUrl).toBe(`https://shopify.com/1234/account/customer/api/${API_VERSION}/graphql`)
   })
 
-  it('types the client by its `client` option, and takes the config as written in `nuxt.config`', () => {
-    expectTypeOf(createShopifyApiClient({ name: 'shop', clients: { storefront: { publicAccessToken: 'token' } } }, { client: 'storefront' }))
+  it('type each client, and take the config as written in `nuxt.config`', () => {
+    expectTypeOf(createStorefrontApiClient({ name: 'shop', clients: { storefront: { publicAccessToken: 'token' } } }))
       .toEqualTypeOf<StorefrontApiClient>()
-    expectTypeOf(createShopifyApiClient({ name: 'shop', shopId: '1' }, { client: 'customerAccount', auth: () => 'token' }))
+    expectTypeOf(createCustomerAccountApiClient({ name: 'shop', shopId: '1' }, { auth: () => 'token' }))
       .toEqualTypeOf<CustomerAccountApiClient>()
-    expectTypeOf(createShopifyApiClient({ name: 'shop', clients: { admin: { clientId: 'id', clientSecret: 'secret' } } }, { client: 'admin' }))
+    expectTypeOf(createAdminApiClient({ name: 'shop', clients: { admin: { clientId: 'id', clientSecret: 'secret' } } }))
       .toEqualTypeOf<AdminApiClient>()
   })
 })
