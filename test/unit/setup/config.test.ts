@@ -1,10 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { createLoggerStub } from '#test/helpers/logger'
+import { resolver } from '#test/helpers/nuxt'
+
 vi.mock('@nuxt/kit', () => ({ addServerPlugin: vi.fn() }))
 
 const { warn } = vi.hoisted(() => ({ warn: vi.fn() }))
 
-vi.mock('#src/utils/log', () => ({ useLogger: () => ({ info: vi.fn(), warn, debug: vi.fn(), error: vi.fn() }) }))
+vi.mock('#src/utils/log', () => ({ useLogger: () => createLoggerStub({ warn }) }))
 
 const { default: setupConfig } = await import('#src/setup/config')
 
@@ -16,7 +19,7 @@ function initNitro(nitroOptions: { static: boolean, preset: string }, input: Rec
 
   const config = configObjectSchema.parse({ name: 'shop', shopId: '1', clients: { storefront: { publicAccessToken: 'public' }, customerAccount: { clientId: 'client' } }, ...input })
 
-  setupConfig(nuxt as never, config, { resolve: (path: string) => path } as never)
+  setupConfig(nuxt as never, config, resolver)
 
   type ClientConfigs = { clients: Record<'storefront' | 'customerAccount', { proxy: boolean }> }
 

@@ -22,7 +22,7 @@ import {
 } from 'h3'
 
 import { useRuntimeConfig } from '#imports'
-import { createShopResolver } from '../../utils/analytics/shop'
+import { createShopResolver } from '../../utils/shop'
 import { resolveBuyerIp } from '../../utils/clients/buyer-ip'
 import { MOCK_STORE_DOMAIN, createStorefrontApiClient } from '../../utils/clients/storefront'
 import { PUBLIC_TOKEN_HEADER, createStoreDomain } from '../../utils/clients/transport'
@@ -189,7 +189,7 @@ function hasBuyerIp(requestContext: ShopifyRequestContext): requestContext is Sh
   return !!requestContext.buyerIp
 }
 
-export function createShopifyStorefrontClient(requestContext: ShopifyRequestContext, { name, storefrontId, clients: { storefront } }: ShopifyConfig): StorefrontClient {
+export function createHydrogenStorefrontClient(requestContext: ShopifyRequestContext, { name, storefrontId, clients: { storefront } }: ShopifyConfig): StorefrontClient {
   const config = {
     storeDomain: storefront?.mock ? MOCK_STORE_DOMAIN : createStoreDomain(name),
     storefrontId: storefrontId || undefined,
@@ -224,7 +224,7 @@ export async function getShopifyRedirect(event: H3Event): Promise<Response | nul
 
   return handleShopifyRedirects({
     request: toShopifyRequest(event),
-    storefrontClient: createShopifyStorefrontClient(requestContext, config),
+    storefrontClient: createHydrogenStorefrontClient(requestContext, config),
     routeTemplates: config.routeTemplates,
   })
 }

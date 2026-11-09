@@ -1,4 +1,3 @@
-import defu from 'defu'
 import { createStorage } from 'unstorage'
 import lruCacheDriver from '../../utils/lru-driver'
 
@@ -8,8 +7,6 @@ export default defineNuxtPlugin({
   name: 'shopify:storefront:cache',
 
   async setup(nuxtApp) {
-    if (import.meta.server) return
-
     const { _shopify } = useRuntimeConfig().public
 
     const storefrontCache = _shopify?.clients.storefront?.cache
@@ -27,10 +24,6 @@ export default defineNuxtPlugin({
       }),
     })
 
-    const shopifyContext = nuxtApp.$shopify as { cache?: { storefront?: typeof storage } } ?? {}
-
-    shopifyContext.cache = defu({ storefront: storage }, shopifyContext.cache)
-
-    if (!nuxtApp.$shopify) nuxtApp.$shopify = shopifyContext
+    nuxtApp.$shopify = { cache: { storefront: storage } }
   },
 })

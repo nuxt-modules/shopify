@@ -5,7 +5,7 @@ import type {
 } from '@shopify/hydrogen'
 
 import type { useHead, useRouter } from '#imports'
-import type { PublicShopifyConfig, ShopifyScriptsShopContext } from '../../../module'
+import type { PublicShopifyConfig, ShopifyScriptsShopContext } from '../../module'
 
 type HeadInput = Parameters<typeof useHead>[0]
 

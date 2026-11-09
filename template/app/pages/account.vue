@@ -2,7 +2,7 @@
 import type { NavigationMenuItem } from '@nuxt/ui'
 
 definePageMeta({
-  middleware: 'customer-account',
+  middleware: 'shopify:customer-account',
 })
 
 const { login } = useCustomerAccountSession()

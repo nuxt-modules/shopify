@@ -4,7 +4,7 @@ import { CUSTOMER_ACCOUNT_API_VERSION } from '@shopify/hydrogen/customer-account
 import { afterEach, describe, expect, expectTypeOf, it, vi } from 'vitest'
 import { z } from 'zod'
 
-import { configObjectSchema, publicConfigSchema } from '#src/runtime/utils/config'
+import { configObjectSchema, findInvalidFeatures, publicConfigSchema, withoutFeatures } from '#src/runtime/utils/config'
 import { DEFAULT_API_VERSION } from '#src/runtime/utils/clients/defaults'
 import { API_VERSION } from '#test/helpers/api-version'
 
@@ -416,7 +416,7 @@ describe('default api version', () => {
     vi.setSystemTime(new Date(`${Number(year) + 1}-${month}-15T00:00:00Z`))
     vi.resetModules()
 
-    const { configObjectSchema: schema } = await import('#src/schemas')
+    const { configObjectSchema: schema } = await import('#src/runtime/utils/config')
 
     const { clients } = schema.parse({
       name: 'shop',
@@ -569,5 +569,41 @@ describe('baked config', () => {
     })
 
     expect(configObjectSchema.parse(baked)).toEqual(baked)
+  })
+})
+
+describe('invalid features', () => {
+  it('names the feature of every invalid option, so only those can be left out', () => {
+    const input = {
+      name: 'shop',
+      clients: { storefront: { publicAccessToken: 'public' }, admin: { clientId: 'id' }, customerAccount: { clientId: 'cid', proxy: { route: '/_proxy/customer-account' } } },
+      webhooks: { subscriptions: [{ topic: 'ORDERS_CREATE' }] },
+    }
+
+    const parsed = configObjectSchema.safeParse(input)
+
+    expect(parsed.success).toBe(false)
+
+    const features = findInvalidFeatures(parsed.error!)!
+
+    expect(features.map(feature => feature.join('.')).sort()).toStrictEqual(['clients.admin', 'clients.customerAccount', 'webhooks'])
+
+    const remaining = withoutFeatures(input, features)
+
+    expect(remaining).toStrictEqual({ name: 'shop', clients: { storefront: { publicAccessToken: 'public' } } })
+    expect(input.clients).toHaveProperty('admin')
+    expect(configObjectSchema.safeParse(remaining)).toMatchObject({ success: true })
+  })
+
+  it('can\'t leave out an invalid shop name', () => {
+    const parsed = configObjectSchema.safeParse({ name: '', clients: { admin: { clientId: 'id' } } })
+
+    expect(findInvalidFeatures(parsed.error!)).toBeUndefined()
+  })
+
+  it('explains that the proxy routes are fixed when a 1.x proxy route is configured', () => {
+    const parsed = configObjectSchema.safeParse({ name: 'shop', clients: { customerAccount: { clientId: 'cid', proxy: { route: '/_proxy/customer-account' } } } })
+
+    expect(parsed.error?.issues[0]?.message).toContain('/account/customer/api/<version>/graphql')
   })
 })

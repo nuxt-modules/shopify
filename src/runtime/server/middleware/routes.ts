@@ -13,11 +13,11 @@ import { withQuery } from 'ufo'
 import { useRuntimeConfig } from '#imports'
 import { assertSameSite } from '../utils/csrf'
 import { customerAccountContext } from '../utils/customer-account/auth'
-import { createCustomerSessionManager, getCustomerSession, requireCustomerAccountConfig } from '../utils/customer-account/session'
+import { createCustomerSessionManager, getHydrogenCustomerSession, requireCustomerAccountConfig } from '../utils/customer-account/session'
 import { createLogger } from '../utils/log'
 import {
   applyShopifyResponseHeaders,
-  createShopifyStorefrontClient,
+  createHydrogenStorefrontClient,
   getShopifyRedirect,
   getShopifyRequestContext,
   isCartEndpoint,
@@ -80,7 +80,7 @@ function withAuthHooks(event: H3Event, customerSession: CustomerSession, { autho
 function handleCustomerAccountRoutes(event: H3Event, config: ShopifyConfig, routes: ShopifyRoutes) {
   const { afterLogin, afterLogout } = requireCustomerAccountConfig(config)
 
-  const customerSession = getCustomerSession(config)
+  const customerSession = getHydrogenCustomerSession(config)
   const sessionManager = createCustomerSessionManager(event)
 
   const redirects = {
@@ -164,7 +164,7 @@ export default defineEventHandler(async (event) => {
   const routes = {
     request: toShopifyRequest(event, _shopify.clients.storefront?.publicAccessToken || undefined),
     requestContext,
-    storefrontClient: createShopifyStorefrontClient(requestContext, _shopify),
+    storefrontClient: createHydrogenStorefrontClient(requestContext, _shopify),
     routeTemplates: _shopify.routeTemplates,
   }
 

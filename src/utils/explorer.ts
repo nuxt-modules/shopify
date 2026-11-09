@@ -7,17 +7,30 @@ import { randomUUID } from 'node:crypto'
 
 import { ShopifyClientType } from '../schemas'
 import { addDevServerHandler, type Resolver } from '@nuxt/kit'
-import { defineEventHandler, setResponseHeader } from 'h3'
+import { createError, defineEventHandler, getRequestIP, getRequestURL, setResponseHeader } from 'h3'
 import { kebabCase, titleCase } from 'scule'
 
-import { assertLocalRequest } from '../runtime/server/utils/csrf'
-import { CUSTOMER_ACCOUNT_PROXY_ROUTE } from '../runtime/utils/clients/transport'
+import { CUSTOMER_ACCOUNT_PROXY_ROUTE, createApiUrl } from '../runtime/utils/clients/transport'
 import { addUncachedServerHandler } from './routes'
 
 const ADMIN_PROXY_ROUTE = '/_explorer/proxy/admin'
 
+const LOCAL_HOSTNAMES = ['localhost', '127.0.0.1', '[::1]', '::1', 'local.tryhydrogen.dev']
+
+const LOOPBACK_ADDRESS = /^(?:127(?:\.\d{1,3}){3}|::1|::ffff:127(?:\.\d{1,3}){3})$/
+
+export function assertLocalRequest(event: H3Event) {
+  if (LOCAL_HOSTNAMES.includes(getRequestURL(event).hostname) && LOOPBACK_ADDRESS.test(getRequestIP(event) ?? '')) return
+
+  throw createError({
+    status: 403,
+    statusText: 'Forbidden',
+    message: '[shopify] This endpoint is only available on localhost',
+  })
+}
+
 function getExplorerEndpoint(config: ShopifyConfig, clientType: ShopifyClientType, token: string): string {
-  if (clientType === ShopifyClientType.Storefront) return `/api/${config.clients.storefront!.apiVersion}/graphql.json`
+  if (clientType === ShopifyClientType.Storefront) return createApiUrl('/', config.clients.storefront!.apiVersion)
 
   if (clientType === ShopifyClientType.CustomerAccount) return CUSTOMER_ACCOUNT_PROXY_ROUTE.replace(':version', config.clients.customerAccount!.apiVersion)
 

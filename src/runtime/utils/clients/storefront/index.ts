@@ -19,7 +19,7 @@ import { DEFAULT_API_VERSION, DEFAULT_RETRIES } from '../defaults'
 
 export const MOCK_STORE_DOMAIN = 'https://mock.shop'
 
-export const createStorefrontConfig = (config?: ModuleOptions): ShopifyApiClientConfig => {
+export function createStorefrontConfig(config?: ModuleOptions): ShopifyApiClientConfig {
   if (!config?.clients?.storefront) {
     throw new Error('[shopify] Failed to create storefront client config: client is not configured (set `clients.storefront`)')
   }
@@ -65,7 +65,7 @@ export const createStorefrontConfig = (config?: ModuleOptions): ShopifyApiClient
       ...(!privateAccessToken && publicAccessToken ? { [PUBLIC_TOKEN_HEADER]: publicAccessToken } : {}),
       ...headers,
     },
-  } satisfies ShopifyApiClientConfig
+  }
 }
 
 const definition: ClientDefinition<'storefront'> = {

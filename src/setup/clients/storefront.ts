@@ -55,7 +55,7 @@ export default function setupStorefrontClient(nuxt: Nuxt, config: ShopifyConfig,
   }
 
   if (cache?.browser) {
-    addPlugin(resolver.resolve('./runtime/plugins/storefront/cache'))
+    addPlugin({ src: resolver.resolve('./runtime/plugins/storefront/cache'), mode: 'client' })
   }
   else {
     logger.debug('Skipping the storefront client cache plugin: the client has no public access token or `cache.browser` is disabled')

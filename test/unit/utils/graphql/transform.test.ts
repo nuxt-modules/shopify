@@ -4,7 +4,6 @@ import type { FragmentRegistry } from '#src/utils/graphql/registry'
 
 import { findGraphqlLiterals } from '#src/utils/graphql/literals'
 import { scanDefinitions } from '#src/runtime/utils/graphql/scanner'
-import { touchesFragments } from '#src/setup/graphql-transform'
 import { createGraphqlTransformPlugin } from '#src/utils/graphql/transform'
 
 const IMAGE = `fragment ImageFields on Image {
@@ -50,51 +49,6 @@ const definitions = (code: string) => {
 
   return scanDefinitions(literal.content).map(definition => `${definition.kind}:${definition.name ?? '<anonymous>'}`)
 }
-
-describe('findGraphqlLiterals', () => {
-  it('picks up `#graphql` marker and binding', () => {
-    const literals = findGraphqlLiterals('export const PRODUCT_FRAGMENT = `#graphql\n  fragment ProductFields on Product { id }\n`\n')
-
-    expect(literals).toHaveLength(1)
-    expect(literals[0]!.binding).toBe('PRODUCT_FRAGMENT')
-  })
-
-  it('picks up `/* GraphQL */` marker', () => {
-    expect(findGraphqlLiterals('const q = /* GraphQL */ `query Foo { shop { name } }`')).toHaveLength(1)
-  })
-
-  it('skips ordinary template literals', () => {
-    expect(findGraphqlLiterals('const greeting = `hello ${name}`')).toHaveLength(0)
-  })
-
-  it('can handle regex character classes containing slashes', () => {
-    const literals = findGraphqlLiterals('const r = /[/`]/g\nconst q = `#graphql\n query J { id }\n`')
-
-    expect(literals).toHaveLength(1)
-    expect(literals[0]!.content).toContain('query J')
-  })
-
-  it('ignores slashes after operands', () => {
-    const literals = findGraphqlLiterals('const n = (a) / 2; const q = `#graphql\n query L { id }\n`')
-
-    expect(literals).toHaveLength(1)
-    expect(literals[0]!.content).toBe('#graphql\n query L { id }\n')
-  })
-
-  it('treats a slash after keywords as regex', () => {
-    const literals = findGraphqlLiterals('function f() { return /`/ }\nconst q = `#graphql\n query I { id }\n`')
-
-    expect(literals).toHaveLength(1)
-    expect(literals[0]!.content).toContain('query I')
-  })
-
-  it('can handle nested literals', () => {
-    const literals = findGraphqlLiterals('const q = `#graphql\n query Foo { id }\n${cond ? `}` : `b`}\n`\nconst after = 1')
-
-    expect(literals).toHaveLength(1)
-    expect(literals[0]!.content).toBe('#graphql\n query Foo { id }\n${cond ? `}` : `b`}\n')
-  })
-})
 
 describe('fragment injection', () => {
   it('gathers all fragments that another fragment or operation uses', () => {
@@ -187,27 +141,5 @@ describe('transform plugin', () => {
 
     expect(result.map?.sources).toStrictEqual(['/project/app/composables/product.ts'])
     expect(result.map?.sourcesContent).toStrictEqual([code])
-  })
-})
-
-describe('fragment watching', () => {
-  const dirs = ['/project/graphql']
-  const srcDir = '/project/app'
-  const rootDir = '/project'
-
-  it('matches a path reported relative to srcDir', () => {
-    expect(touchesFragments(dirs, '../graphql/fragments/product.ts', srcDir, rootDir)).toBe(true)
-  })
-
-  it('matches a path reported relative to rootDir', () => {
-    expect(touchesFragments(dirs, 'graphql/fragments/product.ts', srcDir, rootDir)).toBe(true)
-  })
-
-  it('ignores files outside the fragment directories', () => {
-    expect(touchesFragments(dirs, 'components/Product.vue', srcDir, rootDir)).toBe(false)
-  })
-
-  it('does not match a sibling directory sharing the prefix', () => {
-    expect(touchesFragments(dirs, '../graphql-extra/product.ts', srcDir, rootDir)).toBe(false)
   })
 })

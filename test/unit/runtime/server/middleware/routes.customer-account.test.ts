@@ -10,26 +10,18 @@ import {
   SHOP_ID,
   createHttpsEvent,
   createIdToken,
-  createMemoryStorage,
   createSessionCookie,
   createShopifyConfig,
+  createTokenStorages,
 } from '#test/helpers/customer-account'
 import { createTestEvent, getResponseHeader, getSetCookieHeaders, toCookieHeader } from '#test/helpers/event'
 
-type MemoryStorage = ReturnType<typeof createMemoryStorage>
-
 const runtimeConfig: { _shopify?: Record<string, unknown> } = {}
-const storages = new Map<string, MemoryStorage>()
+const { storages, useTokenStorage } = createTokenStorages()
 
 const hooks = { callHook: vi.fn<(name: string, params: Record<string, unknown>) => Promise<void>>() }
 
 const fetchMock = vi.fn<typeof fetch>()
-
-function useTokenStorage(base: string): MemoryStorage {
-  if (!storages.has(base)) storages.set(base, createMemoryStorage())
-
-  return storages.get(base)!
-}
 
 vi.stubGlobal('fetch', fetchMock)
 

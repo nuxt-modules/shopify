@@ -3,6 +3,7 @@ import type { Nuxt } from '@nuxt/schema'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { API_VERSION } from '#test/helpers/api-version'
+import { createLoggerStub } from '#test/helpers/logger'
 
 const persisted: Array<[string, string]> = []
 
@@ -14,11 +15,9 @@ let persists = true
 
 vi.mock('#src/utils/log', () => ({
   initLogger: () => undefined,
-  useLogger: () => ({
+  useLogger: () => createLoggerStub({
     warn: (message: string) => void warnings.push(message),
-    debug: vi.fn(),
     info: (message: string) => void infos.push(message),
-    error: vi.fn(),
   }),
 }))
 
@@ -31,7 +30,8 @@ vi.mock('#src/utils/session', async importOriginal => ({
   },
 }))
 
-const { configSchema, publicConfigSchema } = await import('#src/schemas')
+const { configObjectSchema, publicConfigSchema } = await import('#src/schemas')
+const { resolveConfig, warnPublicOptions, warnUnrecognizedOptions } = await import('#src/schemas/resolve')
 
 const API_URL = `https://shopify.com/1234/account/customer/api/${API_VERSION}/graphql`
 
@@ -40,9 +40,13 @@ function nuxtStub(options: Record<string, unknown> = {}) {
 }
 
 async function resolve(input: Record<string, unknown>, nuxt = nuxtStub()) {
-  const config = await configSchema.parseAsync({ ...input, _nuxt: nuxt })
+  const config = await resolveConfig(configObjectSchema.parse(input), nuxt)
 
   return { config, publicConfig: publicConfigSchema.parse(config) }
+}
+
+function warnUnrecognized(input: Record<string, unknown>) {
+  warnUnrecognizedOptions(input, configObjectSchema.parse(input))
 }
 
 function stubApiUrl(url: string) {
@@ -321,9 +325,7 @@ describe('api version window', () => {
 
 describe('unrecognized configuration values', () => {
   it('warns about every option the module does not know, with its path', async () => {
-    const { warnUnrecognizedOptions } = await import('#src/schemas/resolve')
-
-    warnUnrecognizedOptions({
+    warnUnrecognized({
       name: 'shop',
       domain: 'shop.example.com',
       clients: { storefront: { publicAccessToken: 'tok', cache: { proxy: false } } },
@@ -338,9 +340,7 @@ describe('unrecognized configuration values', () => {
   })
 
   it('looks into arrays and cache presets, where 1.x keys would otherwise vanish', async () => {
-    const { warnUnrecognizedOptions } = await import('#src/schemas/resolve')
-
-    warnUnrecognizedOptions({
+    warnUnrecognized({
       name: 'shop',
       clients: { storefront: { publicAccessToken: 'tok', cache: { presets: { long: { maxAge: 60, staleMaxAge: 600, swr: true } } } } },
       webhooks: { secret: 'secret', subscriptions: [{ uri: 'https://shop.example/hook', topic: 'ORDERS_CREATE', metafeilds: [] }] },
@@ -356,20 +356,16 @@ describe('unrecognized configuration values', () => {
   })
 
   it('leaves options the module passes through unchanged alone, even when they reference themselves', async () => {
-    const { warnUnrecognizedOptions } = await import('#src/schemas/resolve')
-
     const reporter: Record<string, unknown> = { log: () => undefined }
 
     reporter.self = reporter
 
-    expect(() => warnUnrecognizedOptions({ name: 'shop', logger: { reporters: [reporter] } })).not.toThrow()
+    expect(() => warnUnrecognized({ name: 'shop', logger: { reporters: [reporter] } })).not.toThrow()
     expect(warnings).toEqual([])
   })
 
   it('stays quiet for a valid configuration, free-form values included', async () => {
-    const { warnUnrecognizedOptions } = await import('#src/schemas/resolve')
-
-    warnUnrecognizedOptions({
+    warnUnrecognized({
       name: 'shop',
       routeTemplates: { product: '/p/:productHandle' },
       logger: { level: 3 },
@@ -394,8 +390,6 @@ describe('unrecognized configuration values', () => {
 
 describe('options that would reach the browser', () => {
   it('warns about every private option set under runtimeConfig.public.shopify', async () => {
-    const { warnPublicOptions } = await import('#src/schemas/resolve')
-
     const publicInput = {
       name: 'shop',
       origin: 'https://shop.example.com',
@@ -416,8 +410,6 @@ describe('options that would reach the browser', () => {
   })
 
   it('stays quiet for public options and for typos, which the unrecognized option warning names', async () => {
-    const { warnPublicOptions } = await import('#src/schemas/resolve')
-
     const publicInput = { name: 'shop', storefrontId: '1', clients: { storefront: { publicAccessToken: 'public', proxi: true } } }
 
     const { config } = await resolve(publicInput)
@@ -425,45 +417,5 @@ describe('options that would reach the browser', () => {
     warnPublicOptions(publicInput, config)
 
     expect(warnings).toEqual([])
-  })
-})
-
-describe('invalid features', () => {
-  it('names the feature of every invalid option, so only those can be left out', async () => {
-    const { findInvalidFeatures, withoutFeatures } = await import('#src/runtime/utils/config')
-
-    const input = {
-      name: 'shop',
-      clients: { storefront: { publicAccessToken: 'public' }, admin: { clientId: 'id' }, customerAccount: { clientId: 'cid', proxy: { route: '/_proxy/customer-account' } } },
-      webhooks: { subscriptions: [{ topic: 'ORDERS_CREATE' }] },
-    }
-
-    const parsed = await configSchema.safeParseAsync(input)
-
-    expect(parsed.success).toBe(false)
-
-    const features = findInvalidFeatures(parsed.error!)!
-
-    expect(features.map(feature => feature.join('.')).sort()).toStrictEqual(['clients.admin', 'clients.customerAccount', 'webhooks'])
-
-    const remaining = withoutFeatures(input, features)
-
-    expect(remaining).toStrictEqual({ name: 'shop', clients: { storefront: { publicAccessToken: 'public' } } })
-    expect(input.clients).toHaveProperty('admin')
-    await expect(configSchema.safeParseAsync(remaining)).resolves.toMatchObject({ success: true })
-  })
-
-  it('can\'t leave out an invalid shop name', async () => {
-    const { findInvalidFeatures } = await import('#src/runtime/utils/config')
-
-    const parsed = await configSchema.safeParseAsync({ name: '', clients: { admin: { clientId: 'id' } } })
-
-    expect(findInvalidFeatures(parsed.error!)).toBeUndefined()
-  })
-
-  it('explains that the proxy routes are fixed when a 1.x proxy route is configured', async () => {
-    const parsed = await configSchema.safeParseAsync({ name: 'shop', clients: { customerAccount: { clientId: 'cid', proxy: { route: '/_proxy/customer-account' } } } })
-
-    expect(parsed.error?.issues[0]?.message).toContain('/account/customer/api/<version>/graphql')
   })
 })

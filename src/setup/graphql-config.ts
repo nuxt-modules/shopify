@@ -2,15 +2,13 @@ import type { Nuxt } from '@nuxt/schema'
 
 import type { ShopifyConfig } from '../types'
 
-import { relative } from 'node:path'
-
 import { addTemplate } from '@nuxt/kit'
+import { relative } from 'pathe'
 
 import { ShopifyClientType } from '../schemas'
 import { DOCUMENT_ROUTING_ORDER, getConfiguredClients } from '../utils/clients'
 import { getIntrospectionFilename } from '../utils/templates'
 import { useLogger } from '../utils/log'
-import { toPosix } from '../utils/codegen'
 
 const DIR_IGNORES = ['node_modules', 'dist', '.nuxt', '.output']
 
@@ -54,7 +52,7 @@ export default function setupGraphqlConfig(nuxt: Nuxt, config: ShopifyConfig) {
   }
 
   const configured = getConfiguredClients(config)
-  const buildDir = toPosix(relative(nuxt.options.rootDir, nuxt.options.buildDir)) || '.nuxt'
+  const buildDir = relative(nuxt.options.rootDir, nuxt.options.buildDir) || '.nuxt'
 
   const projects: Record<string, GraphqlProject> = {}
 

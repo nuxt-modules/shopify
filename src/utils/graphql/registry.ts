@@ -1,12 +1,12 @@
 import type { GraphqlDefinition } from '../../runtime/utils/graphql/scanner'
 
 import { readFile, readdir } from 'node:fs/promises'
-import { join, relative } from 'node:path'
+import { join, resolve, sep } from 'node:path'
+import { relative } from 'pathe'
 
 import { collectSpreads, scanDefinitions } from '../../runtime/utils/graphql/scanner'
 import { useLogger } from '../log'
 import { INTERPOLATION, SCHEMA_LANGUAGE_FILE, findGraphqlLiterals } from './literals'
-import { toPosix } from '../codegen'
 
 const SCANNABLE = /\.(?:ts|js|mjs|cjs|mts|cts|vue|gql|graphql)$/
 
@@ -30,6 +30,16 @@ type BindingLink = {
   interpolations: Set<string>
 }
 
+export function within(dirs: string[], path: string) {
+  return dirs.some(dir => path === dir || path.startsWith(dir + sep))
+}
+
+export function touchesFragments(dirs: string[], file: string, srcDir: string, rootDir: string) {
+  const resolvedAgainstEachBase = [resolve(srcDir, file), resolve(rootDir, file)]
+
+  return resolvedAgainstEachBase.some(path => within(dirs, path))
+}
+
 function createRegistry(): FragmentRegistry {
   return { fragments: new Map(), provides: new Map() }
 }
@@ -43,7 +53,7 @@ async function listFiles(dir: string): Promise<string[]> {
 
   return entries
     .filter(entry => entry.isFile() && SCANNABLE.test(entry.name))
-    .filter(entry => !toPosix(relative(dir, entry.parentPath)).split('/').some(part => SKIPPED_DIRS.has(part)))
+    .filter(entry => !relative(dir, entry.parentPath).split('/').some(part => SKIPPED_DIRS.has(part)))
     .map(entry => join(entry.parentPath, entry.name))
 }
 
@@ -100,7 +110,7 @@ function warnCollisions(collisions: FragmentCollision[]) {
   for (const { name, kept, ignored } of collisions) {
     logger.warn(
       `Fragment \`${name}\` is defined in more than one file. `
-      + `Using \`${toPosix(relative(process.cwd(), kept))}\`, ignoring \`${toPosix(relative(process.cwd(), ignored))}\``,
+      + `Using \`${relative(process.cwd(), kept)}\`, ignoring \`${relative(process.cwd(), ignored)}\``,
     )
   }
 }

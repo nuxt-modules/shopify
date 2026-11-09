@@ -71,7 +71,7 @@ const succeeds = () => Promise.resolve([{ content: '{"__schema":{}}' }])
 const fails = () => Promise.reject(new Error('Failed to load schema from https://mock.shop/api:\nconnect ETIMEDOUT 23.227.38.74:443'))
 const invalid = () => Promise.reject(new Error('Type Shop must define one or more fields.'))
 
-const MOCK_API_SCHEMA = [{ 'https://mock.shop/api': { headers: {} } }]
+const MOCK_API_SCHEMA = [{ [`https://mock.shop/api/${API_VERSION}/graphql.json`]: { headers: {} } }]
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -103,6 +103,32 @@ describe('introspection source', () => {
     await introspect(pathFor('empty.json'))
 
     expect(schemaOfCall(0)).toEqual(MOCK_API_SCHEMA)
+  })
+
+  it('asks the storefront api like the runtime client does, so custom headers win over the token', async () => {
+    await createIntrospectionGenerator({
+      filename: FILENAME,
+      shopName: 'test-shop',
+      clientType: ShopifyClientType.Storefront,
+      clientConfig: { apiVersion: API_VERSION, publicAccessToken: 'public', headers: { 'X-Shopify-Storefront-Access-Token': 'custom', 'X-Custom': '1' } },
+    } as never, pathFor('missing.json')).getContents({ nuxt })
+
+    expect(schemaOfCall(0)).toEqual([{
+      [`https://test-shop.myshopify.com/api/${API_VERSION}/graphql.json`]: { headers: { 'X-Shopify-Storefront-Access-Token': 'custom', 'X-Custom': '1' } },
+    }])
+  })
+
+  it('asks the admin api like the runtime client does, so the access token wins over a custom token header', async () => {
+    await createIntrospectionGenerator({
+      filename: FILENAME,
+      shopName: 'test-shop',
+      clientType: ShopifyClientType.Admin,
+      clientConfig: { apiVersion: API_VERSION, accessToken: 'shpat_test', headers: { 'X-Shopify-Access-Token': 'custom', 'X-Custom': '1' } },
+    } as never, pathFor('missing.json')).getContents({ nuxt })
+
+    expect(schemaOfCall(0)).toEqual([{
+      [`https://test-shop.myshopify.com/admin/api/${API_VERSION}/graphql.json`]: { headers: { 'X-Shopify-Access-Token': 'shpat_test', 'X-Custom': '1' } },
+    }])
   })
 
   it('reads the customer account schema from the installed hydrogen package', async () => {

@@ -5,27 +5,22 @@ import type { ShopifyConfig } from '../types'
 
 import { existsSync, statSync } from 'node:fs'
 import { mkdir, readFile, rm, stat, writeFile } from 'node:fs/promises'
-import { basename, dirname, resolve, sep } from 'node:path'
+import { basename, dirname, resolve } from 'node:path'
 import { generate } from '@graphql-codegen/cli'
 import { preset, pluckConfig } from '@shopify/graphql-codegen'
 import { LogLevels } from 'consola'
 import { kebabCase, upperFirst } from 'scule'
 import defu from 'defu'
-import { joinURL } from 'ufo'
 
 import { ShopifyClientType } from '../schemas'
 import { GRAPHQL_MARKER } from './graphql/literals'
 import { useLogger } from './log'
 import { resolveInstalledPath } from './install'
+import { createAdminConfig } from '../runtime/utils/clients/admin'
 import { getAdminAccessToken } from '../runtime/utils/clients/admin/auth'
 import { DEFAULT_API_VERSION } from '../runtime/utils/clients/defaults'
-import { MOCK_STORE_DOMAIN } from '../runtime/utils/clients/storefront'
-import {
-  ADMIN_TOKEN_HEADER,
-  createStoreDomain,
-  PRIVATE_TOKEN_HEADER,
-  PUBLIC_TOKEN_HEADER,
-} from '../runtime/utils/clients/transport'
+import { createStorefrontConfig } from '../runtime/utils/clients/storefront'
+import { ADMIN_TOKEN_HEADER } from '../runtime/utils/clients/transport'
 
 const HYDROGEN = '@shopify/hydrogen'
 
@@ -63,8 +58,6 @@ type InterfaceExtensionsParams = {
   queryType: string
   mutationType: string
 }
-
-export const toPosix = (path: string) => path.split(sep).join('/')
 
 function getHydrogenSchema(clientType: ShopifyClientType) {
   const schemaId = HYDROGEN_SCHEMAS[clientType]
@@ -259,7 +252,7 @@ function createGlobalDeclarations(contents: string, filename: string): string {
   return `\ndeclare global {\n${declarations}\n}\n`
 }
 
-function getInterfaceExtensionFunction(clientType: ShopifyClientType, queryType: string, mutationType: string) {
+function getInterfaceExtension(clientType: ShopifyClientType, queryType: string, mutationType: string) {
   return `
 declare module '@nuxtjs/shopify/${kebabCase(clientType)}' {
   type InputMaybe<T> = ${upperFirst(clientType)}Types.InputMaybe<T>
@@ -280,44 +273,18 @@ async function getIntrospectionCacheKey(path: string): Promise<string | undefine
 async function getIntrospectionSource(options: ShopifyTemplateOptions) {
   const { shopName, clientType, clientConfig } = options
 
-  const apiVersion = clientConfig?.apiVersion
-  const headers: Record<string, string> = { ...(clientConfig?.headers as Record<string, string>) }
-
-  let apiUrl: string
+  if (clientType === ShopifyClientType.CustomerAccount) return getHydrogenSchema(clientType)
 
   if (clientType === ShopifyClientType.Storefront) {
-    const storefrontConfig = clientConfig as NonNullable<ShopifyConfig['clients']['storefront']>
+    const { apiUrl, headers } = createStorefrontConfig({ name: shopName, clients: { storefront: clientConfig as NonNullable<ShopifyConfig['clients']['storefront']> } })
 
-    if (storefrontConfig.mock) {
-      apiUrl = `${MOCK_STORE_DOMAIN}/api`
-    }
-    else {
-      apiUrl = joinURL(createStoreDomain(shopName), `api/${apiVersion}/graphql.json`)
-
-      if (storefrontConfig.privateAccessToken) {
-        headers[PRIVATE_TOKEN_HEADER] = storefrontConfig.privateAccessToken
-      }
-      else if (storefrontConfig.publicAccessToken) {
-        headers[PUBLIC_TOKEN_HEADER] = storefrontConfig.publicAccessToken
-      }
-    }
-  }
-  else if (clientType === ShopifyClientType.CustomerAccount) {
-    return getHydrogenSchema(clientType)
-  }
-  else {
-    const adminConfig = clientConfig as NonNullable<ShopifyConfig['clients']['admin']>
-
-    apiUrl = joinURL(createStoreDomain(shopName), `admin/api/${apiVersion}/graphql.json`)
-
-    headers[ADMIN_TOKEN_HEADER] = await getAdminAccessToken(shopName, adminConfig)
+    return [{ [apiUrl]: { headers: headers as Record<string, string> } }]
   }
 
-  return [
-    {
-      [apiUrl]: { headers },
-    },
-  ]
+  const adminConfig = clientConfig as NonNullable<ShopifyConfig['clients']['admin']>
+  const { apiUrl, headers } = createAdminConfig({ name: shopName, clients: { admin: adminConfig } })
+
+  return [{ [apiUrl]: { headers: { ...headers as Record<string, string>, [ADMIN_TOKEN_HEADER]: await getAdminAccessToken(shopName, adminConfig) } } }]
 }
 
 function getTypescriptPluginConfig(config: ShopifyConfig['clients'][ShopifyClientType]) {
@@ -475,7 +442,7 @@ export function createOperationsGenerator(introspection: Pick<IntrospectionGener
         },
         skipTypenameInOperations: true,
         interfaceExtension: (params: InterfaceExtensionsParams) => {
-          return getInterfaceExtensionFunction(
+          return getInterfaceExtension(
             data.options.clientType,
             params.queryType,
             params.mutationType,

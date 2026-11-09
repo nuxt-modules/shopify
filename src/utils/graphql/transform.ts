@@ -70,7 +70,7 @@ function rewrite(code: string, file: string, options: GraphqlTransformOptions) {
 
 export function createGraphqlTransformPlugin(options: GraphqlTransformOptions) {
   return {
-    name: 'nuxt-shopify:graphql',
+    name: 'shopify:graphql',
     enforce: 'post' as const,
 
     transform(code: string, id: string) {

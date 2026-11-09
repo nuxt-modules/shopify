@@ -8,31 +8,16 @@ import {
   SESSION_PASSWORD,
   createHydrogenSession,
   createHttpsEvent as request,
-  createMemoryStorage,
   createSessionCookie as signIn,
   createShopifyConfig,
+  createTokenStorages,
 } from '#test/helpers/customer-account'
 import { getSetCookieHeaders, toCookieHeader } from '#test/helpers/event'
 
-type MemoryStorage = ReturnType<typeof createMemoryStorage>
-
 const runtimeConfig: { _shopify?: Record<string, unknown> } = {}
-const storages = new Map<string, MemoryStorage>()
+const { storages, useTokenStorage } = createTokenStorages()
 
 const fetchMock = vi.fn()
-
-function useTokenStorage(base: string): MemoryStorage {
-  if (!storages.has(base)) {
-    const storage = createMemoryStorage()
-
-    vi.spyOn(storage, 'setItem')
-    vi.spyOn(storage, 'removeItem')
-
-    storages.set(base, storage)
-  }
-
-  return storages.get(base)!
-}
 
 vi.stubGlobal('fetch', fetchMock)
 
@@ -475,8 +460,11 @@ describe('getCustomerAccountSession', () => {
 })
 
 describe('requireCustomerAccountSession', () => {
-  it('rejects an anonymous request', async () => {
-    await expect(requireCustomerAccountSession(request())).rejects.toMatchObject({ statusCode: 401 })
+  it('rejects an anonymous request with the same message as a customer account request', async () => {
+    await expect(requireCustomerAccountSession(request())).rejects.toMatchObject({
+      statusCode: 401,
+      message: '[shopify] No customer account session: the customer is not logged in',
+    })
   })
 
   it('returns the session of a signed in customer', async () => {

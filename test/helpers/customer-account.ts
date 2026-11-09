@@ -1,5 +1,7 @@
 import type { TestEventInit } from '#test/helpers/event'
 
+import { vi } from 'vitest'
+
 import { API_VERSION } from '#test/helpers/api-version'
 import { createTestEvent, toCookieHeader } from '#test/helpers/event'
 
@@ -75,6 +77,25 @@ export function createMemoryStorage() {
     getItem: (key: string) => Promise.resolve(items.has(key) ? structuredClone(items.get(key)) : null),
     removeItem: (key: string) => Promise.resolve(void items.delete(key)),
   }
+}
+
+export function createTokenStorages() {
+  const storages = new Map<string, ReturnType<typeof createMemoryStorage>>()
+
+  function useTokenStorage(base: string) {
+    if (!storages.has(base)) {
+      const storage = createMemoryStorage()
+
+      vi.spyOn(storage, 'setItem')
+      vi.spyOn(storage, 'removeItem')
+
+      storages.set(base, storage)
+    }
+
+    return storages.get(base)!
+  }
+
+  return { storages, useTokenStorage }
 }
 
 export function createHttpsEvent(cookie?: string, init: TestEventInit = {}) {

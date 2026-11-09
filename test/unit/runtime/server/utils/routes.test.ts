@@ -9,6 +9,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { CUSTOMER_ACCOUNT_ROUTES, STOREFRONT_ROUTES } from '#src/utils/routes'
 import { API_VERSION } from '#test/helpers/api-version'
 import { createTestEvent, getResponseHeader, getSetCookieHeaders } from '#test/helpers/event'
+import { createLoggerStub } from '#test/helpers/logger'
 
 const runtimeConfig: { _shopify?: Record<string, unknown> } = {}
 
@@ -17,10 +18,10 @@ const { warn } = vi.hoisted(() => ({ warn: vi.fn() }))
 vi.mock('#imports', () => ({ useRuntimeConfig: () => runtimeConfig }))
 
 vi.mock('#src/runtime/utils/log', () => ({
-  createLogger: () => ({ debug: vi.fn(), info: vi.fn(), warn, error: vi.fn() }),
+  createLogger: () => createLoggerStub({ warn }),
 }))
 
-const { applyShopifyResponseHeaders, createShopifyStorefrontClient, getPublicRequestURL, getShopifyRequestContext, isShopifyApiProxyPath, isShopifyEndpoint, resolveShopifyMarket, toShopifyRequest }
+const { applyShopifyResponseHeaders, createHydrogenStorefrontClient, getPublicRequestURL, getShopifyRequestContext, isShopifyApiProxyPath, isShopifyEndpoint, resolveShopifyMarket, toShopifyRequest }
   = await import('#src/runtime/server/utils/routes')
 
 const hydrogenRoot = dirname(resolveModulePath('@shopify/hydrogen/package.json', { from: import.meta.url }))
@@ -396,7 +397,7 @@ describe('getShopifyRequestContext', () => {
     runtimeConfig._shopify = config
 
     const requestContext = await getShopifyRequestContext(createTestEvent({ path: '/api/cart', headers: { host: 'shop.test' }, remoteAddress: '203.0.113.7' }))
-    const storefrontClient = createShopifyStorefrontClient(requestContext, config as never)
+    const storefrontClient = createHydrogenStorefrontClient(requestContext, config as never)
 
     expect(requestContext.buyerIp).toBe('203.0.113.7')
     expect(storefrontClient.type).toBe('private')
@@ -411,7 +412,7 @@ describe('getShopifyRequestContext', () => {
     const requestContext = await getShopifyRequestContext(createTestEvent({ path: '/api/cart', headers: { host: 'shop.test' } }))
 
     expect(requestContext.buyerIp).toBeUndefined()
-    expect(createShopifyStorefrontClient(requestContext, config as never).type).toBe('private_no_buyer_context')
+    expect(createHydrogenStorefrontClient(requestContext, config as never).type).toBe('private_no_buyer_context')
   })
 
   it.each([
@@ -424,7 +425,7 @@ describe('getShopifyRequestContext', () => {
 
     const requestContext = await getShopifyRequestContext(createTestEvent({ path: '/api/cart', headers: { host: 'shop.test' }, remoteAddress: '203.0.113.7' }))
 
-    expect(createShopifyStorefrontClient(requestContext, config as never).type).toBe('public')
+    expect(createHydrogenStorefrontClient(requestContext, config as never).type).toBe('public')
   })
 
   it('leaves the buyer\'s IP out of the request context of the mock shop, which never gets the private token', async () => {
@@ -484,7 +485,7 @@ describe('Shopify\'s cookies from Hydrogen\'s storefront client', () => {
     const response = await handleShopifyRoutes({
       request: toShopifyRequest(event),
       requestContext,
-      storefrontClient: createShopifyStorefrontClient(requestContext, config as never),
+      storefrontClient: createHydrogenStorefrontClient(requestContext, config as never),
       routeTemplates: {},
       handlers: [createPredictiveSearchServerHandlers()],
     })
@@ -501,7 +502,7 @@ describe('Shopify\'s cookies from Hydrogen\'s storefront client', () => {
     const event = createTestEvent({ method: 'POST', path: '/api/cart', headers: { host: 'shop.test', cookie: '_shopify_essential=e' } })
     const requestContext = await getShopifyRequestContext(event)
 
-    const result = await createShopifyStorefrontClient(requestContext, config as never).graphql('query { shop { id } }')
+    const result = await createHydrogenStorefrontClient(requestContext, config as never).graphql('query { shop { id } }')
 
     expect(result.headers.getSetCookie()).toEqual([])
 

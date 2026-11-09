@@ -5,21 +5,18 @@ import type { ViteDevServer } from 'vite'
 import type { FragmentRegistry } from '../utils/graphql/registry'
 import type { ShopifyConfig } from '../types'
 
-import { join, relative, resolve, sep } from 'node:path'
+import { join } from 'node:path'
 
 import { addVitePlugin } from '@nuxt/kit'
 import { minimatch } from 'minimatch'
+import { relative } from 'pathe'
 
 import { createGraphqlTransformPlugin } from '../utils/graphql/transform'
 import { DOCUMENT_ROUTING_ORDER, getConfiguredClients } from '../utils/clients'
-import { scanFragments } from '../utils/graphql/registry'
+import { scanFragments, touchesFragments, within } from '../utils/graphql/registry'
 import { useLogger } from '../utils/log'
-import { toPosix } from '../utils/codegen'
 
 const AUTO_IMPORT_CHANGING_EVENTS = ['add', 'unlink'] as const
-
-const within = (dirs: string[], path: string) =>
-  dirs.some(dir => path === dir || path.startsWith(dir + sep))
 
 function createClientRouter(nuxt: Nuxt, config: ShopifyConfig) {
   const configured = getConfiguredClients(config)
@@ -33,7 +30,7 @@ function createClientRouter(nuxt: Nuxt, config: ShopifyConfig) {
     }))
 
   return (file: string) => {
-    const path = toPosix(relative(nuxt.options.rootDir, file))
+    const path = relative(nuxt.options.rootDir, file)
 
     if (!path || path.startsWith('..')) return undefined
 
@@ -46,12 +43,6 @@ function createClientRouter(nuxt: Nuxt, config: ShopifyConfig) {
       return clientType
     }
   }
-}
-
-export function touchesFragments(dirs: string[], file: string, srcDir: string, rootDir: string) {
-  const resolvedAgainstEachBase = [resolve(srcDir, file), resolve(rootDir, file)]
-
-  return resolvedAgainstEachBase.some(path => within(dirs, path))
 }
 
 export default async function setupGraphqlTransform(nuxt: Nuxt, config: ShopifyConfig) {

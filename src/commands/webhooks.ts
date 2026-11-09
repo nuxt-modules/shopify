@@ -3,8 +3,8 @@ import type { WebhookSubscription } from '../utils/webhooks'
 import { defineCommand } from 'citty'
 import log from 'consola'
 
+import { parseGid } from '../runtime/utils/functions'
 import {
-  WEBHOOK_GID_PREFIX,
   getShopifyConfig,
   getSubscribedWebhooks,
   subscribeWebhooks,
@@ -14,7 +14,7 @@ import {
 const ACTIONS = ['list', 'subscribe', 'unsubscribe']
 
 const toRow = (subscription: WebhookSubscription) => ({
-  id: subscription.id.replace(WEBHOOK_GID_PREFIX, ''),
+  id: parseGid(subscription.id),
   topic: subscription.topic,
   uri: subscription.uri,
 })

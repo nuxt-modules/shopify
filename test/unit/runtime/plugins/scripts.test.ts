@@ -35,7 +35,7 @@ vi.mock('#imports', () => ({
 
 vi.mock('#src/runtime/composables/storefront/client', () => ({ useStorefront: () => ({ request }) }))
 
-const { createShopResolver } = await import('#src/runtime/utils/analytics/shop')
+const { createShopResolver } = await import('#src/runtime/utils/shop')
 
 function serverRequest(context: Record<string, unknown> = {}) {
   const resolve = createShopResolver({ name: 'my-shop', analytics } as never, () => ({ request }) as never)
