@@ -38,7 +38,7 @@ vi.mock('nitropack/runtime', () => ({
 
 const handler = (await import('#src/runtime/server/middleware/routes')).default
 const sessionRoute = (await import('#src/runtime/server/api/customer-account/session')).default
-const { applyShopifyResponseHeaders } = await import('#src/runtime/server/utils/routes')
+const { applyShopifyResponseHeaders } = await import('#src/runtime/server/utils/request-context')
 
 const TOKEN_URL = `https://shopify.com/authentication/${SHOP_ID}/oauth/token`
 const STOREFRONT_API_URL = `https://test-shop.myshopify.com/api/${API_VERSION}/graphql.json`

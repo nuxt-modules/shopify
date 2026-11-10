@@ -6,7 +6,7 @@ import { createError } from 'h3'
 import { useNitroApp } from 'nitropack/runtime'
 import { useRuntimeConfig } from '#imports'
 
-import { getShopifyRequestContext } from '../routes'
+import { getShopifyRequestContext } from '../request-context'
 import { createCustomerSessionManager, getCustomerAccountSession, getHydrogenCustomerSession } from './session'
 
 export async function getValidCustomerAccessToken(event?: H3Event): Promise<string> {

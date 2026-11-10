@@ -12,7 +12,8 @@ import { useRuntimeConfig } from '#imports'
 
 import { DEFAULT_SESSION_NAME, SESSION_PASSWORD_ENV, SESSION_PASSWORD_MIN_LENGTH, isUsableSessionPassword } from '../../../utils/session'
 import { warnUnmountedStorage } from '../../../utils/storage'
-import { getPublicRequestURL, getShopifyRequestContext } from '../routes'
+import { getShopifyRequestContext } from '../request-context'
+import { getPublicRequestURL } from '../routes'
 
 const HYDROGEN_SESSION_KEY = 'customerAccount'
 

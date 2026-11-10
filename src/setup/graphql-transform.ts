@@ -8,30 +8,13 @@ import type { ShopifyConfig } from '../types'
 import { join } from 'node:path'
 
 import { addVitePlugin } from '@nuxt/kit'
-import { relative } from 'pathe'
 
 import { createGraphqlTransformPlugin } from '../utils/graphql/transform'
-import { DOCUMENT_ROUTING_ORDER, createDocumentMatcher, getConfiguredClients } from '../utils/clients'
+import { createClientRouter } from '../utils/clients'
 import { scanFragments, within } from '../utils/graphql/registry'
 import { useLogger } from '../utils/log'
 
 const AUTO_IMPORT_CHANGING_EVENTS = ['add', 'unlink'] as const
-
-function createClientRouter(nuxt: Nuxt, config: ShopifyConfig) {
-  const configured = getConfiguredClients(config)
-
-  const order = DOCUMENT_ROUTING_ORDER
-    .filter(clientType => configured.includes(clientType))
-    .map(clientType => ({ clientType, matches: createDocumentMatcher(config.clients[clientType]?.documents ?? []) }))
-
-  return (file: string) => {
-    const path = relative(nuxt.options.rootDir, file)
-
-    if (!path || path.startsWith('..')) return undefined
-
-    return order.find(({ matches }) => matches(path))?.clientType
-  }
-}
 
 export default async function setupGraphqlTransform(nuxt: Nuxt, config: ShopifyConfig) {
   const logger = useLogger()

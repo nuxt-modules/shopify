@@ -34,14 +34,10 @@ const { ShopifyClientType, configObjectSchema } = await import('#src/schemas')
 const {
   createDocumentMatcher,
   getConfiguredClients,
-  getPresetBuyerIpHeader,
   hasPublicClient,
   isPublicClient,
-  registerCustomerAccountRoutes,
-  registerCustomerAccountSession,
   registerShopifyRoutes,
   splitDocuments,
-  warnInsecureCustomerAccountDevServer,
 } = await import('#src/utils/clients')
 const { CUSTOMER_ACCOUNT_ROUTES, STOREFRONT_ROUTES } = await import('#src/utils/routes')
 
@@ -99,27 +95,6 @@ describe('getConfiguredClients', () => {
   })
 })
 
-describe('getPresetBuyerIpHeader', () => {
-  it.each([
-    ['vercel', 'x-real-ip'],
-    ['vercel-edge', 'x-real-ip'],
-    ['netlify', 'x-nf-client-connection-ip'],
-    ['netlify-edge', 'x-nf-client-connection-ip'],
-    ['cloudflare-pages', 'cf-connecting-ip'],
-    ['cloudflare-module', 'cf-connecting-ip'],
-  ])('reads the buyer ip from the header %s sets itself', (preset, header) => {
-    expect(getPresetBuyerIpHeader(preset)).toBe(header)
-  })
-
-  it.each([
-    ['node-server'],
-    ['nitro-dev'],
-    [undefined],
-  ])('falls back to the socket address on %s', (preset) => {
-    expect(getPresetBuyerIpHeader(preset)).toBeUndefined()
-  })
-})
-
 describe('registerShopifyRoutes', () => {
   const UNCACHED = [{ cache: false, swr: false, isr: false }, { override: true }]
 
@@ -173,34 +148,6 @@ describe('registerShopifyRoutes', () => {
     expect(addServerHandler).toHaveBeenCalledExactlyOnceWith({ middleware: true, handler: './runtime/server/middleware/routes' })
     expect(addServerPlugin).toHaveBeenCalledExactlyOnceWith('./runtime/server/plugins/response-headers')
     expect(addPlugin).not.toHaveBeenCalled()
-  })
-})
-
-describe('registerCustomerAccountRoutes', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-  })
-
-  it('serves the session and the customer account proxy next to Hydrogen\'s account routes', () => {
-    registerCustomerAccountRoutes({ clientId: 'client', proxy: true } as never, resolver as never)
-
-    expect(addServerHandler).toHaveBeenCalledTimes(2)
-    expect(addServerHandler).toHaveBeenCalledWith({
-      method: 'get',
-      route: '/account/session',
-      handler: './runtime/server/api/customer-account/session',
-    })
-    expect(addServerHandler).toHaveBeenCalledWith({
-      method: 'post',
-      route: '/account/customer/api/:version/graphql',
-      handler: './runtime/server/api/customer-account/proxy',
-    })
-  })
-
-  it('serves no proxy when it is turned off', () => {
-    registerCustomerAccountRoutes({ clientId: 'client', proxy: false } as never, resolver as never)
-
-    expect(addServerHandler).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ route: '/account/session' }))
   })
 })
 
@@ -306,111 +253,5 @@ describe('createDocumentMatcher', () => {
 
     expect(kept).not.toStrictEqual([])
     expect(PROJECT.filter(createDocumentMatcher(documents)).sort()).toStrictEqual(kept)
-  })
-})
-
-describe('registerCustomerAccountSession', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-  })
-
-  it('registers the route middleware under the name pages put in definePageMeta', () => {
-    registerCustomerAccountSession(resolver as never)
-
-    expect(addRouteMiddleware).toHaveBeenCalledExactlyOnceWith({
-      name: 'shopify:customer-account',
-      path: './runtime/middleware/customer-account',
-      global: false,
-    })
-  })
-})
-
-describe('warnInsecureCustomerAccountDevServer', () => {
-  type Listener = { url?: string }
-
-  function createNuxt({ dev = true, url = 'http://localhost:4123' } = {}) {
-    const hooks: Record<string, Array<(...args: never[]) => unknown>> = {}
-
-    return {
-      options: { dev, devServer: { url } },
-
-      hook(name: string, handler: (...args: never[]) => unknown) {
-        (hooks[name] ??= []).push(handler)
-      },
-
-      async callHook(name: string, ...args: unknown[]) {
-        for (const handler of hooks[name] ?? []) await handler(...args as never[])
-      },
-    }
-  }
-
-  async function listen(nuxt: ReturnType<typeof createNuxt>, listener: Listener) {
-    await nuxt.callHook('listen', undefined, listener)
-  }
-
-  beforeEach(() => {
-    warn.mockClear()
-  })
-
-  it('warns once the dev server listens on plain http', async () => {
-    const nuxt = createNuxt()
-
-    warnInsecureCustomerAccountDevServer(nuxt as never)
-
-    await listen(nuxt, { url: 'http://localhost:3311/' })
-
-    expect(warn).toHaveBeenCalledOnce()
-    expect(warn).toHaveBeenCalledWith(expect.stringContaining('http://localhost:3311/'))
-    expect(warn).toHaveBeenCalledWith(expect.stringContaining('localHttps'))
-  })
-
-  it('warns for a dev server on https that runs on localhost, which Shopify doesn\'t accept either', async () => {
-    for (const url of ['https://localhost:3311/', 'https://127.0.0.1:3311/', 'https://[::1]:3311/']) {
-      const nuxt = createNuxt()
-
-      warnInsecureCustomerAccountDevServer(nuxt as never)
-
-      await listen(nuxt, { url })
-
-      expect(warn).toHaveBeenLastCalledWith(expect.stringContaining(url))
-    }
-
-    expect(warn).toHaveBeenCalledTimes(3)
-  })
-
-  it('stays quiet for a dev server on an https host other than localhost', async () => {
-    const nuxt = createNuxt()
-
-    warnInsecureCustomerAccountDevServer(nuxt as never)
-
-    await listen(nuxt, { url: 'https://local.tryhydrogen.dev:5173/' })
-
-    expect(warn).not.toHaveBeenCalled()
-  })
-
-  it('checks the configured dev server url when the listener reports none', async () => {
-    const nuxt = createNuxt({ url: 'http://localhost:4123' })
-
-    warnInsecureCustomerAccountDevServer(nuxt as never)
-
-    await listen(nuxt, {})
-
-    expect(warn).toHaveBeenCalledExactlyOnceWith(expect.stringContaining('http://localhost:4123'))
-  })
-
-  it('stays quiet before the dev server is listening', () => {
-    warnInsecureCustomerAccountDevServer(createNuxt() as never)
-
-    expect(warn).not.toHaveBeenCalled()
-  })
-
-  it('does nothing outside dev', async () => {
-    const nuxt = createNuxt({ dev: false })
-
-    warnInsecureCustomerAccountDevServer(nuxt as never)
-
-    await listen(nuxt, { url: 'http://localhost:3311/' })
-
-    expect(warn).not.toHaveBeenCalled()
   })
 })
