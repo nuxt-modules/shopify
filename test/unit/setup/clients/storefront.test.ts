@@ -15,7 +15,7 @@ vi.mock('@nuxt/kit', async importOriginal => ({
   extendRouteRules: vi.fn(),
 }))
 
-const { default: setupStorefrontClient } = await import('#src/setup/clients/storefront')
+const { default: setupStorefrontClient, getPresetBuyerIpHeader } = await import('#src/setup/clients/storefront')
 
 function setup(storefront: Record<string, unknown>) {
   const hooks = new Map<string, (...args: never[]) => unknown>()
@@ -115,5 +115,26 @@ describe('storefront cache', () => {
 
     expect(addServerHandler).toHaveBeenCalledOnce()
     expect(addServerHandler).toHaveBeenCalledWith({ middleware: true, handler: './runtime/server/middleware/routes' })
+  })
+})
+
+describe('getPresetBuyerIpHeader', () => {
+  it.each([
+    ['vercel', 'x-real-ip'],
+    ['vercel-edge', 'x-real-ip'],
+    ['netlify', 'x-nf-client-connection-ip'],
+    ['netlify-edge', 'x-nf-client-connection-ip'],
+    ['cloudflare-pages', 'cf-connecting-ip'],
+    ['cloudflare-module', 'cf-connecting-ip'],
+  ])('reads the buyer ip from the header %s sets itself', (preset, header) => {
+    expect(getPresetBuyerIpHeader(preset)).toBe(header)
+  })
+
+  it.each([
+    ['node-server'],
+    ['nitro-dev'],
+    [undefined],
+  ])('falls back to the socket address on %s', (preset) => {
+    expect(getPresetBuyerIpHeader(preset)).toBeUndefined()
   })
 })

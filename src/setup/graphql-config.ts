@@ -7,7 +7,7 @@ import { relative } from 'pathe'
 
 import { ShopifyClientType } from '../schemas'
 import { DOCUMENT_ROUTING_ORDER, getConfiguredClients, splitDocuments } from '../utils/clients'
-import { getIntrospectionFilename } from '../utils/templates'
+import { getIntrospectionFilename } from '../utils/codegen'
 import { useLogger } from '../utils/log'
 
 type GraphqlProject = {

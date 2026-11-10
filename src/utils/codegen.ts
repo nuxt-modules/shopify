@@ -36,8 +36,6 @@ const INTROSPECTION_RETRY_DELAY = 5000
 
 const TRANSPORT_ERROR_PATTERN = /\b(?:ETIMEDOUT|ECONNREFUSED|ECONNRESET|ENOTFOUND|EAI_AGAIN|ENETUNREACH|EHOSTUNREACH)\b|socket hang up|other side closed|fetch failed|Timeout Error|aborted due to timeout/
 
-const loadPlugin = (rootDir: string) => (name: string) => import(resolveModuleURL(name, { from: [import.meta.url, rootDir], cache: false }))
-
 const EXACT_UTILITY_TYPE = 'export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };'
 
 const generateFailures = new Set<string>()
@@ -64,6 +62,12 @@ type IntrospectionGenerator = {
 type InterfaceExtensionsParams = {
   queryType: string
   mutationType: string
+}
+
+export const OUTPUT_DIR = 'shopify'
+
+export function getIntrospectionFilename(clientType: ShopifyClientType, apiVersion: string) {
+  return `${OUTPUT_DIR}/schema/${kebabCase(clientType)}.${apiVersion}.schema.json`
 }
 
 function getHydrogenSchema(clientType: ShopifyClientType) {
@@ -196,6 +200,19 @@ function reportGenerateFailure(nuxt: Nuxt, filename: string, error: unknown): ''
   }
 
   return ''
+}
+
+function createGenerateInput(rootDir: string, filename: string, extra: Partial<GenerateInput> = {}) {
+  return (config: Types.ConfiguredOutput): GenerateInput => ({
+    overwrite: true,
+    pluginLoader: (name: string) => import(resolveModuleURL(name, { from: [import.meta.url, rootDir], cache: false })),
+    ignoreNoDocuments: true,
+    silent: useLogger().level < LogLevels.verbose,
+    generates: {
+      [filename]: config,
+    },
+    ...extra,
+  })
 }
 
 async function runGenerate<T extends Types.ConfiguredOutput>(
@@ -342,15 +359,7 @@ async function generateIntrospection(nuxt: Nuxt, options: ShopifyTemplateOptions
     warnOnHydrogenSchemaMismatch(options)
   }
 
-  const { contents, fallback } = await runIntrospection(nuxt, options, generatorConfig, config => ({
-    overwrite: true,
-    pluginLoader: loadPlugin(nuxt.options.rootDir),
-    ignoreNoDocuments: true,
-    silent: useLogger().level < LogLevels.verbose,
-    generates: {
-      [options.filename]: config,
-    },
-  }))
+  const { contents, fallback } = await runIntrospection(nuxt, options, generatorConfig, createGenerateInput(nuxt.options.rootDir, options.filename))
 
   if (contents) {
     await mkdir(dirname(path), { recursive: true })
@@ -411,15 +420,7 @@ export function createTypesGenerator(introspection: Pick<IntrospectionGenerator,
       config: generatorConfig,
     })
 
-    const generated = await runGenerate(data.nuxt, data.options, generatorConfig, config => ({
-      overwrite: true,
-      pluginLoader: loadPlugin(data.nuxt.options.rootDir),
-      ignoreNoDocuments: true,
-      silent: useLogger().level < LogLevels.verbose,
-      generates: {
-        [data.options.filename]: config,
-      },
-    }))
+    const generated = await runGenerate(data.nuxt, data.options, generatorConfig, createGenerateInput(data.nuxt.options.rootDir, data.options.filename))
 
     const contents = generated && `${generated}\n${EXACT_UTILITY_TYPE}\n`
 
@@ -481,15 +482,8 @@ export function createOperationsGenerator(
 
     const generated = failure
       ? reportGenerateFailure(data.nuxt, data.options.filename, failure)
-      : await runGenerate(data.nuxt, data.options, generatorConfig, config => ({
+      : await runGenerate(data.nuxt, data.options, generatorConfig, createGenerateInput(data.nuxt.options.rootDir, data.options.filename, {
           cwd: data.nuxt.options.rootDir,
-          overwrite: true,
-          pluginLoader: loadPlugin(data.nuxt.options.rootDir),
-          ignoreNoDocuments: true,
-          silent: useLogger().level < LogLevels.verbose,
-          generates: {
-            [data.options.filename]: config,
-          },
           pluckConfig: pluckConfig as GenerateInput['pluckConfig'],
         }))
 

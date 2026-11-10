@@ -3,13 +3,27 @@ import type { Nuxt } from '@nuxt/schema'
 
 import type { ShopifyConfig } from '../types'
 
+import { existsSync } from 'node:fs'
 import { join } from 'node:path'
-
-import { useLogger } from '../utils/log'
 import {
-  registerFragmentImports,
-  registerFunctionImports,
-} from '../utils/imports'
+  addImports,
+  addImportsDir,
+  addServerImports,
+  addServerImportsDir,
+} from '@nuxt/kit'
+
+import { hasPublicClient } from '../utils/clients'
+import { useLogger } from '../utils/log'
+
+function registerFragmentImports(fragmentsPath: string, includeClient: boolean) {
+  if (!existsSync(fragmentsPath)) return
+
+  addServerImportsDir(join(fragmentsPath, '**'))
+
+  if (includeClient) {
+    addImportsDir(join(fragmentsPath, '**'))
+  }
+}
 
 export default function setupImports(nuxt: Nuxt, config: ShopifyConfig, resolver: Resolver) {
   const logger = useLogger()
@@ -21,8 +35,17 @@ export default function setupImports(nuxt: Nuxt, config: ShopifyConfig, resolver
   if (config.fragments?.autoImport) {
     logger.debug(`Auto-importing fragments from \`${config.fragments.dirs.join('`, `')}\``)
 
-    registerFragmentImports(nuxt, config)
+    const includeClient = hasPublicClient(config)
+
+    for (const dir of config.fragments.dirs) registerFragmentImports(join(nuxt.options.rootDir, dir), includeClient)
   }
 
-  registerFunctionImports(resolver)
+  const from = resolver.resolve('./runtime/utils/functions')
+  const imports = [
+    { from, name: 'flattenConnection' },
+    { from, name: 'parseGid' },
+  ]
+
+  addServerImports(imports)
+  addImports(imports)
 }

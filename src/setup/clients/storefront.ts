@@ -7,7 +7,6 @@ import { addPlugin } from '@nuxt/kit'
 
 import { ShopifyClientType } from '../../schemas'
 import {
-  getPresetBuyerIpHeader,
   isPublicClient,
   registerClientAsyncImports,
   registerClientImports,
@@ -16,6 +15,16 @@ import {
 } from '../../utils/clients'
 import { useLogger } from '../../utils/log'
 import { registerStorageMount } from '../../utils/storage'
+
+const PRESET_BUYER_IP_HEADERS: Array<[RegExp, string]> = [
+  [/^vercel/, 'x-real-ip'],
+  [/^netlify/, 'x-nf-client-connection-ip'],
+  [/^cloudflare/, 'cf-connecting-ip'],
+]
+
+export function getPresetBuyerIpHeader(preset: string | undefined): string | undefined {
+  return preset ? PRESET_BUYER_IP_HEADERS.find(([pattern]) => pattern.test(preset))?.[1] : undefined
+}
 
 export default function setupStorefrontClient(nuxt: Nuxt, config: ShopifyConfig, resolver: Resolver) {
   const storefront = config.clients[ShopifyClientType.Storefront]

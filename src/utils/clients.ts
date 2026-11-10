@@ -7,22 +7,16 @@ import type { ShopifyConfig } from '../types'
 import {
   addImports,
   addPlugin,
-  addRouteMiddleware,
   addServerHandler,
   addServerImports,
   addServerPlugin,
 } from '@nuxt/kit'
 import { Minimatch, braceExpand } from 'minimatch'
+import { relative } from 'pathe'
 import { kebabCase, pascalCase } from 'scule'
 
-import { CUSTOMER_ACCOUNT_PROXY_ROUTE } from '../runtime/utils/clients/transport'
-import { CUSTOMER_ACCOUNT_SESSION_ROUTE } from '../runtime/utils/session'
 import { ShopifyClientType } from '../schemas'
-import { onDevServerURL } from './dev'
-import { useLogger } from './log'
-import { CUSTOMER_ACCOUNT_ROUTES, STOREFRONT_ROUTES, addUncachedServerHandler, keepUncached } from './routes'
-
-type CustomerAccountConfig = NonNullable<ShopifyConfig['clients']['customerAccount']>
+import { CUSTOMER_ACCOUNT_ROUTES, STOREFRONT_ROUTES, keepUncached } from './routes'
 
 export const DOCUMENT_ROUTING_ORDER = [
   ShopifyClientType.Admin,
@@ -58,6 +52,22 @@ export function createDocumentMatcher(documents: string[]) {
   const excluded = compileDocuments(exclude, { dot: true })
 
   return (path: string) => matchesAny(included, path) && !matchesAny(excluded, path)
+}
+
+export function createClientRouter(nuxt: Nuxt, config: ShopifyConfig) {
+  const configured = getConfiguredClients(config)
+
+  const order = DOCUMENT_ROUTING_ORDER
+    .filter(clientType => configured.includes(clientType))
+    .map(clientType => ({ clientType, matches: createDocumentMatcher(config.clients[clientType]?.documents ?? []) }))
+
+  return (file: string) => {
+    const path = relative(nuxt.options.rootDir, file)
+
+    if (!path || path.startsWith('..')) return undefined
+
+    return order.find(({ matches }) => matches(path))?.clientType
+  }
 }
 
 export function registerClientServerImports(clientType: ShopifyClientType, resolver: Resolver) {
@@ -103,77 +113,12 @@ export function registerShopifyRoutes(nuxt: Nuxt, config: ShopifyConfig, resolve
   addPlugin(resolver.resolve('./runtime/plugins/scripts'))
 }
 
-export function registerCustomerAccountRoutes(customerAccount: CustomerAccountConfig, resolver: Resolver) {
-  addUncachedServerHandler({
-    method: 'get',
-    route: CUSTOMER_ACCOUNT_SESSION_ROUTE,
-    handler: resolver.resolve('./runtime/server/api/customer-account/session'),
-  })
-
-  if (!customerAccount.proxy) return
-
-  addUncachedServerHandler({
-    method: 'post',
-    route: CUSTOMER_ACCOUNT_PROXY_ROUTE,
-    handler: resolver.resolve('./runtime/server/api/customer-account/proxy'),
-  })
-}
-
-export function warnInsecureCustomerAccountDevServer(nuxt: Nuxt) {
-  onDevServerURL(nuxt, (origin) => {
-    const { protocol, hostname } = new URL(origin)
-
-    if (protocol === 'https:' && !['localhost', '127.0.0.1', '[::1]'].includes(hostname)) return
-
-    useLogger().warn(
-      `The dev server runs on ${origin}, but Shopify only signs customers in on HTTPS origins other than localhost, so customer account login will fail. `
-      + 'Run the dev server with `localHttps` from `@shopify/hydrogen/vite`, which serves it on `https://local.tryhydrogen.dev:5173`',
-    )
-  })
-}
-
-export function registerCustomerAccountSession(resolver: Resolver) {
-  addImports([{
-    from: resolver.resolve('./runtime/composables/customer-account/session'),
-    name: 'useCustomerAccountSession',
-  }])
-
-  addServerImports([
-    'getCustomerAccountSession',
-    'requireCustomerAccountSession',
-    'clearCustomerAccountSession',
-  ].map(name => ({
-    from: resolver.resolve('./runtime/server/utils/customer-account/session'),
-    name,
-  })))
-
-  addRouteMiddleware({
-    name: 'shopify:customer-account',
-    path: resolver.resolve('./runtime/middleware/customer-account'),
-    global: false,
-  })
-
-  addPlugin(resolver.resolve('./runtime/plugins/customer-account/session'))
-
-  useLogger().debug('Registered customer account route middleware `shopify:customer-account`')
-}
-
 export function isPublicClient(storefront: ShopifyConfig['clients']['storefront']): boolean {
   return !!(storefront?.publicAccessToken || storefront?.mock)
 }
 
 export function hasPublicClient(config: ShopifyConfig): boolean {
   return isPublicClient(config.clients.storefront) || !!config.clients.customerAccount?.clientId
-}
-
-const PRESET_BUYER_IP_HEADERS: Array<[RegExp, string]> = [
-  [/^vercel/, 'x-real-ip'],
-  [/^netlify/, 'x-nf-client-connection-ip'],
-  [/^cloudflare/, 'cf-connecting-ip'],
-]
-
-export function getPresetBuyerIpHeader(preset: string | undefined): string | undefined {
-  return preset ? PRESET_BUYER_IP_HEADERS.find(([pattern]) => pattern.test(preset))?.[1] : undefined
 }
 
 export function getConfiguredClients(config: ShopifyConfig): ShopifyClientType[] {
