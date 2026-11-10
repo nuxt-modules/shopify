@@ -14,5 +14,9 @@ export const VARIANT_FRAGMENT = `#graphql
       name
       value
     }
+    product {
+      handle
+      title
+    }
   }
 `

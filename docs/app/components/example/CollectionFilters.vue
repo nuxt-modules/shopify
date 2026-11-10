@@ -1,95 +1,102 @@
 <script setup lang="ts">
 import type { ProductFilter } from '#shopify/storefront'
 
+import { parseCollectionParams } from '@shopify/hydrogen'
+import { CollectionProvider } from '@shopify/hydrogen/vue'
+
+import CollectionFilters from '~/components/collection/Filters.vue'
+
 const props = defineProps<{
   handle: string
 }>()
 
 const route = useRoute()
-const router = useRouter()
+const storefront = useStorefront()
 
-const applied = computed<ProductFilter[]>({
-  get: () => route.query.filters ? JSON.parse(route.query.filters as string) : [],
-  set: filters => router.push({ query: filters.length ? { filters: JSON.stringify(filters) } : {} }),
-})
+const search = computed(() => toSearchParams(route.query).toString())
 
-const { data: collection, refresh } = await useStorefrontData(`filters-${props.handle}`, `#graphql
-  query GetCollectionFilters($handle: String!, $first: Int, $filters: [ProductFilter!]) {
-    collection(handle: $handle) {
-      title
+const { data, status, refresh } = await useAsyncData(`filters-${props.handle}`, async () => {
+  const dataSearch = search.value
+  const { filters, sortKey, reverse } = parseCollectionParams(new URLSearchParams(dataSearch))
 
-      products(first: $first, filters: $filters) {
-        filters {
-          ...FilterFields
+  const { data } = await storefront.request(`#graphql
+    query GetCollectionFilters(
+      $handle: String!,
+      $first: Int,
+      $filters: [ProductFilter!],
+      $sortKey: ProductCollectionSortKeys,
+      $reverse: Boolean
+    ) {
+      localization {
+        country {
+          currency {
+            isoCode
+          }
         }
-        nodes {
-          ...ProductFields
+      }
+      collection(handle: $handle) {
+        title
+        products(first: $first, filters: $filters, sortKey: $sortKey, reverse: $reverse) {
+          filters {
+            ...FilterFields
+          }
+          nodes {
+            ...ProductFields
+          }
         }
       }
     }
+  `, {
+    variables: {
+      handle: props.handle,
+      first: 12,
+      filters: filters as ProductFilter[],
+      sortKey,
+      reverse,
+    },
+  })
+
+  return {
+    dataSearch,
+    currencyCode: data?.localization.country.currency.isoCode,
+    collection: data?.collection,
   }
-`, {
-  variables: computed(() => ({
-    handle: props.handle,
-    first: 12,
-    filters: applied.value,
-  })),
-  transform: data => data.collection,
-  watch: [() => route.query.filters],
+}, {
+  watch: [search],
 })
 
-const facets = computed(() => collection.value?.products.filters ?? [])
-const products = computed(() => collection.value?.products.nodes ?? [])
+const navigate = (next: string) => navigateTo(`${route.path}${next}`, { replace: search.value.length > 0 })
 
 onMounted(() => {
-  if (route.query.filters) refresh()
+  if (search.value) refresh()
 })
 </script>
 
 <template>
-  <div class="grid gap-8 md:grid-cols-4">
-    <aside class="space-y-4">
-      <div class="flex items-center justify-between">
-        <p class="font-bold">
-          Filters
-        </p>
+  <div>
+    <CollectionProvider
+      v-if="data?.collection"
+      :data="{ handle, dataSearch: data.dataSearch }"
+      :url-search="search"
+      @change="navigate"
+    >
+      <div class="grid gap-8 md:grid-cols-4">
+        <CollectionFilters
+          :filters="data.collection.products.filters"
+          :currency-code="data.currencyCode"
+        />
 
-        <UButton
-          v-if="applied.length"
-          variant="link"
-          size="xs"
-          @click="applied = []"
+        <div
+          class="grid gap-4 grid-cols-1 sm:grid-cols-2 md:col-span-3 transition-opacity"
+          :class="{ 'opacity-50': status === 'pending' }"
         >
-          Clear
-        </UButton>
+          <ProductCard
+            v-for="product in data.collection.products.nodes"
+            :key="product.id"
+            :product="product"
+          />
+        </div>
       </div>
-
-      <template
-        v-for="facet in facets"
-        :key="facet.id"
-      >
-        <FilterPrice
-          v-if="facet.type === 'PRICE_RANGE'"
-          v-model="applied"
-          :facet="facet"
-        />
-
-        <FilterList
-          v-else
-          v-model="applied"
-          :facet="facet"
-        />
-      </template>
-    </aside>
-
-    <div class="md:col-span-3">
-      <div class="grid gap-4 grid-cols-1 sm:grid-cols-2">
-        <ProductCard
-          v-for="product in products"
-          :key="product.id"
-          :product="product"
-        />
-      </div>
-    </div>
+    </CollectionProvider>
   </div>
 </template>

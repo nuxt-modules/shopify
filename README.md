@@ -15,6 +15,7 @@ Fully configurable, works out of the box with [mock.shop](https://mock.shop) for
 - 📚 [Documentation](https://shopify.nuxtjs.org)
 - 🛍️ [Store Template](https://github.com/nuxt-modules/shopify/tree/main/template)
 - ✨ [Release Notes](https://github.com/nuxt-modules/shopify/releases)
+- ⬆️ [Migrating to 2.0](https://shopify.nuxtjs.org/getting-started/migration)
 
 ## Features
 
@@ -24,7 +25,7 @@ Fully configurable, works out of the box with [mock.shop](https://mock.shop) for
 - 🛒 Storefront, Customer Account and Admin API support
 - 🌐 Server & client side support
 - 🚩 Error handling optimized for Nuxt
-- 📡 Server-side proxy for API requests
+- 📡 Storefront API proxy, cart, checkout, predictive search and customer account routes from `@shopify/hydrogen`
 - 🧩 GraphQL fragment injection and deduplication
 - 🏎️ Caching for client and server-side requests
 - 🔍 Analytics and Customer Privacy API support
@@ -49,7 +50,7 @@ npx nuxi@latest module add shopify
 Or scaffold a complete storefront from the [store template](https://github.com/nuxt-modules/shopify/tree/main/template):
 
 ```bash
-npx @nuxtjs/shopify@latest init ./my-shop
+npx nuxi@latest init -t gh:nuxt-modules/shopify/template ./my-shop
 ```
 
 <details>
@@ -58,7 +59,7 @@ npx @nuxtjs/shopify@latest init ./my-shop
 1. Install the module via npm:
 
    ```bash
-   npm install @nuxtjs/shopify
+   npm install @nuxtjs/shopify @shopify/hydrogen
    ```
 
 2. Add the module to your `nuxt.config.ts`:
@@ -81,18 +82,18 @@ export default defineNuxtConfig({
 
     clients: {
       storefront: {
-        apiVersion: "2026-04",
+        apiVersion: "2026-10",
         publicAccessToken: "...",
       },
 
       admin: {
-        apiVersion: "2026-04",
+        apiVersion: "2026-10",
         clientId: "...",
         clientSecret: "...",
       },
 
       customerAccount: {
-        apiVersion: "2026-04",
+        apiVersion: "2026-10",
         clientId: "...",
       },
     },
@@ -112,7 +113,7 @@ The easiest way is with the `useStorefront` composable, directly inside of your 
 > To access the `useStorefront` composable on the client side, make sure you have added a public access token. You can add it in the module config: `clients > storefront > publicAccessToken`
 
 ```html
-<!-- ~/pages/your-page.vue -->
+<!-- app/pages/your-page.vue -->
 
 <script setup lang="ts">
 const storefront = useStorefront()
@@ -150,7 +151,7 @@ You can use this generated `FetchProductsQuery` type anywhere in your code to en
 You can also use the `useStorefrontData` composable to fetch data from the Storefront API while leveraging Nuxt's built-in async data fetching under the hood.
 
 ```html
-<!-- ~/pages/your-page.vue -->
+<!-- app/pages/your-page.vue -->
 
 <script setup lang="ts">
 const { data: products, error } = await useStorefrontData("products", `#graphql
@@ -180,18 +181,26 @@ const { data: products, error } = await useStorefrontData("products", `#graphql
 
 Note that `useStorefrontData` automatically extracts the `data` property from the response in order to be able to reliably
 stringify.
-Because only `data` is kept, GraphQL errors are surfaced through the `error` ref returned by `useStorefrontData`, not inside the response. Use the `storefront:client:errors` hook if you need the raw error array.
+Because only `data` is kept, GraphQL errors don't appear in the response.
+With `errors.throw` enabled (the default), they are thrown and available in the `error` ref returned by `useStorefrontData`.
+With `errors.throw: false`, use the `shopify:storefront:client:errors` hook if you need them.
 
 ### Access Customer Account API on the client side
 
 First check out the [Customer Account API documentation](https://shopify.nuxtjs.org/essentials/customer-account) to set up dependencies and add credentials.
 
-Then you can access the Customer Account API on the client side with the `useCustomerAccount` composable:
+Then you can access the Customer Account API on the client side with the `useCustomerAccount` composable.
+Put your Customer Account API operations in an `account`, `customer` or `customer-account` directory, so that they are typed with the Customer Account API schema.
+Add the `shopify:customer-account` middleware to redirect visitors who are not logged in to the login, because their requests fail with a `401` error:
 
 ```html
-<!-- ~/pages/your-page.vue -->
+<!-- app/pages/account/index.vue -->
 
 <script setup lang="ts">
+definePageMeta({
+  middleware: "shopify:customer-account",
+})
+
 const customerAccount = useCustomerAccount()
 
 const { data } = await customerAccount.request(`#graphql
@@ -218,10 +227,10 @@ The module exposes utilities to access each API via Nitro endpoints.
 You can use the `useStorefront` utility to access the storefront API:
 
 ```ts
-// ~/server/api/products.ts
+// server/api/products.ts
 
-export default defineEventHandler(async () => {
-  const storefront = useStorefront()
+export default defineEventHandler(async (event) => {
+  const storefront = useStorefront(event)
 
   return await storefront.request(`#graphql
     query FetchProducts($first: Int) {
@@ -250,7 +259,7 @@ Read more about the [codegen configuration](https://shopify.nuxtjs.org/going-fur
 Now we can call the API at `/api/products` to obtain the first three products:
 
 ```html
-<!-- ~/pages/your-page.vue -->
+<!-- app/pages/your-page.vue -->
 
 <script setup lang="ts">
 const { data } = await useFetch("/api/products")
@@ -269,7 +278,7 @@ type checking.
 You can use the `useCustomerAccount` utility to access the customer account API in a nitro event handler:
 
 ```ts
-// ~/server/api/customer.ts
+// server/api/customer.ts
 
 export default defineEventHandler(async (event) => {
   const customerAccount = useCustomerAccount(event)
@@ -287,14 +296,14 @@ export default defineEventHandler(async (event) => {
 
 #### Admin API example
 
-Files ending with `.admin.ts` or `.admin.gql` will automatically be processed for the admin API.
+Files in an `admin` directory, or ending with `.admin.ts` or `.admin.gql`, will automatically be processed for the admin API.
 We can use the `useAdmin` utility to access the admin API in a nitro event handler:
 
 ```ts
-// ~/server/api/your-admin-api-handler.ts
+// server/api/admin/orders.ts
 
-export default defineEventHandler(async () => {
-  const admin = useAdmin()
+export default defineEventHandler(async (event) => {
+  const admin = useAdmin(event)
 
   return await admin.request(...)
 })
@@ -315,7 +324,7 @@ export default defineNuxtConfig({
       storefront: {
         mock: true,
 
-        apiVersion: "2026-04",
+        apiVersion: "2026-10",
       },
     },
   },
@@ -326,8 +335,8 @@ All requests to the Storefront API will now return data from [mock.shop](https:/
 
 ### Proxying client requests
 
-All requests going out from the client side are proxied through the Nitro server by default.
-To disable proxying, set the `proxy` option to `false` in the module config.
+By default, Storefront API requests from the client side are sent through Hydrogen's Storefront API proxy on your own domain.
+To send them to Shopify directly, set the `proxy` option to `false` in the module config.
 
 ```ts
 export default defineNuxtConfig({
@@ -352,7 +361,7 @@ For IDE support, the module automatically generates a GraphQL config file at `.n
 with a project per configured client. Point your editor's GraphQL plugin at it, or reference it from a root config file:
 
 ```js
-// ~/graphql.config.mjs
+// graphql.config.mjs
 
 export { default } from "./.nuxt/graphql.config.mjs"
 ```
@@ -366,7 +375,7 @@ You can define reusable fragments in your GraphQL queries to avoid duplication a
 Here's an example of how to define and use a fragment:
 
 ```ts
-// ~/graphql/fragments/product.ts
+// graphql/fragments/product.ts
 
 export const productFields = `#graphql
   fragment ProductFields on Product {
@@ -378,7 +387,7 @@ export const productFields = `#graphql
 ```
 
 ```html
-<!-- ~/pages/products.vue -->
+<!-- app/pages/products.vue -->
 
 <script setup lang="ts">
   const storefront = useStorefront()
@@ -401,8 +410,10 @@ export const productFields = `#graphql
 
 The `ProductFields` fragment is automatically injected into the query, so you don't need to import it explicitly in your request.
 
-You can also place the query in a `.gql`, `.ts` or `.vue` file and import it to use in your requests.
+You can also export a query from a `.ts` file and import it where you send the request.
 Files placed in the `graphql` directory in your project root will be automatically imported by the module, it is recommended to organize your fragments there. The path is resolved from the project root, so on Nuxt 4 it is `graphql/`, not `app/graphql/`.
+To scan other directories, set them in the `fragments.dirs` option.
+Fragments outside of these directories are not injected, so define them in the operation itself or add them with string interpolation, such as `${productFields}`.
 
 ### Handling errors
 
@@ -426,10 +437,10 @@ This will prevent the module from throwing an error and instead return the error
 The module also provides hooks to handle errors.
 
 ```ts
-// ~/server/plugins/your-plugin.ts
+// server/plugins/your-plugin.ts
 
 export default defineNitroPlugin((nitroApp) => {
-  nitroApp.hooks.hook("storefront:client:errors", ({ errors }) => {
+  nitroApp.hooks.hook("shopify:storefront:client:errors", ({ errors }) => {
     // Do something with the errors
     console.log("Storefront client errors:", errors)
   })
@@ -440,12 +451,12 @@ Read more about all available hooks in our [hooks documentation](https://shopify
 
 ### Caching API Requests
 
-The module provides caching solutions for both client and server-side requests.
-Client side caching is enabled globally by default and can be configured in the module options.
-For each client side request, caching is opt-in by setting the `cache` option in the request options.
+The module provides caching for both client and server-side Storefront API requests.
+Caching is set up by default and can be configured in the module options.
+For each request, caching is opt-in by setting the `cache` option in the request options.
 
 ```html
-<!-- ~/pages/products.vue -->
+<!-- app/pages/products.vue -->
 
 <script setup lang="ts">
 const storefront = useStorefront()
@@ -463,14 +474,11 @@ const { data } = await storefront.request(`#graphql
     first: 5,
   },
 
-  // Cache settings for this request, client and server side (proxy)
+  // Cache settings for this request, in the browser and during server rendering
   cache: "short",
 
-  // Or set client and server side cache separately
-  cache: {
-    client: "short",
-    proxy: "long",
-  },
+  // Or set the browser and server cache separately:
+  // cache: { browser: "short", server: "long" },
 })
 </script>
 ```
@@ -485,11 +493,11 @@ See the [caching documentation](https://shopify.nuxtjs.org/essentials/caching) f
 ### Using Analytics
 
 The module can send Shopify headless analytics, powering the reports and live view in your admin.
-Install `@shopify/hydrogen-react` and enable the `analytics` option, then report views with the drop-in components
-or publish events manually with the `useShopifyAnalytics` composable:
+Enable the `analytics` option to load Shopify's scripts from `@shopify/hydrogen`, which send the events to Shopify.
+Then report views with the view components, or publish events with the `useShopifyAnalytics` composable:
 
 ```html
-<!-- ~/pages/product.vue -->
+<!-- app/pages/product.vue -->
 
 <template>
   <ShopifyProductView
@@ -498,29 +506,38 @@ or publish events manually with the `useShopifyAnalytics` composable:
         id: product.id,
         title: product.title,
         vendor: product.vendor,
-        price: variant.price.amount,
+        price: variant.price,
         variantId: variant.id,
         variantTitle: variant.title,
+        quantity: 1,
       }],
     }"
   />
 </template>
 ```
 
+To send the events to other tools, add them as destinations of Shopify's analytics bus once Shopify's scripts are running:
+
 ```ts
-const analytics = useShopifyAnalytics()
+// app/plugins/ga.client.ts
 
-// Cart events are derived from cart state
-analytics.setCart(cart)
-
-analytics.subscribe("product_added_to_cart", (payload) => {
-  // e.g. forward to GA4 or Meta
+export default defineNuxtPlugin((nuxtApp) => {
+  nuxtApp.hook("shopify:analytics:ready", () => {
+    useShopifyAnalytics()?.addDestination({
+      name: "ga4",
+      setup: ({ subscribe }) => subscribe("product_added_to_cart", (payload) => {
+        // e.g. forward to GA4 or Meta
+      }),
+    })
+  })
 })
 ```
 
-All events are gated on Shopify's Customer Privacy API, so nothing is sent without the visitor's consent where consent is required.
+For cart events, call `useCartAnalytics()` from `@shopify/hydrogen/vue` inside your `CartProvider`.
 
-See the [analytics documentation](https://shopify.nuxtjs.org/essentials/analytics) for view components, custom events, and consent configuration.
+Events are only sent if Shopify's Customer Privacy API allows it, so no events are sent without consent in regions that require it.
+
+See the [analytics documentation](https://shopify.nuxtjs.org/essentials/analytics) for view components, destinations, and consent configuration.
 
 ### Subscribing / Unsubscribing webhooks
 
@@ -537,10 +554,10 @@ export default defineNuxtConfig({
     webhooks: {
       secret: "my-shopify-app-client-secret",
 
-      hooks: [
+      subscriptions: [
         {
           topic: "ORDERS_CREATE",
-          uri: "https://shopify.nuxtjs.org/api/webhooks/orders-create",
+          uri: "https://your-app.com/api/webhooks/orders-create",
         },
       ],
     },
@@ -551,7 +568,7 @@ export default defineNuxtConfig({
 Then subscribe with the CLI command:
 
 ```sh
-npx @nuxtjs/shopify@latest webhooks subscribe
+npx @nuxtjs/shopify webhooks subscribe
 ```
 
 To receive webhooks with Shopify's HMAC validation the module introduces `defineWebhookEventHandler`, which automatically
