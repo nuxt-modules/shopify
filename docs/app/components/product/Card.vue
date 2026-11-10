@@ -1,17 +1,13 @@
 <script setup lang="ts">
 import type { ProductFieldsFragment } from '#shopify/storefront'
 
+import { formatMoney } from '@shopify/hydrogen'
+
 const props = defineProps<{
   product: ProductFieldsFragment
 }>()
 
-const price = computed(() => {
-  const price = props.product.priceRange.minVariantPrice
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: price.currencyCode,
-  }).format(Number(price.amount))
-})
+const price = computed(() => formatMoney(props.product.priceRange.minVariantPrice, { locale: 'en-US' }).toString())
 
 const image = computed(() => props.product.featuredImage)
 const src = computed(() => image.value?.url ?? '')
@@ -28,7 +24,6 @@ const to = computed(() => `https://demostore.mock.shop/products/${props.product.
     reverse
     :ui="{
       description: 'line-clamp-2',
-      footer: 'w-full',
     }"
   >
     <template #header>
@@ -43,15 +38,9 @@ const to = computed(() => `https://demostore.mock.shop/products/${props.product.
     </template>
 
     <template #footer>
-      <div class="flex justify-between items-center w-full">
-        <div class="font-semibold">
-          from {{ price }}
-        </div>
-
-        <UButton size="sm">
-          Add to Cart
-        </UButton>
-      </div>
+      <p class="font-semibold">
+        from {{ price }}
+      </p>
     </template>
   </UPageCard>
 </template>

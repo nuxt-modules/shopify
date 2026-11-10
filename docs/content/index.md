@@ -76,7 +76,7 @@ ProductImage.vue
   </script>
 
   <template>
-    <NuxtImg :src="data?.product?.featuredImage?.url" provider="shopify" />
+    <img :src="data?.product?.featuredImage?.url" />
   </template>
   ```
 
@@ -90,7 +90,7 @@ ProductImage.vue
       clients: {
         storefront: {
           publicAccessToken: 'public-access-token',
-          apiVersion: '2026-04',
+          apiVersion: '2026-10',
         },
       },
     },
@@ -110,6 +110,7 @@ ProductImage.vue
     },
     "dependencies": {
       "@nuxtjs/shopify": "latest",
+      "@shopify/hydrogen": "^2026.10.2",
       "nuxt": "latest"
     }
   }
@@ -130,8 +131,8 @@ title: Customer Account API without the hassle
 CustomerAccount.vue
 
 #default
-  :::code-tree{default-value="app/components/CustomerAccount.vue"}
-  ```vue [app/components/CustomerAccount.vue]
+  :::code-tree{default-value="app/components/account/CustomerAccount.vue"}
+  ```vue [app/components/account/CustomerAccount.vue]
   <script setup lang="ts">
   const { isLoggedIn, logout } = useCustomerAccountSession()
 
@@ -151,28 +152,20 @@ CustomerAccount.vue
         Welcome, {{ data.customer.firstName }} {{ data.customer.lastName }}!
       </h1>
 
-      <UButton
-        to="/account/orders"
-        icon="i-lucide-package-2"
-      >
+      <NuxtLink to="/account/orders">
         View Orders
-      </UButton>
+      </NuxtLink>
 
-      <UButton
-        to="/account/settings/address"
-        variant="soft"
-        icon="i-lucide-map-pin-house"
-      >
+      <NuxtLink to="/account/settings/address">
         Edit Address
-      </UButton>
+      </NuxtLink>
 
-      <UButton
-        variant="outline"
-        icon="i-lucide-log-out"
+      <button
+        type="button"
         @click="logout()"
       >
         Log out
-      </UButton>
+      </button>
     </div>
   </template>
   ```
@@ -186,9 +179,14 @@ CustomerAccount.vue
     shopify: {
       name: 'store-name',
 
+      defaultMarket: {
+        country: 'US',
+        language: 'EN',
+      },
+
       clients: {
         customerAccount: {
-          apiVersion: '2026-04',
+          apiVersion: '2026-10',
           clientId: 'your-client-id',
         },
       },
@@ -209,14 +207,14 @@ CustomerAccount.vue
     },
     "dependencies": {
       "@nuxtjs/shopify": "latest",
+      "@shopify/hydrogen": "^2026.10.2",
       "nuxt": "latest"
-    },
-    "devDependencies": {
-      "@shopify/hydrogen": "2026.1.4"
     }
   }
   ```
   :::
+
+  Customers can only log in on an HTTPS domain other than `localhost`, see [local development](/essentials/customer-account#local-development).
 ::
 
 ::component-hero
@@ -240,16 +238,16 @@ Markets.vue
 
   <template>
     <div class="flex flex-col gap-4">
-      <UCard v-for="market in data" :key="market.name">
+      <article v-for="market in data" :key="market.name">
         {{ market.name }}
-      </UCard>
+      </article>
     </div>
   </template>
   ```
 
   ```ts [server/api/admin/markets.ts]
-  export default defineEventHandler(async () => {
-    const admin = useAdmin()
+  export default defineEventHandler(async (event) => {
+    const admin = useAdmin(event)
 
     const { data } = await admin.request(`#graphql
       query GetMarkets {
@@ -269,10 +267,12 @@ Markets.vue
   export const MARKET_FRAGMENT = `#graphql
     fragment MarketFields on Market {
       name
-      webPresence {
-        rootUrls {
-          locale
-          url
+      webPresences(first: 10) {
+        nodes {
+          rootUrls {
+            locale
+            url
+          }
         }
       }
     }
@@ -288,7 +288,7 @@ Markets.vue
 
       clients: {
         admin: {
-          apiVersion: '2026-04',
+          apiVersion: '2026-10',
           clientId: 'your-app-client-id',
           clientSecret: 'your-app-client-secret',
         },
@@ -310,6 +310,7 @@ Markets.vue
     },
     "dependencies": {
       "@nuxtjs/shopify": "latest",
+      "@shopify/hydrogen": "^2026.10.2",
       "nuxt": "latest"
     }
   }
@@ -440,7 +441,7 @@ Build your Shopify store with Nuxt
   Customizable [Request Caching]{.text-primary}
 
   #description
-  Cache API responses on the client and the server-side proxy with configurable cache profiles. One request option, both layers covered.
+  Cache API responses on the client and during server-side rendering with configurable cache presets. One request option, both layers covered.
   :::
 
   :::u-page-feature
