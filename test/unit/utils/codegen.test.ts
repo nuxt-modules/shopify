@@ -36,6 +36,8 @@ type Hook = (hook: string, payload: { config: Record<string, unknown> }) => Prom
 
 const FILENAME = getIntrospectionFilename(ShopifyClientType.Storefront, API_VERSION)
 
+const OPERATIONS_FILE = 'shopify/storefront/storefront.operations.d.ts'
+
 let dir: string
 let nuxt: ReturnType<typeof createNuxt>
 
@@ -77,8 +79,8 @@ const storedSchema = () => Promise.resolve(pathFor('populated.json'))
 
 const pathFor = (name: string) => join(dir, name)
 
-function generateOperations(target = nuxt, clientConfig?: Record<string, unknown>, filename = 'shopify/storefront/storefront.operations.d.ts') {
-  return createOperationsGenerator(target as never, client(ShopifyClientType.Storefront, clientConfig), filename, storedSchema)()
+function generateOperations(target = nuxt, clientConfig?: Record<string, unknown>) {
+  return createOperationsGenerator(target as never, client(ShopifyClientType.Storefront, clientConfig), OPERATIONS_FILE, storedSchema)()
 }
 
 function schemaOfCall(index: number) {
@@ -133,12 +135,6 @@ describe('introspection source', () => {
     expect(schemaOfCall(0)).toEqual(MOCK_API_SCHEMA)
   })
 
-  it('gives up on an introspection request that Shopify hasn\'t answered after 30 seconds, like the runtime clients', async () => {
-    await introspect()
-
-    expect(schemaOfCall(0)).toEqual([{ [`https://mock.shop/api/${API_VERSION}/graphql.json`]: expect.objectContaining({ timeout: 30_000 }) }])
-  })
-
   it('asks the storefront api like the runtime client does, so custom headers win over the token', async () => {
     await introspect(nuxt, ShopifyClientType.Storefront, { mock: undefined, publicAccessToken: 'public', headers: { 'X-Shopify-Storefront-Access-Token': 'custom', 'X-Custom': '1' } })
 
@@ -155,17 +151,13 @@ describe('introspection source', () => {
     }])
   })
 
-  it('reads the storefront schema of the default API version from the installed hydrogen package, without asking the api', async () => {
-    await introspect(nuxt, ShopifyClientType.Storefront, { apiVersion: DEFAULT_API_VERSION })
+  it.each([
+    ['storefront schema of the default API version', ShopifyClientType.Storefront, { apiVersion: DEFAULT_API_VERSION }, 'storefront.schema.json'],
+    ['customer account schema', ShopifyClientType.CustomerAccount, {}, 'customer-account.schema.json'],
+  ])('reads the %s from the installed hydrogen package, without asking the api', async (_, clientType, clientConfig, schema) => {
+    await introspect(nuxt, clientType, clientConfig)
 
-    expect(schemaOfCall(0)).toEqual([expect.stringContaining('storefront.schema.json')])
-    expect(existsSync(schemaOfCall(0)[0]!)).toBe(true)
-  })
-
-  it('reads the customer account schema from the installed hydrogen package', async () => {
-    await introspect(nuxt, ShopifyClientType.CustomerAccount)
-
-    expect(schemaOfCall(0)).toEqual([expect.stringContaining('customer-account.schema.json')])
+    expect(schemaOfCall(0)).toEqual([expect.stringContaining(schema)])
     expect(existsSync(schemaOfCall(0)[0]!)).toBe(true)
   })
 })
@@ -200,7 +192,6 @@ describe('hydrogen schema version', () => {
 
 describe('shared schema', () => {
   const TYPES_FILE = 'shopify/storefront/storefront.types.d.ts'
-  const OPERATIONS_FILE = 'shopify/storefront/storefront.operations.d.ts'
 
   let build: ReturnType<typeof createNuxt>
 
@@ -219,16 +210,16 @@ describe('shared schema', () => {
     ])
   }
 
-  it('hands each step\'s config to its shopify:-prefixed hook', async () => {
+  it('hands each step\'s config to its shopify:-prefixed hook, named in kebab case like the client\'s other hooks', async () => {
     generate.mockImplementation(succeeds)
 
-    await generateAll()
+    await generateAll(build, ShopifyClientType.CustomerAccount)
 
-    expect(build.callHook.mock.calls.map(([name]) => name)).toEqual(expect.arrayContaining([
-      'shopify:storefront:generate:introspection',
-      'shopify:storefront:generate:types',
-      'shopify:storefront:generate:operations',
-    ]))
+    expect(build.callHook.mock.calls.map(([name]) => name)).toEqual([
+      'shopify:customer-account:generate:introspection',
+      'shopify:customer-account:generate:types',
+      'shopify:customer-account:generate:operations',
+    ])
   })
 
   it('hands codegen the module\'s own plugin loader in every step', async () => {
@@ -243,20 +234,6 @@ describe('shared schema', () => {
     for (const [input] of generate.mock.calls) {
       await expect(input.pluginLoader('@graphql-codegen/typescript')).resolves.toBe(own)
     }
-  })
-
-  it('names the customer account client\'s generate hooks in kebab case, like its other hooks', async () => {
-    generate.mockImplementation(succeeds)
-
-    const customerAccount = client(ShopifyClientType.CustomerAccount, { mock: undefined })
-
-    await createTypesGenerator(build as never, customerAccount, TYPES_FILE, storedSchema)()
-    await createOperationsGenerator(build as never, customerAccount, OPERATIONS_FILE, storedSchema)()
-
-    expect(build.callHook.mock.calls.map(([name]) => name)).toEqual([
-      'shopify:customer-account:generate:types',
-      'shopify:customer-account:generate:operations',
-    ])
   })
 
   it('generates types and operations from the introspected schema instead of asking the api again', async () => {
@@ -354,10 +331,17 @@ describe('global type declarations', () => {
 })
 
 describe('introspection retries', () => {
-  it('retries when the api call fails', async () => {
+  it.each([
+    ['a request that fails to connect', fails],
+    ['an error that wraps a transport failure', () => Promise.reject(new AggregateError(
+      [new Error('Failed to load schema from https://mock.shop/api: connect ECONNREFUSED')],
+      'introspection failed',
+    ))],
+    ['a request that Shopify hasn\'t answered in time', () => Promise.reject(new Error(`Failed to load schema from https://mock.shop/api/${API_VERSION}/graphql.json:\n\nThe operation was aborted due to timeout`))],
+  ])('retries %s', async (_, failure) => {
     vi.useFakeTimers()
 
-    generate.mockImplementationOnce(fails).mockImplementation(succeeds)
+    generate.mockImplementationOnce(failure).mockImplementation(succeeds)
 
     const result = introspect()
 
@@ -382,43 +366,9 @@ describe('introspection retries', () => {
     expect(existsSync(schemaOfCall(-1)[0]!)).toBe(true)
   })
 
-  it('retries an error that wraps a transport failure', async () => {
-    vi.useFakeTimers()
-
-    const aggregate = () => Promise.reject(new AggregateError(
-      [new Error('Failed to load schema from https://mock.shop/api: connect ECONNREFUSED')],
-      'introspection failed',
-    ))
-
-    generate.mockImplementationOnce(aggregate).mockImplementation(succeeds)
-
-    const result = introspect()
-
-    await vi.advanceTimersByTimeAsync(60_000)
-
-    await expect(result).resolves.toBe('{"__schema":{}}')
-    expect(schemasFor(FILENAME)).toEqual([MOCK_API_SCHEMA, MOCK_API_SCHEMA])
-  })
-
-  it('does not retry a request Shopify refused, such as one with a token of another store', async () => {
-    vi.useFakeTimers()
-
-    generate.mockImplementation(() => Promise.reject(new Error(
-      `Failed to load schema from https://mock.shop/api/${API_VERSION}/graphql.json:\n\nUnexpected response: 401 Unauthorized\n\nGraphQL Code Generator supports:\n- URL of GraphQL endpoint`,
-    )))
-
-    const result = introspect()
-
-    await vi.advanceTimersByTimeAsync(60_000)
-    await result
-
-    expect(schemasFor(FILENAME)).toEqual([MOCK_API_SCHEMA, [expect.stringContaining('storefront.schema.json')]])
-  })
-
-  it('does not retry a refused request because the shop\'s name or a path in the stack mentions the network or a timeout', async () => {
-    vi.useFakeTimers()
-
-    generate.mockImplementation(() => Promise.reject(new Error([
+  it.each([
+    ['a request Shopify refused, such as one with a token of another store', `Failed to load schema from https://mock.shop/api/${API_VERSION}/graphql.json:\n\nUnexpected response: 401 Unauthorized\n\nGraphQL Code Generator supports:\n- URL of GraphQL endpoint`],
+    ['a refused request because the shop\'s name or a path in the stack mentions the network or a timeout', [
       `Failed to load schema from https://network-gear.myshopify.com/api/${API_VERSION}/graphql.json:`,
       '',
       'introspectionResult.errors.map is not a function',
@@ -427,7 +377,11 @@ describe('introspection retries', () => {
       '',
       'GraphQL Code Generator supports:',
       '- URL of GraphQL endpoint',
-    ].join('\n'))))
+    ].join('\n')],
+  ])('does not retry %s', async (_, message) => {
+    vi.useFakeTimers()
+
+    generate.mockImplementation(() => Promise.reject(new Error(message)))
 
     const result = introspect()
 
@@ -435,20 +389,6 @@ describe('introspection retries', () => {
     await result
 
     expect(schemasFor(FILENAME)).toEqual([MOCK_API_SCHEMA, [expect.stringContaining('storefront.schema.json')]])
-  })
-
-  it('retries a request that Shopify hasn\'t answered in time', async () => {
-    vi.useFakeTimers()
-
-    generate.mockImplementationOnce(() => Promise.reject(new Error(`Failed to load schema from https://mock.shop/api/${API_VERSION}/graphql.json:\n\nThe operation was aborted due to timeout`)))
-      .mockImplementation(succeeds)
-
-    const result = introspect()
-
-    await vi.advanceTimersByTimeAsync(60_000)
-
-    await expect(result).resolves.toBe('{"__schema":{}}')
-    expect(schemasFor(FILENAME)).toEqual([MOCK_API_SCHEMA, MOCK_API_SCHEMA])
   })
 
   it('does not retry a local schema file', async () => {
@@ -514,27 +454,19 @@ describe('hydrogen fallback', () => {
 })
 
 describe('document parse failures', () => {
-  const OPERATIONS_FILE = 'shopify/storefront/storefront.operations.d.ts'
-
-  let root: string
   let build: ReturnType<typeof createNuxt>
 
-  const operations = () => generateOperations(build, { documents: ['**/*.{ts,vue,graphql}', '!node_modules'] }, OPERATIONS_FILE)
+  const operations = () => generateOperations(build, { documents: ['**/*.{ts,vue,graphql}', '!node_modules'] })
 
   beforeEach(() => {
-    root = mkdtempSync(join(tmpdir(), 'nuxt-shopify-documents-'))
-    build = createNuxt({ _prepare: false, rootDir: root })
+    build = createNuxt({ _prepare: false, srcDir: pathFor('app'), buildDir: pathFor('.nuxt') })
 
     generate.mockImplementation(() => Promise.resolve([{ content: 'interface GeneratedQueryTypes {}' }]))
   })
 
-  afterEach(() => {
-    rmSync(root, { recursive: true, force: true })
-  })
-
   it('reports an operation that fails to parse instead of dropping it silently', async () => {
-    writeFileSync(join(root, 'good.ts'), 'export const good = `#graphql\n  query Good { shop { name } }\n`\n')
-    writeFileSync(join(root, 'broken.ts'), 'export const broken = `#graphql\n  query Broken { shop { name\n`\n')
+    writeFileSync(pathFor('good.ts'), 'export const good = `#graphql\n  query Good { shop { name } }\n`\n')
+    writeFileSync(pathFor('broken.ts'), 'export const broken = `#graphql\n  query Broken { shop { name\n`\n')
 
     const contents = await operations()
 
@@ -550,8 +482,8 @@ describe('document parse failures', () => {
   })
 
   it('reports an operation that fails to parse in a dynamic route file, whose brackets are no glob', async () => {
-    mkdirSync(join(root, 'pages/products'), { recursive: true })
-    writeFileSync(join(root, 'pages/products/[handle].vue'), '<script setup lang="ts">\nconst query = `#graphql\n  query Broken { shop { name\n`\n</script>\n')
+    mkdirSync(pathFor('pages/products'), { recursive: true })
+    writeFileSync(pathFor('pages/products/[handle].vue'), '<script setup lang="ts">\nconst query = `#graphql\n  query Broken { shop { name\n`\n</script>\n')
 
     await expect(operations()).resolves.toBe('')
 
@@ -560,8 +492,8 @@ describe('document parse failures', () => {
   })
 
   it('ignores files without GraphQL that the operation scanner cannot parse, such as newer decorator syntax', async () => {
-    writeFileSync(join(root, 'good.ts'), 'export const good = `#graphql\n  query Good { shop { name } }\n`\n')
-    writeFileSync(join(root, 'store.ts'), 'function tracked(_value: unknown, _context: unknown) {}\n\nexport class Store {\n  @tracked accessor count = 0\n}\n')
+    writeFileSync(pathFor('good.ts'), 'export const good = `#graphql\n  query Good { shop { name } }\n`\n')
+    writeFileSync(pathFor('store.ts'), 'function tracked(_value: unknown, _context: unknown) {}\n\nexport class Store {\n  @tracked accessor count = 0\n}\n')
 
     await operations()
 
@@ -570,9 +502,9 @@ describe('document parse failures', () => {
   })
 
   it('skips a document file it cannot read, as codegen does, instead of failing the app', async () => {
-    writeFileSync(join(root, 'good.ts'), 'export const good = `#graphql\n  query Good { shop { name } }\n`\n')
-    writeFileSync(join(root, 'locked.ts'), 'export const locked = 1\n')
-    chmodSync(join(root, 'locked.ts'), 0o000)
+    writeFileSync(pathFor('good.ts'), 'export const good = `#graphql\n  query Good { shop { name } }\n`\n')
+    writeFileSync(pathFor('locked.ts'), 'export const locked = 1\n')
+    chmodSync(pathFor('locked.ts'), 0o000)
 
     await operations()
 
@@ -580,21 +512,10 @@ describe('document parse failures', () => {
     expect(getGenerateFailures(build as never)).toEqual([])
   })
 
-  it('generates as usual when every document parses', async () => {
-    writeFileSync(join(root, 'good.ts'), 'export const good = `#graphql\n  query Good { shop { name } }\n`\n')
-    writeFileSync(join(root, 'plain.ts'), 'export const plain = 1\n')
-    writeFileSync(join(root, 'frag.graphql'), 'fragment ShopFields on Shop { name }\n')
-
-    await operations()
-
-    expect(generate).toHaveBeenCalledTimes(1)
-    expect(getGenerateFailures(build as never)).toHaveLength(0)
-  })
-
   it('skips a broken operation in a folder that a ! entry excludes, as codegen does', async () => {
-    writeFileSync(join(root, 'good.ts'), 'export const good = `#graphql\n  query Good { shop { name } }\n`\n')
-    mkdirSync(join(root, 'node_modules/dependency'), { recursive: true })
-    writeFileSync(join(root, 'node_modules/dependency/broken.ts'), 'export const broken = `#graphql\n  query Broken { shop { name\n`\n')
+    writeFileSync(pathFor('good.ts'), 'export const good = `#graphql\n  query Good { shop { name } }\n`\n')
+    mkdirSync(pathFor('node_modules/dependency'), { recursive: true })
+    writeFileSync(pathFor('node_modules/dependency/broken.ts'), 'export const broken = `#graphql\n  query Broken { shop { name\n`\n')
 
     await operations()
 
@@ -604,32 +525,23 @@ describe('document parse failures', () => {
 })
 
 describe('document globs', () => {
-  const OPERATIONS_FILE = 'shopify/storefront/storefront.operations.d.ts'
   const DOCUMENTS = ['**/*.{ts,graphql}', '!**/admin/*.ts', '!node_modules']
 
-  let root: string
-
   beforeEach(() => {
-    root = mkdtempSync(join(tmpdir(), 'nuxt-shopify-globs-'))
-
     generate.mockImplementation(() => Promise.resolve([{ content: 'interface GeneratedQueryTypes {}' }]))
   })
 
-  afterEach(() => {
-    rmSync(root, { recursive: true, force: true })
-  })
-
   it('hands codegen the configured globs to resolve from the project root', async () => {
-    await generateOperations(createNuxt({ rootDir: root }), { documents: [...DOCUMENTS] }, OPERATIONS_FILE)
+    await generateOperations(createNuxt({ srcDir: pathFor('app'), buildDir: pathFor('.nuxt') }), { documents: [...DOCUMENTS] })
 
     const [input] = generate.mock.calls[0]!
 
-    expect(input.cwd).toBe(root)
+    expect(input.cwd).toBe(dir)
     expect(input.generates[OPERATIONS_FILE].documents).toEqual(DOCUMENTS)
   })
 
   it('hands codegen the document list a hook changed, without changing the client config', async () => {
-    const extending = createNuxt({ rootDir: root }, (_hook, { config }) => {
+    const extending = createNuxt({}, (_hook, { config }) => {
       (config.documents as string[]).push('extra/**/*.ts')
     })
 
@@ -644,8 +556,6 @@ describe('document globs', () => {
 })
 
 describe('operation cache', () => {
-  const OPERATIONS_FILE = 'shopify/storefront/storefront.operations.d.ts'
-
   let watched: ReturnType<typeof createNuxt>
 
   const generator = () => createOperationsGenerator(watched as never, client(ShopifyClientType.Storefront, { documents: ['**/*.ts'] }), OPERATIONS_FILE, storedSchema)

@@ -9,25 +9,20 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vites
 
 import { resolver } from '#test/helpers/nuxt'
 
-const warn = vi.fn()
-
 const serverHandlers: Array<{ handler: string }> = []
 
 const addServerHandler = vi.fn((handler: { handler: string }) => void serverHandlers.push(handler))
 const addServerPlugin = vi.fn()
 const addPlugin = vi.fn()
-const addRouteMiddleware = vi.fn()
 const extendRouteRules = vi.fn()
 
 vi.mock('@nuxt/kit', () => ({
   addImports: vi.fn(),
   addPlugin,
-  addRouteMiddleware,
   addServerHandler,
   addServerImports: vi.fn(),
   addServerPlugin,
   extendRouteRules,
-  useLogger: () => ({ debug: vi.fn(), info: vi.fn(), warn, error: vi.fn() }),
 }))
 
 const { ShopifyClientType, configObjectSchema } = await import('#src/schemas')
@@ -35,7 +30,6 @@ const {
   createDocumentMatcher,
   getConfiguredClients,
   hasPublicClient,
-  isPublicClient,
   registerShopifyRoutes,
   splitDocuments,
 } = await import('#src/utils/clients')
@@ -45,41 +39,16 @@ const { STOREFRONT_ROUTES } = await import('#src/utils/routes')
 const codegenRequire = createRequire(import.meta.resolve('@graphql-codegen/cli'))
 const { CodeFileLoader } = await import(pathToFileURL(codegenRequire.resolve('@graphql-tools/code-file-loader')).href) as typeof import('@graphql-tools/code-file-loader')
 
-const storefront = (client: Record<string, unknown>) => ({ clients: { storefront: client } } as never)
-
-describe('isPublicClient', () => {
-  it('treats a storefront with a public access token as public', () => {
-    expect(isPublicClient({ publicAccessToken: 'tok' } as never)).toBe(true)
-  })
-
-  it('treats a mock storefront as public', () => {
-    expect(isPublicClient({ mock: true } as never)).toBe(true)
-  })
-
-  it('does not treat a private-token-only storefront as public', () => {
-    expect(isPublicClient({ privateAccessToken: 'private' } as never)).toBe(false)
-  })
-})
-
 describe('hasPublicClient', () => {
-  it('is false when the only storefront credential is a private access token', () => {
-    expect(hasPublicClient(storefront({ privateAccessToken: 'private' }))).toBe(false)
-  })
-
-  it('is true when a public access token is present alongside a private one', () => {
-    expect(hasPublicClient(storefront({ privateAccessToken: 'private', publicAccessToken: 'tok' }))).toBe(true)
-  })
-
-  it('is true for a mock storefront', () => {
-    expect(hasPublicClient(storefront({ mock: true }))).toBe(true)
-  })
-
-  it('is true when a customer account client id is configured', () => {
-    expect(hasPublicClient({ clients: { customerAccount: { clientId: 'cid' } } } as never)).toBe(true)
-  })
-
-  it('is false when only an admin client with a client id is configured', () => {
-    expect(hasPublicClient({ clients: { admin: { clientId: 'cid', clientSecret: 'secret' } } } as never)).toBe(false)
+  it.each([
+    [false, 'a storefront whose only credential is a private access token', { storefront: { privateAccessToken: 'private' } }],
+    [true, 'a storefront with a public access token', { storefront: { publicAccessToken: 'tok' } }],
+    [true, 'a public access token alongside a private one', { storefront: { privateAccessToken: 'private', publicAccessToken: 'tok' } }],
+    [true, 'a mock storefront', { storefront: { mock: true } }],
+    [true, 'a customer account client', { customerAccount: { clientId: 'cid' } }],
+    [false, 'an admin client alone, even with a client id', { admin: { clientId: 'cid', clientSecret: 'secret' } }],
+  ])('is %s for %s', (expected, _, clients) => {
+    expect(hasPublicClient({ clients } as never)).toBe(expected)
   })
 })
 
@@ -130,24 +99,19 @@ describe('registerShopifyRoutes', () => {
     expect(uncachedRoutes()).toStrictEqual([...STOREFRONT_ROUTES, ...CUSTOMER_ACCOUNT_ROUTES])
   })
 
-  it('keeps only the customer account routes uncached when nothing else is configured', () => {
-    registerShopifyRoutes(nuxt as never, { clients: { customerAccount: {} }, analytics: false } as never, resolver as never)
-
-    expect(uncachedRoutes()).toStrictEqual(CUSTOMER_ACCOUNT_ROUTES)
-  })
-
   it('renders Shopify\'s scripts for analytics without the storefront client', () => {
     registerShopifyRoutes(nuxt as never, { clients: {}, analytics: {} } as never, resolver as never)
 
     expect(addPlugin).toHaveBeenCalledWith('./runtime/plugins/scripts')
   })
 
-  it('serves only the customer account routes when the customer account client is the only feature', () => {
+  it('serves only the customer account routes, uncached, when the customer account client is the only feature', () => {
     registerShopifyRoutes(nuxt as never, { clients: { customerAccount: {} }, analytics: false } as never, resolver as never)
 
     expect(addServerHandler).toHaveBeenCalledExactlyOnceWith({ middleware: true, handler: './runtime/server/middleware/routes' })
     expect(addServerPlugin).toHaveBeenCalledExactlyOnceWith('./runtime/server/plugins/response-headers')
     expect(addPlugin).not.toHaveBeenCalled()
+    expect(uncachedRoutes()).toStrictEqual(CUSTOMER_ACCOUNT_ROUTES)
   })
 })
 

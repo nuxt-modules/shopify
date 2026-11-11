@@ -26,18 +26,17 @@ describe('shop name', () => {
   })
 })
 
-describe('clients', () => {
-  it('parses without a clients block', () => {
-    const config = configObjectSchema.parse({ name: 'shop' })
-
-    expect(config.clients).toStrictEqual({})
-  })
-})
-
 describe('defaults', () => {
   const { clients } = configObjectSchema.parse({
     name: 'shop',
     clients: { storefront, admin: { accessToken: 'shpat_x' }, customerAccount: { clientId: 'cid' } },
+  })
+
+  it('parses a config without clients or route templates, keeping Shopify\'s standard paths', () => {
+    const config = configObjectSchema.parse({ name: 'shop' })
+
+    expect(config.clients).toStrictEqual({})
+    expect(config.routeTemplates).toStrictEqual({})
   })
 
   it('fills in the documented global defaults, whether a block is omitted or empty', () => {
@@ -67,6 +66,7 @@ describe('defaults', () => {
         apiVersion: DEFAULT_API_VERSION,
         retries: 0,
         explorer: true,
+        codegen: { globalTypes: false },
         tokenStorage: { driver: 'memory' },
       },
       customerAccount: {
@@ -166,13 +166,14 @@ describe('defaults', () => {
 
 describe('api version', () => {
   it.each([
+    [''],
     ['2026-1'],
     ['26-01'],
     ['latest'],
     [`../../admin/api/${API_VERSION}/graphql.json`],
     [`${API_VERSION}/../../admin`],
     [`x${API_VERSION}`],
-  ])('names the malformed version %s in the error', (apiVersion) => {
+  ])('names the malformed version %j in the error', (apiVersion) => {
     const message = issues({ name: 'shop', clients: { storefront: { ...storefront, apiVersion } } })
 
     expect(message).toContain(`Malformed API version "${apiVersion}"`)
@@ -217,41 +218,46 @@ describe('documents', () => {
 })
 
 describe('public config', () => {
-  it('carries the public token, never a server-only credential of any client', () => {
+  it('carries only the options the browser reads, and never a server-only credential', () => {
     const config = publicConfigSchema.parse(configObjectSchema.parse({
       name: 'shop',
+      origin: 'https://shop.example.com',
+      shopId: '1',
+      storefrontId: '2',
+      defaultMarket: { country: 'DE', language: 'DE' },
+      routeTemplates: { product: '/product/:productHandle' },
+      cart: { fragment: '#graphql\n  fragment CartFragment on Cart { note }' },
+      predictiveSearch: { limit: 8 },
+      webhooks: { secret: 'webhook-secret' },
       clients: {
-        storefront: { publicAccessToken: 'public-token', privateAccessToken: 'private-token' },
-        customerAccount: { clientId: 'client-id', session: { password: 'superlongsessionpasswordwithatleast32chars' } },
+        storefront: {
+          publicAccessToken: 'public-token',
+          privateAccessToken: 'private-token',
+          buyerIpHeader: 'x-real-ip',
+          cache: { server: { driver: 'redis', url: 'redis://:cache-password@localhost' } },
+        },
+        customerAccount: {
+          clientId: 'client-id',
+          afterLogin: '/welcome',
+          session: { name: 'session-cookie', password: 'superlongsessionpasswordwithatleast32chars' },
+          tokenStorage: { driver: 'redis', url: 'redis://:token-password@localhost' },
+        },
         admin: { accessToken: 'admin-token' },
       },
     }))
 
+    expect(Object.keys(config).sort()).toStrictEqual(['analytics', 'clients', 'defaultMarket', 'errors', 'graphql', 'name', 'routeTemplates', 'shopId', 'storefrontId'])
+    expect(Object.keys(config.clients).sort()).toStrictEqual(['customerAccount', 'storefront'])
+    expect(Object.keys(config.clients.storefront!).sort()).toStrictEqual(['apiVersion', 'cache', 'proxy', 'publicAccessToken', 'retries'])
+    expect(Object.keys(config.clients.customerAccount!).sort()).toStrictEqual(['apiVersion', 'clientId', 'proxy', 'retries'])
+    expect(config.routeTemplates).toStrictEqual({ product: '/product/:productHandle' })
+    expect(config.clients.storefront?.publicAccessToken).toBe('public-token')
+
     const exposed = JSON.stringify(config)
 
-    expect(exposed).toContain('public-token')
-    expect(config.clients.storefront).not.toHaveProperty('privateAccessToken')
-
-    for (const secret of ['private-token', 'superlongsessionpassword', 'admin-token']) {
+    for (const secret of ['private-token', 'superlongsessionpassword', 'admin-token', 'webhook-secret', 'cache-password', 'token-password']) {
       expect(exposed).not.toContain(secret)
     }
-  })
-
-  it('carries none of the session or sign-in redirect settings, which only the server reads', () => {
-    const config = publicConfigSchema.parse(configObjectSchema.parse({
-      name: 'shop',
-      clients: {
-        customerAccount: {
-          clientId: 'cid',
-          afterLogin: '/welcome',
-          session: { name: 'session-cookie', password: 'superlongsessionpasswordwithatleast32chars' },
-        },
-      },
-    }))
-
-    expect(config.clients.customerAccount).toHaveProperty('clientId', 'cid')
-    expect(config.clients.customerAccount).not.toHaveProperty('session')
-    expect(config.clients.customerAccount).not.toHaveProperty('afterLogin')
   })
 })
 
@@ -276,10 +282,6 @@ describe('enableable options', () => {
     })
 
     expect(config.clients.admin?.tokenStorage).toBe('redis')
-  })
-
-  it('does not declare admin operation types globally by default', () => {
-    expect(configObjectSchema.parse({ name: 'shop', clients: { admin: { accessToken: 'shpat_x' } } }).clients.admin?.codegen).toMatchObject({ globalTypes: false })
   })
 })
 
@@ -335,28 +337,16 @@ describe('customer account client id', () => {
       .toExtend<z.input<typeof configObjectSchema>>()
   })
 
-  it('still refuses to parse a customer account client without a client id', () => {
-    expect(issues({ name: 'shop', clients: { storefront, customerAccount: { afterLogin: '/account' } } }))
-      .toContain('Client ID is required for the customer account client')
-  })
-
-  it('still refuses to parse an empty client id', () => {
-    expect(issues({ name: 'shop', clients: { storefront, customerAccount: { clientId: '' } } }))
+  it.each([
+    ['without a client id', { afterLogin: '/account' }],
+    ['with an empty client id', { clientId: '' }],
+  ])('still refuses to parse a customer account client %s', (_, customerAccount) => {
+    expect(issues({ name: 'shop', clients: { storefront, customerAccount } }))
       .toContain('Client ID is required for the customer account client')
   })
 })
 
 describe('route templates', () => {
-  const routeTemplates = { product: '/product/:productHandle', article: '/journal/:blogHandle/:articleHandle' } as const
-
-  it('keeps Shopify\'s standard paths without templates', () => {
-    expect(configObjectSchema.parse({ name: 'shop' }).routeTemplates).toStrictEqual({})
-  })
-
-  it('hands the configured templates to the browser', () => {
-    expect(publicConfigSchema.parse(configObjectSchema.parse({ name: 'shop', routeTemplates })).routeTemplates).toStrictEqual(routeTemplates)
-  })
-
   it('types the templates as Hydrogen\'s', () => {
     expectTypeOf<z.input<typeof configObjectSchema>['routeTemplates']>().toEqualTypeOf<ShopifyRouteTemplates | undefined>()
   })
@@ -431,12 +421,6 @@ describe('default api version', () => {
   })
 })
 
-describe('empty api version', () => {
-  it('rejects an empty version at runtime, so the runtime config keeps the build\'s version', () => {
-    expect(issues({ name: 'shop', clients: { storefront: { ...storefront, apiVersion: '' } } })).toContain('Malformed API version ""')
-  })
-})
-
 describe('cache preset validation', () => {
   const parsePreset = (preset: unknown) => configObjectSchema.safeParse({ name: 'shop', clients: { storefront: { ...storefront, cache: { presets: { custom: preset } } } } })
 
@@ -471,13 +455,6 @@ describe('Hydrogen handler options', () => {
     expect(config.predictiveSearch).toStrictEqual(predictiveSearch)
   })
 
-  it('keeps them out of the browser', () => {
-    const config = publicConfigSchema.parse(configObjectSchema.parse({ name: 'shop', clients: { storefront }, cart, predictiveSearch }))
-
-    expect(config).not.toHaveProperty('cart')
-    expect(config).not.toHaveProperty('predictiveSearch')
-  })
-
   it('types the options as Hydrogen\'s, without the parts the module owns', () => {
     expectTypeOf<NonNullable<z.input<typeof configObjectSchema>['cart']>>().toEqualTypeOf<Pick<CreateCartServerHandlersOptions, 'fragment'>>()
     expectTypeOf<NonNullable<z.input<typeof configObjectSchema>['predictiveSearch']>>().toEqualTypeOf<Omit<CreatePredictiveSearchServerHandlersOptions, 'path'>>()
@@ -503,20 +480,12 @@ describe('analytics', () => {
     expect(parseAnalytics()).toBe(false)
   })
 
-  it('treats `true` as the default enabled config', () => {
-    expect(parseAnalytics(true)).toStrictEqual({ autoPageView: true, consent: { mode: 'no-banner' } })
-  })
-
-  it('disables when set to `false`', () => {
-    expect(parseAnalytics(false)).toBe(false)
-  })
-
-  it('enables with an empty config object', () => {
-    expect(parseAnalytics({})).toStrictEqual({ autoPageView: true, consent: { mode: 'no-banner' } })
-  })
-
-  it('loads no banner unless a consent mode is chosen', () => {
-    expect(parseAnalytics({ consent: {} })).toMatchObject({ consent: { mode: 'no-banner' } })
+  it.each([
+    ['`true`', true],
+    ['an empty config object', {}],
+    ['a consent without a mode', { consent: {} }],
+  ])('turns %s into the default config, which loads no banner', (_, analytics) => {
+    expect(parseAnalytics(analytics)).toStrictEqual({ autoPageView: true, consent: { mode: 'no-banner' } })
   })
 
   it('accepts Shopify\'s consent modes only', () => {
@@ -536,25 +505,13 @@ describe('customer account token storage', () => {
     },
   }).clients.customerAccount?.tokenStorage
 
-  it('defaults to cookie mode (no external storage)', () => {
-    expect(parseTokenStorage()).toBe(false)
-  })
-
-  it('stays cookie mode when explicitly disabled', () => {
-    expect(parseTokenStorage(false)).toBe(false)
-  })
-
-  it('keeps a bounded number of sessions in memory when opted in with `true`', () => {
-    expect(parseTokenStorage(true)).toEqual({ driver: 'lru-cache', max: 10_000 })
-  })
-
-  it('accepts an external storage mount', () => {
-    expect(parseTokenStorage({ driver: 'redis', url: 'redis://localhost' }))
-      .toEqual({ driver: 'redis', url: 'redis://localhost' })
-  })
-
-  it('accepts a storage mount name string', () => {
-    expect(parseTokenStorage('customer-account-token')).toBe('customer-account-token')
+  it.each([
+    ['no option as cookie mode, keeping the tokens in the session cookie', undefined, false],
+    ['`true` as a bounded number of sessions in memory', true, { driver: 'lru-cache', max: 10_000 }],
+    ['an external storage mount', { driver: 'redis', url: 'redis://localhost' }, { driver: 'redis', url: 'redis://localhost' }],
+    ['the name of a storage mount', 'customer-account-token', 'customer-account-token'],
+  ])('takes %s', (_, tokenStorage, expected) => {
+    expect(parseTokenStorage(tokenStorage)).toStrictEqual(expected)
   })
 })
 

@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { API_VERSION } from '#test/helpers/api-version'
 import { createTestEvent } from '#test/helpers/event'
+import { createLogReporter } from '#test/helpers/logger'
 
 const runtimeConfig: { _shopify?: Record<string, unknown> } = {}
 
@@ -103,14 +104,6 @@ describe('storefront server cache', () => {
     expect(String(fetchMock.mock.calls[0]![0])).toBe(UPSTREAM_URL)
   })
 
-  it('uses the server preset of a split cache option', async () => {
-    await serverClient().request(QUERY, { cache: { browser: 'none', server: 'short' } })
-    await settle()
-    await serverClient().request(QUERY, { cache: { server: 'short' } })
-
-    expect(fetchMock).toHaveBeenCalledOnce()
-  })
-
   it('refreshes a stale entry in the background of the request that served it', async () => {
     vi.useFakeTimers({ toFake: ['Date'] })
 
@@ -181,14 +174,6 @@ describe('storefront server cache', () => {
     expect(cached.get('shopify-storefront-private-token')).toBe('private-token')
   })
 
-  it('sends a request without a cache preset straight to Shopify, with the Shopify cookies', async () => {
-    await serverClient({ cookie: '_shopify_y=visitor; theme=dark' }).request(QUERY)
-    await serverClient({ cookie: '_shopify_y=visitor; theme=dark' }).request(QUERY)
-
-    expect(fetchMock).toHaveBeenCalledTimes(2)
-    expect(sentHeaders().get('cookie')).toBe('_shopify_y=visitor')
-  })
-
   it.each([
     ['a mutation', MUTATION, 'short'],
     ['a mutation on the line after the #graphql marker', `#graphql\n${MUTATION}`, 'short'],
@@ -229,31 +214,18 @@ describe('storefront server cache', () => {
   it.each([
     ['the default mount', true, 'storefront-cache'],
     ['a configured mount', 'redis-cache', 'redis-cache'],
-  ])('stores entries in %s', async (_, server, base) => {
+  ])('stores entries in %s, and warns when nothing is mounted there, as they then end up in Nitro\'s memory', async (_, server, base) => {
+    const { logger } = createLogReporter()
+
     configure({ server, presets: PRESETS })
+
+    Object.assign(runtimeConfig._shopify!, { logger })
 
     await serverClient().request(QUERY, { cache: 'short' })
     await settle()
 
     expect([...storages.keys()]).toStrictEqual([base])
     expect(await storages.get(base)!.getKeys()).toHaveLength(1)
-  })
-
-  it('warns when nothing is mounted at the configured name, as the entries then end up in Nitro\'s memory', async () => {
-    const logger = { reporters: [{ log: vi.fn() }] }
-
-    configure({ server: 'missing-cache', presets: PRESETS })
-
-    Object.assign(runtimeConfig._shopify!, { logger })
-
-    await serverClient().request(QUERY, { cache: 'short' })
-
-    expect(warnUnmountedStorage).toHaveBeenCalledWith(storages.get('missing-cache'), 'missing-cache', logger)
-  })
-
-  it('checks the default name as well, as a server cache switched on only at runtime has nothing mounted there', async () => {
-    await serverClient().request(QUERY, { cache: 'short' })
-
-    expect(warnUnmountedStorage).toHaveBeenCalledWith(storages.get('storefront-cache'), 'storefront-cache', undefined)
+    expect(warnUnmountedStorage).toHaveBeenCalledWith(storages.get(base), base, logger)
   })
 })

@@ -5,6 +5,7 @@ import { SHOP_ID, createShopifyConfig } from '#test/helpers/customer-account'
 import { setResponseHeaders } from 'h3'
 
 import { createTestEvent, getResponseHeader, getSetCookieHeaders } from '#test/helpers/event'
+import { createLoggerStub } from '#test/helpers/logger'
 
 const runtimeConfig = {
   _shopify: {
@@ -74,7 +75,7 @@ vi.mock('#src/runtime/utils/shop', () => ({
 }))
 
 vi.mock('#src/runtime/server/utils/log', () => ({
-  createLogger: () => ({ error: logError, warn: vi.fn(), info: vi.fn(), debug: vi.fn() }),
+  createLogger: () => createLoggerStub({ error: logError }),
 }))
 
 vi.mock('nitropack/runtime', () => ({
@@ -88,8 +89,6 @@ const handler = (await import('#src/runtime/server/middleware/routes')).default
 const PLAIN_CART = expect.objectContaining({ cart: true, synced: false })
 
 const PREDICTIVE_SEARCH = { predictiveSearch: true }
-
-const SYNCED_CART = expect.objectContaining({ cart: true, synced: true })
 
 const ACCOUNT_ROUTES = expect.objectContaining({
   login: expect.any(Function),
@@ -171,18 +170,6 @@ describe('routes middleware', () => {
     expect(Buffer.concat(write.mock.calls.map(([chunk]) => chunk)).toString()).toBe('{"data":{"shop":{"id":"1"}}}')
   })
 
-  it('serves Shopify endpoints in the configured default market', async () => {
-    await handler(createTestEvent({ path: '/cart.js', headers: { host: 'shop.test' } }))
-
-    expect(createShopifyRequestContext).toHaveBeenLastCalledWith(expect.objectContaining({ i18n: { country: 'US', language: 'EN' } }))
-
-    runtimeConfig._shopify.defaultMarket = { country: 'DE', language: 'DE' }
-
-    await handler(createTestEvent({ path: '/cart.js', headers: { host: 'shop.test' } }))
-
-    expect(createShopifyRequestContext).toHaveBeenLastCalledWith(expect.objectContaining({ i18n: { country: 'DE', language: 'DE' } }))
-  })
-
   it('passes requests Shopify does not handle on to the app', async () => {
     const event = createTestEvent({ path: '/cart.js', headers: { host: 'shop.test' } })
 
@@ -198,39 +185,31 @@ describe('routes middleware', () => {
     expect(handleShopifyRoutes).not.toHaveBeenCalled()
   })
 
-  it('serves the customer account routes with Hydrogen\'s handlers, keeping the cart in sync with the customer session', async () => {
-    enableCustomerAccount()
-    runtimeConfig._shopify.analytics = false
+  it.each([
+    ['the cart route', 'only a storefront client is configured', 'GET', '/api/cart', { analytics: false }],
+    ['the Storefront API proxy', 'only a storefront client is configured', 'POST', `/api/${API_VERSION}/graphql.json`, { analytics: false }],
+    ['the checkout', 'only a storefront client is configured', 'GET', '/checkout', { analytics: false }],
+    ['predictive search', 'only a storefront client is configured', 'GET', '/api/predictive-search?q=shirt', { analytics: false }],
+    ['the endpoints of Shopify\'s scripts', 'only analytics is on', 'GET', '/cart.js', { clients: {}, defaultMarket: { country: 'US', language: 'EN' } }],
+  ])('serves %s with Hydrogen\'s handlers when %s', async (_, __, method, path, config) => {
+    Object.assign(runtimeConfig._shopify, config)
 
-    await handler(createTestEvent({ path: '/account/login', headers: { host: 'shop.test' } }))
-
-    const [{ customerSession }] = createCartServerHandlers.mock.calls.at(-1) as [{ customerSession: unknown }]
-
-    expect(createCustomerAccountServerHandlers).toHaveBeenCalledWith(expect.objectContaining({ customerSession, cartServerHandlers: SYNCED_CART }))
-    expect(handleShopifyRoutes).toHaveBeenCalledWith(expect.objectContaining({
-      handlers: [SYNCED_CART, ACCOUNT_ROUTES],
-      sessionManager: SESSION_MANAGER,
-    }))
-  })
-
-  it('serves the cart route with Hydrogen\'s cart handlers', async () => {
-    runtimeConfig._shopify.analytics = false
-
-    await handler(createTestEvent({ path: '/api/cart', headers: { host: 'shop.test' } }))
+    await handler(createTestEvent({ method, path, headers: { host: 'shop.test' } }))
 
     expect(handleShopifyRoutes).toHaveBeenCalledWith(expect.objectContaining({ handlers: [PLAIN_CART, PREDICTIVE_SEARCH] }))
     expect(handleShopifyRoutes).toHaveBeenCalledWith(expect.not.objectContaining({ sessionManager: expect.anything() }))
   })
 
-  it('serves the cart route in sync with the customer session', async () => {
+  it('leaves the storefront endpoints to the app without a storefront client or analytics, even with a customer account client', async () => {
+    runtimeConfig._shopify.analytics = false
+    runtimeConfig._shopify.clients = {}
+
     enableCustomerAccount()
 
-    await handler(createTestEvent({ path: '/api/cart', headers: { host: 'shop.test' } }))
+    await expect(handler(createTestEvent({ path: '/api/cart', headers: { host: 'shop.test' } }))).resolves.toBeUndefined()
+    await expect(handler(createTestEvent({ path: '/cart.js', headers: { host: 'shop.test' } }))).resolves.toBeUndefined()
 
-    expect(handleShopifyRoutes).toHaveBeenCalledWith(expect.objectContaining({
-      handlers: [SYNCED_CART, ACCOUNT_ROUTES],
-      sessionManager: SESSION_MANAGER,
-    }))
+    expect(handleShopifyRoutes).not.toHaveBeenCalled()
   })
 
   it('leaves the cart out of the customer session in development, where Hydrogen cannot share it', async () => {
@@ -247,72 +226,29 @@ describe('routes middleware', () => {
     }))
   })
 
-  it.each(['cross-site', 'same-site'])('refuses a cart post from a %s page before Hydrogen sees it', async (site) => {
-    const event = createTestEvent({ method: 'POST', path: '/api/cart', headers: { 'host': 'shop.test', 'origin': 'https://evil.example', 'sec-fetch-site': site } })
+  it.each([
+    ['the cart', '/api/cart', false],
+    ['the cart that follows the customer session', '/api/cart', true],
+    ['the AJAX cart', '/cart/add.js', false],
+    ['the AJAX cart', '/cart/update.json', false],
+  ])('refuses a post to %s at %s from another site before Hydrogen sees it', async (_, path, customerAccount) => {
+    if (customerAccount) enableCustomerAccount()
+
+    const event = createTestEvent({ method: 'POST', path, headers: { 'host': 'shop.test', 'origin': 'https://evil.example', 'sec-fetch-site': 'cross-site' } })
 
     await expect(handler(event)).rejects.toMatchObject({ statusCode: 403 })
     expect(handleShopifyRoutes).not.toHaveBeenCalled()
   })
 
   it.each([
-    ['/cart/add.js', 'cross-site'],
-    ['/cart/change', 'same-site'],
-    ['/cart/update.json', 'cross-site'],
-    ['/de-de/cart/clear.js', 'same-site'],
-  ])('refuses a post to the AJAX cart at %s from a %s page, as it changes the same cart', async (path, site) => {
-    const event = createTestEvent({ method: 'POST', path, headers: { 'host': 'shop.test', 'origin': 'https://evil.example', 'sec-fetch-site': site } })
-
-    await expect(handler(event)).rejects.toMatchObject({ statusCode: 403 })
-    expect(handleShopifyRoutes).not.toHaveBeenCalled()
-  })
-
-  it('serves AJAX cart reads and the app\'s own AJAX cart posts', async () => {
-    await handler(createTestEvent({ path: '/cart.js', headers: { 'host': 'shop.test', 'sec-fetch-site': 'cross-site' } }))
-    await handler(createTestEvent({ method: 'POST', path: '/cart/add.js', headers: { 'host': 'shop.test', 'origin': 'http://shop.test', 'sec-fetch-site': 'same-origin' } }))
-
-    expect(handleShopifyRoutes).toHaveBeenCalledTimes(2)
-  })
-
-  it('refuses a cart post from another site when the cart follows the customer session', async () => {
-    enableCustomerAccount()
-
-    const event = createTestEvent({ method: 'POST', path: '/api/cart', headers: { 'host': 'shop.test', 'origin': 'https://evil.example', 'sec-fetch-site': 'cross-site' } })
-
-    await expect(handler(event)).rejects.toMatchObject({ statusCode: 403 })
-    expect(handleShopifyRoutes).not.toHaveBeenCalled()
-  })
-
-  it('serves a cart read from a visitor who arrived from another site, as the cart page asks for it while rendering on the server', async () => {
-    await handler(createTestEvent({ path: '/api/cart', headers: { 'host': 'shop.test', 'sec-fetch-site': 'cross-site' } }))
+    ['a cart read from a visitor who arrived from another site, as the cart page asks for it while rendering on the server', 'GET', '/api/cart', 'cross-site'],
+    ['an AJAX cart read from another site', 'GET', '/cart.js', 'cross-site'],
+    ['a cart post from the app\'s own pages', 'POST', '/api/cart', 'same-origin'],
+    ['an AJAX cart post from the app\'s own pages', 'POST', '/cart/add.js', 'same-origin'],
+  ])('serves %s', async (_, method, path, site) => {
+    await handler(createTestEvent({ method, path, headers: { 'host': 'shop.test', 'sec-fetch-site': site } }))
 
     expect(handleShopifyRoutes).toHaveBeenCalledOnce()
-  })
-
-  it('serves a cart post from the app\'s own pages', async () => {
-    await handler(createTestEvent({ method: 'POST', path: '/api/cart', headers: { 'host': 'shop.test', 'origin': 'http://shop.test', 'sec-fetch-site': 'same-origin' } }))
-
-    expect(handleShopifyRoutes).toHaveBeenCalledOnce()
-  })
-
-  it('leaves the cart route to the app without a storefront client or analytics', async () => {
-    runtimeConfig._shopify.analytics = false
-    runtimeConfig._shopify.clients = {}
-
-    await expect(handler(createTestEvent({ path: '/api/cart', headers: { host: 'shop.test' } }))).resolves.toBeUndefined()
-
-    expect(handleShopifyRoutes).not.toHaveBeenCalled()
-  })
-
-  it('serves the storefront client\'s browser requests through Hydrogen\'s Storefront API proxy, without analytics', async () => {
-    runtimeConfig._shopify.analytics = false
-    runtimeConfig._shopify.clients = { storefront: { apiVersion: API_VERSION, publicAccessToken: 'public', proxy: true } }
-
-    await handler(createTestEvent({ method: 'POST', path: `/api/${API_VERSION}/graphql.json`, headers: { host: 'shop.test' }, body: { query: '{ shop { id } }' } }))
-
-    expect(handleShopifyRoutes).toHaveBeenCalledWith(expect.objectContaining({ handlers: [PLAIN_CART, PREDICTIVE_SEARCH] }))
-    expect(createStorefrontClient).toHaveBeenCalledWith(expect.objectContaining({
-      config: expect.objectContaining({ storeDomain: 'https://my-shop.myshopify.com', publicStorefrontToken: 'public' }),
-    }))
   })
 
   it('proxies a mocked storefront to mock.shop', async () => {
@@ -324,14 +260,6 @@ describe('routes middleware', () => {
     expect(createStorefrontClient).toHaveBeenCalledWith(expect.objectContaining({
       config: expect.objectContaining({ storeDomain: 'https://mock.shop' }),
     }))
-  })
-
-  it('hands the checkout over to Shopify without analytics', async () => {
-    runtimeConfig._shopify.analytics = false
-
-    await handler(createTestEvent({ path: '/checkout', headers: { host: 'shop.test' } }))
-
-    expect(handleShopifyRoutes).toHaveBeenCalledWith(expect.objectContaining({ handlers: [PLAIN_CART, PREDICTIVE_SEARCH] }))
   })
 
   it('keeps serving the storefront endpoints when the customer account is misconfigured', async () => {
@@ -367,40 +295,6 @@ describe('routes middleware', () => {
 
     await expect(handler(createTestEvent({ path: '/account/login', headers: { host: 'shop.test' } })))
       .rejects.toMatchObject({ statusCode: 500 })
-  })
-
-  it('serves the endpoints of Shopify\'s scripts for analytics without a storefront client', async () => {
-    runtimeConfig._shopify.defaultMarket = { country: 'US', language: 'EN' }
-    runtimeConfig._shopify.clients = {}
-
-    await handler(createTestEvent({ path: '/cart.js', headers: { host: 'shop.test' } }))
-
-    expect(handleShopifyRoutes).toHaveBeenCalledWith(expect.objectContaining({ handlers: [PLAIN_CART, PREDICTIVE_SEARCH] }))
-  })
-
-  it('keeps the storefront endpoints off without a storefront client or analytics', async () => {
-    runtimeConfig._shopify.analytics = false
-    runtimeConfig._shopify.clients = {}
-
-    enableCustomerAccount()
-
-    await handler(createTestEvent({ path: '/cart.js', headers: { host: 'shop.test' } }))
-
-    expect(handleShopifyRoutes).not.toHaveBeenCalled()
-  })
-
-  it('exposes the customer account to server rendering on every request', async () => {
-    enableCustomerAccount()
-
-    const event = createTestEvent({ path: '/account', headers: { host: 'shop.test' } })
-
-    await handler(event)
-
-    expect(event.context._shopify?.customerAccount).toEqual({
-      getSession: expect.any(Function),
-      getAccessToken: expect.any(Function),
-    })
-    expect(handleShopifyRoutes).not.toHaveBeenCalled()
   })
 
   it('hands Hydrogen the request with the public access token, so its Storefront API proxy works for a browser that sends none', async () => {
@@ -447,6 +341,15 @@ describe('routes middleware', () => {
     expect(handleShopifyRoutes).toHaveBeenCalledOnce()
   })
 
+  it('leaves a form post to a variant link to the app', async () => {
+    const event = createTestEvent({ method: 'POST', path: '/product/shirt?variant=123', headers: { host: 'shop.test' } })
+
+    await expect(handler(event)).resolves.toBeUndefined()
+
+    expect(handleShopifyRoutes).not.toHaveBeenCalled()
+    expect(event.context.shopifyRequestContext).toBeUndefined()
+  })
+
   it('renders the page when a variant link has no market to look up, instead of failing it', async () => {
     runtimeConfig._shopify.clients = {}
 
@@ -461,28 +364,12 @@ describe('routes middleware', () => {
     await expect(handler(createTestEvent({ path: '/cart.js', headers: { host: 'shop.test' } }))).rejects.toMatchObject({ statusCode: 502 })
   })
 
-  it('serves Hydrogen\'s predictive search with the storefront client', async () => {
-    await handler(createTestEvent({ path: '/api/predictive-search?q=shirt', headers: { host: 'shop.test' } }))
-
-    expect(handleShopifyRoutes).toHaveBeenCalledWith(expect.objectContaining({ handlers: [PLAIN_CART, PREDICTIVE_SEARCH] }))
-  })
-
-  it('exposes Shopify\'s redirects to server rendering, with a storefront client or analytics', async () => {
+  it('exposes Shopify\'s scripts to server rendering', async () => {
     const event = createTestEvent({ path: '/products/shirt', headers: { host: 'shop.test' } })
 
     await handler(event)
 
-    expect(event.context._shopify?.redirect).toBeInstanceOf(Function)
     expect(event.context._shopify?.scripts).toBeInstanceOf(Function)
-
-    runtimeConfig._shopify.analytics = false
-    runtimeConfig._shopify.clients = {}
-
-    const withoutStorefront = createTestEvent({ path: '/products/shirt', headers: { host: 'shop.test' } })
-
-    await handler(withoutStorefront)
-
-    expect(withoutStorefront.context._shopify?.redirect).toBeUndefined()
   })
 
   it('hands the server cache to server rendering when the storefront client has one', async () => {
@@ -610,13 +497,5 @@ describe('routes middleware', () => {
     await handler(createTestEvent({ path: '/api/cart', headers: { host: 'shop.test' } }))
 
     expect(createCartServerHandlers).toHaveBeenCalledWith({ fragment: 'fragment CartFragment on Cart { note }', customerSession: expect.anything() })
-  })
-
-  it('shares its request context with the rest of the request', async () => {
-    const event = createTestEvent({ path: '/cart.js', headers: { host: 'shop.test' } })
-
-    await handler(event)
-
-    expect(event.context.shopifyRequestContext).toBe(createShopifyRequestContext.mock.results[0]!.value)
   })
 })

@@ -28,46 +28,21 @@ afterEach(() => {
 })
 
 describe('customer account session plugin', () => {
-  it('reads the session while rendering on the server', async () => {
-    vi.stubGlobal('__NUXT_SERVER__', true)
+  it.each([
+    ['while rendering on the server', '__NUXT_SERVER__', true, false, 1, []],
+    ['of a prerendered page only after hydration, so the page hydrates against its own HTML', '__NUXT_CLIENT__', true, false, 0, [['app:mounted', fetch]]],
+    ['before rendering a page that has no server HTML', '__NUXT_CLIENT__', false, false, 1, []],
+    ['only once, keeping what the server already read instead of reading it again after hydration', '__NUXT_CLIENT__', true, true, 0, []],
+  ])('reads the session %s', async (_, side, serverRendered, ready, fetches, hooks) => {
+    vi.stubGlobal(side, true)
 
-    await plugin.setup(nuxtApp(true))
+    isReady.value = ready
 
-    expect(fetch).toHaveBeenCalledOnce()
-  })
-
-  it('reads the session of a prerendered page only after hydration, so the page hydrates against its own HTML', async () => {
-    vi.stubGlobal('__NUXT_CLIENT__', true)
-
-    const app = nuxtApp(true)
-
-    await plugin.setup(app)
-
-    expect(fetch).not.toHaveBeenCalled()
-    expect(app.hook).toHaveBeenCalledExactlyOnceWith('app:mounted', fetch)
-  })
-
-  it('reads the session before rendering a page that has no server HTML', async () => {
-    vi.stubGlobal('__NUXT_CLIENT__', true)
-
-    const app = nuxtApp(false)
+    const app = nuxtApp(serverRendered)
 
     await plugin.setup(app)
 
-    expect(fetch).toHaveBeenCalledOnce()
-    expect(app.hook).not.toHaveBeenCalled()
-  })
-
-  it('keeps the session the server already read, without reading it again after hydration', async () => {
-    vi.stubGlobal('__NUXT_CLIENT__', true)
-
-    isReady.value = true
-
-    const app = nuxtApp(true)
-
-    await plugin.setup(app)
-
-    expect(fetch).not.toHaveBeenCalled()
-    expect(app.hook).not.toHaveBeenCalled()
+    expect(fetch).toHaveBeenCalledTimes(fetches)
+    expect(app.hook.mock.calls).toEqual(hooks)
   })
 })

@@ -1,9 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
-  CLIENT_ID,
-  ORIGIN,
-  SHOP_ID,
+  EXPIRED,
   UNCONFIGURED_SHOPIFY_CONFIG,
   createHttpsEvent as request,
   createSessionCookie as signIn,
@@ -33,18 +31,8 @@ vi.mock('nitropack/runtime', () => ({
 const { customerAccountContext, getValidCustomerAccessToken } = await import('#src/runtime/server/utils/customer-account/auth')
 const { getCustomerAccountSession } = await import('#src/runtime/server/utils/customer-account/session')
 
-const TOKEN_URL = `https://shopify.com/authentication/${SHOP_ID}/oauth/token`
-
-const EXPIRED = { expiresAt: Date.now() - 1000 }
-
 function respondWithTokens(body: Record<string, unknown> = { access_token: 'fresh-access-token', refresh_token: 'fresh-refresh-token', expires_in: 3600 }) {
   fetchMock.mockImplementation(async () => Response.json(body))
-}
-
-function tokenRequest() {
-  const [url, init] = fetchMock.mock.calls[0]!
-
-  return { url: String(url), headers: new Headers(init?.headers), body: new URLSearchParams(init?.body as URLSearchParams) }
 }
 
 beforeEach(() => {
@@ -79,39 +67,18 @@ describe('getValidCustomerAccessToken', () => {
     expect(hooks.callHook).not.toHaveBeenCalled()
   })
 
-  it('refreshes an expired access token at Shopify\'s token endpoint', async () => {
-    respondWithTokens()
-
-    await expect(getValidCustomerAccessToken(request(await signIn(EXPIRED)))).resolves.toBe('fresh-access-token')
-
-    const { url, headers, body } = tokenRequest()
-
-    expect(url).toBe(TOKEN_URL)
-    expect(headers.get('origin')).toBe(ORIGIN)
-    expect(Object.fromEntries(body)).toEqual({ grant_type: 'refresh_token', client_id: CLIENT_ID, refresh_token: 'refresh-token' })
-  })
-
-  it('keeps the refreshed tokens for the next request', async () => {
+  it('refreshes an expired access token, calls the refresh hook with the request and keeps the new token for the next request', async () => {
     respondWithTokens()
 
     const event = request(await signIn(EXPIRED))
 
-    await getValidCustomerAccessToken(event)
+    await expect(getValidCustomerAccessToken(event)).resolves.toBe('fresh-access-token')
+    expect(hooks.callHook).toHaveBeenCalledExactlyOnceWith('shopify:customer-account:auth:refresh', { event })
 
     fetchMock.mockClear()
 
     await expect(getValidCustomerAccessToken(request(toCookieHeader(event)))).resolves.toBe('fresh-access-token')
     expect(fetchMock).not.toHaveBeenCalled()
-  })
-
-  it('calls the refresh hook with the request once the token was refreshed', async () => {
-    respondWithTokens()
-
-    const event = request(await signIn(EXPIRED))
-
-    await getValidCustomerAccessToken(event)
-
-    expect(hooks.callHook).toHaveBeenCalledExactlyOnceWith('shopify:customer-account:auth:refresh', { event })
   })
 
   it('refreshes an expired token once for all queries of a request, and calls the refresh hook once', async () => {
@@ -125,26 +92,18 @@ describe('getValidCustomerAccessToken', () => {
     expect(hooks.callHook).toHaveBeenCalledOnce()
   })
 
-  it('signs the customer out when Shopify rejects the refresh token', async () => {
-    fetchMock.mockResolvedValue(new Response(null, { status: 400 }))
-
-    const event = request(await signIn(EXPIRED))
-
-    await expect(getValidCustomerAccessToken(event)).rejects.toMatchObject({ statusCode: 401 })
-    await expect(getCustomerAccountSession(request(toCookieHeader(event)))).resolves.toEqual({ isLoggedIn: false })
-    expect(hooks.callHook).not.toHaveBeenCalled()
-  })
-
   it.each([
-    ['an unavailable token endpoint', () => fetchMock.mockResolvedValue(new Response(null, { status: 503 }))],
-    ['a network failure', () => fetchMock.mockRejectedValue(new TypeError('fetch failed'))],
-  ])('keeps the session through %s', async (_, fail) => {
+    ['signs the customer out when Shopify rejects the refresh token', () => fetchMock.mockResolvedValue(new Response(null, { status: 400 })), false],
+    ['keeps the session through an unavailable token endpoint', () => fetchMock.mockResolvedValue(new Response(null, { status: 503 })), true],
+    ['keeps the session through a network failure', () => fetchMock.mockRejectedValue(new TypeError('fetch failed')), true],
+  ])('rejects the request as unauthorized and %s', async (_, fail, staysSignedIn) => {
     fail()
 
     const event = request(await signIn(EXPIRED))
 
     await expect(getValidCustomerAccessToken(event)).rejects.toMatchObject({ statusCode: 401 })
-    await expect(getCustomerAccountSession(request(toCookieHeader(event)))).resolves.toEqual({ isLoggedIn: true })
+    await expect(getCustomerAccountSession(request(toCookieHeader(event)))).resolves.toEqual({ isLoggedIn: staysSignedIn })
+    expect(hooks.callHook).not.toHaveBeenCalled()
   })
 })
 

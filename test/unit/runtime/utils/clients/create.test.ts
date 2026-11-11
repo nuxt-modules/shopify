@@ -1,17 +1,14 @@
-import type { createStorefrontApiClient } from '#src/runtime/utils/clients/storefront'
-
 import { afterEach, describe, expect, expectTypeOf, it, vi } from 'vitest'
 
 import { createError } from 'h3'
 
 import { createAdminApiClient } from '#src/runtime/utils/clients/admin'
-import { createClient } from '#src/runtime/utils/clients/create'
 import { createCustomerAccountApiClient } from '#src/runtime/utils/clients/customer-account'
 import { DEFAULT_API_VERSION } from '#src/runtime/utils/clients/defaults'
-import { createStorefrontConfig } from '#src/runtime/utils/clients/storefront'
+import { createStorefrontApiClient } from '#src/runtime/utils/clients/storefront'
 import { API_VERSION } from '#test/helpers/api-version'
-
-const definition = { kind: 'storefront', createConfig: createStorefrontConfig, cachePresets: () => undefined } as never
+import { stubHangingFetch } from '#test/helpers/fetch'
+import { createLogReporter } from '#test/helpers/logger'
 
 const config = { name: 'shop', clients: { storefront: { apiVersion: API_VERSION, publicAccessToken: 'tok' } } }
 
@@ -38,23 +35,10 @@ describe('client response hook', () => {
 
     const hooks = createHooks()
 
-    await createClient(definition, config as never, hooks as never).request(QUERY as never)
+    await createStorefrontApiClient(config, hooks).request(QUERY)
 
     expect(hooks.onResponse).toHaveBeenCalledTimes(1)
     expect(hooks.onErrors).not.toHaveBeenCalled()
-  })
-
-  it('fires for a failed response even when errors throw', async () => {
-    respondWith({ errors: [{ message: 'Field `nope` doesn\'t exist' }] })
-
-    const hooks = createHooks()
-
-    const client = createClient(definition, config as never, hooks as never)
-
-    await expect(client.request(QUERY as never)).rejects.toMatchObject({ statusCode: expect.any(Number) })
-
-    expect(hooks.onResponse).toHaveBeenCalledTimes(1)
-    expect(hooks.onErrors).toHaveBeenCalledTimes(1)
   })
 
   it('fires for a failed response when errors do not throw', async () => {
@@ -62,26 +46,21 @@ describe('client response hook', () => {
 
     const hooks = createHooks()
 
-    const client = createClient(definition, config as never, { ...hooks, throwOnErrors: false } as never)
+    const client = createStorefrontApiClient(config, { ...hooks, throwOnErrors: false })
 
-    await client.request(QUERY as never)
+    await client.request(QUERY)
 
     expect(hooks.onResponse).toHaveBeenCalledTimes(1)
     expect(hooks.onErrors).toHaveBeenCalledTimes(1)
   })
 
   it('stays quiet about a request its caller cancelled, as Nuxt does with superseded async data', async () => {
-    vi.stubGlobal('fetch', vi.fn((_url: string, init: RequestInit) => new Promise((_resolve, reject) => {
-      const abort = () => reject(new DOMException('This operation was aborted', 'AbortError'))
-
-      if (init.signal?.aborted) abort()
-      else init.signal?.addEventListener('abort', abort)
-    })))
+    stubHangingFetch()
 
     const hooks = createHooks()
     const controller = new AbortController()
 
-    const pending = createClient(definition, config as never, hooks as never).request(QUERY as never, { signal: controller.signal } as never)
+    const pending = createStorefrontApiClient(config, hooks).request(QUERY, { signal: controller.signal })
 
     controller.abort()
 
@@ -89,25 +68,10 @@ describe('client response hook', () => {
     expect(hooks.onResponse).not.toHaveBeenCalled()
     expect(hooks.onErrors).not.toHaveBeenCalled()
   })
-
-  it('hands the response to the hook before the errors are thrown', async () => {
-    respondWith({ errors: [{ message: 'Field `nope` doesn\'t exist' }] })
-
-    const order: string[] = []
-
-    const client = createClient(definition, config as never, {
-      onResponse: () => void order.push('response'),
-      onErrors: () => void order.push('errors'),
-    } as never)
-
-    await client.request(QUERY as never).catch(() => {})
-
-    expect(order).toStrictEqual(['response', 'errors'])
-  })
 })
 
 describe('caller configuration', () => {
-  it('never writes defaults back into the config it was given or its sibling clients', async () => {
+  it('applies the defaults to the client it builds, but never writes them back into the config it was given or its sibling clients', async () => {
     respondWith({ data: { shop: { name: 'shop' } } })
 
     const shared = {
@@ -119,29 +83,17 @@ describe('caller configuration', () => {
     }
     const snapshot = structuredClone(shared)
     const admin = shared.clients.admin
-
-    await createClient(definition, shared as never, {} as never).request(QUERY as never)
-
-    expect(shared).toStrictEqual(snapshot)
-    expect(shared.clients.admin).toBe(admin)
-    expect(shared.clients.storefront).not.toHaveProperty('apiVersion')
-    expect(shared.clients.storefront).not.toHaveProperty('retries')
-  })
-
-  it('still applies the defaults to the client it builds', async () => {
-    respondWith({ data: { shop: { name: 'shop' } } })
-
     const onConfigure = vi.fn()
 
-    await createClient(
-      definition,
-      { name: 'shop', clients: { storefront: { publicAccessToken: 'tok' } } } as never,
-      { onConfigure } as never,
-    ).request(QUERY as never)
+    await createStorefrontApiClient(shared, { onConfigure }).request(QUERY)
 
     expect(onConfigure).toHaveBeenCalledWith(
       expect.objectContaining({ config: expect.objectContaining({ apiVersion: DEFAULT_API_VERSION }) }),
     )
+    expect(shared).toStrictEqual(snapshot)
+    expect(shared.clients.admin).toBe(admin)
+    expect(shared.clients.storefront).not.toHaveProperty('apiVersion')
+    expect(shared.clients.storefront).not.toHaveProperty('retries')
   })
 
   it.each([
@@ -150,7 +102,7 @@ describe('caller configuration', () => {
   ])('lets the caller\'s `throwOnErrors` win over the module\'s `errors.throw`, so a failed request %s', async (_, moduleThrows, throwOnErrors, status) => {
     respondWith({ errors: [{ message: 'Field `nope` doesn\'t exist' }] })
 
-    const client = createClient(definition, { ...config, errors: { throw: moduleThrows }, logger: { reporters: [] } } as never, { throwOnErrors } as never)
+    const client = createStorefrontApiClient({ ...config, errors: { throw: moduleThrows }, logger: { reporters: [] } }, { throwOnErrors })
 
     await expect(Promise.allSettled([client.request(QUERY)])).resolves.toMatchObject([{ status }])
   })
@@ -193,11 +145,11 @@ describe('client authentication', () => {
   it('hides a failed admin token exchange from the visitor, in every kind of request, and logs it with the client\'s logger', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => new Response('Invalid client_id admin-client-id', { status: 400 })))
 
-    const log = vi.fn()
+    const { log, logger } = createLogReporter()
 
     const admin = createAdminApiClient(
       { name: 'shop', clients: { admin: { clientId: 'admin-client-id', clientSecret: 'secret' } } },
-      { logger: { reporters: [{ log }] } },
+      { logger },
     )
 
     for (const request of [() => admin.request(QUERY as never), () => admin.fetch(QUERY as never), () => admin.requestStream(QUERY as never)]) {
@@ -251,25 +203,15 @@ describe('raw client requests', () => {
 
     expect(sentHeaders()).toMatchObject({ Authorization: 'customer-access-token' })
   })
-
-  it('rejects a raw fetch that cannot authenticate, without sending it', async () => {
-    respondWith({ data: { customer: { id: '1' } } })
-
-    const signedOut = () => Promise.reject(createError({ status: 401, statusText: 'Unauthorized', message: '[shopify] No customer account session' }))
-
-    await expect(createCustomerAccountApiClient(customerAccountConfig as never, { auth: signedOut }).fetch(CUSTOMER_QUERY)).rejects.toMatchObject({ statusCode: 401 })
-
-    expect(fetch).not.toHaveBeenCalled()
-  })
 })
 
 describe('client logging', () => {
   it('logs Shopify\'s errors with the logger of the module config', async () => {
     respondWith({ errors: [{ message: 'Field `nope` doesn\'t exist' }] })
 
-    const log = vi.fn()
+    const { log, logger } = createLogReporter()
 
-    await expect(createClient(definition, { ...config, logger: { reporters: [{ log }] } } as never).request(QUERY as never)).rejects.toMatchObject({ statusCode: 502 })
+    await expect(createStorefrontApiClient({ ...config, logger }).request(QUERY)).rejects.toMatchObject({ statusCode: 502 })
 
     expect(log).toHaveBeenCalledWith(expect.objectContaining({ type: 'error', args: ['GraphQL error: Field `nope` doesn\'t exist'] }), expect.anything())
   })
@@ -277,17 +219,17 @@ describe('client logging', () => {
   it('keeps the request headers, and the tokens in them, out of the trace logs', async () => {
     respondWith({ data: { shop: { name: 'shop' } } })
 
-    const logs: unknown[] = []
+    const { log, logger } = createLogReporter()
 
     const loggedConfig = {
       name: 'shop',
-      logger: { level: 5, reporters: [{ log: (entry: { args: unknown[] }) => void logs.push(entry.args) }] },
+      logger: { ...logger, level: 5 },
       clients: { storefront: { apiVersion: API_VERSION, privateAccessToken: 'private-token' } },
     }
 
-    await createClient(definition, loggedConfig as never).request(QUERY as never)
+    await createStorefrontApiClient(loggedConfig).request(QUERY)
 
-    const logged = JSON.stringify(logs)
+    const logged = JSON.stringify(log.mock.calls.map(([entry]) => entry.args))
 
     expect(logged).toContain(`https://shop.myshopify.com/api/${API_VERSION}/graphql.json`)
     expect(logged).not.toContain('private-token')

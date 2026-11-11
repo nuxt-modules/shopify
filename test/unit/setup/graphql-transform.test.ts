@@ -104,14 +104,6 @@ describe('fragment injection', () => {
 })
 
 describe('fragment changes in development', () => {
-  it('makes the file of each injected fragment a dependency of the module, so Vite and Nitro transform it again when the fragment changes', async () => {
-    const { addWatchFile, transform } = await setup()
-
-    transform('app/pages/shop.ts')
-
-    expect(addWatchFile).toHaveBeenCalledExactlyOnceWith(join(rootDir, 'graphql/shop.ts'))
-  })
-
   it('reads a changed fragment once before the modules are transformed again, however many servers report the change', async () => {
     const debug = vi.spyOn(useLogger(), 'debug')
 

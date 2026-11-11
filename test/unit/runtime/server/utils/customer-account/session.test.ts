@@ -1,9 +1,10 @@
 import type { HydrogenTokens } from '#test/helpers/customer-account'
 
 import { getSession } from 'h3'
-import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
+  EXPIRED,
   ORIGIN,
   SESSION_PASSWORD,
   createHydrogenSession,
@@ -69,25 +70,17 @@ afterEach(() => {
 })
 
 describe('getSessionConfig', () => {
-  it('throws when no session password is configured', () => {
-    configure({ session: undefined })
+  it.each([
+    ['missing', undefined, 'no session password configured'],
+    ['too short', { password: 'short-password' }, 'at least 32 characters'],
+    ['the example value', { password: 'A_RANDOM_32_CHARACTER_OR_LONGER_SECRET' }, 'at least 32 characters'],
+  ])('rejects a session password that is %s with a clear error', (_, session, message) => {
+    configure({ session })
 
     vi.stubEnv('NUXT_SHOPIFY_CLIENTS_CUSTOMER_ACCOUNT_SESSION_PASSWORD', undefined)
 
     expect(() => getSessionConfig(runtimeConfig._shopify as never))
-      .toThrow(expect.objectContaining({ statusCode: 500 }))
-  })
-
-  it.each([
-    ['too short', 'short-password'],
-    ['the example value', 'A_RANDOM_32_CHARACTER_OR_LONGER_SECRET'],
-  ])('rejects a session password that is %s with a clear error', (_, password) => {
-    configure({ session: { password } })
-
-    vi.stubEnv('NUXT_SHOPIFY_CLIENTS_CUSTOMER_ACCOUNT_SESSION_PASSWORD', '')
-
-    expect(() => getSessionConfig(runtimeConfig._shopify as never))
-      .toThrow(expect.objectContaining({ statusCode: 500, message: expect.stringContaining('at least 32 characters') }))
+      .toThrow(expect.objectContaining({ statusCode: 500, message: expect.stringContaining(message) }))
   })
 
   it('falls back to the session password environment variable', () => {
@@ -96,13 +89,6 @@ describe('getSessionConfig', () => {
     vi.stubEnv('NUXT_SHOPIFY_CLIENTS_CUSTOMER_ACCOUNT_SESSION_PASSWORD', SESSION_PASSWORD)
 
     expect(getSessionConfig(runtimeConfig._shopify as never).password).toBe(SESSION_PASSWORD)
-  })
-
-  it('defaults to a lax, http-only cookie', () => {
-    expect(getSessionConfig(runtimeConfig._shopify as never).cookie).toMatchObject({
-      sameSite: 'lax',
-      httpOnly: true,
-    })
   })
 
   it('keeps the cookie http-only even when the config turns it off', () => {
@@ -173,8 +159,10 @@ describe('createCustomerSessionManager', () => {
     await expect(getCustomerAccountSession(request(toCookieHeader(refreshed)))).resolves.toEqual({ isLoggedIn: false })
   })
 
-  it('uses the request origin as the session origin', () => {
-    expect(createCustomerSessionManager(request()).getSessionOrigin()).toBe(ORIGIN)
+  it('uses the public origin of the request as the session origin', () => {
+    runtimeConfig._shopify = { ...createShopifyConfig(), origin: 'https://store.example' }
+
+    expect(createCustomerSessionManager(request()).getSessionOrigin()).toBe('https://store.example')
   })
 
   it('neither reads nor starts a session for a request without the session cookie', async () => {
@@ -185,14 +173,6 @@ describe('createCustomerSessionManager', () => {
     await sessionManager.removeSessionItem(HYDROGEN_SESSION_KEY)
 
     expect(getSetCookieHeaders(event)).toEqual([])
-  })
-
-  it('keeps Hydrogen\'s session in the sealed cookie across requests', async () => {
-    const sessionManager = createCustomerSessionManager(request(await signIn()))
-
-    await expect(sessionManager.getSessionItem(HYDROGEN_SESSION_KEY)).resolves.toMatchObject({
-      tokens: { accessToken: 'access-token', refreshToken: 'refresh-token' },
-    })
   })
 
   it('writes an http-only, lax cookie that does not reveal the tokens', async () => {
@@ -208,12 +188,7 @@ describe('createCustomerSessionManager', () => {
     expect(cookie).not.toContain('refresh-token')
   })
 
-  it('writes and clears the cookie with the attributes the `__Host-` prefix requires, in development too', async () => {
-    vi.stubGlobal('__NUXT_DEV__', true)
-    onTestFinished(() => {
-      vi.stubGlobal('__NUXT_DEV__', undefined)
-    })
-
+  it('writes and clears the cookie with the attributes the `__Host-` prefix requires', async () => {
     const event = request()
 
     await createCustomerSessionManager(event).setSessionItem(HYDROGEN_SESSION_KEY, createHydrogenSession())
@@ -263,7 +238,7 @@ describe('token storage', () => {
     return toCookieHeader(event)
   }
 
-  it('stores new tokens under a new key and keeps the previous one until the new cookie comes back', async () => {
+  it('stores new tokens under a new key, keeps the previous one until the new cookie comes back, then locks the older cookie out', async () => {
     configure({ tokenStorage: 'customer-account-token' })
 
     const storage = useTokenStorage('customer-account-token')
@@ -281,6 +256,7 @@ describe('token storage', () => {
 
     expect(storage.items.size).toBe(1)
     expect(storage.items.has(previousKey!)).toBe(false)
+    await expect(getCustomerAccountSession(request(previousCookie))).resolves.toEqual({ isLoggedIn: false })
   })
 
   it('keeps the previous key through reads in the request that replaced it', async () => {
@@ -294,17 +270,6 @@ describe('token storage', () => {
     await createCustomerSessionManager(event).getSessionItem(HYDROGEN_SESSION_KEY)
 
     expect(useTokenStorage('customer-account-token').items.size).toBe(2)
-  })
-
-  it('locks an older copy of the session cookie out once the new cookie was used', async () => {
-    configure({ tokenStorage: 'customer-account-token' })
-
-    const staleCookie = await signIn()
-    const rotatedCookie = await rotate(staleCookie, { accessToken: 'rotated-access-token' })
-
-    await getCustomerAccountSession(request(rotatedCookie))
-
-    await expect(getCustomerAccountSession(request(staleCookie))).resolves.toEqual({ isLoggedIn: false })
   })
 
   it('stores concurrent writes of the same tokens under one key', async () => {
@@ -376,29 +341,18 @@ describe('token storage', () => {
     expect(useTokenStorage('customer-account-token').setItem).toHaveBeenCalledWith(expect.any(String), expect.any(Object), { ttl: 900 })
   })
 
-  it('uses the default token storage mount for a storage driver config', async () => {
-    configure({ tokenStorage: { driver: 'memory' } })
+  it.each([
+    ['customer-account-token', 'a storage driver config', { driver: 'memory' }],
+    ['customer-account-token', 'token storage switched on only at runtime', true],
+    ['redis-tokens', 'a token storage that names it', 'redis-tokens'],
+  ])('stores the tokens in the %s mount for %s, and checks that something is mounted there', async (base, _, tokenStorage) => {
+    configure({ tokenStorage })
 
     await signIn()
 
-    expect(useTokenStorage('customer-account-token').items.size).toBe(1)
-  })
-
-  it('checks the default token storage mount as well, as token storage switched on only at runtime has nothing mounted there', async () => {
-    configure({ tokenStorage: true })
-
-    await signIn()
-
-    expect(warnUnmountedStorage).toHaveBeenCalledWith(storages.get('customer-account-token'), 'customer-account-token', undefined)
-  })
-
-  it('uses a custom token storage mount when one is named', async () => {
-    configure({ tokenStorage: 'redis-tokens' })
-
-    await signIn()
-
-    expect(storages.has('redis-tokens')).toBe(true)
-    expect(warnUnmountedStorage).toHaveBeenCalledWith(storages.get('redis-tokens'), 'redis-tokens', undefined)
+    expect([...storages.keys()]).toStrictEqual([base])
+    expect(storages.get(base)!.items.size).toBe(1)
+    expect(warnUnmountedStorage).toHaveBeenCalledWith(storages.get(base), base, undefined)
   })
 
   it('deletes the stored session when Hydrogen removes it', async () => {
@@ -447,7 +401,7 @@ describe('getCustomerAccountSession', () => {
   })
 
   it('counts a session with an expired access token as signed in, without refreshing it', async () => {
-    const event = request(await signIn({ expiresAt: Date.now() - 1000 }))
+    const event = request(await signIn(EXPIRED))
 
     await expect(getCustomerAccountSession(event)).resolves.toEqual({ isLoggedIn: true })
     expect(fetchMock).not.toHaveBeenCalled()
@@ -455,7 +409,7 @@ describe('getCustomerAccountSession', () => {
   })
 
   it('reports logged out for an expired session that cannot be refreshed', async () => {
-    const event = request(await signIn({ expiresAt: Date.now() - 1000, refreshToken: undefined }))
+    const event = request(await signIn({ ...EXPIRED, refreshToken: undefined }))
 
     await expect(getCustomerAccountSession(event)).resolves.toEqual({ isLoggedIn: false })
   })

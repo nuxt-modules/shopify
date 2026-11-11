@@ -68,32 +68,15 @@ describe('useCustomerAccount', () => {
     expect(getAccessToken).toHaveBeenCalledExactlyOnceWith(event)
   })
 
-  it('goes through the proxy in the browser, without a token of its own', () => {
+  it('goes through the proxy at the domain root in the browser, without a token of its own, even under an app base URL or after a prerendered landing page', () => {
     vi.stubGlobal('__NUXT_CLIENT__', true)
 
-    useCustomerAccount()
-
-    expect(lastOptions().origin).toBe('https://shop.test')
-    expect(lastOptions().auth).toBeUndefined()
-  })
-
-  it('keeps going through the proxy after a prerendered landing page', () => {
-    vi.stubGlobal('__NUXT_CLIENT__', true)
-
+    baseURL = '/shop/'
     payload.prerenderedAt = Date.now()
 
     useCustomerAccount()
 
     expect(lastOptions().origin).toBe('https://shop.test')
-  })
-
-  it('reaches the proxy at the domain root, next to the sign-in routes, even under an app base URL', () => {
-    vi.stubGlobal('__NUXT_CLIENT__', true)
-
-    baseURL = '/shop/'
-
-    useCustomerAccount()
-
-    expect(lastOptions().origin).toBe('https://shop.test')
+    expect(lastOptions().auth).toBeUndefined()
   })
 })

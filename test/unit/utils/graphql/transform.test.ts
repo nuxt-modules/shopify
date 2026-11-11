@@ -5,8 +5,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { FragmentRegistry } from '#src/utils/graphql/registry'
 
 import { findGraphqlLiterals } from '#src/utils/graphql/literals'
-import { scanDefinitions } from '#src/runtime/utils/graphql/scanner'
 import { createGraphqlTransformPlugin } from '#src/utils/graphql/transform'
+import { IMAGE, PRICE, PRODUCT, names } from '#test/helpers/graphql'
 import { createLoggerStub } from '#test/helpers/logger'
 
 const warnings: string[] = []
@@ -14,26 +14,6 @@ const warnings: string[] = []
 vi.mock('#src/utils/log', () => ({
   useLogger: () => createLoggerStub({ warn: (message: string) => void warnings.push(message) }),
 }))
-
-const IMAGE = `fragment ImageFields on Image {
-    url
-    altText
-  }`
-
-const PRICE = `fragment PriceFields on MoneyV2 {
-    amount
-    currencyCode
-  }`
-
-const PRODUCT = `fragment ProductFields on Product {
-    id
-    featuredImage {
-      ...ImageFields
-    }
-    price {
-      ...PriceFields
-    }
-  }`
 
 function registry(): FragmentRegistry {
   return {
@@ -60,17 +40,11 @@ beforeEach(() => {
   warnings.length = 0
 })
 
-const definitions = (code: string) => {
-  const literal = findGraphqlLiterals(code).at(0)!
-
-  return scanDefinitions(literal.content).map(definition => `${definition.kind}:${definition.name ?? '<anonymous>'}`)
-}
-
 describe('fragment injection', () => {
   it('gathers all fragments that another fragment or operation uses', () => {
     const code = 'const q = `#graphql\n  query FetchProduct {\n    product { ...ProductFields }\n  }\n`'
 
-    expect(definitions(transform(code)!)).toStrictEqual([
+    expect(names(findGraphqlLiterals(transform(code)!).at(0)!.content)).toStrictEqual([
       'operation:FetchProduct',
       'fragment:ImageFields',
       'fragment:PriceFields',
@@ -182,10 +156,6 @@ describe('transform plugin', () => {
 
   const run = (id: string) => plugin.transform.call(context, code, id)
 
-  it('transforms a plain script module', () => {
-    expect(run('/project/app/composables/product.ts')?.code).toContain('fragment ProductFields')
-  })
-
   it('makes the files of the injected fragments, nested ones included, dependencies of the module', () => {
     const watched = { addWatchFile: vi.fn() }
 
@@ -201,10 +171,6 @@ describe('transform plugin', () => {
     plugin.transform.call(watched, ownFragment, '/project/app/composables/product.ts')
 
     expect(watched.addWatchFile.mock.calls.flat().sort()).toStrictEqual(['graphql/product.ts', 'graphql/utils.ts'])
-  })
-
-  it('transforms a single file component', () => {
-    expect(run('/project/app/pages/product.vue')?.code).toContain('fragment ProductFields')
   })
 
   it('transforms the script block of a single file component and resolves fragments by its file path', () => {

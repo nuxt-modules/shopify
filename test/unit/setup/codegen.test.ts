@@ -112,26 +112,17 @@ describe('regenerating operation types in development', () => {
     expect(updateTemplates).not.toHaveBeenCalled()
   })
 
-  it('regenerates when the last operation is removed from a file it saw with GraphQL', async () => {
+  it.each([
+    ['the last operation is removed from a file it saw with GraphQL', 'change', (file: string) => writeFile(file, 'const query = undefined')],
+    ['a file with operations is deleted', 'unlink', (file: string) => rm(file)],
+  ])('regenerates when %s', async (_, event, edit) => {
     await project({ 'app/pages/index.vue': 'const query = `#graphql\n  query Shop { shop { name } }\n`' })
 
     await watch('change', join(rootDir, 'app/pages/index.vue'))
 
-    await writeFile(join(rootDir, 'app/pages/index.vue'), 'const query = undefined')
+    await edit(join(rootDir, 'app/pages/index.vue'))
 
-    await watch('change', join(rootDir, 'app/pages/index.vue'))
-
-    expect(updateTemplates).toHaveBeenCalledTimes(2)
-  })
-
-  it('regenerates when a file with operations is deleted', async () => {
-    await project({ 'app/pages/index.vue': 'const query = `#graphql\n  query Shop { shop { name } }\n`' })
-
-    await watch('change', join(rootDir, 'app/pages/index.vue'))
-
-    await rm(join(rootDir, 'app/pages/index.vue'))
-
-    await watch('unlink', join(rootDir, 'app/pages/index.vue'))
+    await watch(event, join(rootDir, 'app/pages/index.vue'))
 
     expect(updateTemplates).toHaveBeenCalledTimes(2)
   })

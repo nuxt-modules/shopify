@@ -101,28 +101,22 @@ describe('fragments from schema language files', () => {
 
 describe('fragment directories', () => {
   const dirs = [join('/project', 'graphql')]
+  const windowsDirs = ['C:\\project\\graphql']
 
-  it('matches a file inside a fragment directory', () => {
-    expect(within(dirs, join('/project', 'graphql', 'fragments', 'product.ts'))).toBe(true)
+  it.each([
+    ['a file inside a fragment directory', dirs, join('/project', 'graphql', 'fragments', 'product.ts')],
+    ['a fragment directory configured with a trailing slash', [join('/project', 'graphql/')], join('/project', 'graphql', 'product.ts')],
+    ['a Windows path with forward slashes, as Vite reports it', windowsDirs, 'C:/project/graphql/fragments/product.ts'],
+    ['a Windows path with native separators, as Nitro reports it', windowsDirs, 'C:\\project\\graphql\\fragments\\product.ts'],
+  ])('matches %s', (_, directories, path) => {
+    expect(within(directories, path)).toBe(true)
   })
 
-  it('ignores files outside the fragment directories', () => {
-    expect(within(dirs, join('/project', 'app', 'components', 'Product.vue'))).toBe(false)
-  })
-
-  it('does not match a sibling directory sharing the prefix', () => {
-    expect(within(dirs, join('/project', 'graphql-extra', 'product.ts'))).toBe(false)
-  })
-
-  it('matches a fragment directory configured with a trailing slash', () => {
-    expect(within([join('/project', 'graphql/')], join('/project', 'graphql', 'product.ts'))).toBe(true)
-  })
-
-  it('matches Windows paths in either separator style, as Vite reports forward slashes and Nitro native ones', () => {
-    const windowsDirs = ['C:\\project\\graphql']
-
-    expect(within(windowsDirs, 'C:/project/graphql/fragments/product.ts')).toBe(true)
-    expect(within(windowsDirs, 'C:\\project\\graphql\\fragments\\product.ts')).toBe(true)
-    expect(within(windowsDirs, 'C:/project/graphql-extra/product.ts')).toBe(false)
+  it.each([
+    ['a file outside the fragment directories', dirs, join('/project', 'app', 'components', 'Product.vue')],
+    ['a sibling directory sharing the prefix', dirs, join('/project', 'graphql-extra', 'product.ts')],
+    ['a Windows sibling directory sharing the prefix', windowsDirs, 'C:/project/graphql-extra/product.ts'],
+  ])('does not match %s', (_, directories, path) => {
+    expect(within(directories, path)).toBe(false)
   })
 })

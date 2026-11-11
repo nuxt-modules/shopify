@@ -92,21 +92,13 @@ afterAll(() => {
 })
 
 describe('document routing', () => {
-  it('keeps admin operations out of the storefront types', async () => {
+  it('keeps admin operations and operations in a nested dependency folder out of the storefront types', async () => {
     const nuxt = createNuxt()
     const contents = await generateOperations(nuxt, ShopifyClientType.Storefront)
 
     expect(getGenerateFailures(nuxt as never)).toEqual([])
     expect(contents).toContain('export type ShopNameQuery =')
     expect(contents).not.toContain('AdminCustomersQuery')
-  }, CODEGEN_TIMEOUT)
-
-  it('leaves out operations in a nested dependency folder', async () => {
-    const nuxt = createNuxt()
-    const contents = await generateOperations(nuxt, ShopifyClientType.Storefront)
-
-    expect(getGenerateFailures(nuxt as never)).toEqual([])
-    expect(contents).toContain('export type ShopNameQuery =')
     expect(contents).not.toContain('DependencyShopQuery')
   }, CODEGEN_TIMEOUT)
 

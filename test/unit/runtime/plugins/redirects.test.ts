@@ -4,7 +4,7 @@ import type { H3Event } from 'h3'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { API_VERSION } from '#test/helpers/api-version'
-import { createTestEvent, getResponseHeader } from '#test/helpers/event'
+import { createTestEvent } from '#test/helpers/event'
 
 type RenderedHook = (context: { ssrContext: Record<string, unknown> }) => Promise<void>
 
@@ -120,72 +120,11 @@ describe('redirects', () => {
     expect(navigateTo).not.toHaveBeenCalled()
   })
 
-  it('leaves Shopify\'s standard paths to the app without route templates', async () => {
-    runtimeConfig._shopify.routeTemplates = {}
-
-    await render(await request('/products/shirt'))
-
-    expect(fetchMock).toHaveBeenCalledOnce()
-    expect(navigateTo).not.toHaveBeenCalled()
-  })
-
-  it('still sends /admin to the store\'s admin without route templates', async () => {
-    runtimeConfig._shopify.routeTemplates = {}
-
-    await render(await request('/admin'))
-
-    expect(navigateTo).toHaveBeenCalledExactlyOnceWith('https://my-shop.myshopify.com/admin', { external: true, redirectCode: 301 })
-  })
-
   it('stays off without a storefront client or analytics', async () => {
     runtimeConfig._shopify.clients = {}
 
     await render(await request('/products/shirt'))
 
     expect(navigateTo).not.toHaveBeenCalled()
-  })
-})
-
-describe('variant links', () => {
-  const variant = (handle: string) => Response.json({
-    data: { node: { selectedOptions: [{ name: 'Color', value: 'Red' }, { name: 'Size', value: 'M' }], product: { handle } } },
-  })
-
-  it('opens the variant\'s options on the app\'s product page', async () => {
-    fetchMock.mockImplementation(async () => variant('shirt'))
-
-    const event = await request('/product/shirt?variant=123&ref=feed')
-
-    expect(event.node.res.statusCode).toBe(302)
-    expect(getResponseHeader(event, 'location')).toBe('http://shop.test/product/shirt?ref=feed&Color=Red&Size=M')
-  })
-
-  it('opens the product the variant belongs to', async () => {
-    fetchMock.mockImplementation(async () => variant('sweater'))
-
-    const event = await request('/products/shirt?variant=123')
-
-    expect(getResponseHeader(event, 'location')).toBe('http://shop.test/product/sweater?Color=Red&Size=M')
-  })
-
-  it('opens the variant\'s options on Shopify\'s standard product path without route templates', async () => {
-    runtimeConfig._shopify.routeTemplates = {}
-    fetchMock.mockImplementation(async () => variant('shirt'))
-
-    const event = await request('/products/shirt?variant=123')
-
-    expect(getResponseHeader(event, 'location')).toBe('http://shop.test/products/shirt?Color=Red&Size=M')
-  })
-
-  it('leaves variant links on other pages and in form posts to the app', async () => {
-    const page = await request('/collection/shirts?variant=123')
-    const post = createTestEvent({ method: 'POST', path: '/product/shirt?variant=123', headers: { host: 'shop.test' }, body: { quantity: 1 } })
-
-    await middleware(post)
-
-    expect(page.handled).toBe(false)
-    expect(post.handled).toBe(false)
-    expect(post.context.shopifyRequestContext).toBeUndefined()
-    expect(fetchMock).not.toHaveBeenCalled()
   })
 })

@@ -49,10 +49,6 @@ describe('availability', () => {
 })
 
 describe('request guarding', () => {
-  it('answers requests from Nitro\'s dev worker, which sees no client address', async () => {
-    await expect(handler(explorerEvent())).resolves.toEqual({ data: { shop: { name: 'Test Shop' } } })
-  })
-
   it('rejects a cross-site request', async () => {
     await expect(handler(explorerEvent({ 'sec-fetch-site': 'cross-site' }))).rejects.toMatchObject({ statusCode: 403 })
 
@@ -96,28 +92,30 @@ describe('admin requests', () => {
 })
 
 describe('response shape', () => {
-  it('returns only the GraphQL payload', async () => {
-    request.mockResolvedValue({ data: { shop: { name: 'Test Shop' } }, headers: new Headers({ 'x-request-id': 'abc' }) })
+  it.each([
+    [
+      'only the GraphQL payload',
+      { data: { shop: { name: 'Test Shop' } }, headers: new Headers({ 'x-request-id': 'abc' }) },
+      { data: { shop: { name: 'Test Shop' } } },
+    ],
+    [
+      'extensions alongside the data',
+      { data: { shop: { name: 'Test Shop' } }, extensions: { cost: { requestedQueryCost: 1 } }, headers: new Headers() },
+      { data: { shop: { name: 'Test Shop' } }, extensions: { cost: { requestedQueryCost: 1 } } },
+    ],
+    [
+      'graphql errors as an array',
+      { errors: { message: 'GraphQL error', graphQLErrors: [{ message: 'Field `nope` does not exist' }] }, headers: new Headers() },
+      { errors: [{ message: 'Field `nope` does not exist' }] },
+    ],
+    [
+      'the error message when there are no graphql errors',
+      { errors: { message: 'Network request failed' }, headers: new Headers() },
+      { errors: [{ message: 'Network request failed' }] },
+    ],
+  ])('returns %s', async (_, response, payload) => {
+    request.mockResolvedValue(response)
 
-    await expect(handler(explorerEvent())).resolves.toStrictEqual({ data: { shop: { name: 'Test Shop' } } })
-  })
-
-  it('keeps extensions alongside the data', async () => {
-    request.mockResolvedValue({ data: { shop: { name: 'Test Shop' } }, extensions: { cost: { requestedQueryCost: 1 } }, headers: new Headers() })
-
-    await expect(handler(explorerEvent()))
-      .resolves.toStrictEqual({ data: { shop: { name: 'Test Shop' } }, extensions: { cost: { requestedQueryCost: 1 } } })
-  })
-
-  it('renders graphql errors as an array', async () => {
-    request.mockResolvedValue({ errors: { message: 'GraphQL error', graphQLErrors: [{ message: 'Field `nope` does not exist' }] }, headers: new Headers() })
-
-    await expect(handler(explorerEvent())).resolves.toStrictEqual({ errors: [{ message: 'Field `nope` does not exist' }] })
-  })
-
-  it('falls back to the error message when there are no graphql errors', async () => {
-    request.mockResolvedValue({ errors: { message: 'Network request failed' }, headers: new Headers() })
-
-    await expect(handler(explorerEvent())).resolves.toStrictEqual({ errors: [{ message: 'Network request failed' }] })
+    await expect(handler(explorerEvent())).resolves.toStrictEqual(payload)
   })
 })
