@@ -10,7 +10,7 @@ import { CUSTOMER_ACCOUNT_PROXY_ROUTE, createApiUrl } from '../runtime/utils/cli
 
 export const ADMIN_PROXY_ROUTE = '/_explorer/proxy/admin'
 
-const LOCAL_HOSTNAMES = ['localhost', '127.0.0.1', '[::1]', '::1', 'local.tryhydrogen.dev']
+const LOCAL_HOSTNAMES = ['localhost', '127.0.0.1', '[::1]', 'local.tryhydrogen.dev']
 
 const LOOPBACK_ADDRESS = /^(?:127(?:\.\d{1,3}){3}|::1|::ffff:127(?:\.\d{1,3}){3})$/
 

@@ -21,7 +21,7 @@ const clientSetups: Record<ShopifyClientType, (nuxt: Nuxt, config: ShopifyConfig
 export default function setupClients(nuxt: Nuxt, config: ShopifyConfig, resolver: Resolver) {
   const logger = useLogger()
 
-  for (const clientType of getConfiguredClients(config)) {
+  for (const { clientType } of getConfiguredClients(config)) {
     logger.debug(`Setting up the ${kebabCase(clientType)} client`)
 
     clientSetups[clientType](nuxt, config, resolver)

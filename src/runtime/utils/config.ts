@@ -39,13 +39,13 @@ function getDefaultDocuments(name: string, { exclude }: { exclude?: boolean } = 
   const fileEndings = ['gql', 'graphql', 'ts', 'js', ...(name !== ShopifyClientType.Admin ? ['vue'] : [])].join(',')
 
   return [
-    `${exclude ? '!' : ''}**/*.${kebabName}.{${fileEndings}}`,
-    `${exclude ? '!' : ''}**/${kebabName}.{${fileEndings}}`,
-    `${exclude ? '!' : ''}**/*.${kebabName}.{${routeMethods}}.{ts,js}`,
-    `${exclude ? '!' : ''}**/${kebabName}.{${routeMethods}}.{ts,js}`,
-    `${exclude ? '!' : ''}**/${kebabName}/**/*.{${fileEndings}}`,
-    `${exclude ? '!' : ''}**/${kebabName}/*.{${fileEndings}}`,
-  ]
+    `**/*.${kebabName}.{${fileEndings}}`,
+    `**/${kebabName}.{${fileEndings}}`,
+    `**/*.${kebabName}.{${routeMethods}}.{ts,js}`,
+    `**/${kebabName}.{${routeMethods}}.{ts,js}`,
+    `**/${kebabName}/**/*.{${fileEndings}}`,
+    `**/${kebabName}/*.{${fileEndings}}`,
+  ].map(glob => exclude ? `!${glob}` : glob)
 }
 
 export const IGNORED_DIRS = ['node_modules', 'dist', '.nuxt', '.output']

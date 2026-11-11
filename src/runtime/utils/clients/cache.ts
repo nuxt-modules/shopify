@@ -14,6 +14,12 @@ import { SERVER_CACHE_HEADER } from './transport'
 
 type CachePresets = Record<string, CacheOptions>
 
+type RequestCache = {
+  storage?: Storage<StorageValue>
+  presets?: CachePresets
+  serverCache: boolean
+}
+
 export const MUTATION = /\bmutation\b/
 
 function fromPreset(name: string, cachePresets?: CachePresets) {
@@ -81,15 +87,13 @@ export async function requestWithCache<
   Operations extends AllOperations,
   Cache extends boolean | undefined,
 >(
-  storage: Storage<StorageValue> | undefined,
+  { storage, presets, serverCache }: RequestCache,
   request: ShopifyApiClientRequest<Operations, Cache>,
   operation: Operation,
   options?: ShopifyApiClientRequestOptions<Operation, Operations, Cache>,
-  cachePresets?: CachePresets,
-  withServerCache = true,
 ): Promise<ClientResponse<ReturnData<Operation, Operations>>> {
-  const browserCacheOptions = storage && !MUTATION.test(operation as string) ? getBrowserCacheOptions(options, cachePresets) : undefined
-  const serverCacheHeaders = withServerCache ? getServerCacheHeaders(options) : undefined
+  const browserCacheOptions = storage && !MUTATION.test(operation as string) ? getBrowserCacheOptions(options, presets) : undefined
+  const serverCacheHeaders = serverCache ? getServerCacheHeaders(options) : undefined
 
   const cacheKey = storage && browserCacheOptions ? createCacheKey(operation, options) : undefined
 

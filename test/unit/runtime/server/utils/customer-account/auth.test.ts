@@ -25,12 +25,12 @@ vi.mock('#imports', async () => ({
 }))
 
 vi.mock('nitropack/runtime', () => ({
-  getRouteRules: () => ({}),
+  getRouteRules: (event: { context: { _nitro?: { routeRules?: object } } }) => event.context._nitro?.routeRules ?? {},
   useNitroApp: () => ({ hooks }),
   useStorage: vi.fn(),
 }))
 
-const { getValidCustomerAccessToken } = await import('#src/runtime/server/utils/customer-account/auth')
+const { customerAccountContext, getValidCustomerAccessToken } = await import('#src/runtime/server/utils/customer-account/auth')
 const { getCustomerAccountSession } = await import('#src/runtime/server/utils/customer-account/session')
 
 const TOKEN_URL = `https://shopify.com/authentication/${SHOP_ID}/oauth/token`
@@ -114,6 +114,17 @@ describe('getValidCustomerAccessToken', () => {
     expect(hooks.callHook).toHaveBeenCalledExactlyOnceWith('shopify:customer-account:auth:refresh', { event })
   })
 
+  it('refreshes an expired token once for all queries of a request, and calls the refresh hook once', async () => {
+    respondWithTokens()
+
+    const event = request(await signIn(EXPIRED))
+
+    await expect(Promise.all([getValidCustomerAccessToken(event), getValidCustomerAccessToken(event)])).resolves.toEqual(['fresh-access-token', 'fresh-access-token'])
+
+    expect(fetchMock).toHaveBeenCalledOnce()
+    expect(hooks.callHook).toHaveBeenCalledOnce()
+  })
+
   it('signs the customer out when Shopify rejects the refresh token', async () => {
     fetchMock.mockResolvedValue(new Response(null, { status: 400 }))
 
@@ -134,5 +145,19 @@ describe('getValidCustomerAccessToken', () => {
 
     await expect(getValidCustomerAccessToken(event)).rejects.toMatchObject({ statusCode: 401 })
     await expect(getCustomerAccountSession(request(toCookieHeader(event)))).resolves.toEqual({ isLoggedIn: true })
+  })
+})
+
+describe('customerAccountContext', () => {
+  it('reads the session of the request it renders', async () => {
+    await expect(customerAccountContext.getSession(request(await signIn()))).resolves.toEqual({ isLoggedIn: true })
+  })
+
+  it('leaves the session of a page cached by its route rule unknown, so the browser reads it after hydration', async () => {
+    const event = request(await signIn())
+
+    event.context._nitro = { routeRules: { cache: { swr: true, maxAge: 60 } } }
+
+    await expect(customerAccountContext.getSession(event)).resolves.toBeNull()
   })
 })

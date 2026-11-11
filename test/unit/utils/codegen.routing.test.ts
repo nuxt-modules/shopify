@@ -4,10 +4,10 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { buildSchema, introspectionFromSchema } from 'graphql'
 import { kebabCase } from 'scule'
-import { afterAll, beforeAll, beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it, onTestFinished, vi } from 'vitest'
 
 import { ShopifyClientType, configObjectSchema } from '#src/schemas'
-import { clearGenerateFailures, createOperationsGenerator, createTypesGenerator, getGenerateFailures } from '#src/utils/codegen'
+import { createOperationsGenerator, createTypesGenerator, getGenerateFailures } from '#src/utils/codegen'
 import { API_VERSION } from '#test/helpers/api-version'
 
 const HYDROGEN_STOREFRONT_SCHEMA = fileURLToPath(import.meta.resolve('@shopify/hydrogen/storefront.schema.json'))
@@ -49,28 +49,31 @@ function introspectionFile(clientType: ShopifyClientType) {
   return `.nuxt/shopify/schema/${kebabCase(clientType)}.${API_VERSION}.schema.json`
 }
 
-function operationsData(clientType: ShopifyClientType) {
-  const client = kebabCase(clientType)
-  const documents = shippedConfig.clients[clientType]!.documents!
-
-  return {
-    nuxt: {
-      options: { dev: false, _prepare: false, rootDir: root },
-      callHook: vi.fn(() => Promise.resolve()),
-    },
-    options: {
-      filename: `shopify/${client}/${client}.operations.d.ts`,
-      shopName: 'test-shop',
-      clientType,
-      clientConfig: { apiVersion: API_VERSION, documents, codegen: { globalTypes: false } },
-    },
-  } as never
+function createNuxt(rootDir = root, callHook = vi.fn((_hook: string, _payload: unknown) => Promise.resolve())) {
+  return { options: { dev: false, _prepare: false, rootDir, srcDir: rootDir, _layers: [] }, callHook, hook: vi.fn() }
 }
 
 function storedSchema(clientType: ShopifyClientType) {
-  const schema = join(root, introspectionFile(clientType))
+  return () => Promise.resolve(join(root, introspectionFile(clientType)))
+}
 
-  return { getSchema: () => Promise.resolve(schema) }
+function generateOperations(nuxt: ReturnType<typeof createNuxt>, clientType: ShopifyClientType) {
+  const client = kebabCase(clientType)
+  const documents = shippedConfig.clients[clientType]!.documents!
+
+  return createOperationsGenerator(nuxt as never, {
+    shopName: 'test-shop',
+    clientType,
+    clientConfig: { apiVersion: API_VERSION, documents, codegen: { globalTypes: false } },
+  } as never, `shopify/${client}/${client}.operations.d.ts`, storedSchema(clientType))()
+}
+
+function generateAdminTypes(nuxt: ReturnType<typeof createNuxt>) {
+  return createTypesGenerator(nuxt as never, {
+    shopName: 'test-shop',
+    clientType: ShopifyClientType.Admin,
+    clientConfig: { apiVersion: API_VERSION, codegen: { globalTypes: false } },
+  } as never, 'shopify/admin/admin.types.d.ts', storedSchema(ShopifyClientType.Admin))()
 }
 
 beforeAll(() => {
@@ -88,34 +91,30 @@ afterAll(() => {
   rmSync(root, { recursive: true, force: true })
 })
 
-beforeEach(() => {
-  clearGenerateFailures()
-})
-
 describe('document routing', () => {
   it('keeps admin operations out of the storefront types', async () => {
-    const generateOperations = createOperationsGenerator(storedSchema(ShopifyClientType.Storefront))!
-    const contents = await generateOperations(operationsData(ShopifyClientType.Storefront))
+    const nuxt = createNuxt()
+    const contents = await generateOperations(nuxt, ShopifyClientType.Storefront)
 
-    expect(getGenerateFailures()).toEqual([])
+    expect(getGenerateFailures(nuxt as never)).toEqual([])
     expect(contents).toContain('export type ShopNameQuery =')
     expect(contents).not.toContain('AdminCustomersQuery')
   }, CODEGEN_TIMEOUT)
 
   it('leaves out operations in a nested dependency folder', async () => {
-    const generateOperations = createOperationsGenerator(storedSchema(ShopifyClientType.Storefront))!
-    const contents = await generateOperations(operationsData(ShopifyClientType.Storefront))
+    const nuxt = createNuxt()
+    const contents = await generateOperations(nuxt, ShopifyClientType.Storefront)
 
-    expect(getGenerateFailures()).toEqual([])
+    expect(getGenerateFailures(nuxt as never)).toEqual([])
     expect(contents).toContain('export type ShopNameQuery =')
     expect(contents).not.toContain('DependencyShopQuery')
   }, CODEGEN_TIMEOUT)
 
   it('types admin operations against the admin schema only', async () => {
-    const generateOperations = createOperationsGenerator(storedSchema(ShopifyClientType.Admin))!
-    const contents = await generateOperations(operationsData(ShopifyClientType.Admin))
+    const nuxt = createNuxt()
+    const contents = await generateOperations(nuxt, ShopifyClientType.Admin)
 
-    expect(getGenerateFailures()).toEqual([])
+    expect(getGenerateFailures(nuxt as never)).toEqual([])
     expect(contents).toContain('export type AdminCustomersQuery =')
     expect(contents).not.toContain('ShopNameQuery')
   }, CODEGEN_TIMEOUT)
@@ -137,17 +136,7 @@ describe('codegen plugins', () => {
       rmSync(app, { recursive: true, force: true })
     })
 
-    const generateTypes = createTypesGenerator(storedSchema(ShopifyClientType.Admin))!
-
-    const contents = await generateTypes({
-      nuxt: { options: { dev: false, _prepare: false, rootDir: app }, callHook: vi.fn(() => Promise.resolve()) },
-      options: {
-        filename: 'shopify/admin/admin.types.d.ts',
-        shopName: 'test-shop',
-        clientType: ShopifyClientType.Admin,
-        clientConfig: { apiVersion: API_VERSION, codegen: { globalTypes: false } },
-      },
-    } as never)
+    const contents = await generateAdminTypes(createNuxt(app))
 
     expect(contents).not.toContain('FromTheApp')
     expect(contents).toContain('export type Customer =')
@@ -165,26 +154,15 @@ describe('codegen plugins', () => {
       rmSync(app, { recursive: true, force: true })
     })
 
-    const generateTypes = createTypesGenerator(storedSchema(ShopifyClientType.Admin))!
+    const nuxt = createNuxt(app, vi.fn((_hook: string, { config }: { config: { plugins: unknown[] } }) => {
+      config.plugins.push('app-banner')
 
-    const contents = await generateTypes({
-      nuxt: {
-        options: { dev: false, _prepare: false, rootDir: app },
-        callHook: vi.fn((_hook: string, { config }: { config: { plugins: unknown[] } }) => {
-          config.plugins.push('app-banner')
+      return Promise.resolve()
+    }) as never)
 
-          return Promise.resolve()
-        }),
-      },
-      options: {
-        filename: 'shopify/admin/admin.types.d.ts',
-        shopName: 'test-shop',
-        clientType: ShopifyClientType.Admin,
-        clientConfig: { apiVersion: API_VERSION, codegen: { globalTypes: false } },
-      },
-    } as never)
+    const contents = await generateAdminTypes(nuxt)
 
-    expect(getGenerateFailures()).toEqual([])
+    expect(getGenerateFailures(nuxt as never)).toEqual([])
     expect(contents).toContain('export type FromTheAppPlugin = true')
     expect(contents).toContain('export type Customer =')
   }, CODEGEN_TIMEOUT)

@@ -7,8 +7,6 @@ function isCrossOrigin(event: H3Event): boolean {
 
   if (!origin) return false
 
-  if (origin === 'null') return true
-
   try {
     return new URL(origin).host !== getRequestHost(event, { xForwardedHost: true })
   }
@@ -17,7 +15,7 @@ function isCrossOrigin(event: H3Event): boolean {
   }
 }
 
-export function assertSameSite(event: H3Event) {
+export function assertSameOrigin(event: H3Event) {
   const site = getRequestHeader(event, 'sec-fetch-site')
 
   const allowed = site ? site === 'same-origin' || site === 'none' : !isCrossOrigin(event)

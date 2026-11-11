@@ -40,7 +40,7 @@ export function within(dirs: string[], path: string) {
   })
 }
 
-function createRegistry(): FragmentRegistry {
+export function createRegistry(): FragmentRegistry {
   return { files: new Set(), fragments: new Map(), provides: new Map() }
 }
 

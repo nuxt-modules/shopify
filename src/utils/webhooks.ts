@@ -49,10 +49,10 @@ const SUBSCRIPTION_FIELDS = `
 const toInput = (configured: ConfiguredSubscription) => ({
   uri: configured.uri,
   format: configured.format,
-  filter: configured.filter,
-  includeFields: configured.includeFields,
-  metafieldNamespaces: configured.metafieldNamespaces,
-  metafields: configured.metafields,
+  filter: configured.filter ?? null,
+  includeFields: configured.includeFields ?? null,
+  metafieldNamespaces: configured.metafieldNamespaces ?? null,
+  metafields: configured.metafields ?? null,
 })
 
 function sameList(left: readonly string[] = [], right: readonly string[] = []) {
@@ -84,7 +84,7 @@ const fetchSubscriptions = async (client: AdminApiClient) => {
   let after: string | undefined
 
   do {
-    const { data, errors } = await client.request(`#graphql
+    const { data } = await client.request(`#graphql
       query GetWebhookSubscriptions($first: Int!, $after: String) {
         webhookSubscriptions(first: $first, after: $after) {
           edges {
@@ -105,10 +105,6 @@ const fetchSubscriptions = async (client: AdminApiClient) => {
       },
     })
 
-    if (errors) {
-      throw new Error(`[shopify] Failed to fetch webhook subscriptions: ${JSON.stringify(errors, null, 2)}`)
-    }
-
     subscriptions.push(...flattenConnection<WebhookSubscription>(data?.webhookSubscriptions))
 
     const pageInfo = data?.webhookSubscriptions?.pageInfo
@@ -120,7 +116,7 @@ const fetchSubscriptions = async (client: AdminApiClient) => {
 }
 
 const createSubscription = async (client: AdminApiClient, configured: ConfiguredSubscription) => {
-  const { data, errors } = await client.request(`#graphql
+  const { data } = await client.request(`#graphql
     mutation WebhookSubscriptionCreate(
       $topic: WebhookSubscriptionTopic!,
       $webhookSubscription: WebhookSubscriptionInput!
@@ -145,10 +141,6 @@ const createSubscription = async (client: AdminApiClient, configured: Configured
     },
   })
 
-  if (errors) {
-    throw new Error(`[shopify] Failed to create webhook subscription: ${JSON.stringify(errors, null, 2)}`)
-  }
-
   if (data?.webhookSubscriptionCreate.userErrors.length) {
     throw new Error(`[shopify] Failed to create webhook subscription: ${JSON.stringify(data.webhookSubscriptionCreate.userErrors, null, 2)}`)
   }
@@ -157,7 +149,7 @@ const createSubscription = async (client: AdminApiClient, configured: Configured
 }
 
 const updateSubscription = async (client: AdminApiClient, id: string, configured: ConfiguredSubscription) => {
-  const { data, errors } = await client.request(`#graphql
+  const { data } = await client.request(`#graphql
     mutation WebhookSubscriptionUpdate(
       $id: ID!,
       $webhookSubscription: WebhookSubscriptionInput!
@@ -182,10 +174,6 @@ const updateSubscription = async (client: AdminApiClient, id: string, configured
     },
   })
 
-  if (errors) {
-    throw new Error(`[shopify] Failed to update webhook subscription: ${JSON.stringify(errors, null, 2)}`)
-  }
-
   if (data?.webhookSubscriptionUpdate.userErrors.length) {
     throw new Error(`[shopify] Failed to update webhook subscription: ${JSON.stringify(data.webhookSubscriptionUpdate.userErrors, null, 2)}`)
   }
@@ -194,7 +182,7 @@ const updateSubscription = async (client: AdminApiClient, id: string, configured
 }
 
 const deleteSubscription = async (client: AdminApiClient, id: string) => {
-  const { data, errors } = await client.request(`#graphql
+  const { data } = await client.request(`#graphql
     mutation WebhookSubscriptionDelete($id: ID!) {
       webhookSubscriptionDelete(id: $id) {
         deletedWebhookSubscriptionId
@@ -209,10 +197,6 @@ const deleteSubscription = async (client: AdminApiClient, id: string) => {
       id,
     },
   })
-
-  if (errors) {
-    throw new Error(`[shopify] Failed to delete webhook subscription: ${JSON.stringify(errors, null, 2)}`)
-  }
 
   if (data?.webhookSubscriptionDelete.userErrors.length) {
     throw new Error(`[shopify] Failed to delete webhook subscription: ${JSON.stringify(data.webhookSubscriptionDelete.userErrors, null, 2)}`)
@@ -239,13 +223,13 @@ export const getShopifyConfig = async () => {
 }
 
 export const getSubscribedWebhooks = async (config: ShopifyConfig) => {
-  const client = createAdminApiClient(config)
+  const client = createAdminApiClient(config, { throwOnErrors: true })
 
   return await fetchSubscriptions(client)
 }
 
 export const subscribeWebhooks = async (config: ShopifyConfig) => {
-  const client = createAdminApiClient(config)
+  const client = createAdminApiClient(config, { throwOnErrors: true })
 
   const subscriptions = await fetchSubscriptions(client)
 
@@ -273,7 +257,7 @@ export const subscribeWebhooks = async (config: ShopifyConfig) => {
 }
 
 export const unsubscribeWebhooks = async (config: ShopifyConfig) => {
-  const client = createAdminApiClient(config)
+  const client = createAdminApiClient(config, { throwOnErrors: true })
 
   const subscriptions = await fetchSubscriptions(client)
 

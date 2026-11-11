@@ -3,7 +3,7 @@ import type { AllOperations, OperationVariables } from '@shopify/graphql-client'
 import type { MaybeRef, MaybeRefOrGetter } from 'vue'
 
 import type { AsyncData, AsyncDataOptions, NuxtError } from '#app'
-import type { ShopifyApiClient, ShopifyApiClientRequestOptions } from '../../../module'
+import type { ShopifyApiClient, ShopifyApiClientRequestOptions } from '../../module'
 
 import { hash } from 'ohash'
 import { unref } from 'vue'
@@ -47,43 +47,14 @@ export type ShopifyAsyncData<ResT, Options, NuxtErrorDataT = unknown> = AsyncDat
   (NuxtErrorDataT extends Error | NuxtError ? NuxtErrorDataT : NuxtError<NuxtErrorDataT>) | null | undefined
 >
 
-type AsyncDataArguments<Operation, Options> = {
-  key?: MaybeRefOrGetter<string>
-  operation: Operation
-  options?: Options
-  autoKey?: string
-}
-
 const isOperation = (value: unknown): value is string => typeof value === 'string' && value.includes('{')
 
-function parseAsyncDataArguments<Operation, Options>(args: unknown[]): AsyncDataArguments<Operation, Options> {
-  const asKey = (value: unknown) => value as MaybeRefOrGetter<string>
-  const asOperation = (value: unknown) => value as Operation
-  const asOptions = (value: unknown) => value as Options | undefined
+function parseAsyncDataArguments<Operation, Options>(input: unknown[]) {
+  const args = [...input]
+  const autoKey = args.length > 1 && typeof args.at(-1) === 'string' && !isOperation(args.at(-1)) ? args.pop() as string : undefined
+  const [key, operation, options] = isOperation(args[0]) ? [undefined, ...args] : args
 
-  if (args.length >= 4) {
-    return { key: asKey(args[0]), operation: asOperation(args[1]), options: asOptions(args[2]), autoKey: args[3] as string }
-  }
-
-  if (args.length === 3) {
-    if (typeof args[2] !== 'string') {
-      return { key: asKey(args[0]), operation: asOperation(args[1]), options: asOptions(args[2]) }
-    }
-
-    return isOperation(args[1])
-      ? { key: asKey(args[0]), operation: asOperation(args[1]), autoKey: args[2] }
-      : { operation: asOperation(args[0]), options: asOptions(args[1]), autoKey: args[2] }
-  }
-
-  if (args.length === 2) {
-    if (isOperation(args[1])) return { key: asKey(args[0]), operation: asOperation(args[1]) }
-
-    return typeof args[1] === 'string'
-      ? { operation: asOperation(args[0]), autoKey: args[1] }
-      : { operation: asOperation(args[0]), options: asOptions(args[1]) }
-  }
-
-  return { operation: asOperation(args[0]) }
+  return { key: key as MaybeRefOrGetter<string> | undefined, operation: operation as Operation, options: options as Options | undefined, autoKey }
 }
 
 export function useClientAsyncData<Operations extends AllOperations, Cache extends boolean | undefined>(

@@ -6,7 +6,8 @@ import { defu } from 'defu'
 import { resolveModulePath } from 'exsolve'
 import { describe, expect, it, vi } from 'vitest'
 
-import { CUSTOMER_ACCOUNT_ROUTES, STOREFRONT_ROUTES } from '#src/utils/routes'
+import { CUSTOMER_ACCOUNT_ROUTES } from '#src/runtime/utils/session'
+import { STOREFRONT_ROUTES } from '#src/utils/routes'
 import { API_VERSION } from '#test/helpers/api-version'
 import { createTestEvent } from '#test/helpers/event'
 

@@ -6,7 +6,7 @@ import { addTemplate } from '@nuxt/kit'
 import { relative } from 'pathe'
 
 import { ShopifyClientType } from '../schemas'
-import { DOCUMENT_ROUTING_ORDER, getConfiguredClients, splitDocuments } from '../utils/clients'
+import { DOCUMENT_ROUTING_ORDER, splitDocuments } from '../utils/clients'
 import { getIntrospectionFilename } from '../utils/codegen'
 import { useLogger } from '../utils/log'
 
@@ -24,20 +24,17 @@ export default function setupGraphqlConfig(nuxt: Nuxt, config: ShopifyConfig) {
     return
   }
 
-  const configured = getConfiguredClients(config)
   const buildDir = relative(nuxt.options.rootDir, nuxt.options.buildDir) || '.nuxt'
 
   const projects: Record<string, GraphqlProject> = {}
 
   for (const clientType of DOCUMENT_ROUTING_ORDER) {
-    if (!configured.includes(clientType)) continue
-
     const clientConfig = config.clients[clientType]
 
-    if (!clientConfig || !clientConfig.codegen) continue
+    if (!clientConfig?.codegen) continue
 
     const name = clientType === ShopifyClientType.Storefront ? 'default' : clientType
-    const { include, exclude } = splitDocuments(clientConfig.documents ?? [])
+    const { include, exclude } = splitDocuments(clientConfig.documents)
 
     projects[name] = {
       schema: `${buildDir}/${getIntrospectionFilename(clientType, clientConfig.apiVersion)}`,

@@ -108,6 +108,17 @@ describe('fetching the session during server rendering', () => {
     expect(isReady.value).toBe(true)
   })
 
+  it('leaves the session unresolved when the server can\'t read it for this page, so the browser reads it after hydration', async () => {
+    onServer({ getSession: () => Promise.resolve(null) })
+
+    const { fetch, isLoggedIn, isReady } = useCustomerAccountSession()
+
+    await fetch()
+
+    expect(isLoggedIn.value).toBe(false)
+    expect(isReady.value).toBe(false)
+  })
+
   it('reports logged out when the session cannot be read', async () => {
     onServer({ getSession: () => Promise.reject(new Error('unsealing failed')) })
 

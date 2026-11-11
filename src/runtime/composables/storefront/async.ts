@@ -2,9 +2,9 @@ import type { ReturnData } from '@shopify/graphql-client'
 import type { StorefrontOperations } from '@nuxtjs/shopify/storefront'
 import type { MaybeRefOrGetter } from 'vue'
 
-import type { ShopifyAsyncData, ShopifyAsyncDataOptions } from '../../utils/clients/async'
+import type { ShopifyAsyncData, ShopifyAsyncDataOptions } from '../async'
 
-import { useClientAsyncData } from '../../utils/clients/async'
+import { useClientAsyncData } from '../async'
 import { useStorefront } from './client'
 
 /**

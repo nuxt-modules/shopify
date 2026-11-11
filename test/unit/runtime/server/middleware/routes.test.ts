@@ -361,7 +361,7 @@ describe('routes middleware', () => {
     await handler(createTestEvent({ path: '/api/cart', headers: { host: 'shop.test' } }))
     await handler(createTestEvent({ path: '/api/cart', headers: { host: 'shop.test' } }))
 
-    expect(handleShopifyRoutes).toHaveBeenLastCalledWith(expect.objectContaining({ handlers: [PLAIN_CART] }))
+    expect(handleShopifyRoutes).toHaveBeenLastCalledWith(expect.objectContaining({ handlers: [PLAIN_CART, PREDICTIVE_SEARCH] }))
     expect(handleShopifyRoutes).toHaveBeenLastCalledWith(expect.not.objectContaining({ sessionManager: expect.anything() }))
     expect(logError).toHaveBeenCalledOnce()
 
@@ -401,6 +401,27 @@ describe('routes middleware', () => {
       getAccessToken: expect.any(Function),
     })
     expect(handleShopifyRoutes).not.toHaveBeenCalled()
+  })
+
+  it('hands Hydrogen the request with the public access token, so its Storefront API proxy works for a browser that sends none', async () => {
+    runtimeConfig._shopify.clients = { storefront: { apiVersion: API_VERSION, publicAccessToken: 'public-token' } }
+
+    await handler(createTestEvent({ method: 'POST', path: `/api/${API_VERSION}/graphql.json`, headers: { host: 'shop.test' }, body: { query: '{ shop { id } }' } }))
+
+    const { request } = handleShopifyRoutes.mock.calls[0]![0] as { request: Request }
+
+    expect(request.headers.get('x-shopify-storefront-access-token')).toBe('public-token')
+  })
+
+  it('serves the cart of an app without customer accounts, without reporting a misconfigured customer account', async () => {
+    vi.resetModules()
+
+    const handler = (await import('#src/runtime/server/middleware/routes')).default
+
+    await handler(createTestEvent({ method: 'POST', path: '/api/cart', headers: { 'host': 'shop.test', 'sec-fetch-site': 'same-origin' } }))
+
+    expect(handleShopifyRoutes).toHaveBeenCalledWith(expect.objectContaining({ handlers: [PLAIN_CART, PREDICTIVE_SEARCH] }))
+    expect(logError).not.toHaveBeenCalled()
   })
 
   it('exposes no customer account without a customer account client', async () => {

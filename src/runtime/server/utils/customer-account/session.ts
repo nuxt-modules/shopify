@@ -1,23 +1,19 @@
 import type { WritableCustomerSessionManager } from '@shopify/hydrogen/customer-account'
 import type { H3Event, SessionConfig } from 'h3'
-import type { Storage } from 'unstorage'
 
 import type { ShopifyCustomerAccountSession, ShopifyConfig } from '../../../../module'
 
 import { createCustomerSession } from '@shopify/hydrogen/customer-account'
 import { clearSession, createError, getCookie, getSession, updateSession } from 'h3'
-import { getRouteRules, useStorage } from 'nitropack/runtime'
-import { hash } from 'ohash'
+import { getRouteRules } from 'nitropack/runtime'
 import { useRuntimeConfig } from '#imports'
 
 import { DEFAULT_SESSION_NAME, SESSION_PASSWORD_ENV, SESSION_PASSWORD_MIN_LENGTH, isUsableSessionPassword } from '../../../utils/session'
-import { warnUnmountedStorage } from '../../../utils/storage'
 import { getShopifyRequestContext } from '../request-context'
 import { getPublicRequestURL } from '../routes'
+import { createTokenStore } from './tokens'
 
 const HYDROGEN_SESSION_KEY = 'customerAccount'
-
-const DEFAULT_TOKEN_STORAGE = 'customer-account-token'
 
 type CustomerSessionWithInternals = ReturnType<typeof createCustomerSession>
 
@@ -28,14 +24,7 @@ type CustomerAccountSessionData = {
   customerAccount?: unknown
 }
 
-type StoredTokens = {
-  tokens: unknown
-  replaces?: string[]
-}
-
 const customerSessions = new Map<string, CustomerSessionWithInternals>()
-
-const tokenKeysWrittenBy = new WeakMap<H3Event, Set<string>>()
 
 export function requireCustomerAccountConfig(config?: ShopifyConfig): NonNullable<ShopifyConfig['clients']['customerAccount']> {
   const customerAccount = config?.clients?.customerAccount
@@ -102,10 +91,14 @@ export function getSessionConfig(config?: ShopifyConfig): SessionConfig {
   }
 }
 
-function hasSessionCookie(event: H3Event, config: SessionConfig): boolean {
+export function isCachedRoute(event: H3Event): boolean {
   const { cache, isr } = getRouteRules(event)
 
-  return !(cache || isr) && !!getCookie(event, config.name || DEFAULT_SESSION_NAME)
+  return !!(cache || isr)
+}
+
+function hasSessionCookie(event: H3Event, config: SessionConfig): boolean {
+  return !isCachedRoute(event) && !!getCookie(event, config.name || DEFAULT_SESSION_NAME)
 }
 
 async function readSession(event: H3Event, config: SessionConfig) {
@@ -114,77 +107,15 @@ async function readSession(event: H3Event, config: SessionConfig) {
   return await getSession<CustomerAccountSessionData>(event, config)
 }
 
-function getTokenStorage(config?: ShopifyConfig) {
-  const tokenStorage = config?.clients?.customerAccount?.tokenStorage
-
-  if (!tokenStorage) return undefined
-
-  const base = typeof tokenStorage === 'string' ? tokenStorage : DEFAULT_TOKEN_STORAGE
-  const storage = useStorage(base)
-
-  warnUnmountedStorage(storage, base, config?.logger)
-
-  return storage
-}
-
-function getTokenStorageOptions(config?: ShopifyConfig) {
-  const maxAge = config?.clients?.customerAccount?.session?.maxAge
-
-  return maxAge ? { ttl: maxAge } : undefined
-}
-
 function holdsTokens(data: CustomerAccountSessionData): boolean {
   return !!(data.tokenKey || (data.customerAccount as HydrogenSessionItem | undefined)?.tokens)
-}
-
-function createTokenStore(event: H3Event, storage: Storage, options?: { ttl: number }) {
-  const written = tokenKeysWrittenBy.get(event) ?? new Set<string>()
-
-  tokenKeysWrittenBy.set(event, written)
-
-  return {
-    async read(key: string) {
-      const entry = await storage.getItem<StoredTokens>(key)
-
-      if (!entry) return undefined
-
-      if (entry.replaces?.length && !written.has(key)) {
-        await Promise.all(entry.replaces.map(replaced => storage.removeItem(replaced)))
-        await storage.setItem(key, { tokens: entry.tokens }, options)
-      }
-
-      return entry.tokens
-    },
-
-    async write(tokens: unknown, currentKey?: string) {
-      const key = hash(tokens)
-
-      if (key === currentKey) return key
-
-      const current = currentKey ? await storage.getItem<StoredTokens>(currentKey) : null
-      const replaces = currentKey ? [currentKey, ...current?.replaces ?? []] : []
-
-      await storage.setItem(key, replaces.length ? { tokens, replaces } : { tokens }, options)
-
-      written.add(key)
-
-      return key
-    },
-
-    async remove(key: string) {
-      const entry = await storage.getItem<StoredTokens>(key)
-
-      await Promise.all([key, ...entry?.replaces ?? []].map(removed => storage.removeItem(removed)))
-    },
-  }
 }
 
 export function createCustomerSessionManager(event: H3Event): WritableCustomerSessionManager {
   const { _shopify } = useRuntimeConfig(event)
 
   const config = getSessionConfig(_shopify)
-  const storage = getTokenStorage(_shopify)
-  const tokenStore = storage ? createTokenStore(event, storage, getTokenStorageOptions(_shopify)) : undefined
+  const tokenStore = createTokenStore(event, _shopify)
 
   return {
     getSessionOrigin: () => getPublicRequestURL(event).origin,

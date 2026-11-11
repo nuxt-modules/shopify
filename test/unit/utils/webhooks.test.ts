@@ -3,10 +3,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { API_VERSION } from '#test/helpers/api-version'
 
 const request = vi.fn()
+const createAdminApiClient = vi.fn(() => ({ request }))
 
-vi.mock('#src/runtime/utils/clients/admin', () => ({
-  createAdminApiClient: () => ({ request }),
-}))
+vi.mock('#src/runtime/utils/clients/admin', () => ({ createAdminApiClient }))
 
 const { getSubscribedWebhooks, subscribeWebhooks, unsubscribeWebhooks } = await import('#src/utils/webhooks')
 const { configObjectSchema } = await import('#src/runtime/utils/config')
@@ -102,6 +101,7 @@ function mockApi(subscriptions: Subscription[]) {
 
 beforeEach(() => {
   request.mockReset()
+  createAdminApiClient.mockClear()
 })
 
 describe('listing subscriptions', () => {
@@ -130,11 +130,19 @@ describe('listing subscriptions', () => {
     await expect(getSubscribedWebhooks(config)).resolves.toHaveLength(1)
     expect(request).toHaveBeenCalledTimes(1)
   })
+})
 
-  it('reports API errors', async () => {
-    request.mockResolvedValueOnce({ errors: { message: 'nope' } })
+describe('API errors', () => {
+  it.each([
+    ['lists', () => getSubscribedWebhooks(config)],
+    ['subscribes', () => subscribeWebhooks(config)],
+    ['unsubscribes', () => unsubscribeWebhooks(config)],
+  ])('lets the admin client throw on API errors when it %s, even with `errors.throw` off', async (_, run) => {
+    mockApi([])
 
-    await expect(getSubscribedWebhooks(config)).rejects.toThrow(/Failed to fetch webhook subscriptions/)
+    await run()
+
+    expect(createAdminApiClient.mock.calls).toEqual([[config, { throwOnErrors: true }]])
   })
 })
 
@@ -185,12 +193,23 @@ describe('updating changed subscriptions', () => {
     expect(results).toStrictEqual([{ action: 'updated', subscription: expect.objectContaining({ filter: 'title:new' }) }])
   })
 
-  it('updates a subscription whose filter was removed', async () => {
-    const calls = mockApi([subscription({ filter: 'title:old' })])
+  it('clears the settings the config no longer has, since Shopify keeps the ones an update leaves out', async () => {
+    const calls = mockApi([subscription({
+      filter: 'title:old',
+      includeFields: ['id'],
+      metafieldNamespaces: ['custom'],
+      metafields: [{ key: 'a', namespace: 'custom' }],
+    })])
 
     await subscribeWebhooks(withSubscriptions([{ topic: 'ORDERS_CREATE', uri: 'https://example.com/hook' }]))
 
-    expect(calls.map(call => call.kind)).toStrictEqual(['update'])
+    expect(calls).toEqual([{
+      kind: 'update',
+      variables: {
+        id: 'gid://shopify/WebhookSubscription/1',
+        webhookSubscription: { uri: 'https://example.com/hook', format: 'JSON', filter: null, includeFields: null, metafieldNamespaces: null, metafields: null },
+      },
+    }])
   })
 
   it('updates a subscription whose includeFields changed', async () => {

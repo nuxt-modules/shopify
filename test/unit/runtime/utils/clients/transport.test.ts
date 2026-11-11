@@ -2,7 +2,7 @@ import type { AdminApiClient } from '@nuxtjs/shopify/admin'
 import type { CustomerAccountApiClient } from '@nuxtjs/shopify/customer-account'
 import type { StorefrontApiClient } from '@nuxtjs/shopify/storefront'
 
-import { afterEach, beforeEach, describe, expect, expectTypeOf, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, expectTypeOf, it, onTestFinished, vi } from 'vitest'
 import { createStorage } from 'unstorage'
 
 import { configObjectSchema } from '#src/schemas'
@@ -90,6 +90,20 @@ describe('withApiVersion', () => {
 })
 
 describe('per-request apiVersion override', () => {
+  it('sends a request for another version to that version\'s endpoint', async () => {
+    const fetchMock = vi.fn(async (..._args: unknown[]) => Response.json({ data: { shop: { name: 'shop' } } }))
+
+    vi.stubGlobal('fetch', fetchMock)
+
+    onTestFinished(() => {
+      vi.unstubAllGlobals()
+    })
+
+    await createStorefrontApiClient(storefront).request('query Shop { shop { name } }', { apiVersion: OTHER_API_VERSION })
+
+    expect(String(fetchMock.mock.calls[0]![0])).toBe(`https://shop.myshopify.com/api/${OTHER_API_VERSION}/graphql.json`)
+  })
+
   it('keeps the storefront endpoint', () => {
     const transport = createTransport(createStorefrontConfig(storefront as never))
 

@@ -6,7 +6,9 @@ const nuxtApp = { isHydrating: false }
 const session = {
   isLoggedIn: ref(false),
   isReady: ref(false),
-  fetch: vi.fn(),
+  fetch: vi.fn(() => {
+    session.isReady.value = true
+  }),
   login: vi.fn((options: { returnTo: string }) => `/account/login?return_to=${options.returnTo}`),
 }
 
@@ -75,6 +77,15 @@ describe('customer-account route middleware', () => {
   })
 
   it('lets a signed in customer through', async () => {
+    await expect(middleware(TO)).resolves.toBeUndefined()
+
+    expect(session.login).not.toHaveBeenCalled()
+  })
+
+  it('leaves the check to the browser when the server can\'t read the session for this page', async () => {
+    session.isLoggedIn.value = false
+    session.fetch.mockImplementationOnce(() => {})
+
     await expect(middleware(TO)).resolves.toBeUndefined()
 
     expect(session.login).not.toHaveBeenCalled()

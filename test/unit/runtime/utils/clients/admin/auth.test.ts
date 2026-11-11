@@ -227,16 +227,22 @@ describe('admin access token failures', () => {
     expect(warnUnmountedStorage).toHaveBeenCalledWith(expect.anything(), 'admin-token', undefined)
   })
 
-  it('reports a bad gateway when the token response carries no access token', async () => {
+  it('reports a bad gateway when the token response carries no access token, and logs why', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => new Response(
       JSON.stringify({ scope: 'read_products' }),
       { status: 200, headers: { 'content-type': 'application/json' } },
     )))
 
-    await expect(getAdminAccessToken('shop', credentials as never)).rejects.toMatchObject({
+    const log = vi.fn()
+
+    await expect(getAdminAccessToken('shop', credentials as never, { logger: { reporters: [{ log }] } })).rejects.toMatchObject({
       statusCode: 502,
-      message: expect.stringContaining('missing `access_token`'),
+      message: '[shopify] Request to Shopify failed',
     })
+    expect(log).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'error', args: ['Failed to obtain an Admin API access token: missing `access_token` in response'] }),
+      expect.anything(),
+    )
   })
 
   it('reports incomplete credentials as a server misconfiguration without requesting a token', async () => {

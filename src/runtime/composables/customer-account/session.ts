@@ -36,7 +36,7 @@ export function useCustomerAccountSession() {
 
   const requestEvent = import.meta.server ? useRequestEvent() : undefined
 
-  const readSession = (): Promise<ShopifyCustomerAccountSession> => {
+  const readSession = (): Promise<ShopifyCustomerAccountSession | null> => {
     if (!import.meta.server) {
       return $fetch<ShopifyCustomerAccountSession>(CUSTOMER_ACCOUNT_SESSION_ROUTE, {
         headers: { accept: 'application/json' },
@@ -49,8 +49,11 @@ export function useCustomerAccountSession() {
   }
 
   const fetch = async () => {
-    session.value = await readSession().catch(() => emptySession())
+    const value = await readSession().catch(emptySession)
 
+    if (!value) return
+
+    session.value = value
     isReady.value = true
   }
 

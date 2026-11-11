@@ -11,7 +11,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
     await fetch()
   }
 
-  if (!isLoggedIn.value) {
+  if (isReady.value && !isLoggedIn.value) {
     return login({ returnTo: to.fullPath })
   }
 })

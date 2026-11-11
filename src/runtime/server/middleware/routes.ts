@@ -2,9 +2,9 @@ import { createCartServerHandlers, createPredictiveSearchServerHandlers, handleS
 import { defineEventHandler, getRequestURL, sendWebResponse } from 'h3'
 
 import { useRuntimeConfig } from '#imports'
-import { assertSameSite } from '../utils/csrf'
+import { assertSameOrigin } from '../utils/csrf'
 import { customerAccountContext } from '../utils/customer-account/auth'
-import { handleCustomerAccountOrCartRoutes } from '../utils/customer-account/routes'
+import { createCustomerAccountRoutes } from '../utils/customer-account/routes'
 import { applyShopifyResponseHeaders, getShopifyRequestContext } from '../utils/request-context'
 import {
   isAjaxCartEndpoint,
@@ -42,7 +42,7 @@ export default defineEventHandler(async (event) => {
 
   if (isShopifyApiProxyPath(pathname) && (!shopifyEndpoint || event.method !== 'POST')) return
 
-  if ((isCartEndpoint(pathname) || isAjaxCartEndpoint(pathname)) && event.method !== 'GET' && event.method !== 'HEAD') assertSameSite(event)
+  if ((isCartEndpoint(pathname) || isAjaxCartEndpoint(pathname)) && event.method !== 'GET' && event.method !== 'HEAD') assertSameOrigin(event)
 
   const requestContext = shopifyEndpoint
     ? await getShopifyRequestContext(event)
@@ -57,8 +57,12 @@ export default defineEventHandler(async (event) => {
     routeTemplates: _shopify.routeTemplates,
   }
 
-  const response = customerAccount && (isCartEndpoint(pathname) || isCustomerAccountEndpoint(pathname))
-    ? handleCustomerAccountOrCartRoutes(event, _shopify, routes, pathname)
+  const customerAccountRoutes = customerAccount && (isCartEndpoint(pathname) || isCustomerAccountEndpoint(pathname))
+    ? createCustomerAccountRoutes(event, _shopify, pathname)
+    : undefined
+
+  const response = customerAccountRoutes
+    ? handleShopifyRoutes({ ...routes, ...customerAccountRoutes })
     : handleShopifyRoutes({ ...routes, handlers: [createCartServerHandlers(_shopify.cart ?? {}), createPredictiveSearchServerHandlers(_shopify.predictiveSearch ?? {})] })
 
   if (!response) return

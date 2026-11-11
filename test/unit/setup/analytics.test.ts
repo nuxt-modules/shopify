@@ -43,6 +43,12 @@ describe('setupAnalytics', () => {
     expect(warn).toHaveBeenCalledWith(expect.stringContaining('`shopId` and `defaultMarket`'))
   })
 
+  it('still asks for the shop ID when only the market is configured', () => {
+    setupAnalytics(createSetupNuxt() as never, { clients: {}, defaultMarket: { country: 'US', language: 'EN' }, analytics: {} } as never, resolver as never)
+
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('`shopId` and `defaultMarket`'))
+  })
+
   it('stays quiet with the shop ID and market configured, or with a storefront client', () => {
     setupAnalytics(createSetupNuxt() as never, { clients: {}, shopId: '1', defaultMarket: { country: 'US', language: 'EN' }, analytics: {} } as never, resolver as never)
     setupAnalytics(createSetupNuxt() as never, { clients: { storefront: {} }, analytics: {} } as never, resolver as never)

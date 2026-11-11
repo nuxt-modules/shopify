@@ -411,6 +411,27 @@ describe('token storage', () => {
     expect(useTokenStorage('customer-account-token').items.size).toBe(0)
     await expect(readSessionData(toCookieHeader(event))).resolves.not.toHaveProperty('tokenKey')
   })
+
+  it('deletes the stored tokens when Hydrogen writes the session without them', async () => {
+    configure({ tokenStorage: 'customer-account-token' })
+
+    const event = request(await signIn())
+
+    await createCustomerSessionManager(event).setSessionItem(HYDROGEN_SESSION_KEY, { pendingLogin: PENDING_LOGIN })
+
+    expect(useTokenStorage('customer-account-token').items.size).toBe(0)
+  })
+
+  it('deletes the tokens a refresh replaced when the session ends in the same request', async () => {
+    configure({ tokenStorage: 'customer-account-token' })
+
+    const sessionManager = createCustomerSessionManager(request(await signIn()))
+
+    await sessionManager.setSessionItem(HYDROGEN_SESSION_KEY, createHydrogenSession({ accessToken: 'rotated-access-token' }))
+    await sessionManager.removeSessionItem(HYDROGEN_SESSION_KEY)
+
+    expect(useTokenStorage('customer-account-token').items.size).toBe(0)
+  })
 })
 
 describe('getCustomerAccountSession', () => {

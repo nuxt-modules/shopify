@@ -39,7 +39,8 @@ const {
   registerShopifyRoutes,
   splitDocuments,
 } = await import('#src/utils/clients')
-const { CUSTOMER_ACCOUNT_ROUTES, STOREFRONT_ROUTES } = await import('#src/utils/routes')
+const { CUSTOMER_ACCOUNT_ROUTES } = await import('#src/runtime/utils/session')
+const { STOREFRONT_ROUTES } = await import('#src/utils/routes')
 
 const codegenRequire = createRequire(import.meta.resolve('@graphql-codegen/cli'))
 const { CodeFileLoader } = await import(pathToFileURL(codegenRequire.resolve('@graphql-tools/code-file-loader')).href) as typeof import('@graphql-tools/code-file-loader')
@@ -83,15 +84,14 @@ describe('hasPublicClient', () => {
 })
 
 describe('getConfiguredClients', () => {
-  it('reports every configured client', () => {
-    const clients = getConfiguredClients({
-      clients: {
-        storefront: { privateAccessToken: 'private' },
-        admin: { accessToken: 'shpat_x' },
-      },
-    } as never)
+  it('reports every configured client with its config, and skips the ones left out', () => {
+    const storefront = { privateAccessToken: 'private' }
+    const admin = { accessToken: 'shpat_x' }
 
-    expect(clients).toEqual([ShopifyClientType.Storefront, ShopifyClientType.Admin])
+    expect(getConfiguredClients({ clients: { storefront, customerAccount: undefined, admin } } as never)).toEqual([
+      { clientType: ShopifyClientType.Storefront, clientConfig: storefront },
+      { clientType: ShopifyClientType.Admin, clientConfig: admin },
+    ])
   })
 })
 

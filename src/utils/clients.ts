@@ -16,7 +16,15 @@ import { relative } from 'pathe'
 import { kebabCase, pascalCase } from 'scule'
 
 import { ShopifyClientType } from '../schemas'
-import { CUSTOMER_ACCOUNT_ROUTES, STOREFRONT_ROUTES, keepUncached } from './routes'
+import { CUSTOMER_ACCOUNT_ROUTES } from '../runtime/utils/session'
+import { STOREFRONT_ROUTES, keepUncached } from './routes'
+
+type ConfiguredClient = {
+  [T in ShopifyClientType]: {
+    clientType: T
+    clientConfig: NonNullable<ShopifyConfig['clients'][T]>
+  }
+}[ShopifyClientType]
 
 export const DOCUMENT_ROUTING_ORDER = [
   ShopifyClientType.Admin,
@@ -55,11 +63,11 @@ export function createDocumentMatcher(documents: string[]) {
 }
 
 export function createClientRouter(nuxt: Nuxt, config: ShopifyConfig) {
-  const configured = getConfiguredClients(config)
+  const order = DOCUMENT_ROUTING_ORDER.flatMap((clientType) => {
+    const clientConfig = config.clients[clientType]
 
-  const order = DOCUMENT_ROUTING_ORDER
-    .filter(clientType => configured.includes(clientType))
-    .map(clientType => ({ clientType, matches: createDocumentMatcher(config.clients[clientType]?.documents ?? []) }))
+    return clientConfig ? [{ clientType, matches: createDocumentMatcher(clientConfig.documents) }] : []
+  })
 
   return (file: string) => {
     const path = relative(nuxt.options.rootDir, file)
@@ -118,17 +126,11 @@ export function isPublicClient(storefront: ShopifyConfig['clients']['storefront'
 }
 
 export function hasPublicClient(config: ShopifyConfig): boolean {
-  return isPublicClient(config.clients.storefront) || !!config.clients.customerAccount?.clientId
+  return isPublicClient(config.clients.storefront) || !!config.clients.customerAccount
 }
 
-export function getConfiguredClients(config: ShopifyConfig): ShopifyClientType[] {
-  const clients = []
-
-  for (const clientType in config.clients) {
-    if (config.clients[clientType as ShopifyClientType]) {
-      clients.push(clientType as ShopifyClientType)
-    }
-  }
-
-  return clients
+export function getConfiguredClients(config: ShopifyConfig): ConfiguredClient[] {
+  return Object.values(ShopifyClientType).flatMap(clientType => config.clients[clientType] ? [{ clientType, clientConfig: config.clients[clientType] } as ConfiguredClient] : [])
 }
+
+export type { ConfiguredClient }

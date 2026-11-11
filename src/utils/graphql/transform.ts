@@ -1,8 +1,10 @@
 import type { FragmentRegistry } from './registry'
 
 import MagicString from 'magic-string'
+import { relative } from 'pathe'
 
 import { collectSpreads, scanDefinitions } from '../../runtime/utils/graphql/scanner'
+import { useLogger } from '../log'
 import { GRAPHQL_MARKER, INTERPOLATION, findGraphqlLiterals } from './literals'
 import { resolveFragments } from './registry'
 
@@ -22,8 +24,9 @@ function collectFragmentInsertions(code: string, file: string, options: GraphqlT
 
   const insertions: Insertion[] = []
   const dependencies = new Set<string>()
+  const undefinedFragments = new Set<string>()
 
-  if (!registry) return { insertions, dependencies }
+  if (!registry) return { insertions, dependencies, undefinedFragments }
 
   for (const literal of findGraphqlLiterals(code)) {
     const definitions = scanDefinitions(literal.content)
@@ -41,17 +44,27 @@ function collectFragmentInsertions(code: string, file: string, options: GraphqlT
     }
 
     const bindings = [...literal.content.matchAll(INTERPOLATION)].map(([, binding]) => binding!)
+    const interpolatedSpreads: string[] = []
 
     for (const binding of bindings) {
-      for (const name of registry.provides.get(binding) ?? []) alreadyDefined.add(name)
+      for (const name of registry.provides.get(binding) ?? []) {
+        alreadyDefined.add(name)
+        interpolatedSpreads.push(...registry.fragments.get(name)?.spreads ?? [])
+      }
     }
 
-    const missing = resolveFragments(spreads, registry, alreadyDefined)
+    const missing = resolveFragments([...spreads, ...interpolatedSpreads], registry, alreadyDefined)
 
-    const unresolved = bindings.every(binding => registry.provides.has(binding))
-      && [...spreads, ...missing.flatMap(fragment => fragment.spreads)].some(name => !alreadyDefined.has(name) && !registry.fragments.has(name))
+    const knowsEveryInterpolation = bindings.length === literal.content.split('${').length - 1
+      && bindings.every(binding => registry.provides.has(binding))
 
-    for (const dependency of unresolved ? registry.files : missing.map(fragment => fragment.file)) dependencies.add(dependency)
+    const unresolved = knowsEveryInterpolation
+      ? [...spreads, ...missing.flatMap(fragment => fragment.spreads)].filter(name => !alreadyDefined.has(name) && !registry.fragments.has(name))
+      : []
+
+    for (const name of unresolved) undefinedFragments.add(name)
+
+    for (const dependency of unresolved.length ? registry.files : missing.map(fragment => fragment.file)) dependencies.add(dependency)
 
     if (!missing.length) continue
 
@@ -61,10 +74,12 @@ function collectFragmentInsertions(code: string, file: string, options: GraphqlT
     })
   }
 
-  return { insertions, dependencies }
+  return { insertions, dependencies, undefinedFragments }
 }
 
 export function createGraphqlTransformPlugin(options: GraphqlTransformOptions) {
+  const warnings = new Set<string>()
+
   return {
     name: 'shopify:graphql',
     enforce: 'post' as const,
@@ -73,9 +88,19 @@ export function createGraphqlTransformPlugin(options: GraphqlTransformOptions) {
       if (!TRANSFORMABLE.test(id) || !GRAPHQL_MARKER.test(code)) return
 
       const file = id.split('?')[0]!
-      const { insertions, dependencies } = collectFragmentInsertions(code, file, options)
+      const { insertions, dependencies, undefinedFragments } = collectFragmentInsertions(code, file, options)
 
       for (const dependency of dependencies) this.addWatchFile(dependency)
+
+      for (const name of undefinedFragments) {
+        const warning = `Fragment \`${name}\` is used in \`${relative(process.cwd(), file)}\` but isn't defined in the operation or in \`fragments.dirs\`, so the request will fail. `
+          + 'Define it in the operation, add it with string interpolation, or move it into `fragments.dirs`'
+
+        if (warnings.has(warning)) continue
+
+        warnings.add(warning)
+        useLogger().warn(warning)
+      }
 
       if (!insertions.length) return
 

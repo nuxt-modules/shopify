@@ -1,7 +1,7 @@
 import { createError, defineEventHandler, getRouterParam, setResponseHeader } from 'h3'
 
 import { useRuntimeConfig } from '#imports'
-import { assertSameSite } from '../../utils/csrf'
+import { assertSameOrigin } from '../../utils/csrf'
 import { readGraphqlBody } from '../../utils/graphql'
 import { createCustomerAccountConfig } from '../../../utils/clients/customer-account'
 import { DEFAULT_API_VERSION, REQUEST_TIMEOUT_MS, isApiVersion } from '../../../utils/clients/defaults'
@@ -10,7 +10,7 @@ import { withApiVersion } from '../../../utils/clients/transport'
 import { getValidCustomerAccessToken } from '../../utils/customer-account/auth'
 
 export default defineEventHandler(async (event) => {
-  assertSameSite(event)
+  assertSameOrigin(event)
 
   const apiVersion = getRouterParam(event, 'version')
 

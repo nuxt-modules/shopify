@@ -1,16 +1,11 @@
 import type { H3Event } from 'h3'
 
-import {
-  CUSTOMER_ACCOUNT_AUTHORIZE_PATH,
-  CUSTOMER_ACCOUNT_LOGIN_PATH,
-  CUSTOMER_ACCOUNT_LOGOUT_PATH,
-  CUSTOMER_ACCOUNT_REFRESH_PATH,
-} from '@shopify/hydrogen/customer-account'
 import { getRequestHeaders, getRequestURL, toWebRequest } from 'h3'
 
 import { useRuntimeConfig } from '#imports'
 import { PUBLIC_TOKEN_HEADER } from '../../utils/clients/transport'
 import { pickShopifyCookies } from '../../utils/cookies'
+import { CUSTOMER_ACCOUNT_ROUTES } from '../../utils/session'
 
 const SHOPIFY_API_PROXY = /^\/__shopify(?:\/|$)/
 
@@ -26,13 +21,6 @@ const SHOPIFY_ENDPOINTS = [
   /^\/\.well-known\/(?:ucp|apple-developer-merchantid-domain-association|shopify\/fec\/produce)$/,
   /^\/api\/(?:ucp\/)?mcp$/,
   /^\/api\/predictive-search$/,
-]
-
-const CUSTOMER_ACCOUNT_PATHS: string[] = [
-  CUSTOMER_ACCOUNT_LOGIN_PATH,
-  CUSTOMER_ACCOUNT_AUTHORIZE_PATH,
-  CUSTOMER_ACCOUNT_REFRESH_PATH,
-  CUSTOMER_ACCOUNT_LOGOUT_PATH,
 ]
 
 const CART_PATH = '/api/cart'
@@ -58,7 +46,7 @@ const PLATFORM_HEADER_PREFIXES = [
 ]
 
 export function isCustomerAccountEndpoint(pathname: string): boolean {
-  return CUSTOMER_ACCOUNT_PATHS.includes(pathname)
+  return CUSTOMER_ACCOUNT_ROUTES.includes(pathname)
 }
 
 export function isCartEndpoint(pathname: string): boolean {
