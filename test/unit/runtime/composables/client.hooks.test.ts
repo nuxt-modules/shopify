@@ -13,7 +13,7 @@ const loadHookable = async (from: string) => (await import(resolveModulePath('ho
 
 const hookables = [
   ['hookable 6, as in Nuxt 4.4 and newer', await loadHookable('nuxt')],
-  ['hookable 5, as in Nuxt 3 and Nuxt 4.0 to 4.3', await loadHookable('nitropack')],
+  ['hookable 5, as in Nuxt 4.0 to 4.3', await loadHookable('nitropack')],
 ] as const
 
 let hooks: Hooks

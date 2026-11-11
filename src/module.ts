@@ -28,7 +28,7 @@ export default defineNuxtModule<ModuleOptions>({
     name: '@nuxtjs/shopify',
     configKey: 'shopify',
     compatibility: {
-      nuxt: '>=3.17.0',
+      nuxt: '>=4.0.0',
     },
   },
 

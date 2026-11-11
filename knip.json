@@ -24,16 +24,6 @@
         "@graphql-tools/graphql-tag-pluck"
       ]
     },
-    "playgrounds/playground-v3": {
-      "entry": [
-        "pages/**/*.vue",
-        "server/**/*.ts",
-        "graphql/**/*.ts"
-      ],
-      "project": [
-        "**/*.{ts,vue}"
-      ]
-    },
     "playgrounds/playground-v4": {
       "entry": [
         "app/**/*.{ts,vue}",
