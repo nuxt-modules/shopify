@@ -86,11 +86,7 @@ async function fetchAccessToken(
   }
 
   if (!data.access_token) {
-    throw createError({
-      status: 502,
-      statusText: 'Bad Gateway',
-      message: '[shopify] Failed to obtain an Admin API access token: missing `access_token` in response',
-    })
+    throw createUpstreamError(502, 'Failed to obtain an Admin API access token: missing `access_token` in response', data, logger)
   }
 
   return {
@@ -124,7 +120,7 @@ export async function getAdminAccessToken(
 
   const tokenKey = `${shopName}:${clientId}`
 
-  let storedToken = store ? await getTokenStorage(config, logger).then(storage => storage?.getItem(tokenKey)) : undefined
+  let storedToken = store ? await getTokenStorage(config, logger).then(storage => storage.getItem(tokenKey)) : undefined
 
   if (!storedToken && accessToken) {
     storedToken = {
@@ -168,7 +164,7 @@ export async function getAdminAccessToken(
         const newToken = await fetchAccessToken(storeDomain, params, logger)
 
         if (store) {
-          await getTokenStorage(config, logger).then(storage => storage?.setItem(tokenKey, newToken))
+          await getTokenStorage(config, logger).then(storage => storage.setItem(tokenKey, newToken))
         }
 
         await onAuthToken?.({ token: newToken, refresh: isRefresh })

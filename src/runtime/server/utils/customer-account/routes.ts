@@ -1,10 +1,10 @@
-import type { ShopifyRouteHandler, ShopifyRouteHandlerContext, ShopifyRouteTemplates } from '@shopify/hydrogen'
-import type { CustomerSession } from '@shopify/hydrogen/customer-account'
+import type { ShopifyRouteHandler, ShopifyRouteHandlerGroup } from '@shopify/hydrogen'
+import type { CustomerSession, WritableCustomerSessionManager } from '@shopify/hydrogen/customer-account'
 import type { H3Event } from 'h3'
 
 import type { ShopifyConfig } from '../../../../module'
 
-import { createCartServerHandlers, createShopifyRouteHandler, handleShopifyRoutes } from '@shopify/hydrogen'
+import { createCartServerHandlers, createShopifyRouteHandler } from '@shopify/hydrogen'
 import { createCustomerAccountServerHandlers } from '@shopify/hydrogen/customer-account'
 import { useNitroApp } from 'nitropack/runtime'
 import { withQuery } from 'ufo'
@@ -13,9 +13,12 @@ import { createLogger } from '../log'
 import { isCartEndpoint } from '../routes'
 import { createCustomerSessionManager, getHydrogenCustomerSession, requireCustomerAccountConfig } from './session'
 
-type ShopifyRoutes = Omit<ShopifyRouteHandlerContext, 'sessionManager'> & { routeTemplates: ShopifyRouteTemplates }
-
 type CustomerAccountHandlers = Record<'login' | 'authorize' | 'refresh' | 'logout', ShopifyRouteHandler>
+
+type CustomerAccountRoutes = {
+  handlers: ShopifyRouteHandlerGroup[]
+  sessionManager: WritableCustomerSessionManager
+}
 
 let customerAccountFailureLogged = false
 
@@ -62,11 +65,10 @@ function withAuthHooks(event: H3Event, customerSession: CustomerSession, { autho
   }
 }
 
-function handleCustomerAccountRoutes(event: H3Event, config: ShopifyConfig, routes: ShopifyRoutes) {
+function createHandlers(event: H3Event, config: ShopifyConfig) {
   const { afterLogin, afterLogout } = requireCustomerAccountConfig(config)
 
   const customerSession = getHydrogenCustomerSession(config)
-  const sessionManager = createCustomerSessionManager(event)
 
   const redirects = {
     defaultPostLoginRedirectPathname: afterLogin,
@@ -75,31 +77,23 @@ function handleCustomerAccountRoutes(event: H3Event, config: ShopifyConfig, rout
   }
 
   if (import.meta.dev) {
-    return handleShopifyRoutes({
-      ...routes,
-      sessionManager,
-      handlers: [
-        createCartServerHandlers(config.cart ?? {}),
-        withAuthHooks(event, customerSession, createCustomerAccountServerHandlers({ customerSession, ...redirects })),
-      ],
-    })
+    return [
+      createCartServerHandlers(config.cart ?? {}),
+      withAuthHooks(event, customerSession, createCustomerAccountServerHandlers({ customerSession, ...redirects })),
+    ]
   }
 
-  const syncedCartServerHandlers = createCartServerHandlers({ ...config.cart, customerSession })
+  const cartServerHandlers = createCartServerHandlers({ ...config.cart, customerSession })
 
-  return handleShopifyRoutes({
-    ...routes,
-    sessionManager,
-    handlers: [
-      { ...syncedCartServerHandlers, post: withAccessTokenCheck(customerSession, syncedCartServerHandlers.post, callRefreshHook(event)) },
-      withAuthHooks(event, customerSession, createCustomerAccountServerHandlers({ customerSession, cartServerHandlers: syncedCartServerHandlers, ...redirects })),
-    ],
-  })
+  return [
+    { ...cartServerHandlers, post: withAccessTokenCheck(customerSession, cartServerHandlers.post, callRefreshHook(event)) },
+    withAuthHooks(event, customerSession, createCustomerAccountServerHandlers({ customerSession, cartServerHandlers, ...redirects })),
+  ]
 }
 
-export function handleCustomerAccountOrCartRoutes(event: H3Event, config: ShopifyConfig, routes: ShopifyRoutes, pathname: string) {
+export function createCustomerAccountRoutes(event: H3Event, config: ShopifyConfig, pathname: string): CustomerAccountRoutes | undefined {
   try {
-    return handleCustomerAccountRoutes(event, config, routes)
+    return { handlers: createHandlers(event, config), sessionManager: createCustomerSessionManager(event) }
   }
   catch (error) {
     if (!customerAccountFailureLogged) {
@@ -109,7 +103,5 @@ export function handleCustomerAccountOrCartRoutes(event: H3Event, config: Shopif
     }
 
     if (!isCartEndpoint(pathname)) throw error
-
-    return handleShopifyRoutes({ ...routes, handlers: [createCartServerHandlers(config.cart ?? {})] })
   }
 }

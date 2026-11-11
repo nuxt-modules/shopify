@@ -2,8 +2,8 @@ import { describe, expect, it, vi } from 'vitest'
 
 const resolvable = new Set<string>()
 
-vi.mock('#src/utils/install', () => ({
-  isResolvableFrom: (id: string) => resolvable.has(id),
+vi.mock('exsolve', () => ({
+  resolveModulePath: (id: string) => resolvable.has(id) ? `/app/node_modules/${id}` : undefined,
 }))
 
 const { default: setupVite } = await import('#src/setup/vite')

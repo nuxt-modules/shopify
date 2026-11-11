@@ -36,11 +36,9 @@ export async function handleErrors(
   onErrors?: ShopifyClientCallbacks<AllOperations, undefined>['onErrors'],
   logger?: Partial<ConsolaOptions>,
 ) {
-  if (errors) {
-    await onErrors?.({ errors })
-  }
+  await onErrors?.({ errors })
 
-  if (shouldThrow && errors?.graphQLErrors?.length) {
+  if (shouldThrow && errors.graphQLErrors?.length) {
     throw createUpstreamError(
       resolveStatus(errors.networkStatusCode),
       errors.graphQLErrors.map(error => `GraphQL error: ${error.message}${error.path?.length ? ` (at \`${error.path.join('.')}\`)` : ''}`).join(', '),
@@ -49,7 +47,7 @@ export async function handleErrors(
     )
   }
 
-  if (shouldThrow && errors?.message) {
+  if (shouldThrow && errors.message) {
     const { networkStatusCode, message, response } = errors
     const body = response && !response.bodyUsed ? await response.clone().text().catch(() => '') : ''
 

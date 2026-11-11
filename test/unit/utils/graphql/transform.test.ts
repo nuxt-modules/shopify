@@ -1,10 +1,19 @@
-import { describe, expect, it, vi } from 'vitest'
+import { join } from 'node:path'
+
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { FragmentRegistry } from '#src/utils/graphql/registry'
 
 import { findGraphqlLiterals } from '#src/utils/graphql/literals'
 import { scanDefinitions } from '#src/runtime/utils/graphql/scanner'
 import { createGraphqlTransformPlugin } from '#src/utils/graphql/transform'
+import { createLoggerStub } from '#test/helpers/logger'
+
+const warnings: string[] = []
+
+vi.mock('#src/utils/log', () => ({
+  useLogger: () => createLoggerStub({ warn: (message: string) => void warnings.push(message) }),
+}))
 
 const IMAGE = `fragment ImageFields on Image {
     url
@@ -44,8 +53,12 @@ function registry(): FragmentRegistry {
 
 const context = { addWatchFile: vi.fn() }
 
-const transform = (code: string, file = '/project/app/pages/product/[handle].vue') =>
-  createGraphqlTransformPlugin({ resolveRegistry: () => registry() }).transform.call(context, code, file)?.code
+const transform = (code: string, file = '/project/app/pages/product/[handle].vue', fragments = registry()) =>
+  createGraphqlTransformPlugin({ resolveRegistry: () => fragments }).transform.call(context, code, file)?.code
+
+beforeEach(() => {
+  warnings.length = 0
+})
 
 const definitions = (code: string) => {
   const literal = findGraphqlLiterals(code).at(0)!
@@ -80,16 +93,23 @@ describe('fragment injection', () => {
     expect(result.match(/fragment ImageFields/g)).toBeNull()
   })
 
+  it('injects the fragments that an interpolated fragment spreads but does not interpolate itself', () => {
+    const fragments = registry()
+
+    fragments.provides.set('PRODUCT_FRAGMENT', new Set(['ProductFields']))
+
+    const code = 'const q = `#graphql\n  query FetchProduct {\n    product { ...ProductFields }\n  }\n  ${PRODUCT_FRAGMENT}\n`'
+    const result = transform(code, '/project/app/pages/product.vue', fragments)!
+
+    expect(result).toContain('fragment ImageFields')
+    expect(result).toContain('fragment PriceFields')
+    expect(result.match(/fragment ProductFields/g)).toBeNull()
+  })
+
   it('leaves fragment-only literals alone so they stay defined', () => {
     const code = 'export const PRODUCT_FRAGMENT = `#graphql\n  fragment ProductFields on Product {\n    ...ImageFields\n  }\n`'
 
     expect(transform(code, '/project/graphql/fragments/product.ts')).toBeUndefined()
-  })
-
-  it('ignores spreads it cannot resolve', () => {
-    const code = 'const q = `#graphql\n  query FetchProduct {\n    product { ...UnknownFields }\n  }\n`'
-
-    expect(transform(code)).toBeUndefined()
   })
 
   it('injects into an anonymous operation', () => {
@@ -104,6 +124,54 @@ describe('fragment injection', () => {
 
     expect(result.match(/fragment ProductFields/g)).toHaveLength(1)
     expect(result.match(/fragment ImageFields/g)).toHaveLength(2)
+  })
+})
+
+describe('fragments it cannot inject', () => {
+  const page = join(process.cwd(), 'app/pages/product.vue')
+
+  const withReviews = () => {
+    const fragments = registry()
+
+    fragments.fragments.set('ReviewFields', { name: 'ReviewFields', text: 'fragment ReviewFields on Product {\n  ...CardFields\n}', spreads: ['CardFields'], file: 'graphql/reviews.ts' })
+    fragments.provides.set('REVIEW_FRAGMENT', new Set(['ReviewFields']))
+
+    return fragments
+  }
+
+  it('leaves a fragment out that nothing defines, and warns once that the request will fail, however often the module is transformed', () => {
+    const plugin = createGraphqlTransformPlugin({ resolveRegistry: () => registry() })
+    const code = 'const q = `#graphql\n  query FetchProduct {\n    product { ...UnknownFields }\n  }\n`'
+
+    expect(plugin.transform.call(context, code, page)).toBeUndefined()
+    expect(plugin.transform.call(context, code, `${page}?vue&type=script&setup=true&lang.ts`)).toBeUndefined()
+
+    expect(warnings).toStrictEqual([
+      'Fragment `UnknownFields` is used in `app/pages/product.vue` but isn\'t defined in the operation or in `fragments.dirs`, so the request will fail. '
+      + 'Define it in the operation, add it with string interpolation, or move it into `fragments.dirs`',
+    ])
+  })
+
+  it('warns about a fragment that an injected fragment spreads', () => {
+    transform('const q = `#graphql\n  query FetchProduct {\n    product { ...ReviewFields }\n  }\n`', page, withReviews())
+
+    expect(warnings).toStrictEqual([expect.stringMatching(/^Fragment `CardFields` is used in `app\/pages\/product\.vue` /)])
+  })
+
+  it('does not warn about fragments it injects or the operation defines', () => {
+    transform('const q = `#graphql\n  query FetchProduct {\n    product { ...ProductFields ...CardFields }\n  }\n  fragment CardFields on Product { id }\n`', page)
+
+    expect(warnings).toStrictEqual([])
+  })
+
+  it.each([
+    ['a constant it does not know', '...CardFields', '${CARD_FRAGMENT}'],
+    ['an expression', '...CardFields', '${fragments.card}'],
+    ['a fragment constant, which may also define the fragments its fragment spreads', '...ReviewFields', '${REVIEW_FRAGMENT}'],
+  ])('does not warn when the operation interpolates %s', (_, spread, interpolation) => {
+    transform(`const q = \`#graphql\n  query FetchProduct {\n    product { ${spread} }\n  }\n  ${interpolation}\n\``, page, withReviews())
+
+    expect(warnings).toStrictEqual([])
   })
 })
 

@@ -126,7 +126,6 @@ export function createTransport<Operations extends AllOperations = AllOperations
         headers,
         retries,
         signal,
-        cache,
       } = options
 
       const requestHeaders = headers
@@ -139,7 +138,6 @@ export function createTransport<Operations extends AllOperations = AllOperations
         ...(requestHeaders ? { headers: requestHeaders } : {}),
         ...(retries !== undefined ? { retries } : {}),
         ...(signal ? { signal } : {}),
-        ...(cache ? { cache } : {}),
       })
     }
 

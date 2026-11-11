@@ -202,7 +202,9 @@ describe('getShopifyRequestContext', () => {
     expect(requestContext.buyerIp).toBeUndefined()
   })
 
-  it('reuses the request context of the Shopify routes middleware', async () => {
+  it('reuses the request context of the Shopify routes middleware, without resolving the market again', async () => {
+    runtimeConfig._shopify = { clients: {}, analytics: false }
+
     const event = createTestEvent({ path: '/account/login', headers: { host: 'shop.test' } })
 
     event.context.shopifyRequestContext = { marker: true } as never

@@ -97,9 +97,9 @@ export default defineNuxtPlugin({
     nuxtApp.hook('app:mounted', async () => {
       const context = await resolved
 
-      const bus = context && await waitFor(() => window.Shopify?.analytics ?? null)
+      const bus = await waitFor(() => window.Shopify?.analytics ?? null)
 
-      if (!context || !bus) return
+      if (!bus) return
 
       void initializeShopifyScripts({ consent, navigate: createNavigation(router), routes: _shopify.routeTemplates })
         .catch(error => createLogger().debug('Shopify scripts did not start cleanly:', error))

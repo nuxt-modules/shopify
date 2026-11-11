@@ -143,6 +143,17 @@ describe('caller configuration', () => {
       expect.objectContaining({ config: expect.objectContaining({ apiVersion: DEFAULT_API_VERSION }) }),
     )
   })
+
+  it.each([
+    ['throws', false, true, 'rejected'],
+    ['returns the errors', true, false, 'fulfilled'],
+  ])('lets the caller\'s `throwOnErrors` win over the module\'s `errors.throw`, so a failed request %s', async (_, moduleThrows, throwOnErrors, status) => {
+    respondWith({ errors: [{ message: 'Field `nope` doesn\'t exist' }] })
+
+    const client = createClient(definition, { ...config, errors: { throw: moduleThrows }, logger: { reporters: [] } } as never, { throwOnErrors } as never)
+
+    await expect(Promise.allSettled([client.request(QUERY)])).resolves.toMatchObject([{ status }])
+  })
 })
 
 describe('client authentication', () => {
@@ -162,7 +173,7 @@ describe('client authentication', () => {
     const response = await createCustomerAccountApiClient(customerAccountConfig as never, { ...hooks, auth: signedOut, throwOnErrors: false })
       .request('query Customer { customer { id } }' as never)
 
-    expect(response.errors).toStrictEqual({ networkStatusCode: 401, message: 'No customer account session' })
+    expect(response.errors).toStrictEqual({ networkStatusCode: 401, message: '[shopify] No customer account session' })
     expect(hooks.onErrors).toHaveBeenCalledOnce()
     expect(fetch).not.toHaveBeenCalled()
   })
@@ -175,7 +186,7 @@ describe('client authentication', () => {
     await expect(createCustomerAccountApiClient(customerAccountConfig as never, { ...hooks, auth: signedOut, throwOnErrors: true })
       .request('query Customer { customer { id } }' as never)).rejects.toMatchObject({ statusCode: 401, message: '[shopify] No customer account session' })
 
-    expect(hooks.onErrors).toHaveBeenCalledWith({ errors: { networkStatusCode: 401, message: 'No customer account session' } })
+    expect(hooks.onErrors).toHaveBeenCalledWith({ errors: { networkStatusCode: 401, message: '[shopify] No customer account session' } })
     expect(fetch).not.toHaveBeenCalled()
   })
 

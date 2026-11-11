@@ -1,23 +1,24 @@
 import type { Types } from '@graphql-codegen/plugin-helpers'
-import type { Nuxt, NuxtTemplate } from '@nuxt/schema'
+import type { Nuxt } from '@nuxt/schema'
 
-import type { ShopifyConfig } from '../types'
+import type { ConfiguredClient } from './clients'
 
 import { existsSync, statSync } from 'node:fs'
-import { mkdir, readFile, rm, stat, writeFile } from 'node:fs/promises'
-import { basename, dirname, resolve } from 'node:path'
+import { mkdir, readFile, rm, writeFile } from 'node:fs/promises'
+import { basename, dirname, join, resolve } from 'node:path'
 import { generate } from '@graphql-codegen/cli'
+import { getLayerDirectories, updateTemplates } from '@nuxt/kit'
 import { preset, pluckConfig } from '@shopify/graphql-codegen'
 import { LogLevels } from 'consola'
-import { resolveModuleURL } from 'exsolve'
+import { resolveModulePath, resolveModuleURL } from 'exsolve'
+import { relative } from 'pathe'
 import { kebabCase, upperFirst } from 'scule'
 import defu from 'defu'
 
 import { ShopifyClientType } from '../schemas'
-import { splitDocuments } from './clients'
-import { GRAPHQL_MARKER } from './graphql/literals'
+import { createDocumentMatcher, splitDocuments } from './clients'
+import { GRAPHQL_MARKER, SCHEMA_LANGUAGE_FILE } from './graphql/literals'
 import { useLogger } from './log'
-import { resolveInstalledPath } from './install'
 import { createAdminConfig } from '../runtime/utils/clients/admin'
 import { getAdminAccessToken } from '../runtime/utils/clients/admin/auth'
 import { DEFAULT_API_VERSION, REQUEST_TIMEOUT_MS } from '../runtime/utils/clients/defaults'
@@ -38,25 +39,19 @@ const TRANSPORT_ERROR_PATTERN = /\b(?:ETIMEDOUT|ECONNREFUSED|ECONNRESET|ENOTFOUN
 
 const EXACT_UTILITY_TYPE = 'export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };'
 
-const generateFailures = new Set<string>()
+const EXPORTED_TYPE_PATTERN = /^export type (\w+) =/gm
 
-type GenerateInput = Types.Config & { cwd?: string }
+const generateFailures = new WeakMap<Nuxt, string[]>()
 
-type ShopifyTemplateOptions = {
-  filename: string
+type CodegenClient = ConfiguredClient & {
   shopName: string
-  clientType: ShopifyClientType
-  clientConfig: ShopifyConfig['clients'][ShopifyClientType]
 }
+
+type SchemaLoader = () => Promise<string | undefined>
 
 type DocumentState = {
   revision: number
   graphqlFiles: Set<string>
-}
-
-type IntrospectionGenerator = {
-  getContents: (data: { nuxt: Nuxt }) => Promise<string>
-  getSchema: (nuxt: Nuxt) => Promise<string | undefined>
 }
 
 type InterfaceExtensionsParams = {
@@ -70,9 +65,23 @@ export function getIntrospectionFilename(clientType: ShopifyClientType, apiVersi
   return `${OUTPUT_DIR}/schema/${kebabCase(clientType)}.${apiVersion}.schema.json`
 }
 
+export function getGenerateFailures(nuxt: Nuxt): string[] {
+  return generateFailures.get(nuxt) ?? []
+}
+
+function reportGenerateFailure(nuxt: Nuxt, filename: string, error: unknown): '' {
+  const message = `Failed to generate \`${filename}\`: ${(error as Error).message}`
+
+  useLogger().error(`${message}\nTypes for this client are unavailable`)
+
+  generateFailures.set(nuxt, [...getGenerateFailures(nuxt), message])
+
+  return ''
+}
+
 function getHydrogenSchema(clientType: ShopifyClientType) {
   const schemaId = HYDROGEN_SCHEMAS[clientType]
-  const schemaPath = schemaId && resolveInstalledPath(schemaId)
+  const schemaPath = schemaId && resolveModulePath(schemaId, { from: import.meta.url, try: true })
 
   return schemaPath ? [schemaPath] : undefined
 }
@@ -83,10 +92,8 @@ function isHydrogenSchema(schema: Types.ConfiguredOutput['schema'], clientType: 
   return !!hydrogenSchema && [schema].flat().includes(hydrogenSchema)
 }
 
-function warnOnHydrogenSchemaMismatch({ clientType, clientConfig }: ShopifyTemplateOptions) {
-  const apiVersion = clientConfig?.apiVersion
-
-  if (!apiVersion || apiVersion === DEFAULT_API_VERSION) return
+function warnOnHydrogenSchemaMismatch({ clientType, clientConfig: { apiVersion } }: CodegenClient) {
+  if (apiVersion === DEFAULT_API_VERSION) return
 
   useLogger().warn(
     `The ${kebabCase(clientType)} types are generated from the \`${HYDROGEN}\` schema for API version \`${DEFAULT_API_VERSION}\`, `
@@ -98,67 +105,151 @@ function isRemoteSchema(schema: Types.ConfiguredOutput['schema']) {
   return Array.isArray(schema) && schema.length > 0 && schema.every(pointer => typeof pointer === 'object')
 }
 
-async function extractResult(input: Promise<Types.FileOutput[]>) {
-  return (await input)?.at(0)?.content ?? ''
-}
+function isTransportError(error: unknown): boolean {
+  const messages = [error, ...(error as AggregateError)?.errors ?? []].map(cause => (cause as Error)?.message ?? String(cause))
 
-function hasStoredIntrospection(path?: string): path is string {
-  if (!path || !existsSync(path)) return false
-
-  return statSync(path).size > 0
+  return TRANSPORT_ERROR_PATTERN.test(messages.join('\n'))
 }
 
 const fallbackMarker = (path: string) => `${path}.fallback`
 
-function hasCurrentIntrospection(path: string, retryFallback: boolean): boolean {
-  return hasStoredIntrospection(path) && !(retryFallback && existsSync(fallbackMarker(path)))
+async function generateFile(nuxt: Nuxt, filename: string, config: Types.ConfiguredOutput, extra?: Partial<Types.Config> & { cwd?: string }) {
+  const [file] = await generate({
+    overwrite: true,
+    pluginLoader: (name: string) => import(resolveModuleURL(name, { from: [import.meta.url, nuxt.options.rootDir], cache: false })),
+    ignoreNoDocuments: true,
+    silent: useLogger().level < LogLevels.verbose,
+    generates: { [filename]: config },
+    ...extra,
+  }, false)
+
+  return file?.content ?? ''
 }
 
-function collectErrorMessages(error: unknown): string {
-  const messages = [(error as Error)?.message ?? String(error)]
+async function introspect(nuxt: Nuxt, client: CodegenClient, filename: string, config: Types.ConfiguredOutput) {
+  const remote = isRemoteSchema(config.schema)
 
-  for (const nested of (error as AggregateError)?.errors ?? []) {
-    messages.push((nested as Error)?.message ?? String(nested))
-  }
-
-  return messages.join('\n')
-}
-
-function isTransportError(error: unknown): boolean {
-  return TRANSPORT_ERROR_PATTERN.test(collectErrorMessages(error))
-}
-
-async function generateWithRetry<T extends Types.ConfiguredOutput>(
-  generatorConfig: T,
-  createConfig: (generatorConfig: T) => GenerateInput,
-) {
   for (let attempt = 1; ; attempt++) {
     try {
-      return await extractResult(generate(createConfig(generatorConfig), false))
+      return { contents: await generateFile(nuxt, filename, config), fallback: false }
     }
     catch (error) {
-      if (!isRemoteSchema(generatorConfig.schema) || !isTransportError(error) || attempt >= INTROSPECTION_ATTEMPTS) {
-        throw error
+      if (remote && isTransportError(error) && attempt < INTROSPECTION_ATTEMPTS) {
+        useLogger().warn(`Introspection attempt ${attempt} failed, retrying: ${(error as Error).message}`)
+
+        await new Promise(resolve => setTimeout(resolve, INTROSPECTION_RETRY_DELAY * attempt))
+
+        continue
       }
 
-      useLogger().warn(`Introspection attempt ${attempt} failed, retrying: ${(error as Error).message}`)
+      const schema = remote ? getHydrogenSchema(client.clientType) : undefined
 
-      await new Promise(resolve => setTimeout(resolve, INTROSPECTION_RETRY_DELAY * attempt))
+      if (!schema) throw error
+
+      useLogger().warn(`Failed to introspect the ${kebabCase(client.clientType)} API, falling back to the schema from \`${HYDROGEN}\`: ${(error as Error).message}`)
+
+      warnOnHydrogenSchemaMismatch(client)
+
+      return { contents: await generateFile(nuxt, filename, { ...config, schema }), fallback: true }
     }
   }
 }
 
-export function getGenerateFailures(): string[] {
-  return [...generateFailures]
+async function getIntrospectionSource({ shopName, clientType, clientConfig }: CodegenClient) {
+  if (clientType === ShopifyClientType.CustomerAccount || (clientType === ShopifyClientType.Storefront && clientConfig.apiVersion === DEFAULT_API_VERSION)) {
+    return getHydrogenSchema(clientType)
+  }
+
+  if (clientType === ShopifyClientType.Storefront) {
+    const { apiUrl, headers } = createStorefrontConfig({ name: shopName, clients: { storefront: clientConfig } })
+
+    return [{ [apiUrl]: { headers: headers as Record<string, string>, timeout: REQUEST_TIMEOUT_MS } }]
+  }
+
+  const { apiUrl, headers } = createAdminConfig({ name: shopName, clients: { admin: clientConfig } })
+
+  return [{ [apiUrl]: { headers: { ...headers as Record<string, string>, [ADMIN_TOKEN_HEADER]: await getAdminAccessToken(shopName, clientConfig) }, timeout: REQUEST_TIMEOUT_MS } }]
 }
 
-export function clearGenerateFailures() {
-  generateFailures.clear()
+async function loadSchema(nuxt: Nuxt, client: CodegenClient) {
+  const filename = getIntrospectionFilename(client.clientType, client.clientConfig.apiVersion)
+  const path = join(nuxt.options.buildDir, filename)
+
+  if (statSync(path, { throwIfNoEntry: false })?.size && !existsSync(fallbackMarker(path))) return path
+
+  try {
+    const config = { schema: await getIntrospectionSource(client), plugins: [{ introspection: { minify: true } }] }
+
+    await nuxt.callHook(`shopify:${kebabCase(client.clientType)}:generate:introspection`, { nuxt, config })
+
+    if (isHydrogenSchema(config.schema, client.clientType)) warnOnHydrogenSchemaMismatch(client)
+
+    const { contents, fallback } = await introspect(nuxt, client, filename, config)
+
+    await mkdir(dirname(path), { recursive: true })
+    await writeFile(path, contents)
+    await (fallback ? writeFile(fallbackMarker(path), '') : rm(fallbackMarker(path), { force: true }))
+
+    return path
+  }
+  catch (error) {
+    reportGenerateFailure(nuxt, filename, error)
+  }
 }
 
-async function scanDocuments(documents: string[] | undefined, cwd: string): Promise<{ failure?: Error, files: Set<string> }> {
+export function createSchemaLoader(nuxt: Nuxt, client: CodegenClient): SchemaLoader {
+  let schema: Promise<string | undefined> | undefined
+
+  return () => schema ??= loadSchema(nuxt, client)
+}
+
+function getTypescriptPluginConfig({ codegen }: CodegenClient['clientConfig']) {
+  return defu({ typescript: codegen ? codegen.plugins?.typescript : undefined }, {
+    typescript: {
+      useTypeImports: true,
+      defaultScalarType: 'unknown',
+      useImplementingTypes: true,
+      enumsAsTypes: true,
+      scalars: {
+        DateTime: 'string',
+        Decimal: 'string',
+        HTML: 'string',
+        URL: 'string',
+        Color: 'string',
+        UnsignedInt64: 'string',
+        ISO8601DateTime: 'string',
+        JSON: 'string',
+      },
+    },
+  })
+}
+
+async function generateTypes(nuxt: Nuxt, client: CodegenClient, filename: string, loadSchema: SchemaLoader) {
+  const schema = await loadSchema()
+
+  if (!schema) return ''
+
+  try {
+    const config = { schema, plugins: [getTypescriptPluginConfig(client.clientConfig)] }
+
+    await nuxt.callHook(`shopify:${kebabCase(client.clientType)}:generate:types`, { nuxt, config })
+
+    return `${await generateFile(nuxt, filename, config)}\n${EXACT_UTILITY_TYPE}\n`
+  }
+  catch (error) {
+    return reportGenerateFailure(nuxt, filename, error)
+  }
+}
+
+export function createTypesGenerator(nuxt: Nuxt, client: CodegenClient, filename: string, loadSchema: SchemaLoader) {
+  let types: Promise<string> | undefined
+
+  return () => types ??= generateTypes(nuxt, client, filename, loadSchema)
+}
+
+async function scanDocuments(documents: string[], cwd: string): Promise<{ failure?: Error, files: Set<string> }> {
   const files = new Set<string>()
-  const { include, exclude: ignore } = splitDocuments(documents ?? [])
+  const { include, exclude: ignore } = splitDocuments(documents)
 
   if (!include.length) return { files }
 
@@ -179,7 +270,7 @@ async function scanDocuments(documents: string[] | undefined, cwd: string): Prom
       if (failure) continue
 
       try {
-        await loader.load(path, { cwd, noRequire: true, noSilentErrors: true })
+        await loader.handleSinglePath(file, { cwd, noRequire: true, noSilentErrors: true })
       }
       catch (error) {
         failure = new Error(String(error))
@@ -190,88 +281,19 @@ async function scanDocuments(documents: string[] | undefined, cwd: string): Prom
   return { failure, files }
 }
 
-function reportGenerateFailure(nuxt: Nuxt, filename: string, error: unknown): '' {
-  const message = `Failed to generate \`${filename}\`: ${(error as Error).message}`
-
-  useLogger().error(`${message}\nTypes for this client are unavailable`)
-
-  if (!nuxt.options.dev && !nuxt.options._prepare && !nuxt.options.test) {
-    generateFailures.add(message)
-  }
-
-  return ''
-}
-
-function createGenerateInput(rootDir: string, filename: string, extra: Partial<GenerateInput> = {}) {
-  return (config: Types.ConfiguredOutput): GenerateInput => ({
-    overwrite: true,
-    pluginLoader: (name: string) => import(resolveModuleURL(name, { from: [import.meta.url, rootDir], cache: false })),
-    ignoreNoDocuments: true,
-    silent: useLogger().level < LogLevels.verbose,
-    generates: {
-      [filename]: config,
-    },
-    ...extra,
-  })
-}
-
-async function runGenerate<T extends Types.ConfiguredOutput>(
-  nuxt: Nuxt,
-  options: ShopifyTemplateOptions,
-  generatorConfig: T,
-  createConfig: (generatorConfig: T) => GenerateInput,
-) {
-  try {
-    return await extractResult(generate(createConfig(generatorConfig), false))
-  }
-  catch (error) {
-    return reportGenerateFailure(nuxt, options.filename, error)
-  }
-}
-
-async function runIntrospection<T extends Types.ConfiguredOutput>(
-  nuxt: Nuxt,
-  options: ShopifyTemplateOptions,
-  generatorConfig: T,
-  createConfig: (generatorConfig: T) => GenerateInput,
-): Promise<{ contents: string, fallback: boolean }> {
-  try {
-    return { contents: await generateWithRetry(generatorConfig, createConfig), fallback: false }
-  }
-  catch (error) {
-    const fallbackSchema = isRemoteSchema(generatorConfig.schema)
-      ? getHydrogenSchema(options.clientType)
-      : undefined
-
-    if (!fallbackSchema) {
-      return { contents: reportGenerateFailure(nuxt, options.filename, error), fallback: false }
-    }
-
-    useLogger().warn(`Failed to introspect the ${kebabCase(options.clientType)} API, falling back to the schema from \`@shopify/hydrogen\`: ${(error as Error).message}`)
-
-    warnOnHydrogenSchemaMismatch(options)
-
-    return { contents: await runGenerate(nuxt, options, { ...generatorConfig, schema: fallbackSchema }, createConfig), fallback: true }
-  }
-}
-
-const EXPORTED_TYPE_PATTERN = /^export type (\w+) =/gm
-
 function createGlobalDeclarations(contents: string, filename: string): string {
   const names = [...contents.matchAll(EXPORTED_TYPE_PATTERN)].map(match => match[1]!)
 
   if (!names.length) return ''
 
-  const specifier = `./${basename(filename)}`
-
   const declarations = names
-    .map(name => `  type ${name} = import('${specifier}').${name}`)
+    .map(name => `  type ${name} = import('./${basename(filename)}').${name}`)
     .join('\n')
 
   return `\ndeclare global {\n${declarations}\n}\n`
 }
 
-function getInterfaceExtension(clientType: ShopifyClientType, queryType: string, mutationType: string) {
+function getInterfaceExtension(clientType: ShopifyClientType, { queryType, mutationType }: InterfaceExtensionsParams) {
   return `
 declare module '@nuxtjs/shopify/${kebabCase(clientType)}' {
   type InputMaybe<T> = ${upperFirst(clientType)}Types.InputMaybe<T>
@@ -281,222 +303,88 @@ declare module '@nuxtjs/shopify/${kebabCase(clientType)}' {
 `
 }
 
-async function getIntrospectionCacheKey(path: string): Promise<string | undefined> {
-  const { mtimeMs, size } = await stat(path).catch(() => ({ mtimeMs: 0, size: 0 }))
+async function generateOperations(nuxt: Nuxt, client: CodegenClient, filename: string, loadSchema: SchemaLoader, documents: DocumentState, revision: number) {
+  const schema = await loadSchema()
 
-  if (!size) return undefined
-
-  return `${path}:${mtimeMs}:${size}`
-}
-
-async function getIntrospectionSource(options: ShopifyTemplateOptions) {
-  const { shopName, clientType, clientConfig } = options
-
-  if (clientType === ShopifyClientType.CustomerAccount || (clientType === ShopifyClientType.Storefront && clientConfig?.apiVersion === DEFAULT_API_VERSION)) {
-    return getHydrogenSchema(clientType)
-  }
-
-  if (clientType === ShopifyClientType.Storefront) {
-    const { apiUrl, headers } = createStorefrontConfig({ name: shopName, clients: { storefront: clientConfig as NonNullable<ShopifyConfig['clients']['storefront']> } })
-
-    return [{ [apiUrl]: { headers: headers as Record<string, string>, timeout: REQUEST_TIMEOUT_MS } }]
-  }
-
-  const adminConfig = clientConfig as NonNullable<ShopifyConfig['clients']['admin']>
-  const { apiUrl, headers } = createAdminConfig({ name: shopName, clients: { admin: adminConfig } })
-
-  return [{ [apiUrl]: { headers: { ...headers as Record<string, string>, [ADMIN_TOKEN_HEADER]: await getAdminAccessToken(shopName, adminConfig) }, timeout: REQUEST_TIMEOUT_MS } }]
-}
-
-function getTypescriptPluginConfig(config: ShopifyConfig['clients'][ShopifyClientType]) {
-  return defu({ typescript: config?.codegen ? config.codegen.plugins?.typescript : undefined }, {
-    typescript: {
-      useTypeImports: true,
-      defaultScalarType: 'unknown',
-      useImplementingTypes: true,
-      enumsAsTypes: true,
-      scalars: {
-        DateTime: 'string',
-        Decimal: 'string',
-        HTML: 'string',
-        URL: 'string',
-        Color: 'string',
-        UnsignedInt64: 'string',
-        ISO8601DateTime: 'string',
-        JSON: 'string',
-      },
-    },
-  })
-}
-
-async function generateIntrospection(nuxt: Nuxt, options: ShopifyTemplateOptions, path: string, retryFallback: boolean) {
-  if (hasCurrentIntrospection(path, retryFallback)) return await readFile(path, 'utf8')
-
-  let schema: Types.ConfiguredOutput['schema']
+  if (!schema) return ''
 
   try {
-    schema = await getIntrospectionSource(options)
-  }
-  catch (error) {
-    return reportGenerateFailure(nuxt, options.filename, error)
-  }
-
-  const generatorConfig = {
-    schema,
-    plugins: [{
-      introspection: {
-        minify: true,
-      },
-    }],
-  } satisfies Types.ConfiguredOutput
-
-  await nuxt.callHook(`shopify:${kebabCase(options.clientType)}:generate:introspection`, {
-    nuxt,
-    config: generatorConfig,
-  })
-
-  if (isHydrogenSchema(generatorConfig.schema, options.clientType)) {
-    warnOnHydrogenSchemaMismatch(options)
-  }
-
-  const { contents, fallback } = await runIntrospection(nuxt, options, generatorConfig, createGenerateInput(nuxt.options.rootDir, options.filename))
-
-  if (contents) {
-    await mkdir(dirname(path), { recursive: true })
-    await writeFile(path, contents)
-
-    if (fallback) await writeFile(fallbackMarker(path), '')
-    else await rm(fallbackMarker(path), { force: true })
-  }
-
-  return contents
-}
-
-export function createIntrospectionGenerator(options: ShopifyTemplateOptions, path: string): IntrospectionGenerator {
-  let pending: Promise<string> | undefined
-  let retryFallback = true
-
-  function getContents({ nuxt }: { nuxt: Nuxt }) {
-    pending ??= generateIntrospection(nuxt, options, path, retryFallback).finally(() => {
-      pending = undefined
-      retryFallback = false
-    })
-
-    return pending
-  }
-
-  async function getSchema(nuxt: Nuxt) {
-    if (pending || !hasCurrentIntrospection(path, retryFallback)) {
-      await getContents({ nuxt })
-    }
-
-    return hasStoredIntrospection(path) ? path : undefined
-  }
-
-  return { getContents, getSchema }
-}
-
-export function createTypesGenerator(introspection: Pick<IntrospectionGenerator, 'getSchema'>): NuxtTemplate<ShopifyTemplateOptions>['getContents'] {
-  let cached: { key: string, contents: string } | undefined
-
-  return async (data) => {
-    const schema = await introspection.getSchema(data.nuxt)
-
-    if (!schema) return ''
-
-    const cacheKey = await getIntrospectionCacheKey(schema)
-
-    if (cacheKey && cached?.key === cacheKey) {
-      return cached.contents
-    }
-
-    const generatorConfig = {
-      schema,
-      plugins: [getTypescriptPluginConfig(data.options.clientConfig)],
-    } satisfies Types.ConfiguredOutput
-
-    await data.nuxt.callHook(`shopify:${kebabCase(data.options.clientType)}:generate:types`, {
-      nuxt: data.nuxt,
-      config: generatorConfig,
-    })
-
-    const generated = await runGenerate(data.nuxt, data.options, generatorConfig, createGenerateInput(data.nuxt.options.rootDir, data.options.filename))
-
-    const contents = generated && `${generated}\n${EXACT_UTILITY_TYPE}\n`
-
-    if (cacheKey && contents) {
-      cached = { key: cacheKey, contents }
-    }
-
-    return contents
-  }
-}
-
-export function createOperationsGenerator(
-  introspection: Pick<IntrospectionGenerator, 'getSchema'>,
-  documents: DocumentState = { revision: 0, graphqlFiles: new Set() },
-): NuxtTemplate<ShopifyTemplateOptions>['getContents'] {
-  let cached: { key: string, contents: string } | undefined
-
-  return async (data) => {
-    const schema = await introspection.getSchema(data.nuxt)
-
-    if (!schema) return ''
-
-    const schemaKey = await getIntrospectionCacheKey(schema)
-    const revision = documents.revision
-    const cacheKey = schemaKey && `${schemaKey}:${revision}`
-
-    if (cacheKey && cached?.key === cacheKey) {
-      return cached.contents
-    }
-
-    const generatorConfig = {
+    const config = {
       schema,
       preset,
-      documents: data.options.clientConfig?.documents?.slice(),
+      documents: client.clientConfig.documents.slice(),
       presetConfig: {
         importTypes: {
-          namespace: `${upperFirst(data.options.clientType)}Types`,
-          from: `./${kebabCase(data.options.clientType)}.types.d.ts`,
+          namespace: `${upperFirst(client.clientType)}Types`,
+          from: `./${kebabCase(client.clientType)}.types.d.ts`,
         },
         skipTypenameInOperations: true,
-        interfaceExtension: (params: InterfaceExtensionsParams) => {
-          return getInterfaceExtension(
-            data.options.clientType,
-            params.queryType,
-            params.mutationType,
-          )
-        },
+        interfaceExtension: (params: InterfaceExtensionsParams) => getInterfaceExtension(client.clientType, params),
       },
     } satisfies Types.ConfiguredOutput
 
-    await data.nuxt.callHook(`shopify:${kebabCase(data.options.clientType)}:generate:operations`, {
-      nuxt: data.nuxt,
-      config: generatorConfig,
-    })
+    await nuxt.callHook(`shopify:${kebabCase(client.clientType)}:generate:operations`, { nuxt, config })
 
-    const { failure, files } = await scanDocuments(generatorConfig.documents, data.nuxt.options.rootDir)
+    const { failure, files } = await scanDocuments(config.documents, nuxt.options.rootDir)
 
     if (documents.revision === revision) documents.graphqlFiles = files
 
-    const generated = failure
-      ? reportGenerateFailure(data.nuxt, data.options.filename, failure)
-      : await runGenerate(data.nuxt, data.options, generatorConfig, createGenerateInput(data.nuxt.options.rootDir, data.options.filename, {
-          cwd: data.nuxt.options.rootDir,
-          pluckConfig: pluckConfig as GenerateInput['pluckConfig'],
-        }))
+    if (failure) throw failure
 
-    const contents = generated && data.options.clientConfig?.codegen && data.options.clientConfig.codegen.globalTypes
-      ? generated + createGlobalDeclarations(generated, data.options.filename)
-      : generated
+    const generated = await generateFile(nuxt, filename, config, { cwd: nuxt.options.rootDir, pluckConfig: pluckConfig as Types.Config['pluckConfig'] })
+    const { codegen } = client.clientConfig
 
-    if (cacheKey && documents.revision === revision) {
-      cached = { key: cacheKey, contents }
-    }
-
-    return contents
+    return codegen && codegen.globalTypes ? generated + createGlobalDeclarations(generated, filename) : generated
+  }
+  catch (error) {
+    return reportGenerateFailure(nuxt, filename, error)
   }
 }
 
-export type { DocumentState, ShopifyTemplateOptions }
+function watchDocuments(nuxt: Nuxt, client: CodegenClient, filename: string, documents: DocumentState) {
+  const matches = createDocumentMatcher(client.clientConfig.documents)
+
+  nuxt.options.watch ||= []
+
+  for (const { shared } of getLayerDirectories(nuxt)) {
+    if (!nuxt.options.watch.includes(shared)) nuxt.options.watch.push(shared)
+  }
+
+  nuxt.hook('builder:watch', async (_event, file) => {
+    const path = resolve(nuxt.options.srcDir, file)
+
+    if (!matches(relative(nuxt.options.rootDir, path))) return
+
+    const content = await readFile(path, 'utf8').catch(() => '')
+    const hasGraphql = SCHEMA_LANGUAGE_FILE.test(path) || GRAPHQL_MARKER.test(content)
+
+    if (!hasGraphql && !documents.graphqlFiles.has(path)) return
+
+    if (hasGraphql) documents.graphqlFiles.add(path)
+    else documents.graphqlFiles.delete(path)
+
+    documents.revision++
+
+    return updateTemplates({ filter: template => template.filename === filename })
+  })
+}
+
+export function createOperationsGenerator(nuxt: Nuxt, client: CodegenClient, filename: string, loadSchema: SchemaLoader) {
+  const documents: DocumentState = { revision: 0, graphqlFiles: new Set() }
+
+  let operations: { revision: number, contents: Promise<string> } | undefined
+
+  watchDocuments(nuxt, client, filename, documents)
+
+  return () => {
+    const { revision } = documents
+
+    if (operations?.revision !== revision) {
+      operations = { revision, contents: generateOperations(nuxt, client, filename, loadSchema, documents, revision) }
+    }
+
+    return operations.contents
+  }
+}
+
+export type { CodegenClient }

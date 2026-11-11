@@ -2,8 +2,10 @@ import type { Nuxt } from '@nuxt/schema'
 
 import type { ShopifyConfig } from '../types'
 
+import { directoryToURL } from '@nuxt/kit'
+import { resolveModulePath } from 'exsolve'
+
 import { isPublicClient } from '../utils/clients'
-import { isResolvableFrom } from '../utils/install'
 import { useLogger } from '../utils/log'
 
 const MODULE_ID = '@nuxtjs/shopify'
@@ -16,11 +18,11 @@ export default function setupVite(nuxt: Nuxt, config: ShopifyConfig) {
 
   const deps: string[] = []
 
-  if (config.analytics || config.clients?.storefront || config.clients?.customerAccount) {
+  if (config.analytics || config.clients.storefront || config.clients.customerAccount) {
     deps.push('@shopify/graphql-client', '@shopify/hydrogen', '@shopify/hydrogen/customer-account', '@shopify/hydrogen/vue')
   }
 
-  const storefront = config.clients?.storefront
+  const { storefront } = config.clients
 
   if (isPublicClient(storefront) && storefront?.cache && storefront.cache.browser) {
     deps.push('lru-cache')
@@ -30,7 +32,7 @@ export default function setupVite(nuxt: Nuxt, config: ShopifyConfig) {
   const missing: string[] = []
   const unresolvable: string[] = []
 
-  const resolvableFromRoot = (id: string) => isResolvableFrom(id, nuxt.options.rootDir)
+  const resolvableFromRoot = (id: string) => !!resolveModulePath(id, { from: directoryToURL(nuxt.options.rootDir), try: true })
   const canNestUnderModule = resolvableFromRoot(MODULE_ID)
 
   for (const dep of deps) {

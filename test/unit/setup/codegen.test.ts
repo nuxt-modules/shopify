@@ -13,7 +13,6 @@ const addTypeTemplate = vi.fn((template: unknown, _context?: unknown) => templat
 const layerDirectories: Array<{ shared: string }> = []
 
 vi.mock('@nuxt/kit', () => ({
-  addTemplate: (template: unknown) => template,
   addTypeTemplate: (template: unknown, context?: unknown) => addTypeTemplate(template, context),
   getLayerDirectories: () => layerDirectories,
   updateTemplates: (...args: unknown[]) => updateTemplates(...args),
@@ -21,25 +20,31 @@ vi.mock('@nuxt/kit', () => ({
 
 vi.mock('#src/utils/log', () => ({ useLogger: () => createLoggerStub() }))
 
-const generatorDocuments: Array<{ revision: number }> = []
-
-vi.mock('#src/utils/codegen', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('#src/utils/codegen')>()
-
-  return {
-    ...actual,
-    createOperationsGenerator: (...args: Parameters<typeof actual.createOperationsGenerator>) => {
-      generatorDocuments.push(args[1]!)
-
-      return actual.createOperationsGenerator(...args)
-    },
-  }
-})
-
-const { default: setupCodegen, registerTemplates } = await import('#src/setup/codegen')
+const { default: setupCodegen } = await import('#src/setup/codegen')
 
 let rootDir: string
 let watch: (event: string, file: string) => Promise<unknown>
+
+function createNuxt(options: Record<string, unknown> = {}) {
+  const hooks: Record<string, (...args: never[]) => unknown> = {}
+
+  return {
+    options: { dev: false, _prepare: false, rootDir, srcDir: join(rootDir, 'app'), buildDir: join(rootDir, '.nuxt'), alias: {}, nitro: {}, watch: [] as string[], ...options },
+    hook: vi.fn((name: string, hook: (...args: never[]) => unknown) => {
+      hooks[name] = hook
+
+      if (name === 'builder:watch') watch = hook as typeof watch
+    }),
+    hooks,
+  }
+}
+
+function shop(clients: Record<string, Record<string, unknown>>) {
+  return {
+    name: 'shop',
+    clients: Object.fromEntries(Object.entries(clients).map(([clientType, client]) => [clientType, { apiVersion: API_VERSION, documents: [], codegen: { globalTypes: false }, ...client }])),
+  } as never
+}
 
 async function project(files: Record<string, string>, documents = ['app/**/*.{ts,vue,graphql}']) {
   for (const [name, content] of Object.entries(files)) {
@@ -47,17 +52,9 @@ async function project(files: Record<string, string>, documents = ['app/**/*.{ts
     await writeFile(join(rootDir, name), content)
   }
 
-  const nuxt = {
-    options: { rootDir, srcDir: join(rootDir, 'app'), buildDir: join(rootDir, '.nuxt'), alias: {}, nitro: {}, watch: [] as string[] },
-    hook: (name: string, hook: typeof watch) => {
-      if (name === 'builder:watch') watch = hook
-    },
-  }
+  const nuxt = createNuxt({ dev: true })
 
-  registerTemplates(nuxt as never, {
-    name: 'shop',
-    clients: { storefront: { apiVersion: API_VERSION, documents } },
-  } as never, ShopifyClientType.Storefront)
+  setupCodegen(nuxt as never, shop({ storefront: { documents } }))
 
   return nuxt
 }
@@ -90,7 +87,7 @@ describe('regenerating operation types in development', () => {
 
     const nuxt = await project({ 'shared/queries/shop.ts': 'export const query = `#graphql\n  query Shop { shop { name } }\n`' }, ['**/*.ts'])
 
-    registerTemplates(nuxt as never, { name: 'shop', clients: { storefront: { apiVersion: API_VERSION, documents: ['**/*.ts'] } } } as never, ShopifyClientType.Storefront)
+    setupCodegen(nuxt as never, shop({ storefront: { documents: ['**/*.ts'] } }))
 
     expect(nuxt.options.watch).toStrictEqual([`${join(rootDir, 'shared')}/`, `${join(rootDir, 'layers/base/shared')}/`])
 
@@ -139,16 +136,6 @@ describe('regenerating operation types in development', () => {
     expect(updateTemplates).toHaveBeenCalledTimes(2)
   })
 
-  it('moves the operations generator to a new revision on each change it regenerates for, so its cache expires', async () => {
-    generatorDocuments.length = 0
-
-    await project({ 'app/pages/index.vue': 'const query = `#graphql\n  query Shop { shop { name } }\n`' })
-
-    await watch('change', join(rootDir, 'app/pages/index.vue'))
-
-    expect(generatorDocuments.at(-1)?.revision).toBe(1)
-  })
-
   it('stays quiet for a GraphQL file in a folder that a ! entry excludes', async () => {
     await project({ 'app/legacy/shop.ts': 'export const query = `#graphql\n  query Shop { shop { name } }\n`' }, ['app/**/*.ts', '!app/legacy'])
 
@@ -162,12 +149,7 @@ describe('type references', () => {
   it.each(Object.values(ShopifyClientType))('references the %s types in the app, Nitro and node tsconfigs, as typed server routes carry even admin results into the app', (clientType) => {
     addTypeTemplate.mockClear()
 
-    const nuxt = {
-      options: { rootDir, srcDir: join(rootDir, 'app'), buildDir: join(rootDir, '.nuxt'), alias: {}, nitro: {} },
-      hook: vi.fn(),
-    }
-
-    registerTemplates(nuxt as never, { name: 'shop', clients: { [clientType]: { apiVersion: API_VERSION, documents: [] } } } as never, clientType)
+    setupCodegen(createNuxt() as never, shop({ [clientType]: {} }))
 
     expect(addTypeTemplate).toHaveBeenCalledTimes(3)
 
@@ -175,23 +157,33 @@ describe('type references', () => {
   })
 })
 
-function createNuxt(options: Record<string, boolean>) {
-  return { options: { dev: false, _prepare: false, ...options }, hook: vi.fn() }
-}
-
 describe('setupCodegen', () => {
-  it('fails a production build on generate failures', () => {
-    const nuxt = createNuxt({})
+  it('fails a production build when the types of a client fail to generate', async () => {
+    addTypeTemplate.mockClear()
 
-    setupCodegen(nuxt as never, { clients: {} } as never)
+    const nuxt = createNuxt()
 
-    expect(nuxt.hook).toHaveBeenCalledWith('build:before', expect.any(Function))
+    setupCodegen(nuxt as never, shop({ admin: {} }))
+
+    const [[types]] = addTypeTemplate.mock.calls as unknown as [[{ getContents: () => Promise<string> }]]
+
+    await types.getContents()
+
+    expect(() => nuxt.hooks['build:before']!()).toThrow(/Type generation failed:\n {2}- Failed to generate `shopify\/schema\/admin\..+\.schema\.json`: .*missing `clientId` or `clientSecret`/)
+  })
+
+  it('builds when every client\'s types generate', () => {
+    const nuxt = createNuxt()
+
+    setupCodegen(nuxt as never, shop({}))
+
+    expect(() => nuxt.hooks['build:before']!()).not.toThrow()
   })
 
   it.each(['dev', '_prepare', 'test'])('leaves %s runs alone, as @nuxt/test-utils builds the app before every test run', (mode) => {
     const nuxt = createNuxt({ [mode]: true })
 
-    setupCodegen(nuxt as never, { clients: {} } as never)
+    setupCodegen(nuxt as never, shop({}))
 
     expect(nuxt.hook).not.toHaveBeenCalled()
   })

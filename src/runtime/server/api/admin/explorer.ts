@@ -4,14 +4,14 @@ import { Kind, parse, print } from 'graphql'
 import { createError, defineEventHandler } from 'h3'
 import { useRuntimeConfig } from '#imports'
 
-import { assertSameSite } from '../../utils/csrf'
+import { assertSameOrigin } from '../../utils/csrf'
 import { readGraphqlBody } from '../../utils/graphql'
 import { createAdminApiClient } from '../../../utils/clients/admin'
 
 export default defineEventHandler(async (event: H3Event) => {
   if (!import.meta.dev) return
 
-  assertSameSite(event)
+  assertSameOrigin(event)
 
   const { _shopify } = useRuntimeConfig(event)
 

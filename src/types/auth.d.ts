@@ -5,7 +5,7 @@ export type ShopifyCustomerAccountSession = {
 }
 
 export type ShopifyCustomerAccountContext = {
-  getSession: (event: H3Event) => Promise<ShopifyCustomerAccountSession>
+  getSession: (event: H3Event) => Promise<ShopifyCustomerAccountSession | null>
   getAccessToken: (event: H3Event) => Promise<string>
 }
 

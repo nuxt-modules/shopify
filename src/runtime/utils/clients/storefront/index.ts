@@ -8,13 +8,18 @@ import type {
 } from '../../../../module'
 import type { ClientDefinition } from '../create'
 
+import { getRequestHeader } from 'h3'
+
+import { pickShopifyCookies } from '../../cookies'
 import {
+  BUYER_IP_HEADER,
   PRIVATE_TOKEN_HEADER,
   PUBLIC_TOKEN_HEADER,
   STOREFRONT_ID_HEADER,
   createApiUrl,
   createStoreDomain,
 } from '../transport'
+import { resolveBuyerIp } from '../buyer-ip'
 import { createClient } from '../create'
 import { DEFAULT_API_VERSION, DEFAULT_RETRIES } from '../defaults'
 
@@ -75,9 +80,17 @@ const definition: ClientDefinition<'storefront'> = {
   kind: 'storefront',
   createConfig: createStorefrontConfig,
   createProxyUrl: ({ clients }, origin, apiVersion) => clients?.storefront?.proxy ? createApiUrl(origin, apiVersion) : undefined,
-  buyerIpHeader: ({ clients }) => clients?.storefront?.buyerIpHeader,
+  requestHeaders: ({ clients }, headers, { event, buyerIp }) => {
+    const request = import.meta.server ? event : undefined
+    const cookie = request && pickShopifyCookies(getRequestHeader(request, 'cookie'))
+    const buyer = buyerIp ?? (request && resolveBuyerIp(request, clients?.storefront?.buyerIpHeader))
+
+    return {
+      ...(cookie ? { Cookie: cookie } : {}),
+      ...(buyer && headers[PRIVATE_TOKEN_HEADER] ? { [BUYER_IP_HEADER]: buyer } : {}),
+    }
+  },
   cachePresets: ({ clients }) => typeof clients?.storefront?.cache === 'object' ? clients.storefront.cache?.presets : undefined,
-  shopifyCookies: true,
 }
 
 export function createStorefrontApiClient<Cache extends boolean | undefined = undefined>(

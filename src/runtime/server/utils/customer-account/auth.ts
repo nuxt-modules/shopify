@@ -7,13 +7,11 @@ import { useNitroApp } from 'nitropack/runtime'
 import { useRuntimeConfig } from '#imports'
 
 import { getShopifyRequestContext } from '../request-context'
-import { createCustomerSessionManager, getCustomerAccountSession, getHydrogenCustomerSession } from './session'
+import { createCustomerSessionManager, getCustomerAccountSession, getHydrogenCustomerSession, isCachedRoute } from './session'
 
-export async function getValidCustomerAccessToken(event?: H3Event): Promise<string> {
-  if (!event) {
-    throw createError({ status: 500, statusText: 'Internal Server Error', message: '[shopify] Request event is not available' })
-  }
+const accessTokens = new WeakMap<H3Event, Promise<string>>()
 
+async function resolveAccessToken(event: H3Event): Promise<string> {
   const { _shopify } = useRuntimeConfig(event)
 
   const customerSession = getHydrogenCustomerSession(_shopify)
@@ -32,7 +30,17 @@ export async function getValidCustomerAccessToken(event?: H3Event): Promise<stri
   return accessToken
 }
 
+export async function getValidCustomerAccessToken(event?: H3Event): Promise<string> {
+  if (!event) {
+    throw createError({ status: 500, statusText: 'Internal Server Error', message: '[shopify] Request event is not available' })
+  }
+
+  if (!accessTokens.has(event)) accessTokens.set(event, resolveAccessToken(event))
+
+  return await accessTokens.get(event)!
+}
+
 export const customerAccountContext: ShopifyCustomerAccountContext = {
-  getSession: getCustomerAccountSession,
+  getSession: async event => isCachedRoute(event) ? null : await getCustomerAccountSession(event),
   getAccessToken: getValidCustomerAccessToken,
 }

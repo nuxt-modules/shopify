@@ -11,7 +11,7 @@ import { addVitePlugin } from '@nuxt/kit'
 
 import { createGraphqlTransformPlugin } from '../utils/graphql/transform'
 import { createClientRouter } from '../utils/clients'
-import { scanFragments, within } from '../utils/graphql/registry'
+import { createRegistry, scanFragments, within } from '../utils/graphql/registry'
 import { useLogger } from '../utils/log'
 
 const AUTO_IMPORT_CHANGING_EVENTS = ['add', 'unlink'] as const
@@ -55,7 +55,7 @@ export default async function setupGraphqlTransform(nuxt: Nuxt, config: ShopifyC
       resolveRegistry: (file) => {
         const clientType = routeFile(file)
 
-        return clientType ? registries.get(clientType) : undefined
+        return clientType ? registries.get(clientType) ?? createRegistry() : undefined
       },
     }),
 

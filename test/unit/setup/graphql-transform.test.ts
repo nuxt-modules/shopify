@@ -33,6 +33,8 @@ vi.mock('#src/utils/graphql/registry', async (importOriginal) => {
 const { default: setupGraphqlTransform } = await import('#src/setup/graphql-transform')
 const { useLogger } = await import('#src/utils/log')
 
+const warn = vi.spyOn(useLogger(), 'warn').mockImplementation(() => undefined)
+
 const FRAGMENT = 'export const SHOP_FIELDS = `#graphql\n  fragment ShopFields on Shop { name }\n`\n'
 
 const QUERY = 'export const query = `#graphql\n  query Shop { shop { ...ShopFields } }\n`\n'
@@ -42,6 +44,7 @@ let rootDir: string
 beforeEach(async () => {
   rootDir = await mkdtemp(join(tmpdir(), 'nuxt-shopify-transform-'))
   addVitePlugin.mockClear()
+  warn.mockClear()
   scans.gates.length = 0
 })
 
@@ -49,14 +52,14 @@ afterEach(async () => {
   await rm(rootDir, { recursive: true, force: true })
 })
 
-async function setup(documents = ['**/*.ts']) {
+async function setup(documents = ['**/*.ts'], clients = {}) {
   await mkdir(join(rootDir, 'graphql'), { recursive: true })
   await writeFile(join(rootDir, 'graphql/shop.ts'), FRAGMENT)
 
   await setupGraphqlTransform({ options: { rootDir, srcDir: join(rootDir, 'app') }, hook: vi.fn() } as never, {
     graphql: { injectFragments: true },
     fragments: { dirs: ['graphql'] },
-    clients: { storefront: { documents } },
+    clients: { storefront: { documents }, ...clients },
   } as never)
 
   const [plugin] = addVitePlugin.mock.calls[0]!
@@ -89,6 +92,14 @@ describe('fragment injection', () => {
       'legacy/shop.ts': false,
       'app/pages/legacy/shop.ts': true,
     })
+  })
+
+  it('warns about a fragment that nothing defines in a client without fragment files', async () => {
+    const { plugin } = await setup(['**/*.ts'], { customerAccount: { documents: ['app/account/**'] } })
+
+    plugin.transform.call({ addWatchFile: vi.fn() }, 'export const query = `#graphql\n  query Orders { customer { ...OrderFields } }\n`\n', join(rootDir, 'app/account/orders.ts'))
+
+    expect(warn.mock.calls).toStrictEqual([[expect.stringMatching(/^Fragment `OrderFields` is used in `.*app\/account\/orders\.ts` /)]])
   })
 })
 

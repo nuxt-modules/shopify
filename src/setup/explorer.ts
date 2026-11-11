@@ -50,9 +50,7 @@ export function shouldEnableExplorer(nuxt: Nuxt, config: ShopifyConfig, clientTy
 
 export default function setupExplorer(nuxt: Nuxt, config: ShopifyConfig, resolver: Resolver) {
   const logger = useLogger()
-  const clients = getConfiguredClients(config)
-
-  for (const clientType of clients) {
+  for (const { clientType } of getConfiguredClients(config)) {
     if (shouldEnableExplorer(nuxt, config, clientType)) {
       const path = registerExplorer(resolver, config, clientType)
 

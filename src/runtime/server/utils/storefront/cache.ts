@@ -1,6 +1,5 @@
 import type { CustomFetchApi } from '@shopify/graphql-client'
 import type { H3Event } from 'h3'
-import type { StorageValue } from 'unstorage'
 
 import { Cache, createFetchWithCache } from '@shopify/hydrogen'
 import { useStorage } from 'nitropack/runtime'
@@ -34,14 +33,7 @@ export function createStorefrontServerCache(event: H3Event): CustomFetchApi {
 
   warnUnmountedStorage(storage, base, _shopify?.logger)
 
-  const fetchWithCache = createFetchWithCache({
-    cache: {
-      get: key => storage.getItem(key),
-      set: (key, value, options) => storage.setItem(key, value as StorageValue, options),
-      delete: (key: string) => storage.removeItem(key),
-    },
-    waitUntil: promise => event.waitUntil(promise),
-  })
+  const fetchWithCache = createFetchWithCache({ cache: storage, waitUntil: promise => event.waitUntil(promise) })
 
   return async (url, init = {}) => {
     const headers = new Headers(init.headers)

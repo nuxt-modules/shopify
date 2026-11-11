@@ -12,18 +12,7 @@ import type {
   ShopifyInlineConfig,
 } from '../../../module'
 
-import type { H3Error } from 'h3'
-
-import { getRequestHeader } from 'h3'
-
-import { pickShopifyCookies } from '../cookies'
-import { resolveBuyerIp } from './buyer-ip'
-import {
-  BUYER_IP_HEADER,
-  PRIVATE_TOKEN_HEADER,
-  createTransport,
-  withApiVersion,
-} from './transport'
+import { createTransport, withApiVersion } from './transport'
 import { DEFAULT_THROW_ERRORS } from './defaults'
 import { requestWithCache } from './cache'
 import { handleErrors } from './errors'
@@ -33,11 +22,10 @@ export type ClientDefinition<Kind extends ShopifyClientKind = ShopifyClientKind>
 
   createConfig: (config: ModuleOptions) => ShopifyApiClientConfig
   createProxyUrl?: (config: ModuleOptions, origin: string, apiVersion: string) => string | undefined
-  buyerIpHeader?: (config: ModuleOptions) => string | undefined
+  requestHeaders?: (config: ModuleOptions, headers: ShopifyApiClientConfig['headers'], options: Pick<ShopifyClientOptions, 'event' | 'buyerIp'>) => Record<string, string>
   cachePresets?: (config: ModuleOptions) => Record<string, CacheOptions> | undefined
 
   authHeader?: string
-  shopifyCookies?: boolean
 }
 
 export function isInlineConfig(config: ShopifyClientConfig): config is ShopifyInlineConfig {
@@ -61,36 +49,26 @@ export function createClient<
   options: ShopifyClientOptions<Operations, Cache> = {},
 ): ShopifyApiClient<Operations, Cache> {
   const { authHeader } = definition
-  const { event, origin, browserCache, serverCache, buyerIp, ...callbacks } = options
+  const { event, origin, buyerIp, browserCache, serverCache, auth, apiVersion, headers, retries, logger, throwOnErrors, ...callbacks } = options
 
   const moduleConfig = normalizeConfig(definition.kind, config)
 
   const apiClientConfig = definition.createConfig(moduleConfig)
 
-  if (options.apiVersion) {
-    apiClientConfig.apiVersion = options.apiVersion
-    apiClientConfig.apiUrl = withApiVersion(apiClientConfig.apiUrl, options.apiVersion)
+  if (apiVersion) {
+    apiClientConfig.apiVersion = apiVersion
+    apiClientConfig.apiUrl = withApiVersion(apiClientConfig.apiUrl, apiVersion)
   }
 
-  if (options.retries !== undefined) apiClientConfig.retries = options.retries
-  if (options.logger) apiClientConfig.logger = options.logger
-  if (options.headers) Object.assign(apiClientConfig.headers, options.headers)
+  if (retries !== undefined) apiClientConfig.retries = retries
+  if (logger) apiClientConfig.logger = logger
+  if (headers) Object.assign(apiClientConfig.headers, headers)
 
   const proxyUrl = origin ? definition.createProxyUrl?.(moduleConfig, origin, apiClientConfig.apiVersion) : undefined
 
   if (proxyUrl) apiClientConfig.apiUrl = proxyUrl
 
-  if (import.meta.server && event && definition.shopifyCookies) {
-    const cookie = pickShopifyCookies(getRequestHeader(event, 'cookie'))
-
-    if (cookie) apiClientConfig.headers['Cookie'] = cookie
-  }
-
-  if (buyerIp !== false && apiClientConfig.headers[PRIVATE_TOKEN_HEADER]) {
-    const resolvedBuyerIp = buyerIp ?? (import.meta.server && event ? resolveBuyerIp(event, definition.buyerIpHeader?.(moduleConfig)) : undefined)
-
-    if (resolvedBuyerIp) apiClientConfig.headers[BUYER_IP_HEADER] = resolvedBuyerIp
-  }
+  Object.assign(apiClientConfig.headers, definition.requestHeaders?.(moduleConfig, apiClientConfig.headers, { event, buyerIp }))
 
   callbacks.onConfigure?.({ config: apiClientConfig })
 
@@ -99,13 +77,9 @@ export function createClient<
     fetch: serverCache,
   })
 
-  const { auth } = options
+  const shouldThrow = throwOnErrors ?? moduleConfig.errors?.throw ?? DEFAULT_THROW_ERRORS
 
-  const throwOnErrors = options.throwOnErrors
-    ?? moduleConfig.errors?.throw
-    ?? DEFAULT_THROW_ERRORS
-
-  const cachePresets = definition.cachePresets?.(moduleConfig)
+  const cache = definition.cachePresets && { storage: browserCache, presets: definition.cachePresets(moduleConfig), serverCache: !!serverCache }
 
   const authenticate = async () => {
     if (auth && authHeader) transport.config.headers[authHeader] = await auth()
@@ -118,12 +92,12 @@ export function createClient<
       config: transport.config,
     })
 
-    const authError = await authenticate().then(() => undefined, (error: H3Error) => error)
+    const authError = await authenticate().then(() => undefined, (error: Error & { statusCode?: number }) => error)
 
     const response = authError
-      ? { errors: { networkStatusCode: authError.statusCode, message: authError.message.replace(/^\[shopify\] /, '') } }
-      : definition.cachePresets
-        ? await requestWithCache(browserCache, transport.request, operation, options, cachePresets, Boolean(serverCache))
+      ? { errors: { networkStatusCode: authError.statusCode, message: authError.message } }
+      : cache
+        ? await requestWithCache(cache, transport.request, operation, options)
         : await transport.request(operation, options)
 
     if (options?.signal?.aborted) return response
@@ -134,9 +108,9 @@ export function createClient<
       options: options as ShopifyApiClientRequestOptions<keyof Operations, Operations, Cache>,
     })
 
-    if (response.errors) await handleErrors(response.errors, throwOnErrors && !authError, callbacks.onErrors, apiClientConfig.logger)
+    if (response.errors) await handleErrors(response.errors, shouldThrow && !authError, callbacks.onErrors, apiClientConfig.logger)
 
-    if (authError && throwOnErrors) throw authError
+    if (authError && shouldThrow) throw authError
 
     return response
   }

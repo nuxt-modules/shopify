@@ -38,7 +38,7 @@ function cached(
   query: string,
   options: Record<string, unknown> = {},
 ) {
-  return requestWithCache(storage, request as never, query as never, options as never, presets)
+  return requestWithCache({ storage, presets, serverCache: true }, request as never, query as never, options as never)
 }
 
 function requestOptions(request: ReturnType<typeof createRequest>) {
@@ -65,9 +65,11 @@ describe('browser cache', () => {
   })
 
   it('reads the durations of a preset the way Hydrogen does', async () => {
-    await requestWithCache(createStorage(), createRequest() as never, QUERY as never, { cache: 'tiny' } as never, {
-      tiny: { maxAge: { minutes: 1 }, staleWhileRevalidate: { seconds: 30 }, staleIfError: 600 },
-    })
+    await requestWithCache({
+      storage: createStorage(),
+      presets: { tiny: { maxAge: { minutes: 1 }, staleWhileRevalidate: { seconds: 30 }, staleIfError: 600 } },
+      serverCache: true,
+    }, createRequest() as never, QUERY as never, { cache: 'tiny' } as never)
 
     expect([...ttls.values()]).toStrictEqual([{ ttl: 90_000 }])
   })

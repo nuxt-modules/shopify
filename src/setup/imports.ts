@@ -15,16 +15,6 @@ import {
 import { hasPublicClient } from '../utils/clients'
 import { useLogger } from '../utils/log'
 
-function registerFragmentImports(fragmentsPath: string, includeClient: boolean) {
-  if (!existsSync(fragmentsPath)) return
-
-  addServerImportsDir(join(fragmentsPath, '**'))
-
-  if (includeClient) {
-    addImportsDir(join(fragmentsPath, '**'))
-  }
-}
-
 export default function setupImports(nuxt: Nuxt, config: ShopifyConfig, resolver: Resolver) {
   const logger = useLogger()
 
@@ -32,12 +22,20 @@ export default function setupImports(nuxt: Nuxt, config: ShopifyConfig, resolver
 
   for (const dir of config.fragments.dirs) nuxt.options.watch.push(join(nuxt.options.rootDir, dir))
 
-  if (config.fragments?.autoImport) {
+  if (config.fragments.autoImport) {
     logger.debug(`Auto-importing fragments from \`${config.fragments.dirs.join('`, `')}\``)
 
     const includeClient = hasPublicClient(config)
 
-    for (const dir of config.fragments.dirs) registerFragmentImports(join(nuxt.options.rootDir, dir), includeClient)
+    for (const dir of config.fragments.dirs) {
+      const path = join(nuxt.options.rootDir, dir)
+
+      if (!existsSync(path)) continue
+
+      addServerImportsDir(join(path, '**'))
+
+      if (includeClient) addImportsDir(join(path, '**'))
+    }
   }
 
   const from = resolver.resolve('./runtime/utils/functions')
