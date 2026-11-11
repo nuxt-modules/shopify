@@ -25,7 +25,13 @@ describe('getShopifyConfig', () => {
   it('loads the app like a build, so an invalid webhooks config fails the command instead of being skipped', async () => {
     await expect(getShopifyConfig()).resolves.toEqual({ name: 'shop' })
 
-    expect(loadNuxt).toHaveBeenCalledExactlyOnceWith({ dotenv: true })
+    expect(loadNuxt).toHaveBeenCalledOnce()
+
+    const [options] = loadNuxt.mock.calls[0]!
+
+    expect(options).not.toHaveProperty('dev', true)
+    expect(options).not.toHaveProperty('overrides._prepare', true)
+    expect(options).not.toHaveProperty('dotenv', false)
   })
 
   it('closes the app it loaded, also when the module is not configured', async () => {

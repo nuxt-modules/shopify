@@ -32,14 +32,11 @@ beforeEach(() => {
 })
 
 describe('setupCustomerAccountClient', () => {
-  it('asks for a market when there is no storefront client to look the shop\'s default market up with', () => {
-    setupCustomerAccountClient(createSetupNuxt() as never, { clients: { customerAccount }, analytics: false } as never, resolver as never)
-
-    expect(warn).toHaveBeenCalledWith(expect.stringContaining('Set `defaultMarket`'))
-  })
-
-  it('still asks when the market is only the empty placeholder declared for environment variables', () => {
-    setupCustomerAccountClient(createSetupNuxt() as never, { clients: { customerAccount }, defaultMarket: { country: '', language: '' }, analytics: false } as never, resolver as never)
+  it.each([
+    ['when there is no storefront client to look the shop\'s default market up with', {}],
+    ['when the market is only the empty placeholder declared for environment variables', { defaultMarket: { country: '', language: '' } }],
+  ])('asks for a market %s', (_, market) => {
+    setupCustomerAccountClient(createSetupNuxt() as never, { clients: { customerAccount }, ...market, analytics: false } as never, resolver as never)
 
     expect(warn).toHaveBeenCalledWith(expect.stringContaining('Set `defaultMarket`'))
   })
@@ -123,30 +120,21 @@ describe('warnInsecureCustomerAccountDevServer', () => {
     warn.mockClear()
   })
 
-  it('warns once the dev server listens on plain http', async () => {
+  it.each([
+    'http://localhost:3311/',
+    'https://localhost:3311/',
+    'https://127.0.0.1:3311/',
+    'https://[::1]:3311/',
+  ])('warns once the dev server listens on %s, where Shopify can\'t sign customers in', async (url) => {
     const nuxt = createNuxt()
 
     warnInsecureCustomerAccountDevServer(nuxt as never)
 
-    await listen(nuxt, { url: 'http://localhost:3311/' })
+    await listen(nuxt, { url })
 
     expect(warn).toHaveBeenCalledOnce()
-    expect(warn).toHaveBeenCalledWith(expect.stringContaining('http://localhost:3311/'))
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining(url))
     expect(warn).toHaveBeenCalledWith(expect.stringContaining('localHttps'))
-  })
-
-  it('warns for a dev server on https that runs on localhost, which Shopify doesn\'t accept either', async () => {
-    for (const url of ['https://localhost:3311/', 'https://127.0.0.1:3311/', 'https://[::1]:3311/']) {
-      const nuxt = createNuxt()
-
-      warnInsecureCustomerAccountDevServer(nuxt as never)
-
-      await listen(nuxt, { url })
-
-      expect(warn).toHaveBeenLastCalledWith(expect.stringContaining(url))
-    }
-
-    expect(warn).toHaveBeenCalledTimes(3)
   })
 
   it('stays quiet for a dev server on an https host other than localhost', async () => {

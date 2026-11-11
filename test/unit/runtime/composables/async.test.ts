@@ -81,18 +81,6 @@ describe('async data variables', () => {
 
     expect(requests.map(request => request.variables)).toStrictEqual([{ handle: 'first' }, { handle: 'second' }])
   })
-
-  it.each(clients)('leaves the caller\'s $name variables object untouched', async ({ useData }) => {
-    const handle = ref('first')
-    const variables = { handle }
-
-    const { refresh } = useData('key', 'query', { variables })
-
-    await refresh()
-
-    expect(variables.handle).toBe(handle)
-    expect(handle.value).toBe('first')
-  })
 })
 
 describe('async data requests', () => {

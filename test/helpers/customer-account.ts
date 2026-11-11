@@ -32,6 +32,8 @@ export function createHydrogenSession(tokens: HydrogenTokens = {}) {
   }
 }
 
+export const EXPIRED: HydrogenTokens = { expiresAt: Date.now() - 1000 }
+
 function base64Url(value: string): string {
   return Buffer.from(value).toString('base64url')
 }
@@ -68,7 +70,7 @@ export function createShopifyConfig(customerAccount: Record<string, unknown> = {
 
 export const UNCONFIGURED_SHOPIFY_CONFIG = { name: 'test-shop', clients: {} }
 
-export function createMemoryStorage() {
+function createMemoryStorage() {
   const items = new Map<string, unknown>()
 
   return {

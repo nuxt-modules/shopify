@@ -164,52 +164,33 @@ describe('test module with nuxt 4', async () => {
     expect(response.status).toBe(401)
   })
 
-  it('should generate storefront api operations', async () => {
-    const operations = await readBuildFile('shopify/storefront/storefront.operations.d.ts')
+  it.each([
+    ['storefront', 'storefront', 'Storefront', [
+      'export type FetchAsyncProductsQuery =',
+      'export type FetchProductsQuery =',
+      'export type FetchFirstThreeProductsQuery =',
+      'export type FetchProductsWithErrorQuery =',
+      'export type ProductFieldsFragment =',
+      'declare global {',
+    ]],
+    ['admin', 'admin', 'Admin', [
+      'export type FetchMarketsQuery =',
+      'export type MarketFieldsFragment =',
+    ]],
+    ['customer account', 'customer-account', 'CustomerAccount', [
+      'export type CustomerDetailsQuery =',
+      'export type CustomerFieldsFragment =',
+    ]],
+  ])('should generate %s api operations', async (_, client, namespace, declarations) => {
+    const operations = await readBuildFile(`shopify/${client}/${client}.operations.d.ts`)
 
-    expect(operations).toContain('export type FetchAsyncProductsQuery =')
-    expect(operations).toContain('export type FetchProductsQuery =')
-    expect(operations).toContain('export type FetchFirstThreeProductsQuery =')
-    expect(operations).toContain('export type FetchProductsWithErrorQuery =')
-    expect(operations).toContain('export type ProductFieldsFragment =')
-
-    expect(operations).toContain([
-      `declare module '@nuxtjs/shopify/storefront' {`,
-      '  type InputMaybe<T> = StorefrontTypes.InputMaybe<T>',
-      '  interface StorefrontQueries extends GeneratedQueryTypes {}',
-      '  interface StorefrontMutations extends GeneratedMutationTypes {}',
-      '}',
-    ].join('\n'))
-
-    expect(operations).toContain('declare global {')
-  })
-
-  it('should generate admin api operations', async () => {
-    const operations = await readBuildFile('shopify/admin/admin.operations.d.ts')
-
-    expect(operations).toContain('export type FetchMarketsQuery =')
-    expect(operations).toContain('export type MarketFieldsFragment =')
+    for (const declaration of declarations) expect(operations).toContain(declaration)
 
     expect(operations).toContain([
-      `declare module '@nuxtjs/shopify/admin' {`,
-      '  type InputMaybe<T> = AdminTypes.InputMaybe<T>',
-      '  interface AdminQueries extends GeneratedQueryTypes {}',
-      '  interface AdminMutations extends GeneratedMutationTypes {}',
-      '}',
-    ].join('\n'))
-  })
-
-  it('should generate customer account api operations', async () => {
-    const operations = await readBuildFile('shopify/customer-account/customer-account.operations.d.ts')
-
-    expect(operations).toContain('export type CustomerDetailsQuery =')
-    expect(operations).toContain('export type CustomerFieldsFragment =')
-
-    expect(operations).toContain([
-      `declare module '@nuxtjs/shopify/customer-account' {`,
-      '  type InputMaybe<T> = CustomerAccountTypes.InputMaybe<T>',
-      '  interface CustomerAccountQueries extends GeneratedQueryTypes {}',
-      '  interface CustomerAccountMutations extends GeneratedMutationTypes {}',
+      `declare module '@nuxtjs/shopify/${client}' {`,
+      `  type InputMaybe<T> = ${namespace}Types.InputMaybe<T>`,
+      `  interface ${namespace}Queries extends GeneratedQueryTypes {}`,
+      `  interface ${namespace}Mutations extends GeneratedMutationTypes {}`,
       '}',
     ].join('\n'))
   })

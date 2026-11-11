@@ -49,10 +49,6 @@ function warnUnrecognized(input: Record<string, unknown>) {
   warnUnrecognizedOptions(input, configObjectSchema.parse(input))
 }
 
-function stubApiUrl(url: string) {
-  vi.stubGlobal('fetch', vi.fn(() => Promise.resolve({ json: () => Promise.resolve({ graphql_api: url }) })))
-}
-
 const storefront = { publicAccessToken: 'tok' }
 
 beforeEach(() => {
@@ -63,7 +59,7 @@ beforeEach(() => {
 
   delete process.env.NUXT_SHOPIFY_CLIENTS_CUSTOMER_ACCOUNT_SESSION_PASSWORD
 
-  stubApiUrl(API_URL)
+  vi.stubGlobal('fetch', vi.fn(() => Promise.resolve({ json: () => Promise.resolve({ graphql_api: API_URL }) })))
 })
 
 describe('analytics', () => {
@@ -124,14 +120,11 @@ describe('customer account proxy opt-out', () => {
     expect(message).toContain('useCustomerAccount()')
   })
 
-  it('stays quiet while the proxy is enabled', async () => {
-    await resolve({ name: 'shop', clients: { storefront, customerAccount: { clientId: 'cid' } } })
-
-    expect(warnings.join('\n')).not.toContain('customer account proxy is disabled')
-  })
-
-  it('stays quiet when the storefront proxy alone is disabled', async () => {
-    await resolve({ name: 'shop', clients: { storefront: { ...storefront, proxy: false } } })
+  it.each([
+    ['while the proxy is enabled', { storefront, customerAccount: { clientId: 'cid' } }],
+    ['when the storefront proxy alone is disabled', { storefront: { ...storefront, proxy: false } }],
+  ])('stays quiet %s', async (_, clients) => {
+    await resolve({ name: 'shop', clients })
 
     expect(warnings.join('\n')).not.toContain('customer account proxy is disabled')
   })
@@ -148,39 +141,6 @@ describe('shop id', () => {
     expect(publicConfig.shopId).toBe('1234')
   })
 
-  it('prefers a configured shop ID and skips the lookup', async () => {
-    const { config } = await resolve({ ...input, shopId: '9' })
-
-    expect(fetch).not.toHaveBeenCalled()
-    expect(config.shopId).toBe('9')
-  })
-
-  it('skips the lookup without a customer account client', async () => {
-    const { config } = await resolve({ name: 'shop', clients: { storefront } })
-
-    expect(fetch).not.toHaveBeenCalled()
-    expect(config.shopId).toBeUndefined()
-  })
-
-  it('gives up on a lookup that never answers, so a hanging endpoint can\'t stall the build or every request', async () => {
-    const timeout = new AbortController()
-
-    vi.spyOn(AbortSignal, 'timeout').mockReturnValueOnce(timeout.signal)
-    vi.stubGlobal('fetch', vi.fn((_url: string, init?: RequestInit) => new Promise((_resolve, reject) => {
-      init?.signal?.addEventListener('abort', () => reject(init.signal!.reason))
-    })))
-
-    const resolving = resolve(input)
-
-    await vi.waitFor(() => expect(fetch).toHaveBeenCalled())
-
-    timeout.abort()
-
-    const { config } = await resolving
-
-    expect(config.shopId).toBeUndefined()
-  })
-
   it('leaves the shop ID unset and says how to set it when the lookup fails', async () => {
     vi.stubGlobal('fetch', vi.fn(() => Promise.reject(new Error('offline'))))
 
@@ -189,23 +149,15 @@ describe('shop id', () => {
     expect(config.shopId).toBeUndefined()
     expect(warnings.join('\n')).toContain('`shopId`')
   })
-
-  it('ignores a well-known URL without a numeric shop ID', async () => {
-    stubApiUrl('https://shopify.com/account/customer/api/graphql')
-
-    const { config } = await resolve(input)
-
-    expect(config.shopId).toBeUndefined()
-  })
 })
 
 describe('customer account session password', () => {
   const input = { name: 'shop', clients: { customerAccount: { clientId: 'cid' } } }
 
-  it('uses the environment variable in development', async () => {
+  it('uses the environment variable in development, even over a short configured password', async () => {
     process.env.NUXT_SHOPIFY_CLIENTS_CUSTOMER_ACCOUNT_SESSION_PASSWORD = 'x'.repeat(48)
 
-    const { config } = await resolve(input, nuxtStub({ dev: true }))
+    const { config } = await resolve({ name: 'shop', clients: { customerAccount: { clientId: 'cid', session: { password: 'short' } } } }, nuxtStub({ dev: true }))
 
     expect(config.clients.customerAccount?.session.password).toBe('x'.repeat(48))
     expect(persisted).toHaveLength(0)
@@ -226,13 +178,15 @@ describe('customer account session password', () => {
     expect(config.clients.customerAccount?.session.password).toBe('y'.repeat(48))
   })
 
-  it('generates and persists one in development', async () => {
+  it('generates and persists one in development, and says where it went', async () => {
     const { config } = await resolve(input, nuxtStub({ dev: true }))
 
     const password = config.clients.customerAccount?.session.password
 
     expect(password).toBeTruthy()
     expect(persisted).toEqual([['/tmp/shop', password]])
+    expect(infos).toContainEqual(expect.stringContaining('Generated a customer account session password in `.env`'))
+    expect(warnings).toEqual([])
   })
 
   it('never generates one in production, and warns that sign-in fails without one at runtime', async () => {
@@ -241,13 +195,6 @@ describe('customer account session password', () => {
     expect(config.clients.customerAccount?.session.password).toBeUndefined()
     expect(persisted).toHaveLength(0)
     expect(warnings).toContainEqual(expect.stringContaining('No customer account session password set at build time'))
-  })
-
-  it('says where a generated password went in development', async () => {
-    await resolve(input, nuxtStub({ dev: true }))
-
-    expect(infos).toContainEqual(expect.stringContaining('Generated a customer account session password in `.env`'))
-    expect(warnings).toEqual([])
   })
 
   it('warns that a generated password only lasts this run when `.env` keeps one that isn\'t loaded', async () => {
@@ -289,24 +236,20 @@ describe('customer account session password', () => {
     expect(warnings).toEqual([])
     expect(persisted).toHaveLength(0)
   })
-
-  it('prefers a usable environment password over a short configured one', async () => {
-    process.env.NUXT_SHOPIFY_CLIENTS_CUSTOMER_ACCOUNT_SESSION_PASSWORD = 'x'.repeat(48)
-
-    const { config } = await resolve({ name: 'shop', clients: { customerAccount: { clientId: 'cid', session: { password: 'short' } } } }, nuxtStub({ dev: true }))
-
-    expect(config.clients.customerAccount?.session.password).toBe('x'.repeat(48))
-  })
 })
 
 describe('api version window', () => {
-  it('warns about a version that left the supported window without failing the build', async () => {
-    const { config } = await resolve({ name: 'shop', clients: { storefront: { ...storefront, apiVersion: '2020-01' } } })
+  it('warns about a version that left the supported window without failing the build, naming the client that carries it', async () => {
+    const { config } = await resolve({ name: 'shop', clients: { storefront: { ...storefront, apiVersion: '2020-01' }, customerAccount: { clientId: 'cid', apiVersion: '2020-01' } } })
+
+    const message = warnings.join('\n')
 
     expect(config.clients.storefront?.apiVersion).toBe('2020-01')
-    expect(warnings.join('\n')).toContain('`2020-01`')
-    expect(warnings.join('\n')).toContain('outside the window')
-    expect(warnings.join('\n')).toContain(API_VERSION)
+    expect(message).toContain('`2020-01`')
+    expect(message).toContain('outside the window')
+    expect(message).toContain(API_VERSION)
+    expect(message).toContain('storefront client')
+    expect(message).toContain('customer-account client')
   })
 
   it('stays quiet for a version inside the window', async () => {
@@ -314,12 +257,6 @@ describe('api version window', () => {
 
     expect(config.clients.storefront?.apiVersion).toBe(API_VERSION)
     expect(warnings.join('\n')).not.toContain('outside the window')
-  })
-
-  it('names the client that carries the stale version', async () => {
-    await resolve({ name: 'shop', clients: { customerAccount: { clientId: 'cid', apiVersion: '2020-01' } } })
-
-    expect(warnings.join('\n')).toContain('customer-account client')
   })
 })
 

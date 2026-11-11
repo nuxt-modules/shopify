@@ -31,20 +31,12 @@ describe('setupAnalytics', () => {
     expect(addComponentsDir).toHaveBeenCalledExactlyOnceWith({ path: './runtime/components/analytics', pathPrefix: false, prefix: 'Shopify' })
   })
 
-  it('asks for the shop ID and market when there is no storefront client to look them up with', () => {
-    setupAnalytics(createSetupNuxt() as never, { clients: {}, analytics: {} } as never, resolver as never)
-
-    expect(warn).toHaveBeenCalledWith(expect.stringContaining('`shopId` and `defaultMarket`'))
-  })
-
-  it('still asks when the market is only the empty placeholder declared for environment variables', () => {
-    setupAnalytics(createSetupNuxt() as never, { clients: {}, shopId: '1', defaultMarket: { country: '', language: '' }, analytics: {} } as never, resolver as never)
-
-    expect(warn).toHaveBeenCalledWith(expect.stringContaining('`shopId` and `defaultMarket`'))
-  })
-
-  it('still asks for the shop ID when only the market is configured', () => {
-    setupAnalytics(createSetupNuxt() as never, { clients: {}, defaultMarket: { country: 'US', language: 'EN' }, analytics: {} } as never, resolver as never)
+  it.each([
+    ['when there is no storefront client to look them up with', {}],
+    ['when the market is only the empty placeholder declared for environment variables', { shopId: '1', defaultMarket: { country: '', language: '' } }],
+    ['when only the market is configured', { defaultMarket: { country: 'US', language: 'EN' } }],
+  ])('asks for the shop ID and market %s', (_, shop) => {
+    setupAnalytics(createSetupNuxt() as never, { clients: {}, ...shop, analytics: {} } as never, resolver as never)
 
     expect(warn).toHaveBeenCalledWith(expect.stringContaining('`shopId` and `defaultMarket`'))
   })

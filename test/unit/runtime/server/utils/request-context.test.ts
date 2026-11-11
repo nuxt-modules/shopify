@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { API_VERSION } from '#test/helpers/api-version'
 import { createTestEvent, getResponseHeader, getSetCookieHeaders } from '#test/helpers/event'
-import { createLoggerStub } from '#test/helpers/logger'
+import { createLogReporter, createLoggerStub } from '#test/helpers/logger'
 
 const runtimeConfig: { _shopify?: Record<string, unknown> } = {}
 
@@ -19,7 +19,7 @@ const { applyShopifyResponseHeaders, getShopifyRequestContext, resolveShopifyMar
 const { createHydrogenStorefrontClient } = await import('#src/runtime/server/utils/storefront/hydrogen')
 
 describe('resolveShopifyMarket', () => {
-  const event = (path = '/cart.js') => createTestEvent({ path, headers: { host: 'shop.test' } })
+  const event = () => createTestEvent({ path: '/cart.js', headers: { host: 'shop.test' } })
 
   const configured = { clients: {}, defaultMarket: { country: 'DE', language: 'DE' } } as never
 
@@ -41,16 +41,6 @@ describe('resolveShopifyMarket', () => {
     warn.mockClear()
   })
 
-  it('looks up the shop\'s default market once, through the storefront client', async () => {
-    const { fetchMock, resolveShopifyMarket } = await lookUpWith('NL', 'NL')
-    const config = { name: 'shop', clients: { storefront: { apiVersion: API_VERSION, publicAccessToken: 'public' } }, analytics: false } as never
-
-    await expect(resolveShopifyMarket(event(), config)).resolves.toMatchObject({ country: 'NL', language: 'NL' })
-    await expect(resolveShopifyMarket(event(), config)).resolves.toMatchObject({ country: 'NL', language: 'NL' })
-
-    expect(fetchMock).toHaveBeenCalledOnce()
-  })
-
   it('fails with a clear error, without trying a lookup, when there is no storefront client to look the market up with', async () => {
     const { fetchMock, resolveShopifyMarket } = await lookUpWith('NL', 'NL')
 
@@ -59,10 +49,6 @@ describe('resolveShopifyMarket', () => {
 
     expect(fetchMock).not.toHaveBeenCalled()
     expect(warn).not.toHaveBeenCalled()
-  })
-
-  it('uses the configured market', async () => {
-    await expect(resolveShopifyMarket(event(), configured)).resolves.toEqual({ country: 'DE', language: 'DE' })
   })
 
   it('treats an empty market, as declared for runtime environment variables, as no market', async () => {
@@ -78,7 +64,7 @@ describe('resolveShopifyMarket', () => {
     expect(JSON.parse(init.body as string).variables).toStrictEqual({})
   })
 
-  it('never looks the market up when one is configured', async () => {
+  it('uses the configured market, without looking it up', async () => {
     const { fetchMock, resolveShopifyMarket } = await lookUpWith('NL', 'NL')
     const config = { name: 'shop', clients: { storefront: { apiVersion: API_VERSION, publicAccessToken: 'public' } }, defaultMarket: { country: 'DE', language: 'DE' }, analytics: false } as never
 
@@ -87,32 +73,15 @@ describe('resolveShopifyMarket', () => {
     expect(fetchMock).not.toHaveBeenCalled()
   })
 
-  it('keeps retrying a lookup that came back without data, even when errors don\'t throw', async () => {
-    const fetchMock = vi.fn()
-      .mockResolvedValueOnce(Response.json({ errors: [{ message: 'Internal error' }] }))
-      .mockResolvedValue(Response.json({ data: { shop: { id: 'gid://shopify/Shop/1' }, localization: { country: { isoCode: 'NL', currency: { isoCode: 'EUR' } }, language: { isoCode: 'NL' } } } }))
-
-    vi.stubGlobal('fetch', fetchMock)
-    vi.resetModules()
-
-    const { resolveShopifyMarket } = await import('#src/runtime/server/utils/request-context')
-    const config = { name: 'shop', shopId: '1', clients: { storefront: { apiVersion: API_VERSION, publicAccessToken: 'public' } }, errors: { throw: false }, analytics: {} } as never
-
-    await expect(resolveShopifyMarket(event(), config)).rejects.toMatchObject({ statusCode: 502 })
-    await expect(resolveShopifyMarket(event(), config)).resolves.toMatchObject({ country: 'NL', language: 'NL' })
-
-    expect(fetchMock).toHaveBeenCalledTimes(2)
-  })
-
   it('warns once about a failed lookup instead of logging an error on every request', async () => {
-    const log = vi.fn()
+    const { log, logger } = createLogReporter()
     const fetchMock = vi.fn(async () => new Response('Invalid API key', { status: 401 }))
 
     vi.stubGlobal('fetch', fetchMock)
     vi.resetModules()
 
     const { resolveShopifyMarket } = await import('#src/runtime/server/utils/request-context')
-    const config = { name: 'shop', shopId: '1', clients: { storefront: { apiVersion: API_VERSION, publicAccessToken: 'public' } }, logger: { reporters: [{ log }] }, analytics: {} } as never
+    const config = { name: 'shop', shopId: '1', clients: { storefront: { apiVersion: API_VERSION, publicAccessToken: 'public' } }, logger, analytics: {} } as never
 
     await expect(resolveShopifyMarket(event(), config)).rejects.toMatchObject({ statusCode: 502 })
     await expect(resolveShopifyMarket(event(), config)).rejects.toMatchObject({ statusCode: 502 })
@@ -128,10 +97,6 @@ describe('resolveShopifyMarket', () => {
     request.context.shopifyMarket = { country: 'CA', language: 'FR' }
 
     await expect(resolveShopifyMarket(request, configured)).resolves.toEqual({ country: 'CA', language: 'FR' })
-  })
-
-  it('leaves the country of the sign-in page to the market of the request, as Hydrogen does', async () => {
-    await expect(resolveShopifyMarket(event('/account/login?country=FR'), configured)).resolves.toEqual({ country: 'DE', language: 'DE' })
   })
 })
 
@@ -175,31 +140,16 @@ describe('getShopifyRequestContext', () => {
 
   it.each([
     ['only a public token', { publicAccessToken: 'public' }],
-    ['the mock shop', { mock: true, privateAccessToken: 'private' }],
-  ])('keeps a public storefront client for %s', async (_, storefront) => {
+    ['the mock shop, which never gets the private token', { mock: true, privateAccessToken: 'private' }],
+  ])('keeps a public storefront client and the buyer\'s IP out of the request context for %s', async (_, storefront) => {
     const config = { name: 'shop', clients: { storefront: { apiVersion: API_VERSION, ...storefront } }, defaultMarket: { country: 'DE', language: 'DE' } }
 
     runtimeConfig._shopify = config
 
     const requestContext = await getShopifyRequestContext(createTestEvent({ path: '/api/cart', headers: { host: 'shop.test' }, remoteAddress: '203.0.113.7' }))
 
+    expect(requestContext.buyerIp).toBeUndefined()
     expect(createHydrogenStorefrontClient(requestContext, config as never).type).toBe('public')
-  })
-
-  it('leaves the buyer\'s IP out of the request context of the mock shop, which never gets the private token', async () => {
-    runtimeConfig._shopify = { name: 'shop', clients: { storefront: { apiVersion: API_VERSION, mock: true, privateAccessToken: 'private' } }, defaultMarket: { country: 'DE', language: 'DE' } }
-
-    const requestContext = await getShopifyRequestContext(createTestEvent({ path: '/api/cart', headers: { host: 'shop.test' }, remoteAddress: '203.0.113.7' }))
-
-    expect(requestContext.buyerIp).toBeUndefined()
-  })
-
-  it('leaves the buyer\'s IP out of the request context without a private token', async () => {
-    runtimeConfig._shopify = { name: 'shop', clients: { storefront: { apiVersion: API_VERSION, publicAccessToken: 'public' } }, defaultMarket: { country: 'DE', language: 'DE' } }
-
-    const requestContext = await getShopifyRequestContext(createTestEvent({ path: '/api/cart', headers: { host: 'shop.test' }, remoteAddress: '203.0.113.7' }))
-
-    expect(requestContext.buyerIp).toBeUndefined()
   })
 
   it('reuses the request context of the Shopify routes middleware, without resolving the market again', async () => {

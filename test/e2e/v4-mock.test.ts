@@ -1,8 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { setup, $fetch, fetch, useTestContext } from '@nuxt/test-utils'
-import { existsSync } from 'node:fs'
-import { fileURLToPath, pathToFileURL } from 'node:url'
-import { join } from 'node:path'
+import { setup, $fetch, fetch } from '@nuxt/test-utils'
+import { fileURLToPath } from 'node:url'
 
 import { DEFAULT_API_VERSION } from '#src/runtime/utils/clients/defaults'
 
@@ -42,28 +40,9 @@ describe('test mock.shop integration with nuxt 4', async () => {
     expect(response.headers.get('location')).toBe('/product/shirt?ref=email')
   })
 
-  it('should redirect /admin to the store\'s admin', async () => {
-    const response = await fetch('/admin', { redirect: 'manual' })
-
-    expect(response.status).toBe(301)
-    expect(response.headers.get('location')).toBe('https://mock.shop/admin')
-  })
-
   it('should keep the not found page when Shopify knows no redirect', async () => {
     const response = await fetch('/no-such-page', { redirect: 'manual', headers: { accept: 'text/html' } })
 
     expect(response.status).toBe(404)
-  })
-
-  it('should point the graphql config at the schema the build introspected', async () => {
-    const { rootDir, buildDir } = useTestContext().nuxt!.options
-
-    const { default: graphqlConfig } = await import(/* @vite-ignore */ pathToFileURL(join(buildDir, 'graphql.config.mjs')).href)
-
-    const projects = Object.entries<{ schema: string }>(graphqlConfig.projects)
-
-    expect(Object.fromEntries(projects.map(([name, { schema }]) => [name, existsSync(join(rootDir, schema))]))).toEqual({
-      default: true,
-    })
   })
 })

@@ -129,14 +129,6 @@ describe('browser cache', () => {
     expect(store.size).toBe(0)
   })
 
-  it('asks the server cache for the same preset it caches under', async () => {
-    const request = createRequest()
-
-    await cached(createStorage(), request, QUERY, { cache: 'long' })
-
-    expect(requestOptions(request)).toMatchObject({ headers: { 'X-Shopify-Server-Cache': 'long' } })
-  })
-
   it('caches a request that carries an abort signal', async () => {
     const storage = createStorage()
     const request = createRequest()

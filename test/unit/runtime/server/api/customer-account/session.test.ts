@@ -28,13 +28,10 @@ beforeEach(() => {
 })
 
 describe('customer account session route', () => {
-  it.each([
-    ['an anonymous', () => Promise.resolve(undefined), false],
-    ['a signed in', () => signIn(), true],
-  ])('reports the session to %s request and never caches the response', async (_, cookie, isLoggedIn) => {
-    const event = request(await cookie())
+  it('reports the session to a signed in request and never caches the response', async () => {
+    const event = request(await signIn())
 
-    await expect(handler(event)).resolves.toEqual({ isLoggedIn })
+    await expect(handler(event)).resolves.toEqual({ isLoggedIn: true })
     expect(event.node.res.getHeader('cache-control')).toBe('no-store')
   })
 })

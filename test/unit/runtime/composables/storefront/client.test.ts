@@ -63,31 +63,14 @@ describe('useStorefront', () => {
     expect(createStorefrontApiClient.mock.calls.at(-1)?.[0]).toBe(publicConfig)
   })
 
-  it('reaches Shopify through its own origin in the browser, without a server cache', () => {
-    vi.stubGlobal('__NUXT_CLIENT__', true)
-
-    useStorefront()
-
-    expect(lastOptions()).toMatchObject({ origin: 'https://app.example.workers.dev', serverCache: undefined })
-  })
-
-  it('reaches Hydrogen\'s proxy at the domain root, where its routes are served, even under an app base URL', () => {
+  it('reaches Hydrogen\'s proxy at the domain root in the browser, without a server cache, even under an app base URL or after a prerendered landing page', () => {
     vi.stubGlobal('__NUXT_CLIENT__', true)
 
     baseURL = '/shop/'
-
-    useStorefront()
-
-    expect(lastOptions()).toMatchObject({ origin: 'https://app.example.workers.dev' })
-  })
-
-  it('keeps going through the proxy after a prerendered landing page', () => {
-    vi.stubGlobal('__NUXT_CLIENT__', true)
-
     payload.prerenderedAt = Date.now()
 
     useStorefront()
 
-    expect(lastOptions()).toMatchObject({ origin: 'https://app.example.workers.dev' })
+    expect(lastOptions()).toMatchObject({ origin: 'https://app.example.workers.dev', serverCache: undefined })
   })
 })

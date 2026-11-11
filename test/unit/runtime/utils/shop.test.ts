@@ -26,7 +26,9 @@ function createClient(data: unknown = localized) {
 type ResolverConfig = Partial<Parameters<typeof createShopResolver>[0]>
 
 function setup(config: ResolverConfig = {}, client: { request: ReturnType<typeof vi.fn> } = createClient()) {
-  return { client, resolve: createShopResolver({ name: 'my-shop', analytics: {} as never, ...config }, () => client as never) }
+  const getClient = vi.fn(() => client)
+
+  return { client, getClient, resolve: createShopResolver({ name: 'my-shop', analytics: {} as never, ...config }, getClient as never) }
 }
 
 beforeEach(() => {
@@ -38,12 +40,12 @@ describe('createShopResolver', () => {
     await expect(setup().resolve()).resolves.toStrictEqual({ shop, shopifyAnalytics: true, i18n: { country: 'DE', language: 'DE', currency: 'EUR' } })
   })
 
-  it('skips the lookup when the shop and its market are configured', async () => {
-    const { client, resolve } = setup({ shopId: 'gid://shopify/Shop/2', defaultMarket: { country: 'AT', language: 'DE', currency: 'EUR' } })
+  it('skips the lookup, and creates no Storefront client, when the shop and its market are configured', async () => {
+    const { getClient, resolve } = setup({ shopId: 'gid://shopify/Shop/2', defaultMarket: { country: 'AT', language: 'DE', currency: 'EUR' } })
 
     await expect(resolve()).resolves.toMatchObject({ shop: { shopId: 'gid://shopify/Shop/2' }, shopifyAnalytics: true, i18n: { country: 'AT' } })
 
-    expect(client.request).not.toHaveBeenCalled()
+    expect(getClient).not.toHaveBeenCalled()
   })
 
   it('gives Shopify\'s scripts a placeholder shop without analytics, and needs no lookup for a configured market', async () => {
@@ -104,16 +106,6 @@ describe('createShopResolver', () => {
     await expect(setup({}, createClient({ shop: localized.shop })).resolve()).resolves.toStrictEqual({ shop, shopifyAnalytics: true })
   })
 
-  it('creates no Storefront client when the shop and its market are configured', async () => {
-    const getClient = vi.fn(() => createClient())
-
-    const resolve = createShopResolver({ name: 'my-shop', analytics: {} as never, shopId: 'gid://shopify/Shop/2', defaultMarket: { country: 'AT', language: 'DE', currency: 'EUR' } }, getClient as never)
-
-    await resolve()
-
-    expect(getClient).not.toHaveBeenCalled()
-  })
-
   it('renders what is configured, without warning or retrying, when there is no Storefront client to look anything up with', async () => {
     const resolve = createShopResolver({ name: 'my-shop', analytics: {} as never, defaultMarket: { country: 'AT', language: 'DE' } })
 
@@ -123,9 +115,10 @@ describe('createShopResolver', () => {
     expect(warn).not.toHaveBeenCalled()
   })
 
-  it('keeps Shopify\'s scripts, without analytics, and looks again later when the lookup fails', async () => {
+  it('keeps Shopify\'s scripts, without analytics, while the lookup fails, and looks again on every request with a single warning', async () => {
     const client = {
       request: vi.fn()
+        .mockRejectedValueOnce(new Error('fetch failed'))
         .mockRejectedValueOnce(new Error('fetch failed'))
         .mockResolvedValue({ data: localized }),
     }
@@ -133,20 +126,10 @@ describe('createShopResolver', () => {
     const { resolve } = setup({}, client)
 
     await expect(resolve()).resolves.toStrictEqual({ shop: placeholderShop, shopifyAnalytics: false })
+    await expect(resolve()).resolves.toStrictEqual({ shop: placeholderShop, shopifyAnalytics: false })
     await expect(resolve()).resolves.toStrictEqual({ shop, shopifyAnalytics: true, i18n: { country: 'DE', language: 'DE', currency: 'EUR' } })
 
-    expect(warn).toHaveBeenCalledOnce()
-    expect(client.request).toHaveBeenCalledTimes(2)
-  })
-
-  it('warns about a failing lookup once, however often it keeps retrying', async () => {
-    const client = { request: vi.fn().mockRejectedValue(new Error('Variable $country of type CountryCode was provided invalid value')) }
-
-    const { resolve } = setup({}, client)
-
-    for (let index = 0; index < 5; index++) await resolve({ country: 'YY', language: 'XX' } as never)
-
-    expect(client.request).toHaveBeenCalledTimes(5)
+    expect(client.request).toHaveBeenCalledTimes(3)
     expect(warn).toHaveBeenCalledOnce()
     expect(warn).toHaveBeenCalledWith(expect.stringContaining('`defaultMarket` with its `currency`'), expect.anything())
   })

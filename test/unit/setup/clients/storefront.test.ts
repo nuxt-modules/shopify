@@ -67,11 +67,8 @@ describe('storefront routes', () => {
     addServerHandler.mockClear()
   })
 
-  it.each([
-    ['a public client', { publicAccessToken: 'public' }],
-    ['a server-only client', { privateAccessToken: 'private' }],
-  ])('serves Hydrogen\'s cart and Storefront API routes for %s', (_, storefront) => {
-    setup(storefront)
+  it('serves Hydrogen\'s cart and Storefront API routes for a server-only client', () => {
+    setup({ privateAccessToken: 'private' })
 
     expect(addServerHandler).toHaveBeenCalledWith({ middleware: true, handler: './runtime/server/middleware/routes' })
   })

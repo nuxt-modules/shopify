@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, expectTypeOf, it, onTestFinish
 import { createStorage } from 'unstorage'
 
 import { configObjectSchema } from '#src/schemas'
-import { createAdminApiClient, createAdminConfig } from '#src/runtime/utils/clients/admin'
+import { createAdminApiClient } from '#src/runtime/utils/clients/admin'
 import { createCustomerAccountApiClient, createCustomerAccountConfig } from '#src/runtime/utils/clients/customer-account'
 import { createStorefrontApiClient, createStorefrontConfig } from '#src/runtime/utils/clients/storefront'
 import {
@@ -19,6 +19,7 @@ import {
 } from '#src/runtime/utils/clients/transport'
 import { API_VERSION, OTHER_API_VERSION } from '#test/helpers/api-version'
 import { createTestEvent } from '#test/helpers/event'
+import { stubHangingFetch } from '#test/helpers/fetch'
 
 const storefront = { name: 'shop', clients: { storefront: { apiVersion: API_VERSION, publicAccessToken: 'tok', retries: 0 } } }
 
@@ -29,7 +30,6 @@ const proxiedCustomerAccount = configObjectSchema.parse({
   clients: { customerAccount: { apiVersion: API_VERSION, clientId: 'cid' } },
 })
 const admin = { name: 'shop', clients: { admin: { apiVersion: API_VERSION, accessToken: 'shpat_x', retries: 0 } } }
-const mock = { name: 'shop', clients: { storefront: { apiVersion: API_VERSION, mock: true, retries: 0 } } }
 
 const customerAccount = {
   name: 'shop',
@@ -61,26 +61,15 @@ describe('client factories', () => {
 })
 
 describe('withApiVersion', () => {
-  it('replaces the version segment of every Shopify API url shape', () => {
-    expect(withApiVersion(`https://shop.myshopify.com/api/${API_VERSION}/graphql.json`, OTHER_API_VERSION))
-      .toBe(`https://shop.myshopify.com/api/${OTHER_API_VERSION}/graphql.json`)
-
-    expect(withApiVersion(`https://shop.myshopify.com/admin/api/${API_VERSION}/graphql.json`, OTHER_API_VERSION))
-      .toBe(`https://shop.myshopify.com/admin/api/${OTHER_API_VERSION}/graphql.json`)
-
-    expect(withApiVersion(`https://shopify.com/1234/account/customer/api/${API_VERSION}/graphql`, OTHER_API_VERSION))
-      .toBe(`https://shopify.com/1234/account/customer/api/${OTHER_API_VERSION}/graphql`)
-
-    expect(withApiVersion(`https://mock.shop/api/${API_VERSION}/graphql.json`, OTHER_API_VERSION))
-      .toBe(`https://mock.shop/api/${OTHER_API_VERSION}/graphql.json`)
-  })
-
-  it('replaces the version segment of both proxy paths', () => {
-    expect(withApiVersion(`http://localhost:3000/api/${API_VERSION}/graphql.json`, OTHER_API_VERSION))
-      .toBe(`http://localhost:3000/api/${OTHER_API_VERSION}/graphql.json`)
-
-    expect(withApiVersion(`http://localhost:3000/account/customer/api/${API_VERSION}/graphql`, OTHER_API_VERSION))
-      .toBe(`http://localhost:3000/account/customer/api/${OTHER_API_VERSION}/graphql`)
+  it.each([
+    ['a storefront', `https://shop.myshopify.com/api/${API_VERSION}/graphql.json`, `https://shop.myshopify.com/api/${OTHER_API_VERSION}/graphql.json`],
+    ['an admin', `https://shop.myshopify.com/admin/api/${API_VERSION}/graphql.json`, `https://shop.myshopify.com/admin/api/${OTHER_API_VERSION}/graphql.json`],
+    ['a customer account', `https://shopify.com/1234/account/customer/api/${API_VERSION}/graphql`, `https://shopify.com/1234/account/customer/api/${OTHER_API_VERSION}/graphql`],
+    ['a mock.shop', `https://mock.shop/api/${API_VERSION}/graphql.json`, `https://mock.shop/api/${OTHER_API_VERSION}/graphql.json`],
+    ['the storefront proxy', `http://localhost:3000/api/${API_VERSION}/graphql.json`, `http://localhost:3000/api/${OTHER_API_VERSION}/graphql.json`],
+    ['the customer account proxy', `http://localhost:3000/account/customer/api/${API_VERSION}/graphql`, `http://localhost:3000/account/customer/api/${OTHER_API_VERSION}/graphql`],
+  ])('replaces the version segment of %s url', (_, url, expected) => {
+    expect(withApiVersion(url, OTHER_API_VERSION)).toBe(expected)
   })
 
   it('leaves a url without a version segment untouched', () => {
@@ -104,29 +93,11 @@ describe('per-request apiVersion override', () => {
     expect(String(fetchMock.mock.calls[0]![0])).toBe(`https://shop.myshopify.com/api/${OTHER_API_VERSION}/graphql.json`)
   })
 
-  it('keeps the storefront endpoint', () => {
-    const transport = createTransport(createStorefrontConfig(storefront as never))
-
-    expect(transport.getApiUrl()).toBe(`https://shop.myshopify.com/api/${API_VERSION}/graphql.json`)
-    expect(transport.getApiUrl(OTHER_API_VERSION)).toBe(`https://shop.myshopify.com/api/${OTHER_API_VERSION}/graphql.json`)
-  })
-
-  it('keeps the admin prefix', () => {
-    const transport = createTransport(createAdminConfig(admin as never))
-
-    expect(transport.getApiUrl(OTHER_API_VERSION)).toBe(`https://shop.myshopify.com/admin/api/${OTHER_API_VERSION}/graphql.json`)
-  })
-
-  it('keeps the customer account host', () => {
+  it('keeps the client\'s own endpoint, changing only the version a request asks for', () => {
     const transport = createTransport(createCustomerAccountConfig(customerAccount as never))
 
+    expect(transport.getApiUrl()).toBe(`https://shopify.com/1234/account/customer/api/${API_VERSION}/graphql`)
     expect(transport.getApiUrl(OTHER_API_VERSION)).toBe(`https://shopify.com/1234/account/customer/api/${OTHER_API_VERSION}/graphql`)
-  })
-
-  it('keeps the mock storefront host', () => {
-    const transport = createTransport(createStorefrontConfig(mock as never))
-
-    expect(transport.getApiUrl(OTHER_API_VERSION)).toBe(`https://mock.shop/api/${OTHER_API_VERSION}/graphql.json`)
   })
 })
 
@@ -138,44 +109,19 @@ describe('client-level apiVersion option', () => {
     expect(client.config.apiUrl).toBe(`https://shop.myshopify.com/api/${OTHER_API_VERSION}/graphql.json`)
   })
 
-  it('sends a browser request through Hydrogen\'s Storefront API proxy path for the requested version', () => {
-    const client = createStorefrontApiClient(proxiedStorefront, {
-      apiVersion: OTHER_API_VERSION,
-      origin: 'http://localhost:3000',
-    })
-
-    expect(client.config.apiUrl).toBe(`http://localhost:3000/api/${OTHER_API_VERSION}/graphql.json`)
+  it.each([
+    ['Hydrogen\'s Storefront API proxy path for the requested version', () => createStorefrontApiClient(proxiedStorefront, { apiVersion: OTHER_API_VERSION, origin: 'http://localhost:3000' }), `http://localhost:3000/api/${OTHER_API_VERSION}/graphql.json`],
+    ['Hydrogen\'s Storefront API proxy path for the configured version', () => createStorefrontApiClient(proxiedStorefront, { origin: 'http://localhost:3000' }), `http://localhost:3000/api/${API_VERSION}/graphql.json`],
+    ['the customer account proxy path for the requested version', () => createCustomerAccountApiClient(proxiedCustomerAccount, { apiVersion: OTHER_API_VERSION, origin: 'http://localhost:3000' }), `http://localhost:3000/account/customer/api/${OTHER_API_VERSION}/graphql`],
+  ])('sends a browser request through %s', (_, createClient, apiUrl) => {
+    expect(createClient().config.apiUrl).toBe(apiUrl)
   })
 
-  it('sends a browser request through the customer account proxy path for the requested version', () => {
-    const client = createCustomerAccountApiClient(proxiedCustomerAccount, {
-      apiVersion: OTHER_API_VERSION,
-      origin: 'http://localhost:3000',
-    })
-
-    expect(client.config.apiUrl).toBe(`http://localhost:3000/account/customer/api/${OTHER_API_VERSION}/graphql`)
-  })
-
-  it('switches the proxy path per request when a request asks for another version', () => {
-    const client = createCustomerAccountApiClient(proxiedCustomerAccount, { origin: 'http://localhost:3000' })
-
-    expect(client.getApiUrl(OTHER_API_VERSION)).toBe(`http://localhost:3000/account/customer/api/${OTHER_API_VERSION}/graphql`)
-  })
-
-  it('calls Shopify directly when the proxy is turned off', () => {
-    const client = createCustomerAccountApiClient({ ...proxiedCustomerAccount, clients: { customerAccount: { ...proxiedCustomerAccount.clients.customerAccount!, proxy: false } } }, {
-      origin: 'http://localhost:3000',
-    })
-
-    expect(client.config.apiUrl).toBe(`https://shopify.com/1234/account/customer/api/${API_VERSION}/graphql`)
-  })
-
-  it('calls Shopify directly when the storefront proxy is turned off', () => {
-    const client = createStorefrontApiClient({ ...proxiedStorefront, clients: { storefront: { ...proxiedStorefront.clients.storefront!, proxy: false } } }, {
-      origin: 'http://localhost:3000',
-    })
-
-    expect(client.config.apiUrl).toBe(`https://shop.myshopify.com/api/${API_VERSION}/graphql.json`)
+  it.each([
+    ['customer account', () => createCustomerAccountApiClient({ ...proxiedCustomerAccount, clients: { customerAccount: { ...proxiedCustomerAccount.clients.customerAccount!, proxy: false } } }, { origin: 'http://localhost:3000' }), `https://shopify.com/1234/account/customer/api/${API_VERSION}/graphql`],
+    ['storefront', () => createStorefrontApiClient({ ...proxiedStorefront, clients: { storefront: { ...proxiedStorefront.clients.storefront!, proxy: false } } }, { origin: 'http://localhost:3000' }), `https://shop.myshopify.com/api/${API_VERSION}/graphql.json`],
+  ])('calls Shopify directly when the %s proxy is turned off', (_, createClient, apiUrl) => {
+    expect(createClient().config.apiUrl).toBe(apiUrl)
   })
 
   it('caches with the presets configured for the storefront client', async () => {
@@ -203,12 +149,6 @@ describe('client-level apiVersion option', () => {
     expect(() => createStorefrontApiClient({ name: 'shop', clients: { storefront: { publicAccessToken: 'token', cache: null } } } as never)).not.toThrow()
   })
 
-  it('calls Shopify directly when no origin is given, as on the server', () => {
-    const client = createStorefrontApiClient(proxiedStorefront, {})
-
-    expect(client.config.apiUrl).toBe(`https://shop.myshopify.com/api/${API_VERSION}/graphql.json`)
-  })
-
   it('does not send the server cache header for a cached preset without a server cache', async () => {
     const fetchMock = vi.fn(async (..._args: unknown[]) => new Response(JSON.stringify({ data: {} }), { status: 200, headers: { 'Content-Type': 'application/json' } }))
 
@@ -229,12 +169,6 @@ describe('client-level apiVersion option', () => {
     finally {
       vi.unstubAllGlobals()
     }
-  })
-
-  it('sends a browser request through Hydrogen\'s Storefront API proxy path for the configured version', () => {
-    const client = createStorefrontApiClient(proxiedStorefront, { origin: 'http://localhost:3000' })
-
-    expect(client.config.apiUrl).toBe(`http://localhost:3000/api/${API_VERSION}/graphql.json`)
   })
 })
 
@@ -283,16 +217,6 @@ describe('client config resolution', () => {
     } as never)
 
     expect(config.headers).not.toHaveProperty(STOREFRONT_ID_HEADER)
-  })
-
-  it('builds the customer account API URL from the shop ID and the configured version, as Hydrogen does', () => {
-    const config = createCustomerAccountConfig({
-      name: 'shop',
-      shopId: '1234',
-      clients: { customerAccount: { apiVersion: API_VERSION, clientId: 'cid', retries: 0 } },
-    } as never)
-
-    expect(config.apiUrl).toBe(`https://shopify.com/1234/account/customer/api/${API_VERSION}/graphql`)
   })
 
   it('takes the shop ID from the inline config of a client created outside Nuxt, which needs no client ID', () => {
@@ -346,30 +270,14 @@ describe('server-side cookie forwarding', () => {
     vi.unstubAllGlobals()
   })
 
-  it('does not send browser cookies when the customer account client calls Shopify directly', () => {
-    const event = createTestEvent({ headers: { cookie } })
+  it.each([
+    ['when it calls Shopify directly', {}, `https://shopify.com/1234/account/customer/api/${API_VERSION}/graphql`],
+    ['through its own proxy either, since nothing calls the proxy from the server', { origin: 'http://localhost:3000' }, `http://localhost:3000/account/customer/api/${API_VERSION}/graphql`],
+  ])('sends no browser cookies from the customer account client %s', (_, options, apiUrl) => {
+    const client = createCustomerAccountApiClient(proxiedCustomerAccount, { event: createTestEvent({ headers: { cookie } }), ...options })
 
-    const client = createCustomerAccountApiClient(proxiedCustomerAccount, { event })
-
-    expect(client.config.apiUrl).toBe(`https://shopify.com/1234/account/customer/api/${API_VERSION}/graphql`)
+    expect(client.config.apiUrl).toBe(apiUrl)
     expect(client.config.headers).not.toHaveProperty('Cookie')
-  })
-
-  it('sends no browser cookies through its own proxy from the server either, since nothing calls the proxy from there', () => {
-    const event = createTestEvent({ headers: { cookie } })
-
-    const client = createCustomerAccountApiClient(proxiedCustomerAccount, { event, origin: 'http://localhost:3000' })
-
-    expect(client.config.apiUrl).toBe(`http://localhost:3000/account/customer/api/${API_VERSION}/graphql`)
-    expect(client.config.headers).not.toHaveProperty('Cookie')
-  })
-
-  it('sends only Shopify cookies from the storefront client', () => {
-    const event = createTestEvent({ headers: { cookie } })
-
-    const client = createStorefrontApiClient(storefront as never, { event })
-
-    expect(client.config.headers['Cookie']).toBe('_shopify_essential=abc')
   })
 })
 
@@ -384,12 +292,6 @@ describe('buyer ip header', () => {
 
   it('does not send the buyer ip when the client uses a public access token', () => {
     const client = createStorefrontApiClient(storefront as never, { buyerIp: '203.0.113.4' })
-
-    expect(client.config.headers).not.toHaveProperty(BUYER_IP_HEADER)
-  })
-
-  it('omits the buyer ip when none is resolved', () => {
-    const client = createStorefrontApiClient(privateStorefront as never, {})
 
     expect(client.config.headers).not.toHaveProperty(BUYER_IP_HEADER)
   })
@@ -456,23 +358,11 @@ describe('request timeout', () => {
     vi.unstubAllGlobals()
   })
 
-  function stubHangingShopify() {
-    const fetchMock = vi.fn((_url: string, init?: RequestInit) => new Promise<Response>((_resolve, reject) => {
-      if (init?.signal?.aborted) reject(init.signal.reason)
-
-      init?.signal?.addEventListener('abort', () => reject(init.signal!.reason))
-    }))
-
-    vi.stubGlobal('fetch', fetchMock)
-
-    return fetchMock
-  }
-
   it('gives up on a request Shopify never answers after Hydrogen\'s 30 seconds', async () => {
     const deadline = new AbortController()
     const timeout = vi.spyOn(AbortSignal, 'timeout').mockReturnValue(deadline.signal)
 
-    stubHangingShopify()
+    stubHangingFetch()
 
     const pending = createStorefrontApiClient(storefront, { throwOnErrors: false }).request('query Shop { shop { name } }')
 
@@ -485,7 +375,7 @@ describe('request timeout', () => {
   })
 
   it('still stops when the caller aborts before the deadline', async () => {
-    stubHangingShopify()
+    stubHangingFetch()
 
     const caller = new AbortController()
 

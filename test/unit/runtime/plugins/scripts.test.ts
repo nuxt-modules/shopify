@@ -37,22 +37,15 @@ vi.mock('#src/runtime/composables/storefront/client', () => ({ useStorefront: ()
 
 const { createShopResolver } = await import('#src/runtime/utils/shop')
 
-function serverRequest(context: Record<string, unknown> = {}) {
+function serverRequest() {
   const resolve = createShopResolver({ name: 'my-shop', analytics } as never, () => ({ request }) as never)
 
-  return { context: { ...context, _shopify: { scripts: (event: { context: { shopifyMarket?: never } }) => resolve(event.context.shopifyMarket) } } }
+  return { context: { _shopify: { scripts: vi.fn((_event: unknown) => resolve()) } } }
 }
 
 const ROUTE_TEMPLATES = { product: '/product/:productHandle' }
 
 const SHOP = { shopId: 'gid://shopify/Shop/1', storefrontId: '0', myshopifyDomain: 'my-shop.myshopify.com' }
-
-const market = (country: string, language: string, currency: string) => ({
-  data: {
-    shop: { id: SHOP.shopId },
-    localization: { country: { isoCode: country, currency: { isoCode: currency } }, language: { isoCode: language } },
-  },
-})
 
 async function startPlugin() {
   const plugin = (await import('#src/runtime/plugins/scripts')).default as unknown as { setup: () => Promise<void> }
@@ -83,8 +76,12 @@ beforeEach(() => {
   analytics = { autoPageView: false, consent: { mode: 'no-banner' } }
   nuxtApp = { hook: vi.fn(), callHook: vi.fn(), runWithContext: (run: () => unknown) => run() }
 
-  request.mockImplementation((_query: string, { variables }: { variables: { country?: string } }) =>
-    Promise.resolve(variables.country === 'CA' ? market('CA', 'FR', 'CAD') : market('DE', 'DE', 'EUR')))
+  request.mockResolvedValue({
+    data: {
+      shop: { id: SHOP.shopId },
+      localization: { country: { isoCode: 'DE', currency: { isoCode: 'EUR' } }, language: { isoCode: 'DE' } },
+    },
+  })
 })
 
 afterEach(() => {
@@ -96,23 +93,17 @@ describe('on the server', () => {
     vi.stubGlobal('__NUXT_SERVER__', true)
   })
 
-  it('renders the scripts in the market the app set for the request', async () => {
-    requestEvent = serverRequest({ shopifyMarket: { country: 'CA', language: 'FR' } })
+  it('renders the scripts the server resolved for the request, and keeps them for the browser', async () => {
+    const event = serverRequest()
+
+    requestEvent = event
 
     await startPlugin()
 
+    expect(event.context._shopify.scripts).toHaveBeenCalledExactlyOnceWith(event)
     expect(heads).toHaveLength(1)
-    expect(bootstrapOf(heads[0]!)).toContain('"country":"CA"')
-    expect(bootstrapOf(heads[0]!)).toContain('"active":"CAD"')
-    expect(request).toHaveBeenCalledWith(expect.any(String), { variables: { country: 'CA', language: 'FR' } })
-  })
-
-  it('renders the scripts in the shop\'s default market without one from the app', async () => {
-    requestEvent = serverRequest()
-
-    await startPlugin()
-
     expect(bootstrapOf(heads[0]!)).toContain('"country":"DE"')
+    expect(bootstrapOf(heads[0]!)).toContain('"active":"EUR"')
     expect(state.get('shopify-scripts')!.value).toMatchObject({ shop: SHOP, shopifyAnalytics: true, i18n: { country: 'DE', language: 'DE', currency: 'EUR' } })
   })
 

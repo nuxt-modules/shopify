@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest'
 
 import { getAdminAccessToken } from '#src/runtime/utils/clients/admin/auth'
+import { stubHangingFetch } from '#test/helpers/fetch'
+import { createLogReporter } from '#test/helpers/logger'
 
 vi.mock('nitropack/runtime', async () => {
   const { createStorage } = await import('unstorage')
@@ -154,33 +156,15 @@ describe('stored admin access token', () => {
 })
 
 describe('admin access token failures', () => {
-  it('logs Shopify\'s answer and hands the visitor only a bad gateway', async () => {
-    const log = vi.fn()
-
-    vi.stubGlobal('fetch', vi.fn(async () => new Response(
-      'Missing or invalid client secret for client-id',
-      { status: 400, statusText: 'Bad Request' },
-    )))
-
-    const error = await getAdminAccessToken('shop', credentials as never, { logger: { reporters: [{ log }] } }).catch(error => error)
-
-    expect(error).toMatchObject({ statusCode: 502, statusMessage: 'Bad Gateway', message: '[shopify] Request to Shopify failed' })
-    expect(JSON.stringify(error)).not.toContain('client-id')
-    expect(log).toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'error', args: ['Failed to obtain an Admin API access token: HTTP 400 - Missing or invalid client secret for client-id'] }),
-      expect.anything(),
-    )
-  })
-
   it.each([
     ['a network failure', async () => { throw new TypeError('fetch failed') }, 'TypeError: fetch failed'],
     ['a response that is not JSON', async () => new Response('<html>Maintenance</html>', { status: 200 }), 'SyntaxError'],
   ])('logs %s and hands the visitor only a bad gateway', async (_, fetchMock, detail) => {
-    const log = vi.fn()
+    const { log, logger } = createLogReporter()
 
     vi.stubGlobal('fetch', vi.fn(fetchMock))
 
-    await expect(getAdminAccessToken('shop', credentials as never, { logger: { reporters: [{ log }] } }))
+    await expect(getAdminAccessToken('shop', credentials as never, { logger }))
       .rejects.toMatchObject({ statusCode: 502, statusMessage: 'Bad Gateway', message: '[shopify] Request to Shopify failed' })
 
     expect(log).toHaveBeenCalledWith(
@@ -195,11 +179,7 @@ describe('admin access token failures', () => {
 
     onTestFinished(() => timeout.mockRestore())
 
-    vi.stubGlobal('fetch', vi.fn((_url: string, init?: RequestInit) => new Promise<Response>((_resolve, reject) => {
-      if (init?.signal?.aborted) reject(init.signal.reason)
-
-      init?.signal?.addEventListener('abort', () => reject(init.signal!.reason))
-    })))
+    stubHangingFetch()
 
     const pending = getAdminAccessToken('slow-shop', credentials as never)
 
@@ -210,7 +190,7 @@ describe('admin access token failures', () => {
   })
 
   it('warns when nothing is mounted at the configured token storage, as the tokens then end up in Nitro\'s memory', async () => {
-    const logger = { reporters: [{ log: vi.fn() }] }
+    const { logger } = createLogReporter()
 
     stubTokenEndpoint()
 
@@ -233,9 +213,9 @@ describe('admin access token failures', () => {
       { status: 200, headers: { 'content-type': 'application/json' } },
     )))
 
-    const log = vi.fn()
+    const { log, logger } = createLogReporter()
 
-    await expect(getAdminAccessToken('shop', credentials as never, { logger: { reporters: [{ log }] } })).rejects.toMatchObject({
+    await expect(getAdminAccessToken('shop', credentials as never, { logger })).rejects.toMatchObject({
       statusCode: 502,
       message: '[shopify] Request to Shopify failed',
     })

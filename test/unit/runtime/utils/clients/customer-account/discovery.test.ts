@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { resolveShopId } from '#src/runtime/utils/clients/customer-account/discovery'
 import { configObjectSchema } from '#src/runtime/utils/config'
 import { API_VERSION, OTHER_API_VERSION } from '#test/helpers/api-version'
+import { stubHangingFetch } from '#test/helpers/fetch'
 
 const apiUrl = (shopId: number, apiVersion: string) =>
   `https://shopify.com/${shopId}/account/customer/api/${apiVersion}/graphql`
@@ -85,13 +86,49 @@ describe('resolveShopId', () => {
     await expect(resolveShopId(withOverrides({ name: 'other-shop', shopId: '' }), baked)).resolves.toMatchObject({ shopId: '2' })
   })
 
-  it('never overrules a shop ID set at runtime', async () => {
+  it.each([
+    ['configured for the build', undefined],
+    ['set at runtime', baked],
+  ])('never overrules a shop ID %s', async (_, base) => {
     stubShopId(2)
 
     const config = withOverrides({ name: 'other-shop', shopId: '999' })
 
-    await expect(resolveShopId(config, baked)).resolves.toBe(config)
+    await expect(resolveShopId(config, base)).resolves.toBe(config)
     expect(fetch).not.toHaveBeenCalled()
+  })
+
+  it('skips the lookup without a customer account client', async () => {
+    stubShopId(2)
+
+    const config = withOverrides({ shopId: undefined, clients: { storefront: input.clients.storefront } })
+
+    await expect(resolveShopId(config)).resolves.toBe(config)
+    expect(fetch).not.toHaveBeenCalled()
+  })
+
+  it('gives up on a lookup that never answers, so a hanging endpoint can\'t stall the build or every request', async () => {
+    const timeout = new AbortController()
+
+    vi.spyOn(AbortSignal, 'timeout').mockReturnValueOnce(timeout.signal)
+
+    stubHangingFetch()
+
+    const resolving = resolveShopId(withOverrides({ shopId: undefined }))
+
+    await vi.waitFor(() => expect(fetch).toHaveBeenCalled())
+
+    timeout.abort()
+
+    expect((await resolving).shopId).toBeUndefined()
+  })
+
+  it('ignores a well-known URL without a numeric shop ID', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({ json: async () => ({ graphql_api: 'https://shopify.com/account/customer/api/graphql' }) })))
+
+    const config = await resolveShopId(withOverrides({ shopId: undefined }))
+
+    expect(config.shopId).toBeUndefined()
   })
 
   it('drops the built shop ID, which belongs to the other store, and warns when the new store\'s lookup fails', async () => {

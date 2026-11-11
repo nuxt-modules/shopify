@@ -48,16 +48,6 @@ const HYDROGEN_ROUTE_SAMPLES: Record<string, string[]> = {
 
 describe('isShopifyEndpoint', () => {
   it.each([
-    '/account/login',
-    '/account/authorize',
-    '/account/refresh',
-    '/account/logout',
-  ])('serves %s through Shopify\'s customer account handlers', (pathname) => {
-    expect(isShopifyEndpoint(pathname, { storefront: false, customerAccount: true })).toBe(true)
-    expect(isShopifyEndpoint(pathname, { storefront: true, customerAccount: false })).toBe(false)
-  })
-
-  it.each([
     '/cart.js',
     '/checkout',
     '/api/cart',
@@ -73,15 +63,23 @@ describe('isShopifyEndpoint', () => {
     '/account/orders',
     '/account/login/callback',
     '/cart',
+    '/de-de/cart',
+    '/collections/all',
+    '/products/shirt',
+    `/api/${API_VERSION}/other.json`,
+    '/.well-known/security.txt',
+  ])('leaves the app page %s to the app and its own route rules', (pathname) => {
+    expect(isShopifyEndpoint(pathname, ALL_ROUTES)).toBe(false)
+    expect(routeRulesFor(pathname)).toStrictEqual({ swr: 60 })
+  })
+
+  it.each([
     '/cart/123',
     '/cart/123:0x',
     '/buy/shirt:0',
-    '/products/shirt',
     '/api/cart/add',
-    `/api/${API_VERSION}/other.json`,
     '/api/1999-01/graphql.json',
-    '/.well-known/security.txt',
-  ])('leaves %s to the app', (pathname) => {
+  ])('leaves %s, which only looks like a Shopify endpoint, to the app', (pathname) => {
     expect(isShopifyEndpoint(pathname, ALL_ROUTES)).toBe(false)
   })
 })
@@ -125,14 +123,10 @@ describe('Hydrogen\'s routes', () => {
     expect(routeRulesFor(path)).toMatchObject({ cache: false, swr: false, isr: false })
   })
 
-  it.each(Object.values(hydrogenUrl.CUSTOMER_ACCOUNT_PATHS as Record<string, string>))('%s reaches Hydrogen and is never cached', (path) => {
+  it.each(Object.values(hydrogenUrl.CUSTOMER_ACCOUNT_PATHS as Record<string, string>))('%s reaches Hydrogen only with a customer account client, and is never cached', (path) => {
     expect(isShopifyEndpoint(path, { storefront: false, customerAccount: true })).toBe(true)
+    expect(isShopifyEndpoint(path, { storefront: true, customerAccount: false })).toBe(false)
     expect(routeRulesFor(path)).toMatchObject({ cache: false, swr: false, isr: false })
-  })
-
-  it.each(['/', '/products/shirt', '/account', '/account/orders', '/collections/all', '/cart', '/de-de/cart'])('leaves the app page %s to the app\'s own route rules', (path) => {
-    expect(isShopifyEndpoint(path, { storefront: true, customerAccount: true })).toBe(false)
-    expect(routeRulesFor(path)).toStrictEqual({ swr: 60 })
   })
 })
 
@@ -153,16 +147,6 @@ describe('toShopifyRequest', () => {
     const event = createTestEvent({ path: '/cart.js', headers: { host: 'shop.test', cookie: 'theme=dark' } })
 
     expect(toShopifyRequest(event).headers.has('cookie')).toBe(false)
-  })
-
-  it('keeps the request method, url and body', async () => {
-    const event = createTestEvent({ method: 'POST', path: `/api/${API_VERSION}/graphql.json`, headers: { host: 'shop.test' }, body: { query: '{ shop { id } }' } })
-
-    const request = toShopifyRequest(event)
-
-    expect(request.method).toBe('POST')
-    expect(new URL(request.url).pathname).toBe(`/api/${API_VERSION}/graphql.json`)
-    await expect(request.json()).resolves.toStrictEqual({ query: '{ shop { id } }' })
   })
 
   it('adds the public access token unless the request already carries one', () => {

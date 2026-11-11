@@ -1,17 +1,12 @@
 import { createStorage } from 'unstorage'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 
 import { warnUnmountedStorage } from '#src/runtime/utils/storage'
-
-function createReporter() {
-  const log = vi.fn()
-
-  return { log, logger: { reporters: [{ log }] } }
-}
+import { createLogReporter } from '#test/helpers/logger'
 
 describe('warnUnmountedStorage', () => {
   it('warns once when nothing is mounted at the configured name, as Nitro then falls back to its in-memory storage', () => {
-    const { log, logger } = createReporter()
+    const { log, logger } = createLogReporter()
     const storage = createStorage()
 
     warnUnmountedStorage(storage, 'redis-cache', logger)
@@ -22,7 +17,7 @@ describe('warnUnmountedStorage', () => {
   })
 
   it('stays quiet for a mounted storage', () => {
-    const { log, logger } = createReporter()
+    const { log, logger } = createLogReporter()
     const storage = createStorage()
 
     storage.mount('session-store', createStorage().getMount().driver)

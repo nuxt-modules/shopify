@@ -44,36 +44,19 @@ afterEach(() => {
 })
 
 describe('customer-account route middleware', () => {
-  it('fetches the session before the first check', async () => {
-    await middleware(TO)
+  it.each([
+    ['before the first check', undefined, false, 1],
+    ['only once during server rendering', undefined, true, 0],
+    ['only once, reusing the one from server rendering while hydrating', { hydrating: true }, true, 0],
+    ['again on client-side navigation, so a session that ended is noticed', { hydrating: false }, true, 1],
+  ])('fetches the session %s', async (_, browser, ready, fetches) => {
+    if (browser) inBrowser(browser)
 
-    expect(session.fetch).toHaveBeenCalledOnce()
-  })
-
-  it('reuses the session fetched during server rendering while hydrating', async () => {
-    inBrowser({ hydrating: true })
-    session.isReady.value = true
-
-    await middleware(TO)
-
-    expect(session.fetch).not.toHaveBeenCalled()
-  })
-
-  it('fetches the session again on client-side navigation, so a session that ended is noticed', async () => {
-    inBrowser()
-    session.isReady.value = true
+    session.isReady.value = ready
 
     await middleware(TO)
 
-    expect(session.fetch).toHaveBeenCalledOnce()
-  })
-
-  it('reads the session only once during server rendering', async () => {
-    session.isReady.value = true
-
-    await middleware(TO)
-
-    expect(session.fetch).not.toHaveBeenCalled()
+    expect(session.fetch).toHaveBeenCalledTimes(fetches)
   })
 
   it('lets a signed in customer through', async () => {

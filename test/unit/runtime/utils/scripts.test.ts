@@ -15,28 +15,15 @@ afterEach(() => {
 })
 
 describe('toScriptsOptions', () => {
-  it('passes the shop, the market and the consent to Shopify\'s scripts', () => {
-    expect(toScriptsOptions({ shop, i18n, shopifyAnalytics: true }, undefined, { mode: 'no-banner' })).toStrictEqual({
-      shop,
-      i18n,
-      consent: { mode: 'no-banner' },
-      shopifyAnalytics: true,
-      analytics: { channel: 'headless' },
-    })
-  })
+  const consent = { mode: 'no-banner' } as const
 
-  it('leaves Shopify\'s analytics and performance scripts out when the shop context says so', () => {
-    expect(toScriptsOptions({ shop, i18n, shopifyAnalytics: false }, undefined, { mode: 'no-banner' })).toMatchObject({ shopifyAnalytics: false })
-  })
-
-  it('attributes events to the hydrogen channel of a configured storefront', () => {
-    const options = toScriptsOptions({ shop, shopifyAnalytics: true }, '123', { mode: 'no-banner' })
-
-    expect(options.analytics).toStrictEqual({ channel: 'hydrogen' })
-  })
-
-  it('leaves an unknown market to Shopify\'s default', () => {
-    expect(toScriptsOptions({ shop, shopifyAnalytics: true }, undefined, { mode: 'no-banner' })).not.toHaveProperty('i18n')
+  it.each([
+    ['the shop, the market and the consent', { shop, i18n, shopifyAnalytics: true }, undefined, { shop, i18n, consent, shopifyAnalytics: true, analytics: { channel: 'headless' } }],
+    ['no analytics or performance scripts when the shop context says so', { shop, i18n, shopifyAnalytics: false }, undefined, { shop, i18n, consent, shopifyAnalytics: false, analytics: { channel: 'headless' } }],
+    ['the hydrogen channel of a configured storefront', { shop, i18n, shopifyAnalytics: true }, '123', { shop, i18n, consent, shopifyAnalytics: true, analytics: { channel: 'hydrogen' } }],
+    ['no market when it is unknown, so Shopify picks its default', { shop, shopifyAnalytics: true }, undefined, { shop, consent, shopifyAnalytics: true, analytics: { channel: 'headless' } }],
+  ])('hands Shopify\'s scripts %s', (_, context, storefrontId, expected) => {
+    expect(toScriptsOptions(context, storefrontId, consent)).toStrictEqual(expected)
   })
 })
 

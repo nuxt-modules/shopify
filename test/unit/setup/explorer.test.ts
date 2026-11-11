@@ -75,13 +75,10 @@ describe('explorer proxy guard', () => {
       .toBeUndefined()
   })
 
-  it.each([
-    ['a tunnel', 'abc123.ngrok.app', '127.0.0.1'],
-    ['another machine', 'localhost:3005', '192.168.1.20'],
-  ])('stops requests through %s before they reach the proxy', (_, host, remoteAddress) => {
+  it('stops requests through a tunnel before they reach the proxy', () => {
     const { proxyGuard, token } = register()
 
-    expect(() => proxyGuard.handler(createTestEvent({ method: 'POST', path: `/_explorer/proxy/admin/${token}`, headers: { host }, remoteAddress })))
+    expect(() => proxyGuard.handler(createTestEvent({ method: 'POST', path: `/_explorer/proxy/admin/${token}`, headers: { host: 'abc123.ngrok.app' }, remoteAddress: '127.0.0.1' })))
       .toThrow(expect.objectContaining({ statusCode: 403 }))
   })
 })

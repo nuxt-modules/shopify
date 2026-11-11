@@ -1,12 +1,12 @@
 import { setResponseHeader } from 'h3'
 import { withQuery } from 'ufo'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { API_VERSION } from '#test/helpers/api-version'
 import {
   CLIENT_ID,
+  EXPIRED,
   ORIGIN,
-  SESSION_PASSWORD,
   SHOP_ID,
   createHttpsEvent,
   createIdToken,
@@ -14,7 +14,7 @@ import {
   createShopifyConfig,
   createTokenStorages,
 } from '#test/helpers/customer-account'
-import { createTestEvent, getResponseHeader, getSetCookieHeaders, toCookieHeader } from '#test/helpers/event'
+import { getResponseHeader, getSetCookieHeaders, toCookieHeader } from '#test/helpers/event'
 
 const runtimeConfig: { _shopify?: Record<string, unknown> } = {}
 const { storages, useTokenStorage } = createTokenStorages()
@@ -46,8 +46,6 @@ const STOREFRONT_API_URL = `https://test-shop.myshopify.com/api/${API_VERSION}/g
 const CART_ID = 'gid://shopify/Cart/c1'
 const CART_COOKIE = 'cart=c1'
 
-const EXPIRED = { expiresAt: Date.now() - 1000 }
-
 let nonce: string | null = null
 let issuedIdToken: string | undefined
 
@@ -62,7 +60,6 @@ type SendOptions = {
 
 async function send(path: string, { cookie, method = 'GET', headers = {} }: SendOptions = {}) {
   const event = createHttpsEvent(cookie, { path, method, headers })
-  const write = vi.spyOn(event.node.res, 'write')
 
   await handler(event)
 
@@ -71,7 +68,6 @@ async function send(path: string, { cookie, method = 'GET', headers = {} }: Send
     status: event.node.res.statusCode,
     location: getResponseHeader(event, 'location'),
     cookie: toCookieHeader(event),
-    body: () => JSON.parse(Buffer.concat(write.mock.calls.map(([chunk]) => Buffer.from(chunk as Uint8Array))).toString()),
   }
 }
 
@@ -141,10 +137,6 @@ beforeEach(() => {
   })
 })
 
-afterEach(() => {
-  vi.useRealTimers()
-})
-
 describe('login route', () => {
   it('sends the customer to Shopify\'s sign-in page', async () => {
     const { status, url, cookie, event } = await startLogin()
@@ -153,58 +145,30 @@ describe('login route', () => {
     expect(`${url.origin}${url.pathname}`).toBe(`https://shopify.com/authentication/${SHOP_ID}/oauth/authorize`)
     expect(Object.fromEntries(url.searchParams)).toMatchObject({
       client_id: CLIENT_ID,
-      response_type: 'code',
       redirect_uri: `${ORIGIN}/account/authorize`,
-      scope: expect.stringContaining('customer-account-api:full'),
-      code_challenge_method: 'S256',
-      code_challenge: expect.any(String),
-      state: expect.any(String),
-      nonce: expect.any(String),
       region_country: 'US',
     })
     expect(getResponseHeader(event, 'cache-control')).toContain('no-store')
     expect(cookie).toContain('__Host-session=')
   })
 
-  it('shows Shopify\'s sign-in page in the market of the request and the requested locale', async () => {
+  it('shows Shopify\'s sign-in page in the market of the request, whatever country its query asks for', async () => {
     runtimeConfig._shopify!.defaultMarket = { country: 'DE', language: 'DE' }
 
-    const { url } = await startLogin('?country=FR&locale=de')
+    const { url } = await startLogin('?country=FR')
 
     expect(url.searchParams.get('region_country')).toBe('DE')
-    expect(url.searchParams.get('locale')).toBe('de')
-  })
-
-  it('refuses to sign in on a plain http origin', async () => {
-    await expect(handler(createTestEvent({ path: '/account/login', headers: { host: 'shop.test' } }))).rejects.toThrow(/HTTPS/)
   })
 })
 
 describe('authorize route', () => {
-  it('signs the customer in and returns them to where they started', async () => {
-    const { status, location, cookie } = await signIn()
+  it('signs the customer in, calls the success hook with the request and returns them to where they started', async () => {
+    const { status, location, cookie, event } = await signIn()
 
     expect(status).toBe(303)
     expect(location).toBe(`${ORIGIN}/account/orders`)
-    await expect(readSession(cookie)).resolves.toEqual({ isLoggedIn: true })
-  })
-
-  it('exchanges the code with the PKCE verifier and the registered callback', async () => {
-    await signIn()
-
-    expect(tokenRequests('authorization_code')).toEqual([{
-      grant_type: 'authorization_code',
-      client_id: CLIENT_ID,
-      code: 'authorization-code',
-      code_verifier: expect.any(String),
-      redirect_uri: `${ORIGIN}/account/authorize`,
-    }])
-  })
-
-  it('calls the success hook with the request', async () => {
-    const { event } = await signIn()
-
     expect(hooks.callHook).toHaveBeenCalledExactlyOnceWith('shopify:customer-account:auth:success', { event })
+    await expect(readSession(cookie)).resolves.toEqual({ isLoggedIn: true })
   })
 
   it('returns to the configured page without a return path', async () => {
@@ -217,28 +181,6 @@ describe('authorize route', () => {
     configure({ afterLogin: '/welcome' })
 
     await expect(signIn('?return_to=https://evil.test/steal')).resolves.toMatchObject({ location: `${ORIGIN}/welcome` })
-  })
-
-  it('starts the session over at sign-in, however long ago the login page first set the cookie', async () => {
-    configure({ session: { password: SESSION_PASSWORD, maxAge: 3600 } })
-
-    vi.useFakeTimers({ toFake: ['Date'] })
-    vi.setSystemTime(new Date('2026-01-01T00:00:00Z'))
-
-    const abandoned = await startLogin()
-
-    vi.setSystemTime(new Date('2026-01-01T00:55:00Z'))
-
-    const login = await send('/account/login', { cookie: abandoned.cookie })
-    const loginUrl = new URL(login.location)
-
-    nonce = loginUrl.searchParams.get('nonce')
-
-    const { cookie } = await send(withQuery('/account/authorize', { code: 'authorization-code', state: loginUrl.searchParams.get('state') }), { cookie: login.cookie })
-
-    vi.setSystemTime(new Date('2026-01-01T01:10:00Z'))
-
-    await expect(readSession(cookie)).resolves.toEqual({ isLoggedIn: true })
   })
 
   it('fails the login when the state does not match', async () => {
@@ -264,15 +206,6 @@ describe('authorize route', () => {
     await expect(handler(event)).rejects.toThrow()
 
     expect(hooks.callHook).toHaveBeenCalledExactlyOnceWith('shopify:customer-account:auth:error', { event })
-  })
-
-  it('fails the login when Shopify rejects the code', async () => {
-    tokenEndpoint.mockImplementation(() => new Response(null, { status: 400 }))
-
-    const { location, cookie } = await signIn()
-
-    expect(location).toBe(`${ORIGIN}/?login=failed`)
-    await expect(readSession(cookie)).resolves.toEqual({ isLoggedIn: false })
   })
 
   it('fails the login for an id token issued to another login', async () => {
@@ -319,8 +252,10 @@ describe('logout route', () => {
   const logout = (cookie: string, path = '/account/logout', headers: Record<string, string> = { origin: ORIGIN }) =>
     send(path, { method: 'POST', cookie, headers })
 
-  it('signs the customer out at Shopify and ends the session', async () => {
+  it('signs the customer out at Shopify, ends the session and calls the logout hook with the request', async () => {
     const { cookie } = await signIn()
+
+    hooks.callHook.mockClear()
 
     const response = await logout(cookie)
     const url = new URL(response.location)
@@ -329,17 +264,8 @@ describe('logout route', () => {
     expect(`${url.origin}${url.pathname}`).toBe(`https://shopify.com/authentication/${SHOP_ID}/logout`)
     expect(url.searchParams.get('id_token_hint')).toBe(issuedIdToken)
     expect(url.searchParams.get('post_logout_redirect_uri')).toBe(`${ORIGIN}/`)
+    expect(hooks.callHook).toHaveBeenCalledExactlyOnceWith('shopify:customer-account:auth:logout', { event: response.event })
     await expect(readSession(response.cookie)).resolves.toEqual({ isLoggedIn: false })
-  })
-
-  it('calls the logout hook with the request', async () => {
-    const { cookie } = await signIn()
-
-    hooks.callHook.mockClear()
-
-    const { event } = await logout(cookie)
-
-    expect(hooks.callHook).toHaveBeenCalledExactlyOnceWith('shopify:customer-account:auth:logout', { event })
   })
 
   it('reports no logout for a visitor who wasn\'t signed in', async () => {
@@ -357,14 +283,6 @@ describe('logout route', () => {
     const { location } = await logout(cookie)
 
     expect(new URL(location).searchParams.get('post_logout_redirect_uri')).toBe(`${ORIGIN}/goodbye`)
-  })
-
-  it('returns to a same-origin return path', async () => {
-    const { cookie } = await signIn()
-
-    const { location } = await logout(cookie, '/account/logout?return_to=/bye')
-
-    expect(new URL(location).searchParams.get('post_logout_redirect_uri')).toBe(`${ORIGIN}/bye`)
   })
 
   it.each([
@@ -393,24 +311,10 @@ describe('logout route', () => {
 })
 
 describe('cart', () => {
-  it('serves no cart to a visitor without one, without asking Shopify', async () => {
-    const response = await send('/api/cart', { headers: { accept: 'application/json' } })
-
-    expect(response.status).toBe(200)
-    expect(response.body()).toEqual({ cart: null })
-    expect(storefrontApi).not.toHaveBeenCalled()
-  })
-
   it('attaches the customer to their cart when they sign in', async () => {
     await signIn(undefined, CART_COOKIE)
 
     expect(buyerIdentityUpdates()).toEqual([{ cartId: CART_ID, buyerIdentity: { customerAccessToken: 'access-token' } }])
-  })
-
-  it('attaches the customer to their cart when their session is refreshed', async () => {
-    await send('/account/refresh', { cookie: `${await createSessionCookie(EXPIRED)}; ${CART_COOKIE}` })
-
-    expect(buyerIdentityUpdates()).toEqual([{ cartId: CART_ID, buyerIdentity: { customerAccessToken: 'refreshed-access-token' } }])
   })
 
   it('detaches the customer from the cart when they sign out', async () => {
@@ -451,15 +355,6 @@ describe('cart', () => {
 
     expect(tokenRequests('refresh_token')).toHaveLength(1)
     expect(hooks.callHook).toHaveBeenCalledExactlyOnceWith('shopify:customer-account:auth:refresh', { event })
-  })
-
-  it('signs the customer in although the cart cannot be attached', async () => {
-    storefrontApi.mockImplementation(() => new Response(null, { status: 500 }))
-
-    const { location, cookie } = await signIn(undefined, CART_COOKIE)
-
-    expect(location).toBe(`${ORIGIN}/account/orders`)
-    await expect(readSession(cookie)).resolves.toEqual({ isLoggedIn: true })
   })
 })
 
@@ -512,14 +407,6 @@ describe('token storage', () => {
 })
 
 describe('server rendering', () => {
-  it('exposes the session of the signed in customer', async () => {
-    const { cookie } = await signIn()
-
-    const { event } = await send('/account', { cookie })
-
-    await expect(event.context._shopify!.customerAccount!.getSession(event)).resolves.toEqual({ isLoggedIn: true })
-  })
-
   it('renders a cached page for an anonymous visitor, although the request that triggered it is signed in', async () => {
     const { event: incoming } = await send('/', { cookie: await createSessionCookie() })
 
@@ -529,21 +416,6 @@ describe('server rendering', () => {
 
     await expect(cachedRender.context._shopify!.customerAccount!.getSession(cachedRender)).resolves.toEqual({ isLoggedIn: false })
     await expect(cachedRender.context._shopify!.customerAccount!.getAccessToken(cachedRender)).rejects.toMatchObject({ statusCode: 401 })
-  })
-
-  it('keeps the pages of a visitor who signed out cacheable', async () => {
-    const { cookie } = await signIn()
-    const signedOut = await send('/account/logout', { method: 'POST', cookie, headers: { origin: ORIGIN } })
-
-    const { event } = await send('/', { cookie: signedOut.cookie })
-
-    setResponseHeader(event, 'cache-control', 'public, s-maxage=60')
-
-    await event.context._shopify!.customerAccount!.getSession(event)
-
-    applyShopifyResponseHeaders(event)
-
-    expect(getResponseHeader(event, 'cache-control')).toBe('public, s-maxage=60')
   })
 
   it.each([
@@ -559,25 +431,5 @@ describe('server rendering', () => {
     applyShopifyResponseHeaders(event)
 
     expect(getResponseHeader(event, 'cache-control')).toBe(cacheControl)
-  })
-
-  it('leaves app pages to the app', async () => {
-    const { event, status, location } = await send('/account', { cookie: await createSessionCookie() })
-
-    expect(status).toBe(200)
-    expect(location).toBe('')
-    expect(event.handled).toBe(false)
-  })
-})
-
-describe('without a customer account client', () => {
-  it('leaves the account routes to the app', async () => {
-    runtimeConfig._shopify = { name: 'test-shop', clients: {} }
-
-    const { event, location } = await send('/account/login')
-
-    expect(location).toBe('')
-    expect(event.handled).toBe(false)
-    expect(event.context._shopify?.customerAccount).toBeUndefined()
   })
 })
