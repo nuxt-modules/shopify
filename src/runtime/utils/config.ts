@@ -2,7 +2,6 @@ import type { TypeScriptPluginConfig } from '@graphql-codegen/typescript'
 import type { CacheOptions, CreateCartServerHandlersOptions, CreatePredictiveSearchServerHandlersOptions, I18nConfig, ShopifyRouteTemplates } from '@shopify/hydrogen'
 import type { ConsolaOptions } from 'consola'
 import type { StorageMounts } from 'nitropack'
-import type { LRUDriverOptions } from 'unstorage/drivers/lru-cache'
 
 import { createCartServerHandlers, createPredictiveSearchServerHandlers } from '@shopify/hydrogen'
 import { kebabCase } from 'scule'
@@ -78,7 +77,7 @@ const defaultCachePresets = {
   long: { maxAge: 3600, staleWhileRevalidate: 82800 },
 } as Record<string, CacheOptions>
 
-const defaultBrowserCacheOptions = { ttl: 10 * 1000 } as LRUDriverOptions
+const defaultBrowserCacheOptions = { ttl: 10 }
 const defaultServerCacheOptions = { driver: 'lru-cache', maxSize: 32 * 1024 * 1024, maxEntrySize: 4 * 1024 * 1024 } as StorageMounts[string]
 const defaultAdminTokenStorageOptions = { driver: 'memory' } as StorageMounts[string]
 const defaultCustomerAccountTokenStorageOptions = { driver: 'lru-cache', max: 10_000 } as StorageMounts[string]
@@ -109,7 +108,7 @@ const cachePresetSchema = z.object({
 })
 
 const clientCacheSchema = z.object({
-  browser: enableable(z.custom<LRUDriverOptions>(), defaultBrowserCacheOptions),
+  browser: enableable(z.custom<{ max?: number, maxSize?: number, maxEntrySize?: number, ttl?: number }>(), defaultBrowserCacheOptions),
   server: enableable(storageMountSchema, defaultServerCacheOptions),
   presets: z.record(z.string(), cachePresetSchema).optional().default(defaultCachePresets),
 })

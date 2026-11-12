@@ -29,7 +29,7 @@ function fromPreset(name: string, cachePresets?: CachePresets) {
 
   const { maxAge = 0, staleWhileRevalidate = 0 } = Cache(preset)
 
-  const ttl = (maxAge + staleWhileRevalidate) * 1000
+  const ttl = maxAge + staleWhileRevalidate
 
   return ttl > 0 ? { ttl } : undefined
 }

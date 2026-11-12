@@ -265,7 +265,7 @@ describe('enableable options', () => {
   it('resolves `true` to the default option object', () => {
     const config = configObjectSchema.parse({ name: 'shop', clients: { storefront: { ...storefront, cache: true } } })
 
-    expect(config.clients.storefront?.cache).toMatchObject({ browser: { ttl: 10_000 } })
+    expect(config.clients.storefront?.cache).toMatchObject({ browser: { ttl: 10 } })
   })
 
   it('keeps `false` as an explicit opt-out', () => {

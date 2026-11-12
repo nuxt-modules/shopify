@@ -20,6 +20,7 @@ export default defineDriver((opts: LRUDriverOptions = {}) => {
           }
         : undefined,
     ...opts,
+    ttl: opts.ttl ? opts.ttl * 1000 : undefined,
   })
 
   return {
@@ -36,10 +37,10 @@ export default defineDriver((opts: LRUDriverOptions = {}) => {
       return cache.get(key) ?? null
     },
     setItem(key, value, opts) {
-      cache.set(key, value, opts?.ttl ? { ttl: opts.ttl } : undefined)
+      cache.set(key, value, opts?.ttl ? { ttl: opts.ttl * 1000 } : undefined)
     },
     setItemRaw(key, value, opts) {
-      cache.set(key, value, opts?.ttl ? { ttl: opts.ttl } : undefined)
+      cache.set(key, value, opts?.ttl ? { ttl: opts.ttl * 1000 } : undefined)
     },
     removeItem(key) {
       cache.delete(key)

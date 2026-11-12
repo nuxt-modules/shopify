@@ -1,3 +1,4 @@
+import type { LRUCache } from 'lru-cache'
 import type { Storage, StorageValue } from 'unstorage'
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -61,7 +62,7 @@ describe('browser cache', () => {
     await cached(storage, createRequest(), QUERY, { cache: 'short' })
     await cached(storage, createRequest(), OTHER_QUERY, { cache: 'long' })
 
-    expect([...ttls.values()]).toStrictEqual([{ ttl: 5_000 }, { ttl: 300_000 }])
+    expect([...ttls.values()]).toStrictEqual([{ ttl: 5 }, { ttl: 300 }])
   })
 
   it('reads the durations of a preset the way Hydrogen does', async () => {
@@ -71,7 +72,7 @@ describe('browser cache', () => {
       serverCache: true,
     }, createRequest() as never, QUERY as never, { cache: 'tiny' } as never)
 
-    expect([...ttls.values()]).toStrictEqual([{ ttl: 90_000 }])
+    expect([...ttls.values()]).toStrictEqual([{ ttl: 90 }])
   })
 
   it('keys separately per operation and per variables', async () => {
@@ -155,7 +156,19 @@ describe('browser cache', () => {
     await cached(createStorage(), request, QUERY, { cache: { browser: 'short', server: 'long' } })
 
     expect(requestOptions(request)).toMatchObject({ headers: { 'X-Shopify-Server-Cache': 'long' } })
-    expect([...ttls.values()]).toStrictEqual([{ ttl: 5_000 }])
+    expect([...ttls.values()]).toStrictEqual([{ ttl: 5 }])
+  })
+
+  it('keeps a response in the browser for the 5 seconds of its preset', async () => {
+    const storage = createLruStorage({ driver: lruCacheDriver({}) })
+    const cache = storage.getMount().driver.getInstance!() as LRUCache<string, object>
+
+    await cached(storage, createRequest(), QUERY, { cache: 'short' })
+
+    const [key] = [...cache.keys()]
+
+    expect(cache.getRemainingTTL(key!)).toBeGreaterThan(4_000)
+    expect(cache.getRemainingTTL(key!)).toBeLessThanOrEqual(5_000)
   })
 
   it('keeps the response headers intact across a cache hit', async () => {
