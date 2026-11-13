@@ -95,5 +95,5 @@ export default function setupCustomerAccountClient(nuxt: Nuxt, config: ShopifyCo
 
   warnInsecureCustomerAccountDevServer(nuxt)
 
-  registerStorageMount(nuxt, 'customer-account-token', customerAccount.tokenStorage)
+  registerStorageMount(nuxt, 'customer-account-token', customerAccount.tokenStorage, resolver)
 }

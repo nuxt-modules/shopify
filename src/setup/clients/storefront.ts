@@ -57,7 +57,7 @@ export default function setupStorefrontClient(nuxt: Nuxt, config: ShopifyConfig,
 
   const cache = isPublicClient(storefront) && typeof storefront.cache === 'object' ? storefront.cache : undefined
 
-  registerStorageMount(nuxt, 'storefront-cache', cache?.server)
+  registerStorageMount(nuxt, 'storefront-cache', cache?.server, resolver)
 
   if (cache?.browser) {
     addPlugin({ src: resolver.resolve('./runtime/plugins/storefront/cache'), mode: 'client' })

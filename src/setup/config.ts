@@ -51,5 +51,8 @@ export default function setupConfig(nuxt: Nuxt, config: ShopifyConfig, resolver:
     logger.info(`Disabling the proxies: the \`${preset}\` preset has no server, so browser requests go to Shopify directly`)
   })
 
+  nuxt.options.nitro.virtual ??= {}
+  nuxt.options.nitro.virtual['https://cdn.shopify.com/storefront/standard-events.js'] = 'export {}'
+
   addServerPlugin(resolver.resolve('./runtime/server/plugins/config'))
 }

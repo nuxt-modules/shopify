@@ -1,3 +1,7 @@
+import { readFileSync, readdirSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+
+import { resolveModulePath } from 'exsolve'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { createLoggerStub } from '#test/helpers/logger'
@@ -13,13 +17,22 @@ const { default: setupConfig } = await import('#src/setup/config')
 
 const { configObjectSchema } = await import('#src/schemas')
 
-function initNitro(nitroOptions: { static: boolean, preset: string }, input: Record<string, unknown> = {}) {
+function setup(input: Record<string, unknown> = {}) {
   const hooks = new Map<string, (nitro: unknown) => void>()
-  const nuxt = { options: { runtimeConfig: { public: {} as Record<string, unknown> } as Record<string, unknown> }, hook: (name: string, hook: (nitro: unknown) => void) => hooks.set(name, hook) }
+  const nuxt = {
+    options: { nitro: {} as { virtual?: Record<string, string> }, runtimeConfig: { public: {} as Record<string, unknown> } as Record<string, unknown> },
+    hook: (name: string, hook: (nitro: unknown) => void) => hooks.set(name, hook),
+  }
 
   const config = configObjectSchema.parse({ name: 'shop', shopId: '1', clients: { storefront: { publicAccessToken: 'public' }, customerAccount: { clientId: 'client' } }, ...input })
 
   setupConfig(nuxt as never, config, resolver)
+
+  return { hooks, nuxt }
+}
+
+function initNitro(nitroOptions: { static: boolean, preset: string }, input: Record<string, unknown> = {}) {
+  const { hooks, nuxt } = setup(input)
 
   type ClientConfigs = { clients: Record<'storefront' | 'customerAccount', { proxy: boolean }> }
 
@@ -57,5 +70,17 @@ describe('static presets', () => {
     expect(runtimeConfig.public._shopify.clients.storefront.proxy).toBe(true)
     expect(runtimeConfig._shopify.clients.customerAccount.proxy).toBe(true)
     expect(warn).not.toHaveBeenCalled()
+  })
+})
+
+describe('worker presets', () => {
+  it('replace each remote import in Hydrogen with an empty module on the server, as they can\'t bundle a URL', () => {
+    const hydrogen = dirname(dirname(resolveModulePath('@shopify/hydrogen', { from: import.meta.url })))
+
+    const remoteImports = readdirSync(hydrogen, { recursive: true, encoding: 'utf8' })
+      .filter(file => file.endsWith('.mjs'))
+      .flatMap(file => [...readFileSync(join(hydrogen, file), 'utf8').matchAll(/import\("(https?:\/\/[^"]+)"\)/g)].map(match => match[1]))
+
+    expect(setup().nuxt.options.nitro.virtual).toStrictEqual(Object.fromEntries(remoteImports.map(url => [url, 'export {}'])))
   })
 })

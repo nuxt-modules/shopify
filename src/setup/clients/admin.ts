@@ -14,5 +14,5 @@ export default function setupAdminClient(nuxt: Nuxt, config: ShopifyConfig, reso
 
   registerClientServerImports(ShopifyClientType.Admin, resolver)
 
-  registerStorageMount(nuxt, 'admin-token', admin.tokenStorage)
+  registerStorageMount(nuxt, 'admin-token', admin.tokenStorage, resolver)
 }

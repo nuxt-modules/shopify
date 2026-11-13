@@ -120,3 +120,9 @@ jobs:
 
       - name: Check built package
         run: pnpm run check:package
+
+      - name: Build playground for Cloudflare Workers
+        run: pnpm --filter playground-v4-mock build
+        env:
+          NITRO_PRESET: cloudflare_module
+          NUXT_SHOPIFY_NAME: mock
