@@ -22,7 +22,7 @@ import type {
   ShopifyClientCallbacks,
 } from './hooks'
 
-type CacheHeaderType = 'short' | 'long' | 'none' | (string & {})
+type CacheHeaderType = 'short' | 'long' | (string & {})
 
 type ShopifyApiClientRequestCacheOptions = CacheHeaderType | {
   browser?: CacheHeaderType | { ttl?: number }
