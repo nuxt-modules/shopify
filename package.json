@@ -100,7 +100,7 @@
     "graphql": "^16.14.2",
     "h3": "^1.15.11",
     "lru-cache": "^11.5.3",
-    "magic-string": "^0.30.21",
+    "magic-string": "^1.4.5",
     "minimatch": "^11.0.5",
     "nitropack": "^2.13.4",
     "ohash": "^2.0.12",
