@@ -121,7 +121,7 @@ async function generateFile(nuxt: Nuxt, filename: string, config: Types.Configur
     silent: useLogger().level < LogLevels.verbose,
     generates: { [filename]: config },
     ...extra,
-  }, false)
+  }, false) ?? []
 
   return file?.content ?? ''
 }

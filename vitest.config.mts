@@ -1,5 +1,6 @@
 import { fileURLToPath } from 'node:url'
 
+import replace from '@rollup/plugin-replace'
 import { defineConfig } from 'vitest/config'
 
 const resolvePath = (path: string) => fileURLToPath(new URL(path, import.meta.url))
@@ -7,11 +8,16 @@ const resolvePath = (path: string) => fileURLToPath(new URL(path, import.meta.ur
 const hydrogenProductionBuild = fileURLToPath(import.meta.resolve('@shopify/hydrogen'))
 
 export default defineConfig({
-  define: {
-    'import.meta.dev': 'globalThis.__NUXT_DEV__',
-    'import.meta.server': 'globalThis.__NUXT_SERVER__',
-    'import.meta.client': 'globalThis.__NUXT_CLIENT__',
-  },
+  plugins: [
+    replace({
+      preventAssignment: true,
+      values: {
+        'import.meta.dev': 'globalThis.__NUXT_DEV__',
+        'import.meta.server': 'globalThis.__NUXT_SERVER__',
+        'import.meta.client': 'globalThis.__NUXT_CLIENT__',
+      },
+    }),
+  ],
   resolve: {
     alias: [
       { find: '#imports', replacement: resolvePath('./test/helpers/stubs.ts') },

@@ -44,7 +44,7 @@ const HYDROGEN_ROUTE_SAMPLES: Record<string, string[]> = {
   WELL_KNOWN_RE: ['/.well-known/apple-developer-merchantid-domain-association', '/.well-known/shopify/fec/produce'],
   MCP_RE: ['/api/mcp'],
   UCP_MCP_RE: ['/api/ucp/mcp'],
-  ...('CART_PERMALINK_RE' in hydrogenUrl ? { CART_PERMALINK_RE: ['/cart/123:1', '/cart/123:1,456:2'] } : {}),
+  CART_PERMALINK_RE: ['/cart/123:1', '/cart/123:1,456:2'],
 }
 
 describe('isShopifyEndpoint', () => {

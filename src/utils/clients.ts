@@ -1,6 +1,5 @@
 import type { Resolver } from '@nuxt/kit'
 import type { Nuxt } from '@nuxt/schema'
-import type { MinimatchOptions } from 'minimatch'
 
 import type { ShopifyConfig } from '../types'
 
@@ -11,7 +10,7 @@ import {
   addServerImports,
   addServerPlugin,
 } from '@nuxt/kit'
-import { Minimatch, braceExpand } from 'minimatch'
+import { Minimatch } from 'minimatch'
 import { relative } from 'pathe'
 import { kebabCase, pascalCase } from 'scule'
 
@@ -32,7 +31,7 @@ export const DOCUMENT_ROUTING_ORDER = [
   ShopifyClientType.Storefront,
 ]
 
-const GLOB_MAGIC = /[*?[\]{}()]/
+const GLOB_MAGIC = /[*?[{]/
 
 export function splitDocuments(documents: string[]) {
   return {
@@ -41,25 +40,18 @@ export function splitDocuments(documents: string[]) {
   }
 }
 
-function compileDocuments(patterns: string[], options?: MinimatchOptions) {
-  return patterns.flatMap((entry) => {
-    const pattern = entry.replace(/\\/g, '/').replace(/^\.\//, '')
-    const folders = braceExpand(pattern).filter(glob => !GLOB_MAGIC.test(glob.slice(glob.lastIndexOf('/') + 1)))
-
-    return [pattern, ...folders.map(folder => `${folder}/**`)].map(glob => new Minimatch(glob, options))
-  })
-}
-
-function matchesAny(patterns: Minimatch[], path: string) {
-  return patterns.some(pattern => pattern.pattern === path || pattern.match(path))
-}
+const toGlob = (entry: string) => entry.replace(/\\/g, '/').replace(/^\.\//, '')
 
 export function createDocumentMatcher(documents: string[]) {
   const { include, exclude } = splitDocuments(documents)
-  const included = compileDocuments(include)
-  const excluded = compileDocuments(exclude, { dot: true })
+  const included = include.map(toGlob).flatMap(glob => GLOB_MAGIC.test(glob) ? [glob] : [glob, `${glob}/**`]).map(glob => new Minimatch(glob))
+  const excluded = exclude.map(entry => new Minimatch(toGlob(entry)))
 
-  return (path: string) => matchesAny(included, path) && !matchesAny(excluded, path)
+  return (path: string) => {
+    const folders = [...path.matchAll(/\//g)].flatMap(({ index }) => [path.slice(0, index), path.slice(0, index + 1)])
+
+    return included.some(glob => glob.match(path)) && ![...folders, path].some(entry => excluded.some(glob => glob.match(entry)))
+  }
 }
 
 export function createClientRouter(nuxt: Nuxt, config: ShopifyConfig) {

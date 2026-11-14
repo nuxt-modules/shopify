@@ -110,7 +110,7 @@ ProductImage.vue
     },
     "dependencies": {
       "@nuxtjs/shopify": "latest",
-      "@shopify/hydrogen": "^2026.10.2",
+      "@shopify/hydrogen": "^2026.10.3",
       "nuxt": "latest"
     }
   }
@@ -207,7 +207,7 @@ CustomerAccount.vue
     },
     "dependencies": {
       "@nuxtjs/shopify": "latest",
-      "@shopify/hydrogen": "^2026.10.2",
+      "@shopify/hydrogen": "^2026.10.3",
       "nuxt": "latest"
     }
   }
@@ -310,7 +310,7 @@ Markets.vue
     },
     "dependencies": {
       "@nuxtjs/shopify": "latest",
-      "@shopify/hydrogen": "^2026.10.2",
+      "@shopify/hydrogen": "^2026.10.3",
       "nuxt": "latest"
     }
   }

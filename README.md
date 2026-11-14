@@ -15,7 +15,7 @@ Fully configurable, works out of the box with [mock.shop](https://mock.shop) for
 - 📚 [Documentation](https://shopify.nuxtjs.org)
 - 🛍️ [Store Template](https://github.com/nuxt-modules/shopify/tree/main/template)
 - ✨ [Release Notes](https://github.com/nuxt-modules/shopify/releases)
-- ⬆️ [Migrating to 2.0](https://shopify.nuxtjs.org/getting-started/migration)
+- ⬆️ [Migrating to 2.0](https://shopify.nuxtjs.org/going-further/migration)
 
 ## Features
 
@@ -25,7 +25,7 @@ Fully configurable, works out of the box with [mock.shop](https://mock.shop) for
 - 🛒 Storefront, Customer Account and Admin API support
 - 🌐 Server & client side support
 - 🚩 Error handling optimized for Nuxt
-- 📡 Storefront API proxy, cart, checkout, predictive search and customer account routes from `@shopify/hydrogen`
+- 📡 Storefront API proxy, cart, checkout, search and customer account routes
 - 🧩 GraphQL fragment injection and deduplication
 - 🏎️ Caching for client and server-side requests
 - 🔍 Analytics and Customer Privacy API support

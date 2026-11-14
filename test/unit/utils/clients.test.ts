@@ -123,6 +123,7 @@ describe('createDocumentMatcher', () => {
     'app/legacy/shop.ts',
     'app/pages/[handle].ts',
     'app/pages/h.ts',
+    'app/(shop)/shop.ts',
     'legacy/shop.ts',
     'legacy/old/shop.ts',
     'old/shop.ts',
@@ -180,6 +181,7 @@ describe('createDocumentMatcher', () => {
 
   it.each([
     '**/*.ts !legacy',
+    '**/*.ts !legacy/',
     '**/*.ts !app/legacy',
     '**/*.ts !**/legacy',
     '**/*.ts !./legacy',
@@ -196,6 +198,7 @@ describe('createDocumentMatcher', () => {
     './app/**/*.ts',
     'legacy',
     'legacy/',
+    'app/(shop)',
     'app/pages/[handle].ts',
     '.storybook/**/*.ts !**/*.admin.ts',
   ])('keeps the files codegen keeps for %s', async (row) => {

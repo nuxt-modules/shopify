@@ -58,7 +58,7 @@ jobs:
       fail-fast: false
       matrix:
         hydrogen:
-          - "2026.10.0"
+          - "2026.10.3"
     steps:
       - uses: actions/checkout@v7.0.1
         with:
