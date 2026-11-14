@@ -15,7 +15,7 @@
         "@nuxt/ui": "^4.12.0",
         "@nuxtjs/critters": "^0.10.1",
         "@vueuse/core": "^15.0.0",
-        "better-sqlite3": "^13.0.3",
+        "better-sqlite3": "^13.1.1",
         "docus": "^5.15.0",
         "motion-v": "^2.12.0",
         "nuxt": "^4.6.4",
