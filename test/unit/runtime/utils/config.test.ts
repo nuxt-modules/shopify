@@ -60,6 +60,7 @@ describe('defaults', () => {
         explorer: true,
         codegen: { globalTypes: true },
         proxy: true,
+        routes: true,
         cache: { server: { driver: 'lru-cache' } },
       },
       admin: {
@@ -491,6 +492,34 @@ describe('analytics', () => {
   it('accepts Shopify\'s consent modes only', () => {
     expect(parseAnalytics({ consent: { mode: 'custom-banner' } })).toMatchObject({ consent: { mode: 'custom-banner' } })
     expect(() => parseAnalytics({ consent: { mode: 'banner' } })).toThrow()
+  })
+})
+
+describe('storefront routes', () => {
+  it('turns the Storefront API proxy off with the routes, so the browser client calls Shopify directly', () => {
+    for (const proxy of [undefined, true]) {
+      const config = configObjectSchema.parse({ name: 'shop', clients: { storefront: { ...storefront, routes: false, proxy } } })
+
+      expect(config.clients.storefront).toMatchObject({ routes: false, proxy: false })
+    }
+  })
+
+  it('leaves out analytics, which needs Shopify\'s routes and scripts, when the storefront client turns its routes off', () => {
+    const input = { name: 'shop', clients: { storefront: { ...storefront, routes: false } }, analytics: true }
+    const parsed = configObjectSchema.safeParse(input)
+
+    expect(findInvalidFeatures(parsed.error!)).toStrictEqual([['analytics']])
+    expect(parsed.error?.issues[0]?.message).toContain('`clients.storefront.routes`')
+    expect(configObjectSchema.safeParse(withoutFeatures(input, [['analytics']]))).toMatchObject({ success: true })
+  })
+
+  it('reports the conflict together with other invalid features, so the rest of the module still sets up', () => {
+    const input = { name: 'shop', clients: { storefront: { ...storefront, routes: false }, admin: { clientId: 'id' } }, analytics: true }
+    const parsed = configObjectSchema.safeParse(input)
+    const features = findInvalidFeatures(parsed.error!)!
+
+    expect(features.map(feature => feature.join('.')).sort()).toStrictEqual(['analytics', 'clients.admin'])
+    expect(configObjectSchema.safeParse(withoutFeatures(input, features))).toMatchObject({ success: true })
   })
 })
 

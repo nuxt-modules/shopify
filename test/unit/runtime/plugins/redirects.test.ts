@@ -11,7 +11,7 @@ type RenderedHook = (context: { ssrContext: Record<string, unknown> }) => Promis
 const runtimeConfig = {
   _shopify: {
     name: 'my-shop',
-    clients: { storefront: { apiVersion: API_VERSION, publicAccessToken: 'public-token' } } as Record<string, unknown>,
+    clients: { storefront: { apiVersion: API_VERSION, routes: true, publicAccessToken: 'public-token' } } as Record<string, unknown>,
     analytics: false,
     routeTemplates: {} as Record<string, string>,
   },
@@ -61,7 +61,7 @@ async function render(event: H3Event, ssrContext: Record<string, unknown> = { er
 beforeEach(() => {
   vi.clearAllMocks()
 
-  runtimeConfig._shopify.clients = { storefront: { apiVersion: API_VERSION, publicAccessToken: 'public-token' } }
+  runtimeConfig._shopify.clients = { storefront: { apiVersion: API_VERSION, routes: true, publicAccessToken: 'public-token' } }
   runtimeConfig._shopify.routeTemplates = { product: '/product/:productHandle' }
   fetchMock.mockImplementation(async () => urlRedirects())
 })
@@ -125,6 +125,15 @@ describe('redirects', () => {
 
     await render(await request('/products/shirt'))
 
+    expect(navigateTo).not.toHaveBeenCalled()
+  })
+
+  it('stays off when the storefront client turns its routes off', async () => {
+    runtimeConfig._shopify.clients = { storefront: { apiVersion: API_VERSION, routes: false, publicAccessToken: 'public-token' } }
+
+    await render(await request('/products/shirt'))
+
+    expect(fetchMock).not.toHaveBeenCalled()
     expect(navigateTo).not.toHaveBeenCalled()
   })
 })

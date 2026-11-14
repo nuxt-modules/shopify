@@ -46,7 +46,7 @@ function warnCustomerAccountProxyOptOut(config: ShopifyConfig) {
 function warnNonRootBaseURL(config: ShopifyConfig, nuxt: Nuxt) {
   const { baseURL } = nuxt.options.app
 
-  if (baseURL === '/' || !(config.clients.storefront || config.clients.customerAccount || config.analytics)) return
+  if (baseURL === '/' || !(config.clients.storefront?.routes || config.clients.customerAccount || config.analytics)) return
 
   useLogger().warn(`\`app.baseURL\` is \`${baseURL}\`, but Hydrogen serves Shopify's routes, such as the Storefront API proxy, \`/api/cart\` and \`/account/*\`, only from the domain root, so they won't work. Serve the app from \`/\``)
 }

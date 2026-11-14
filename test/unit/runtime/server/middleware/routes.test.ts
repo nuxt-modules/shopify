@@ -12,7 +12,7 @@ const runtimeConfig = {
     name: 'my-shop',
     shopId: SHOP_ID as string | undefined,
     storefrontId: '123',
-    clients: { storefront: { apiVersion: API_VERSION, publicAccessToken: '' } } as Record<string, unknown>,
+    clients: { storefront: { apiVersion: API_VERSION, routes: true, publicAccessToken: '' } } as Record<string, unknown>,
     defaultMarket: undefined as Record<string, unknown> | undefined,
     cart: undefined as Record<string, unknown> | undefined,
     predictiveSearch: undefined as Record<string, unknown> | undefined,
@@ -109,7 +109,7 @@ beforeEach(() => {
   runtimeConfig._shopify.defaultMarket = undefined
   runtimeConfig._shopify.cart = undefined
   runtimeConfig._shopify.predictiveSearch = undefined
-  runtimeConfig._shopify.clients = { storefront: { apiVersion: API_VERSION, publicAccessToken: '' } }
+  runtimeConfig._shopify.clients = { storefront: { apiVersion: API_VERSION, routes: true, publicAccessToken: '' } }
 })
 
 function enableCustomerAccount() {
@@ -212,6 +212,34 @@ describe('routes middleware', () => {
     expect(handleShopifyRoutes).not.toHaveBeenCalled()
   })
 
+  it('leaves Shopify\'s storefront paths and variant links to the app when the storefront client turns its routes off', async () => {
+    runtimeConfig._shopify.analytics = false
+    runtimeConfig._shopify.clients = { storefront: { apiVersion: API_VERSION, routes: false, publicAccessToken: '' } }
+
+    for (const [method, path] of [['GET', '/api/cart'], ['POST', `/api/${API_VERSION}/graphql.json`], ['GET', '/checkout'], ['GET', '/cart.js'], ['GET', '/product/shirt?variant=123']]) {
+      await expect(handler(createTestEvent({ method, path, headers: { host: 'shop.test' } }))).resolves.toBeUndefined()
+    }
+
+    expect(handleShopifyRoutes).not.toHaveBeenCalled()
+  })
+
+  it('keeps the customer account routes and the server cache, without Shopify\'s scripts or redirects, when the storefront client turns its routes off', async () => {
+    runtimeConfig._shopify.analytics = false
+    runtimeConfig._shopify.clients = { storefront: { apiVersion: API_VERSION, routes: false, publicAccessToken: 'public', cache: { server: {}, presets: {} } } }
+
+    enableCustomerAccount()
+
+    const event = createTestEvent({ path: '/products/shirt', headers: { host: 'shop.test' } })
+
+    await handler(event)
+
+    expect(Object.keys(event.context._shopify!).sort()).toStrictEqual(['customerAccount', 'storefrontCache'])
+
+    await handler(createTestEvent({ path: '/account/login', headers: { host: 'shop.test' } }))
+
+    expect(handleShopifyRoutes).toHaveBeenCalledOnce()
+  })
+
   it('leaves the cart out of the customer session in development, where Hydrogen cannot share it', async () => {
     vi.stubGlobal('__NUXT_DEV__', true)
 
@@ -253,7 +281,7 @@ describe('routes middleware', () => {
 
   it('proxies a mocked storefront to mock.shop', async () => {
     runtimeConfig._shopify.analytics = false
-    runtimeConfig._shopify.clients = { storefront: { apiVersion: API_VERSION, mock: true, proxy: true } }
+    runtimeConfig._shopify.clients = { storefront: { apiVersion: API_VERSION, routes: true, mock: true, proxy: true } }
 
     await handler(createTestEvent({ method: 'POST', path: `/api/${API_VERSION}/graphql.json`, headers: { host: 'shop.test' }, body: { query: '{ shop { id } }' } }))
 
@@ -298,7 +326,7 @@ describe('routes middleware', () => {
   })
 
   it('hands Hydrogen the request with the public access token, so its Storefront API proxy works for a browser that sends none', async () => {
-    runtimeConfig._shopify.clients = { storefront: { apiVersion: API_VERSION, publicAccessToken: 'public-token' } }
+    runtimeConfig._shopify.clients = { storefront: { apiVersion: API_VERSION, routes: true, publicAccessToken: 'public-token' } }
 
     await handler(createTestEvent({ method: 'POST', path: `/api/${API_VERSION}/graphql.json`, headers: { host: 'shop.test' }, body: { query: '{ shop { id } }' } }))
 
@@ -373,7 +401,7 @@ describe('routes middleware', () => {
   })
 
   it('hands the server cache to server rendering when the storefront client has one', async () => {
-    runtimeConfig._shopify.clients = { storefront: { apiVersion: API_VERSION, publicAccessToken: 'public', cache: { server: {}, presets: {} } } }
+    runtimeConfig._shopify.clients = { storefront: { apiVersion: API_VERSION, routes: true, publicAccessToken: 'public', cache: { server: {}, presets: {} } } }
 
     const event = createTestEvent({ path: '/products/shirt', headers: { host: 'shop.test' } })
 
@@ -386,7 +414,7 @@ describe('routes middleware', () => {
     ['its server cache turned off', { server: false, presets: {} }],
     ['no cache at all', false],
   ])('hands server rendering no server cache with %s', async (_, cache) => {
-    runtimeConfig._shopify.clients = { storefront: { apiVersion: API_VERSION, publicAccessToken: 'public', cache } }
+    runtimeConfig._shopify.clients = { storefront: { apiVersion: API_VERSION, routes: true, publicAccessToken: 'public', cache } }
 
     const event = createTestEvent({ path: '/products/shirt', headers: { host: 'shop.test' } })
 
@@ -454,7 +482,7 @@ describe('routes middleware', () => {
     createCartServerHandlers.mockImplementationOnce(hydrogen.createCartServerHandlers as never)
     handleShopifyRoutes.mockImplementationOnce(hydrogen.handleShopifyRoutes as never)
 
-    runtimeConfig._shopify.clients = { storefront: { apiVersion: API_VERSION, publicAccessToken: 'public' } }
+    runtimeConfig._shopify.clients = { storefront: { apiVersion: API_VERSION, routes: true, publicAccessToken: 'public' } }
     runtimeConfig._shopify.defaultMarket = { country: 'US', language: 'EN' }
 
     const cookies = ['_shopify_essential=e; Path=/; HttpOnly; Secure', '_shopify_analytics=a; Path=/; HttpOnly; Secure']

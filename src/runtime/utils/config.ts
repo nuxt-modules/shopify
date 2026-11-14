@@ -140,6 +140,7 @@ const storefrontClientSchema = clientSchema.extend({
   codegen: enableable(codegenSchema.extend({ globalTypes: z.boolean().optional().default(true) }), { globalTypes: true }),
   documents: clientSchema.shape.documents.transform(resolveDocuments(defaultStorefrontDocuments)),
   proxy: z.boolean({ error: 'Expected `true` or `false`: the Storefront API proxy is always served at `/api/<version>/graphql.json`' }).optional().default(true),
+  routes: z.boolean().optional().default(true),
   cache: enableable(clientCacheSchema, defaultCacheConfig),
 })
 
@@ -232,7 +233,7 @@ const analyticsSchema = z.object({
   }).prefault({}),
 })
 
-export const configObjectSchema = z.object({
+const configSchema = z.object({
   name: z.string({ error: 'Shop name is required' }).min(1, { error: 'Shop name cannot be empty' }),
 
   origin: z.union([z.literal(''), z.url({ protocol: /^https?$/ })], {
@@ -253,6 +254,7 @@ export const configObjectSchema = z.object({
       .refine(client => client?.mock || client?.privateAccessToken || client?.publicAccessToken, {
         error: 'Either a public or private access token must be provided for the storefront client, or `mock: true` to use mock.shop',
       })
+      .transform(client => client.routes ? client : { ...client, proxy: false })
       .optional(),
     [ShopifyClientType.Admin]: adminClientSchema
       .refine(client => client.accessToken || (client.clientId && client.clientSecret), {
@@ -286,7 +288,12 @@ export const configObjectSchema = z.object({
   logger: z.custom<Partial<ConsolaOptions>>().optional(),
 })
 
-export const publicConfigSchema = configObjectSchema.omit({ clients: true, fragments: true, webhooks: true, origin: true, cart: true, predictiveSearch: true }).extend({
+export const configObjectSchema = configSchema.refine(config => !config.analytics || config.clients.storefront?.routes !== false, {
+  error: 'Analytics needs Shopify\'s routes and scripts, so it can\'t be enabled while `clients.storefront.routes` is `false`',
+  path: ['analytics'],
+})
+
+export const publicConfigSchema = configSchema.omit({ clients: true, fragments: true, webhooks: true, origin: true, cart: true, predictiveSearch: true }).extend({
   clients: z.object({
     [ShopifyClientType.Storefront]: storefrontClientSchema.omit({
       privateAccessToken: true,
@@ -295,6 +302,7 @@ export const publicConfigSchema = configObjectSchema.omit({ clients: true, fragm
       documents: true,
       codegen: true,
       cache: true,
+      routes: true,
     }).extend({
       cache: enableable(clientCacheSchema.omit({ server: true }), { browser: defaultBrowserCacheOptions, presets: defaultCachePresets }),
     }).optional(),

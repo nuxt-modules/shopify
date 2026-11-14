@@ -81,7 +81,7 @@ describe('registerShopifyRoutes', () => {
   })
 
   it('registers the routes middleware, the response headers plugin, the redirects and Shopify\'s scripts once, however many features ask', () => {
-    const config = { clients: { storefront: {} }, analytics: false }
+    const config = { clients: { storefront: { routes: true } }, analytics: false }
 
     registerShopifyRoutes(nuxt as never, config as never, resolver as never)
     registerShopifyRoutes(nuxt as never, config as never, resolver as never)
@@ -94,9 +94,25 @@ describe('registerShopifyRoutes', () => {
   })
 
   it('keeps every route Hydrogen serves out of route rule caches, such as Vercel\'s ISR', () => {
-    registerShopifyRoutes(nuxt as never, { clients: { storefront: {}, customerAccount: {} }, analytics: false } as never, resolver as never)
+    registerShopifyRoutes(nuxt as never, { clients: { storefront: { routes: true }, customerAccount: {} }, analytics: false } as never, resolver as never)
 
     expect(uncachedRoutes()).toStrictEqual([...STOREFRONT_ROUTES, ...CUSTOMER_ACCOUNT_ROUTES])
+  })
+
+  it('adds none of Shopify\'s storefront routes, the redirects or Shopify\'s scripts when the storefront client turns its routes off', () => {
+    registerShopifyRoutes(nuxt as never, { clients: { storefront: { routes: false } }, analytics: false } as never, resolver as never)
+
+    expect(addServerHandler).toHaveBeenCalledExactlyOnceWith({ middleware: true, handler: './runtime/server/middleware/routes' })
+    expect(addServerPlugin).toHaveBeenCalledExactlyOnceWith('./runtime/server/plugins/response-headers')
+    expect(addPlugin).not.toHaveBeenCalled()
+    expect(uncachedRoutes()).toStrictEqual([])
+  })
+
+  it('keeps the customer account routes when the storefront client turns its routes off', () => {
+    registerShopifyRoutes(nuxt as never, { clients: { storefront: { routes: false }, customerAccount: {} }, analytics: false } as never, resolver as never)
+
+    expect(addPlugin).not.toHaveBeenCalled()
+    expect(uncachedRoutes()).toStrictEqual(CUSTOMER_ACCOUNT_ROUTES)
   })
 
   it('renders Shopify\'s scripts for analytics without the storefront client', () => {

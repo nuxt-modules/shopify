@@ -101,7 +101,7 @@ export function registerShopifyRoutes(nuxt: Nuxt, config: ShopifyConfig, resolve
   addServerHandler({ middleware: true, handler })
   addServerPlugin(resolver.resolve('./runtime/server/plugins/response-headers'))
 
-  const storefront = !!(config.clients.storefront || config.analytics)
+  const storefront = !!(config.clients.storefront?.routes || config.analytics)
 
   for (const route of [...storefront ? STOREFRONT_ROUTES : [], ...config.clients.customerAccount ? CUSTOMER_ACCOUNT_ROUTES : []]) {
     keepUncached(route)

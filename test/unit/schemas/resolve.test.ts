@@ -89,9 +89,10 @@ describe('app base URL', () => {
     }
   })
 
-  it('stays quiet at the domain root, and for an admin client, which has no browser routes', async () => {
+  it('stays quiet at the domain root, and for an admin client or a storefront client without its routes, which have no browser routes', async () => {
     await resolve({ name: 'shop', clients: { storefront, customerAccount: { clientId: 'cid' } }, analytics: true })
     await resolve({ name: 'shop', clients: { admin: { accessToken: 'shpat_x' } } }, nuxtStub({ app: { baseURL: '/shop/' } }))
+    await resolve({ name: 'shop', clients: { storefront: { ...storefront, routes: false } } }, nuxtStub({ app: { baseURL: '/shop/' } }))
 
     expect(warnings.filter(warning => warning.includes('app.baseURL'))).toEqual([])
   })

@@ -23,7 +23,7 @@ export default defineEventHandler(async (event) => {
 
   if (!_shopify) return
 
-  const storefront = !!(_shopify.clients.storefront || _shopify.analytics)
+  const storefront = !!(_shopify.clients.storefront?.routes || _shopify.analytics)
   const customerAccount = !!_shopify.clients.customerAccount
   const serverCache = !!(_shopify.clients.storefront?.cache && _shopify.clients.storefront.cache.server)
 

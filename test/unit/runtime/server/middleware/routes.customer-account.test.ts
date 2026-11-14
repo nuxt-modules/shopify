@@ -101,7 +101,7 @@ function buyerIdentityUpdates() {
 function configure(customerAccount: Record<string, unknown> = {}) {
   const config = createShopifyConfig(customerAccount)
 
-  runtimeConfig._shopify = { ...config, clients: { ...config.clients, storefront: { apiVersion: API_VERSION, publicAccessToken: '' } } }
+  runtimeConfig._shopify = { ...config, clients: { ...config.clients, storefront: { apiVersion: API_VERSION, routes: true, publicAccessToken: '' } } }
 }
 
 beforeEach(() => {
