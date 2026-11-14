@@ -39,8 +39,8 @@ jobs:
       - uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
-      - uses: pnpm/action-setup@v6.1.0
-      - uses: actions/setup-node@v7.0.0
+      - uses: pnpm/action-setup@v6.1.1
+      - uses: actions/setup-node@v7.1.0
         with:
           node-version: ${{ matrix.node-version }}
           cache: pnpm
@@ -63,10 +63,10 @@ jobs:
       - uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
-      - uses: pnpm/action-setup@v6.1.0
-      - uses: actions/setup-node@v7.0.0
+      - uses: pnpm/action-setup@v6.1.1
+      - uses: actions/setup-node@v7.1.0
         with:
-          node-version: 24.21.0
+          node-version: 24.22.2
           cache: pnpm
 
       - name: Install dependencies
@@ -77,3 +77,30 @@ jobs:
 
       - name: Run tests
         run: pnpm run prepare && pnpm run test
+
+  windows:
+    name: "windows"
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v6.1.1
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: 24.22.2
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Build module package
+        run: pnpm run prepare
+
+      - name: Build playground
+        run: pnpm --filter playground-v4-mock build
+        env:
+          NUXT_SHOPIFY_NAME: mock
+
+      - name: Build template
+        run: pnpm run build:template

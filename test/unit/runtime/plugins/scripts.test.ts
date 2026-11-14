@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ref } from 'vue'
 
-type HeadInput = { script: Array<{ id?: string, innerHTML?: string }> }
+type HeadInput = { script: Array<{ 'id'?: string, 'innerHTML'?: string, 'data-config'?: string }> }
 
 type Analytics = Record<string, unknown>
 
@@ -63,7 +63,11 @@ async function mount(bus: Record<string, unknown> = { publish: vi.fn() }) {
   return bus
 }
 
-const bootstrapOf = (input: HeadInput) => input.script.find(script => script.id === 'shopify-global-bootstrap')?.innerHTML ?? ''
+function bootstrapOf(input: HeadInput) {
+  const bootstrap = input.script.find(script => script.id === 'shopify-global-bootstrap')
+
+  return `${bootstrap?.innerHTML ?? ''}${bootstrap?.['data-config'] ?? ''}`
+}
 
 beforeEach(() => {
   vi.resetModules()

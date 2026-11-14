@@ -79,7 +79,7 @@ describe('worker presets', () => {
 
     const remoteImports = readdirSync(hydrogen, { recursive: true, encoding: 'utf8' })
       .filter(file => file.endsWith('.mjs'))
-      .flatMap(file => [...readFileSync(join(hydrogen, file), 'utf8').matchAll(/import\("(https?:\/\/[^"]+)"\)/g)].map(match => match[1]))
+      .flatMap(file => [...readFileSync(join(hydrogen, file), 'utf8').matchAll(/import\(\s*(?:\/\*[^*]*\*\/\s*)?"(https?:\/\/[^"]+)"/g)].map(match => match[1]))
 
     expect(setup().nuxt.options.nitro.virtual).toStrictEqual(Object.fromEntries(remoteImports.map(url => [url, 'export {}'])))
   })
