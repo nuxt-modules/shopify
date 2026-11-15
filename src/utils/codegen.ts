@@ -11,12 +11,13 @@ import { getLayerDirectories, updateTemplates } from '@nuxt/kit'
 import { preset, pluckConfig } from '@shopify/graphql-codegen'
 import { LogLevels } from 'consola'
 import { resolveModulePath, resolveModuleURL } from 'exsolve'
+import { parse } from 'graphql'
 import { relative } from 'pathe'
 import { kebabCase, upperFirst } from 'scule'
 import defu from 'defu'
 
 import { ShopifyClientType } from '../schemas'
-import { createDocumentMatcher, splitDocuments } from './clients'
+import { createDocumentMatcher, findDocuments } from './clients'
 import { GRAPHQL_MARKER, SCHEMA_LANGUAGE_FILE } from './graphql/literals'
 import { useLogger } from './log'
 import { createAdminConfig } from '../runtime/utils/clients/admin'
@@ -40,6 +41,10 @@ const TRANSPORT_ERROR_PATTERN = /\b(?:ETIMEDOUT|ECONNREFUSED|ECONNRESET|ENOTFOUN
 const EXACT_UTILITY_TYPE = 'export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };'
 
 const EXPORTED_TYPE_PATTERN = /^export type (\w+) =/gm
+
+const DOCUMENT_POINTER_SCHEME = /^[a-z][\w+.-]+:/i
+
+const GLOB_SYNTAX = /[*?[]/g
 
 const generateFailures = new WeakMap<Nuxt, string[]>()
 
@@ -247,11 +252,23 @@ export function createTypesGenerator(nuxt: Nuxt, client: CodegenClient, filename
   return () => types ??= generateTypes(nuxt, client, filename, loadSchema)
 }
 
-async function scanDocuments(documents: string[], cwd: string): Promise<{ failure?: Error, files: Set<string> }> {
-  const files = new Set<string>()
-  const { include, exclude: ignore } = splitDocuments(documents)
+function isLocalDocument(entry: unknown): entry is string {
+  if (typeof entry !== 'string' || DOCUMENT_POINTER_SCHEME.test(entry)) return false
 
-  if (!include.length) return { files }
+  try {
+    parse(entry)
+
+    return false
+  }
+  catch {
+    return true
+  }
+}
+
+async function scanDocuments(paths: string[], cwd: string): Promise<{ failure?: Error, files: Set<string> }> {
+  const files = new Set<string>()
+
+  if (!paths.length) return { files }
 
   const { CodeFileLoader } = await import('@graphql-tools/code-file-loader')
 
@@ -259,22 +276,20 @@ async function scanDocuments(documents: string[], cwd: string): Promise<{ failur
 
   let failure: Error | undefined
 
-  for (const pointer of include) {
-    for (const path of await loader.resolveGlobs(pointer, { cwd, ignore })) {
-      const file = resolve(cwd, path)
+  for (const path of paths) {
+    const file = resolve(cwd, path)
 
-      if (!GRAPHQL_MARKER.test(await readFile(file, 'utf8').catch(() => ''))) continue
+    if (!GRAPHQL_MARKER.test(await readFile(file, 'utf8').catch(() => ''))) continue
 
-      files.add(file)
+    files.add(file)
 
-      if (failure) continue
+    if (failure) continue
 
-      try {
-        await loader.handleSinglePath(file, { cwd, noRequire: true, noSilentErrors: true })
-      }
-      catch (error) {
-        failure = new Error(String(error))
-      }
+    try {
+      await loader.handleSinglePath(file, { cwd, noRequire: true, noSilentErrors: true })
+    }
+    catch (error) {
+      failure = new Error(String(error))
     }
   }
 
@@ -325,13 +340,15 @@ async function generateOperations(nuxt: Nuxt, client: CodegenClient, filename: s
 
     await nuxt.callHook(`shopify:${kebabCase(client.clientType)}:generate:operations`, { nuxt, config })
 
-    const { failure, files } = await scanDocuments(config.documents, nuxt.options.rootDir)
+    const paths = await findDocuments(config.documents.filter(isLocalDocument), nuxt.options.rootDir)
+    const { failure, files } = await scanDocuments(paths, nuxt.options.rootDir)
 
     if (documents.revision === revision) documents.graphqlFiles = files
 
     if (failure) throw failure
 
-    const generated = await generateFile(nuxt, filename, config, { cwd: nuxt.options.rootDir, pluckConfig: pluckConfig as Types.Config['pluckConfig'] })
+    const pointers = [...paths.map(path => path.replace(GLOB_SYNTAX, '[$&]')), ...config.documents.filter(entry => !isLocalDocument(entry))]
+    const generated = await generateFile(nuxt, filename, { ...config, documents: pointers }, { cwd: nuxt.options.rootDir, pluckConfig: pluckConfig as Types.Config['pluckConfig'] })
     const { codegen } = client.clientConfig
 
     return codegen && codegen.globalTypes ? generated + createGlobalDeclarations(generated, filename) : generated

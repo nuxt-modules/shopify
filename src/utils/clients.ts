@@ -3,6 +3,7 @@ import type { Nuxt } from '@nuxt/schema'
 
 import type { ShopifyConfig } from '../types'
 
+import { glob } from 'node:fs/promises'
 import {
   addImports,
   addPlugin,
@@ -11,7 +12,7 @@ import {
   addServerPlugin,
 } from '@nuxt/kit'
 import { Minimatch } from 'minimatch'
-import { relative } from 'pathe'
+import { join, relative } from 'pathe'
 import { kebabCase, pascalCase } from 'scule'
 
 import { ShopifyClientType } from '../schemas'
@@ -42,16 +43,36 @@ export function splitDocuments(documents: string[]) {
 
 const toGlob = (entry: string) => entry.replace(/\\/g, '/').replace(/^\.\//, '')
 
-export function createDocumentMatcher(documents: string[]) {
+function toDocumentGlobs(documents: string[]) {
   const { include, exclude } = splitDocuments(documents)
-  const included = include.map(toGlob).flatMap(glob => GLOB_MAGIC.test(glob) ? [glob] : [glob, `${glob}/**`]).map(glob => new Minimatch(glob))
-  const excluded = exclude.map(entry => new Minimatch(toGlob(entry)))
+
+  return {
+    include: include.map(toGlob).flatMap(pattern => GLOB_MAGIC.test(pattern) ? [pattern] : [pattern, `${pattern}/**`]),
+    exclude: exclude.map(toGlob),
+  }
+}
+
+export function createDocumentMatcher(documents: string[]) {
+  const { include, exclude } = toDocumentGlobs(documents)
+  const included = include.map(pattern => new Minimatch(pattern))
+  const excluded = exclude.map(pattern => new Minimatch(pattern))
 
   return (path: string) => {
     const folders = [...path.matchAll(/\//g)].flatMap(({ index }) => [path.slice(0, index), path.slice(0, index + 1)])
 
-    return included.some(glob => glob.match(path)) && ![...folders, path].some(entry => excluded.some(glob => glob.match(entry)))
+    return included.some(pattern => pattern.match(path)) && ![...folders, path].some(entry => excluded.some(pattern => pattern.match(entry)))
   }
+}
+
+export async function findDocuments(documents: string[], cwd: string) {
+  const { include, exclude } = toDocumentGlobs(documents)
+  const paths: string[] = []
+
+  for await (const entry of glob(include, { cwd, exclude, withFileTypes: true })) {
+    if (entry.isFile()) paths.push(relative(cwd, join(entry.parentPath, entry.name)))
+  }
+
+  return paths.sort()
 }
 
 export function createClientRouter(nuxt: Nuxt, config: ShopifyConfig) {

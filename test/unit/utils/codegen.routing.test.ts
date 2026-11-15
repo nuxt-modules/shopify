@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -85,6 +85,9 @@ beforeAll(() => {
   writeProjectFile('server/utils/admin/customers.ts', 'export const customers = `#graphql\n  query AdminCustomers { customers(first: 5) { nodes { id } } }\n`\n')
   writeProjectFile('app/queries/shop.ts', 'export const shop = `#graphql\n  query ShopName { shop { name } }\n`\n')
   writeProjectFile('packages/ui/node_modules/dependency/shop.ts', 'export const shop = `#graphql\n  query DependencyShop { shop { name } }\n`\n')
+  writeProjectFile('app/pages/products/[handle].ts', 'export const product = `#graphql\n  query ProductPage { shop { name } }\n`\n')
+  writeProjectFile('.vercel/output/functions/__fallback.func/index.ts', 'export const stale = `#graphql\n  query StaleBuild { shop { name } }\n`\n')
+  symlinkSync('__fallback.func', join(root, '.vercel/output/functions/index.func'))
 })
 
 afterAll(() => {
@@ -100,6 +103,22 @@ describe('document routing', () => {
     expect(contents).toContain('export type ShopNameQuery =')
     expect(contents).not.toContain('AdminCustomersQuery')
     expect(contents).not.toContain('DependencyShopQuery')
+  }, CODEGEN_TIMEOUT)
+
+  it('types the operations of a dynamic route file, whose brackets are no glob', async () => {
+    const nuxt = createNuxt()
+    const contents = await generateOperations(nuxt, ShopifyClientType.Storefront)
+
+    expect(getGenerateFailures(nuxt as never)).toEqual([])
+    expect(contents).toContain('export type ProductPageQuery =')
+  }, CODEGEN_TIMEOUT)
+
+  it('reads no operations through a symlink in a hidden folder, such as a leftover Vercel build', async () => {
+    const nuxt = createNuxt()
+    const contents = await generateOperations(nuxt, ShopifyClientType.Storefront)
+
+    expect(getGenerateFailures(nuxt as never)).toEqual([])
+    expect(contents).not.toContain('StaleBuildQuery')
   }, CODEGEN_TIMEOUT)
 
   it('types admin operations against the admin schema only', async () => {

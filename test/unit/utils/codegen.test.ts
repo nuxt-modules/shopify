@@ -529,29 +529,37 @@ describe('document globs', () => {
 
   beforeEach(() => {
     generate.mockImplementation(() => Promise.resolve([{ content: 'interface GeneratedQueryTypes {}' }]))
+
+    for (const path of ['shop.ts', 'admin/customers.ts', 'pages/products/[handle].ts', 'queries/shop.graphql', 'node_modules/dependency/shop.ts', 'extra/menu.ts']) {
+      mkdirSync(dirname(pathFor(path)), { recursive: true })
+      writeFileSync(pathFor(path), '')
+    }
   })
 
-  it('hands codegen the configured globs to resolve from the project root', async () => {
+  it('hands codegen the files its globs find from the project root, with the brackets of dynamic routes escaped', async () => {
     await generateOperations(createNuxt({ srcDir: pathFor('app'), buildDir: pathFor('.nuxt') }), { documents: [...DOCUMENTS] })
 
     const [input] = generate.mock.calls[0]!
 
     expect(input.cwd).toBe(dir)
-    expect(input.generates[OPERATIONS_FILE].documents).toEqual(DOCUMENTS)
+    expect(input.generates[OPERATIONS_FILE].documents).toEqual(['extra/menu.ts', 'pages/products/[[]handle].ts', 'queries/shop.graphql', 'shop.ts'])
   })
 
-  it('hands codegen the document list a hook changed, without changing the client config', async () => {
+  it('finds the files of the globs a hook adds and hands codegen its other documents as they are, without changing the client config', async () => {
+    const inline = 'query Inline { shop { name } }'
+    const remote = { 'https://shop.example/queries.graphql': { noRequire: true } }
+
     const extending = createNuxt({}, (_hook, { config }) => {
-      (config.documents as string[]).push('extra/**/*.ts')
+      (config.documents as unknown[]).push('extra/**/*.ts', 'github:shop/storefront#main:graphql/**/*.graphql', inline, remote)
     })
 
-    const documents = [...DOCUMENTS]
+    const documents = ['shop.ts']
     const shop = client(ShopifyClientType.Storefront, { documents })
 
     await createOperationsGenerator(extending as never, shop, OPERATIONS_FILE, storedSchema)()
 
-    expect(generate.mock.calls[0]![0].generates[OPERATIONS_FILE].documents).toEqual([...DOCUMENTS, 'extra/**/*.ts'])
-    expect(documents).toEqual(DOCUMENTS)
+    expect(generate.mock.calls[0]![0].generates[OPERATIONS_FILE].documents).toEqual(['extra/menu.ts', 'shop.ts', 'github:shop/storefront#main:graphql/**/*.graphql', inline, remote])
+    expect(documents).toEqual(['shop.ts'])
   })
 })
 

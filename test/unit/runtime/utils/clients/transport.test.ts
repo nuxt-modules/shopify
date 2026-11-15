@@ -2,6 +2,9 @@ import type { AdminApiClient } from '@nuxtjs/shopify/admin'
 import type { CustomerAccountApiClient } from '@nuxtjs/shopify/customer-account'
 import type { StorefrontApiClient } from '@nuxtjs/shopify/storefront'
 
+import { setFlagsFromString } from 'node:v8'
+import { runInNewContext } from 'node:vm'
+
 import { afterEach, beforeEach, describe, expect, expectTypeOf, it, onTestFinished, vi } from 'vitest'
 import { createStorage } from 'unstorage'
 
@@ -354,24 +357,60 @@ describe('buyer ip header', () => {
 
 describe('request timeout', () => {
   afterEach(() => {
+    vi.useRealTimers()
     vi.restoreAllMocks()
     vi.unstubAllGlobals()
   })
 
   it('gives up on a request Shopify never answers after Hydrogen\'s 30 seconds', async () => {
-    const deadline = new AbortController()
-    const timeout = vi.spyOn(AbortSignal, 'timeout').mockReturnValue(deadline.signal)
+    vi.useFakeTimers({ toFake: ['setTimeout'] })
 
     stubHangingFetch()
 
+    let settled = false
+
     const pending = createStorefrontApiClient(storefront, { throwOnErrors: false }).request('query Shop { shop { name } }')
 
-    deadline.abort(new DOMException('The operation was aborted due to timeout', 'TimeoutError'))
+    void pending.then(() => settled = true)
+
+    await vi.advanceTimersByTimeAsync(29_999)
+
+    expect(settled).toBe(false)
+
+    await vi.advanceTimersByTimeAsync(1)
 
     const { errors } = await pending
 
-    expect(timeout).toHaveBeenCalledWith(30_000)
-    expect(errors).toBeDefined()
+    expect(errors?.message).toContain('timeout')
+  })
+
+  it('lets go of finished requests, so server-side rendering doesn\'t keep each page in memory', async () => {
+    setFlagsFromString('--expose-gc')
+
+    const collectGarbage = runInNewContext('gc') as () => void
+
+    vi.stubGlobal('fetch', async () => Response.json({ data: { shop: { name: 'Shop' } } }))
+
+    const pages: Array<WeakRef<object>> = []
+
+    for (let i = 0; i < 20; i++) {
+      const caller = new AbortController()
+      const page = { caller }
+
+      await createStorefrontApiClient(storefront, { throwOnErrors: false }).request('query Shop { shop { name } }', { signal: caller.signal })
+
+      caller.abort(Object.assign(new Error('rendered'), { page }))
+
+      pages.push(new WeakRef(page))
+    }
+
+    for (let i = 0; i < 3; i++) {
+      collectGarbage()
+
+      await new Promise(resolve => setTimeout(resolve, 10))
+    }
+
+    expect(pages.slice(0, -1).filter(page => page.deref())).toHaveLength(0)
   })
 
   it('still stops when the caller aborts before the deadline', async () => {
@@ -389,12 +428,12 @@ describe('request timeout', () => {
   it('leaves the requests of the browser to the browser', async () => {
     vi.stubGlobal('__NUXT_CLIENT__', true)
 
-    const timeout = vi.spyOn(AbortSignal, 'timeout')
+    const fetch = vi.fn(async (_url: string, _init?: RequestInit) => Response.json({ data: { shop: { name: 'Shop' } } }))
 
-    vi.stubGlobal('fetch', vi.fn(async () => Response.json({ data: { shop: { name: 'Shop' } } })))
+    vi.stubGlobal('fetch', fetch)
 
     await createStorefrontApiClient(storefront, { throwOnErrors: false }).request('query Shop { shop { name } }')
 
-    expect(timeout).not.toHaveBeenCalled()
+    expect(fetch.mock.calls[0]?.[1]?.signal).toBeUndefined()
   })
 })

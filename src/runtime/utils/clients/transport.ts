@@ -85,9 +85,11 @@ export function createTransport<Operations extends AllOperations = AllOperations
   const customFetchApi: CustomFetchApi | undefined = import.meta.client
     ? transportOptions.fetch
     : (url, init) => {
-        const deadline = AbortSignal.timeout(REQUEST_TIMEOUT_MS)
+        const deadline = new AbortController()
 
-        return fetchApi(url, { ...init, signal: init?.signal ? AbortSignal.any([init.signal, deadline]) : deadline })
+        setTimeout(() => deadline.abort(new DOMException('The operation was aborted due to timeout', 'TimeoutError')), REQUEST_TIMEOUT_MS).unref()
+
+        return fetchApi(url, { ...init, signal: init?.signal ? AbortSignal.any([init.signal, deadline.signal]) : deadline.signal })
       }
 
   const graphqlClient = createGraphQLClient({

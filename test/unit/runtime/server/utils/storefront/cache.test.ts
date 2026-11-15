@@ -149,8 +149,8 @@ describe('storefront server cache', () => {
 
     timeout.mockRestore()
 
-    expect(deadlines).toHaveLength(2)
-    expect(fetchMock.mock.calls.at(-1)![1]?.signal).toBe(deadlines[1])
+    expect(deadlines).toHaveLength(1)
+    expect(fetchMock.mock.calls.at(-1)![1]?.signal).toBe(deadlines[0])
   })
 
   it('sends a cached request without the visitor\'s cookies, language or IP and without the preset header', async () => {

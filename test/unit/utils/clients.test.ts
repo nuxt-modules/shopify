@@ -1,11 +1,8 @@
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
-import { createRequire } from 'node:module'
+import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
-import { pathToFileURL } from 'node:url'
 
-import { relative } from 'pathe'
-import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterAll, beforeAll, beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest'
 
 import { resolver } from '#test/helpers/nuxt'
 
@@ -28,16 +25,13 @@ vi.mock('@nuxt/kit', () => ({
 const { ShopifyClientType, configObjectSchema } = await import('#src/schemas')
 const {
   createDocumentMatcher,
+  findDocuments,
   getConfiguredClients,
   hasPublicClient,
   registerShopifyRoutes,
-  splitDocuments,
 } = await import('#src/utils/clients')
 const { CUSTOMER_ACCOUNT_ROUTES } = await import('#src/runtime/utils/session')
 const { STOREFRONT_ROUTES } = await import('#src/utils/routes')
-
-const codegenRequire = createRequire(import.meta.resolve('@graphql-codegen/cli'))
-const { CodeFileLoader } = await import(pathToFileURL(codegenRequire.resolve('@graphql-tools/code-file-loader')).href) as typeof import('@graphql-tools/code-file-loader')
 
 describe('hasPublicClient', () => {
   it.each([
@@ -188,13 +182,6 @@ describe('createDocumentMatcher', () => {
     for (const root of [files, project]) rmSync(root, { recursive: true, force: true })
   })
 
-  async function filesCodegenReads(root: string, documents: string[]) {
-    const { include, exclude } = splitDocuments(documents)
-    const paths = await Promise.all(include.map(pattern => new CodeFileLoader().resolveGlobs(pattern, { cwd: root, ignore: exclude })))
-
-    return [...new Set(paths.flat().map(path => relative(root, path)))].sort()
-  }
-
   it.each([
     '**/*.ts !legacy',
     '**/*.ts !legacy/',
@@ -217,24 +204,39 @@ describe('createDocumentMatcher', () => {
     'app/(shop)',
     'app/pages/[handle].ts',
     '.storybook/**/*.ts !**/*.admin.ts',
-  ])('keeps the files codegen keeps for %s', async (row) => {
+  ])('matches the files that codegen reads for %s', async (row) => {
     const documents = row.split(' ')
-    const kept = await filesCodegenReads(files, documents)
+    const kept = await findDocuments(documents, files)
 
     expect(kept).not.toStrictEqual([])
     expect(FILES.filter(createDocumentMatcher(documents)).sort()).toStrictEqual(kept)
   })
 
-  it.each(Object.values(ShopifyClientType))('keeps the files codegen keeps for the default %s documents', async (clientType) => {
+  it.each(Object.values(ShopifyClientType))('matches the files that codegen reads for the default %s documents', async (clientType) => {
     const { clients } = configObjectSchema.parse({
       name: 'shop',
       clients: { storefront: { publicAccessToken: 'token' }, customerAccount: { clientId: 'id' }, admin: { accessToken: 'token' } },
     })
 
     const documents = clients[clientType]!.documents!
-    const kept = await filesCodegenReads(project, documents)
+    const kept = await findDocuments(documents, project)
 
     expect(kept).not.toStrictEqual([])
     expect(PROJECT.filter(createDocumentMatcher(documents)).sort()).toStrictEqual(kept)
+  })
+
+  it('finds no files through a folder that is a symlink, such as a linked package or a leftover Vercel build', async () => {
+    const root = createTree(['app/shop.ts', 'packages/ui/menu.ts', '.vercel/output/functions/__fallback.func/index.ts'])
+
+    onTestFinished(() => rmSync(root, { recursive: true, force: true }))
+
+    symlinkSync('../packages/ui', join(root, 'app/ui'))
+    symlinkSync('__fallback.func', join(root, '.vercel/output/functions/index.func'))
+
+    await expect(findDocuments(['**/*.ts', '.vercel/**/*.ts'], root)).resolves.toStrictEqual([
+      '.vercel/output/functions/__fallback.func/index.ts',
+      'app/shop.ts',
+      'packages/ui/menu.ts',
+    ])
   })
 })
