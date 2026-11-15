@@ -1,4 +1,3 @@
-import type { ShopifyScriptsI18n } from '@shopify/hydrogen'
 import type { H3Event } from 'h3'
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -14,6 +13,7 @@ const runtimeConfig = {
     clients: { storefront: { apiVersion: API_VERSION, routes: true, publicAccessToken: 'public-token' } } as Record<string, unknown>,
     analytics: false,
     routeTemplates: {} as Record<string, string>,
+    i18n: { defaultLocale: { country: 'US', language: 'EN' }, routing: { type: 'pathname', locales: [{ country: 'DE', language: 'DE' }] } },
   },
 }
 
@@ -39,10 +39,8 @@ const plugin = (await import('#src/runtime/plugins/redirects')).default as unkno
 
 const urlRedirects = (target?: string) => Response.json({ data: { urlRedirects: { edges: target ? [{ node: { target } }] : [] } } })
 
-function request(path: string, market?: ShopifyScriptsI18n): Promise<H3Event> {
+function request(path: string): Promise<H3Event> {
   const event = createTestEvent({ path, headers: { host: 'shop.test', accept: 'text/html' } })
-
-  event.context.shopifyMarket = market ?? { country: 'US', language: 'EN' }
 
   return middleware(event).then(() => event)
 }
@@ -74,8 +72,8 @@ describe('redirects', () => {
     expect(fetchMock).not.toHaveBeenCalled()
   })
 
-  it('keeps the locale prefix of the request\'s market', async () => {
-    await render(await request('/de-de/products/shirt', { country: 'DE', language: 'DE', pathPrefix: '/de-de' }))
+  it('keeps the locale prefix of the request', async () => {
+    await render(await request('/de-de/products/shirt'))
 
     expect(navigateTo).toHaveBeenCalledExactlyOnceWith('/de-de/product/shirt', { external: true, redirectCode: 301 })
   })

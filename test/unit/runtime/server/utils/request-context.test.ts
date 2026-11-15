@@ -15,25 +15,32 @@ vi.mock('#src/runtime/utils/log', () => ({
   createLogger: () => createLoggerStub({ warn }),
 }))
 
-const { applyShopifyResponseHeaders, getShopifyRequestContext, resolveShopifyMarket } = await import('#src/runtime/server/utils/request-context')
+const { applyShopifyResponseHeaders, getShopifyRequestContext } = await import('#src/runtime/server/utils/request-context')
 const { createHydrogenStorefrontClient } = await import('#src/runtime/server/utils/storefront/hydrogen')
 
-describe('resolveShopifyMarket', () => {
-  const event = () => createTestEvent({ path: '/cart.js', headers: { host: 'shop.test' } })
+describe('request locale', () => {
+  const event = (path = '/cart.js', host = 'shop.test') => createTestEvent({ path, headers: { host } })
 
-  const configured = { clients: {}, defaultMarket: { country: 'DE', language: 'DE' } } as never
+  const storefront = { apiVersion: API_VERSION, publicAccessToken: 'public' }
 
-  const lookUpWith = async (country: string, language: string) => {
+  const pathname = {
+    defaultLocale: { language: 'EN', country: 'US' },
+    routing: { type: 'pathname', locales: [{ language: 'FR', country: 'CA' }] },
+  }
+
+  const lookUpWith = async (config: Record<string, unknown>) => {
     const fetchMock = vi.fn(async () => Response.json({
-      data: { shop: { id: 'gid://shopify/Shop/1' }, localization: { country: { isoCode: country, currency: { isoCode: 'EUR' } }, language: { isoCode: language } } },
+      data: { shop: { id: 'gid://shopify/Shop/1' }, localization: { country: { isoCode: 'NL', currency: { isoCode: 'EUR' } }, language: { isoCode: 'NL' } } },
     }))
 
     vi.stubGlobal('fetch', fetchMock)
     vi.resetModules()
 
-    const { resolveShopifyMarket } = await import('#src/runtime/server/utils/request-context')
+    runtimeConfig._shopify = config
 
-    return { fetchMock, resolveShopifyMarket }
+    const { getShopifyRequestContext } = await import('#src/runtime/server/utils/request-context')
+
+    return { fetchMock, getShopifyRequestContext }
   }
 
   afterEach(() => {
@@ -41,21 +48,25 @@ describe('resolveShopifyMarket', () => {
     warn.mockClear()
   })
 
-  it('fails with a clear error, without trying a lookup, when there is no storefront client to look the market up with', async () => {
-    const { fetchMock, resolveShopifyMarket } = await lookUpWith('NL', 'NL')
+  const unset: [string, Record<string, unknown>][] = [
+    ['no i18n', {}],
+    ['only the empty placeholder declared for environment variables', { i18n: { defaultLocale: { country: '', language: '', currency: '' } } }],
+  ]
 
-    await expect(resolveShopifyMarket(event(), { name: 'shop', clients: {}, analytics: false } as never))
-      .rejects.toMatchObject({ statusCode: 502, message: expect.stringContaining('event.context.shopifyMarket') })
+  it.each(unset)('fails with a clear error, without trying a lookup, when there is no storefront client to look the default locale up with and %s', async (_, i18n) => {
+    const { fetchMock, getShopifyRequestContext } = await lookUpWith({ name: 'shop', clients: {}, ...i18n, analytics: false })
+
+    await expect(getShopifyRequestContext(event()))
+      .rejects.toMatchObject({ statusCode: 502, message: expect.stringContaining('`i18n.defaultLocale`') })
 
     expect(fetchMock).not.toHaveBeenCalled()
     expect(warn).not.toHaveBeenCalled()
   })
 
-  it('treats an empty market, as declared for runtime environment variables, as no market', async () => {
-    const { fetchMock, resolveShopifyMarket } = await lookUpWith('NL', 'NL')
-    const config = { name: 'shop', clients: { storefront: { apiVersion: API_VERSION, publicAccessToken: 'public' } }, defaultMarket: { country: '', language: '' }, analytics: false } as never
+  it.each(unset)('looks up the shop\'s default locale with %s', async (_, i18n) => {
+    const { fetchMock, getShopifyRequestContext } = await lookUpWith({ name: 'shop', clients: { storefront }, ...i18n, analytics: false })
 
-    await expect(resolveShopifyMarket(event(), config)).resolves.toMatchObject({ country: 'NL', language: 'NL' })
+    await expect(getShopifyRequestContext(event())).resolves.toMatchObject({ locale: { country: 'NL', language: 'NL', pathPrefix: '' } })
 
     expect(fetchMock).toHaveBeenCalledOnce()
 
@@ -64,11 +75,10 @@ describe('resolveShopifyMarket', () => {
     expect(JSON.parse(init.body as string).variables).toStrictEqual({})
   })
 
-  it('uses the configured market, without looking it up', async () => {
-    const { fetchMock, resolveShopifyMarket } = await lookUpWith('NL', 'NL')
-    const config = { name: 'shop', clients: { storefront: { apiVersion: API_VERSION, publicAccessToken: 'public' } }, defaultMarket: { country: 'DE', language: 'DE' }, analytics: false } as never
+  it('uses the configured default locale, without looking it up', async () => {
+    const { fetchMock, getShopifyRequestContext } = await lookUpWith({ name: 'shop', clients: { storefront }, i18n: { defaultLocale: { country: 'DE', language: 'DE' } }, analytics: false })
 
-    await expect(resolveShopifyMarket(event(), config)).resolves.toEqual({ country: 'DE', language: 'DE' })
+    await expect(getShopifyRequestContext(event())).resolves.toMatchObject({ locale: { country: 'DE', language: 'DE', pathPrefix: '' } })
 
     expect(fetchMock).not.toHaveBeenCalled()
   })
@@ -80,42 +90,82 @@ describe('resolveShopifyMarket', () => {
     vi.stubGlobal('fetch', fetchMock)
     vi.resetModules()
 
-    const { resolveShopifyMarket } = await import('#src/runtime/server/utils/request-context')
-    const config = { name: 'shop', shopId: '1', clients: { storefront: { apiVersion: API_VERSION, publicAccessToken: 'public' } }, logger, analytics: {} } as never
+    runtimeConfig._shopify = { name: 'shop', shopId: '1', clients: { storefront }, logger, analytics: {} }
 
-    await expect(resolveShopifyMarket(event(), config)).rejects.toMatchObject({ statusCode: 502 })
-    await expect(resolveShopifyMarket(event(), config)).rejects.toMatchObject({ statusCode: 502 })
+    const { getShopifyRequestContext } = await import('#src/runtime/server/utils/request-context')
+
+    await expect(getShopifyRequestContext(event())).rejects.toMatchObject({ statusCode: 502 })
+    await expect(getShopifyRequestContext(event())).rejects.toMatchObject({ statusCode: 502 })
 
     expect(fetchMock).toHaveBeenCalledTimes(2)
     expect(log).not.toHaveBeenCalled()
     expect(warn).toHaveBeenCalledOnce()
   })
 
-  it('uses the market the app resolved for the request', async () => {
-    const request = event()
+  it.each([
+    ['the locale of a path prefix', '/fr-ca/products/shirt', { language: 'FR', country: 'CA', pathPrefix: '/fr-ca' }],
+    ['the default locale for a path without a known prefix', '/xx/products/shirt', { language: 'EN', country: 'US', pathPrefix: '' }],
+  ])('matches %s, as Hydrogen does', async (_, path, locale) => {
+    runtimeConfig._shopify = { clients: {}, i18n: pathname }
 
-    request.context.shopifyMarket = { country: 'CA', language: 'FR' }
+    await expect(getShopifyRequestContext(event(path))).resolves.toMatchObject({ locale })
+  })
 
-    await expect(resolveShopifyMarket(request, configured)).resolves.toEqual({ country: 'CA', language: 'FR' })
+  it('matches the locale of the hostname with domain routing', async () => {
+    runtimeConfig._shopify = {
+      clients: {},
+      i18n: {
+        defaultLocale: { language: 'EN', country: 'US' },
+        routing: { type: 'domain', locales: [{ language: 'EN', country: 'US', hostname: 'shop.test' }, { language: 'EN', country: 'CA', hostname: 'shop.ca' }] },
+      },
+    }
+
+    await expect(getShopifyRequestContext(event('/', 'shop.ca'))).resolves.toMatchObject({ locale: { language: 'EN', country: 'CA', hostname: 'shop.ca', pathPrefix: '' } })
+  })
+
+  it('uses the locale that the app set for a request whose URL has no locale, with the path prefix of that locale', async () => {
+    runtimeConfig._shopify = { clients: {}, i18n: pathname }
+
+    const request = event('/api/cart')
+
+    request.context.shopifyLocale = { language: 'FR', country: 'CA' }
+
+    await expect(getShopifyRequestContext(request)).resolves.toMatchObject({ locale: { language: 'FR', country: 'CA', pathPrefix: '/fr-ca' } })
+  })
+
+  it('fails with Hydrogen\'s error when the app sets a locale that i18n doesn\'t define', async () => {
+    runtimeConfig._shopify = { clients: {}, i18n: pathname }
+
+    const request = event('/api/cart')
+
+    request.context.shopifyLocale = { language: 'DE', country: 'DE' }
+
+    await expect(getShopifyRequestContext(request)).rejects.toThrow('Locale DE-DE is not defined')
+  })
+
+  it('keeps the currency of a locale for Shopify\'s scripts', async () => {
+    runtimeConfig._shopify = { clients: {}, i18n: { defaultLocale: { language: 'EN', country: 'US' }, routing: { type: 'pathname', locales: [{ language: 'FR', country: 'CA', currency: 'CAD' }] } } }
+
+    await expect(getShopifyRequestContext(event('/fr-ca'))).resolves.toMatchObject({ locale: { currency: 'CAD' } })
   })
 })
 
 describe('getShopifyRequestContext', () => {
   it('creates one request context per request', async () => {
-    runtimeConfig._shopify = { clients: {}, defaultMarket: { country: 'DE', language: 'DE' } }
+    runtimeConfig._shopify = { clients: {}, i18n: { defaultLocale: { country: 'DE', language: 'DE' } } }
 
     const event = createTestEvent({ path: '/account', headers: { 'host': 'shop.test', 'x-forwarded-proto': 'https' } })
 
     const requestContext = await getShopifyRequestContext(event)
 
     await expect(getShopifyRequestContext(event)).resolves.toBe(requestContext)
-    expect(requestContext.i18n).toMatchObject({ country: 'DE', language: 'DE' })
+    expect(requestContext.locale).toMatchObject({ country: 'DE', language: 'DE' })
     expect(requestContext.url).toBe('https://shop.test/account')
     await expect(getShopifyRequestContext(createTestEvent({ path: '/account', headers: { host: 'shop.test' } }))).resolves.not.toBe(requestContext)
   })
 
   it('uses a private storefront client with the buyer\'s IP when a private token is configured, as Hydrogen does', async () => {
-    const config = { name: 'shop', storefrontId: '42', clients: { storefront: { apiVersion: API_VERSION, publicAccessToken: 'public', privateAccessToken: 'private' } }, defaultMarket: { country: 'DE', language: 'DE' } }
+    const config = { name: 'shop', storefrontId: '42', clients: { storefront: { apiVersion: API_VERSION, publicAccessToken: 'public', privateAccessToken: 'private' } }, i18n: { defaultLocale: { country: 'DE', language: 'DE' } } }
 
     runtimeConfig._shopify = config
 
@@ -128,7 +178,7 @@ describe('getShopifyRequestContext', () => {
   })
 
   it('uses a private storefront client without buyer context when the buyer\'s IP is unknown', async () => {
-    const config = { name: 'shop', clients: { storefront: { apiVersion: API_VERSION, privateAccessToken: 'private' } }, defaultMarket: { country: 'DE', language: 'DE' } }
+    const config = { name: 'shop', clients: { storefront: { apiVersion: API_VERSION, privateAccessToken: 'private' } }, i18n: { defaultLocale: { country: 'DE', language: 'DE' } } }
 
     runtimeConfig._shopify = config
 
@@ -142,7 +192,7 @@ describe('getShopifyRequestContext', () => {
     ['only a public token', { publicAccessToken: 'public' }],
     ['the mock shop, which never gets the private token', { mock: true, privateAccessToken: 'private' }],
   ])('keeps a public storefront client and the buyer\'s IP out of the request context for %s', async (_, storefront) => {
-    const config = { name: 'shop', clients: { storefront: { apiVersion: API_VERSION, ...storefront } }, defaultMarket: { country: 'DE', language: 'DE' } }
+    const config = { name: 'shop', clients: { storefront: { apiVersion: API_VERSION, ...storefront } }, i18n: { defaultLocale: { country: 'DE', language: 'DE' } } }
 
     runtimeConfig._shopify = config
 
@@ -177,7 +227,7 @@ describe('applyShopifyResponseHeaders', () => {
       withRequestContext() {
         const requestContext = createShopifyRequestContext({
           request: new Request('https://shop.test/account'),
-          i18n: { country: 'US', language: 'EN' },
+          i18n: { defaultLocale: { country: 'US', language: 'EN' } },
         })
 
         if (personalized) requestContext.markResponseAsPersonalized('customer-session')

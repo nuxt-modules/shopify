@@ -5,7 +5,7 @@ import type { PublicShopifyConfig, ShopifyScriptsShopContext } from '../../modul
 
 import { createLogger } from './log'
 
-type ShopConfig = Pick<PublicShopifyConfig, 'name' | 'shopId' | 'storefrontId' | 'defaultMarket' | 'analytics'>
+type ShopConfig = Pick<PublicShopifyConfig, 'name' | 'shopId' | 'storefrontId' | 'i18n' | 'analytics'>
 
 const SHOP_QUERY = `#graphql
   query ShopifyShopContext($country: CountryCode, $language: LanguageCode)
@@ -61,7 +61,7 @@ export function createShopResolver(config: ShopConfig, getClient?: () => ShopLoo
   }
 
   const resolve = async (market?: ShopifyScriptsI18n): Promise<ShopResolution> => {
-    const { pathPrefix, ...requested }: Partial<ShopifyScriptsI18n> = market ?? config.defaultMarket ?? {}
+    const { pathPrefix, ...requested }: Partial<ShopifyScriptsI18n> = market ?? config.i18n?.defaultLocale ?? {}
 
     const tracked = !!config.analytics
     const incomplete = (tracked && !config.shopId) || !requested.country || !requested.language || (tracked && !requested.currency)
@@ -76,7 +76,7 @@ export function createShopResolver(config: ShopConfig, getClient?: () => ShopLoo
       catch (error) {
         failed = true
 
-        if (!warned) createLogger().warn('Could not look up the shop and its default market through the Storefront API, so Shopify\'s scripts run without them. Set `shopId` and a `defaultMarket` with its `currency` to skip the lookup:', error)
+        if (!warned) createLogger().warn('Could not look up the shop and its default locale through the Storefront API, so Shopify\'s scripts run without them. Set `shopId` and an `i18n.defaultLocale` with its `currency` to skip the lookup:', error)
 
         warned = true
       }

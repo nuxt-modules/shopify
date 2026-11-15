@@ -36,12 +36,19 @@ beforeEach(() => {
 })
 
 describe('createShopResolver', () => {
-  it('reads the shop and its default market from the Storefront API', async () => {
-    await expect(setup().resolve()).resolves.toStrictEqual({ shop, shopifyAnalytics: true, i18n: { country: 'DE', language: 'DE', currency: 'EUR' } })
+  it.each([
+    ['without i18n', {}],
+    ['while i18n is only the empty placeholder declared for environment variables', { i18n: { defaultLocale: { country: '', language: '', currency: '' } } as never }],
+  ])('reads the shop and its default market from the Storefront API %s', async (_, config) => {
+    const { client, resolve } = setup(config)
+
+    await expect(resolve()).resolves.toStrictEqual({ shop, shopifyAnalytics: true, i18n: { country: 'DE', language: 'DE', currency: 'EUR' } })
+
+    expect(client.request).toHaveBeenCalledWith(expect.any(String), { variables: {} })
   })
 
   it('skips the lookup, and creates no Storefront client, when the shop and its market are configured', async () => {
-    const { getClient, resolve } = setup({ shopId: 'gid://shopify/Shop/2', defaultMarket: { country: 'AT', language: 'DE', currency: 'EUR' } })
+    const { getClient, resolve } = setup({ shopId: 'gid://shopify/Shop/2', i18n: { defaultLocale: { country: 'AT', language: 'DE', currency: 'EUR' } } })
 
     await expect(resolve()).resolves.toMatchObject({ shop: { shopId: 'gid://shopify/Shop/2' }, shopifyAnalytics: true, i18n: { country: 'AT' } })
 
@@ -49,7 +56,7 @@ describe('createShopResolver', () => {
   })
 
   it('gives Shopify\'s scripts a placeholder shop without analytics, and needs no lookup for a configured market', async () => {
-    const { client, resolve } = setup({ analytics: false, defaultMarket: { country: 'AT', language: 'DE' } })
+    const { client, resolve } = setup({ analytics: false, i18n: { defaultLocale: { country: 'AT', language: 'DE' } } })
 
     await expect(resolve()).resolves.toStrictEqual({ shop: placeholderShop, shopifyAnalytics: false, i18n: { country: 'AT', language: 'DE' } })
 
@@ -62,7 +69,7 @@ describe('createShopResolver', () => {
   })
 
   it('resolves another market in its own context', async () => {
-    const { client, resolve } = setup({ defaultMarket: { country: 'AT', language: 'DE' } })
+    const { client, resolve } = setup({ i18n: { defaultLocale: { country: 'AT', language: 'DE' } } })
 
     await expect(resolve({ country: 'CA', language: 'FR' })).resolves.toMatchObject({ i18n: { country: 'CA', language: 'FR', currency: 'EUR' } })
 
@@ -79,7 +86,7 @@ describe('createShopResolver', () => {
   })
 
   it('starts the scripts in the request\'s market, with its own currency and path prefix', async () => {
-    const { client, resolve } = setup({ shopId: 'gid://shopify/Shop/1', defaultMarket: { country: 'AT', language: 'DE', currency: 'EUR' } })
+    const { client, resolve } = setup({ shopId: 'gid://shopify/Shop/1', i18n: { defaultLocale: { country: 'AT', language: 'DE', currency: 'EUR' } } })
 
     await expect(resolve({ country: 'CH', language: 'FR', currency: 'CHF', pathPrefix: '/fr-ch' }))
       .resolves.toStrictEqual({ shop, shopifyAnalytics: true, i18n: { country: 'CH', language: 'FR', currency: 'CHF', pathPrefix: '/fr-ch' } })
@@ -107,7 +114,7 @@ describe('createShopResolver', () => {
   })
 
   it('renders what is configured, without warning or retrying, when there is no Storefront client to look anything up with', async () => {
-    const resolve = createShopResolver({ name: 'my-shop', analytics: {} as never, defaultMarket: { country: 'AT', language: 'DE' } })
+    const resolve = createShopResolver({ name: 'my-shop', analytics: {} as never, i18n: { defaultLocale: { country: 'AT', language: 'DE' } } })
 
     await expect(resolve()).resolves.toStrictEqual({ shop: placeholderShop, shopifyAnalytics: false, i18n: { country: 'AT', language: 'DE' } })
     await expect(resolve()).resolves.toStrictEqual({ shop: placeholderShop, shopifyAnalytics: false, i18n: { country: 'AT', language: 'DE' } })
@@ -131,7 +138,7 @@ describe('createShopResolver', () => {
 
     expect(client.request).toHaveBeenCalledTimes(3)
     expect(warn).toHaveBeenCalledOnce()
-    expect(warn).toHaveBeenCalledWith(expect.stringContaining('`defaultMarket` with its `currency`'), expect.anything())
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('`i18n.defaultLocale` with its `currency`'), expect.anything())
   })
 
   it('counts a lookup that comes back without data as failed, when errors don\'t throw', async () => {

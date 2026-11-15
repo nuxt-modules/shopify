@@ -13,7 +13,7 @@ const runtimeConfig = {
     shopId: SHOP_ID as string | undefined,
     storefrontId: '123',
     clients: { storefront: { apiVersion: API_VERSION, routes: true, publicAccessToken: '' } } as Record<string, unknown>,
-    defaultMarket: undefined as Record<string, unknown> | undefined,
+    i18n: undefined as Record<string, unknown> | undefined,
     cart: undefined as Record<string, unknown> | undefined,
     predictiveSearch: undefined as Record<string, unknown> | undefined,
     analytics: {} as Record<string, unknown> | false,
@@ -106,7 +106,7 @@ beforeEach(() => {
 
   runtimeConfig._shopify.analytics = {}
   runtimeConfig._shopify.shopId = SHOP_ID
-  runtimeConfig._shopify.defaultMarket = undefined
+  runtimeConfig._shopify.i18n = undefined
   runtimeConfig._shopify.cart = undefined
   runtimeConfig._shopify.predictiveSearch = undefined
   runtimeConfig._shopify.clients = { storefront: { apiVersion: API_VERSION, routes: true, publicAccessToken: '' } }
@@ -190,7 +190,7 @@ describe('routes middleware', () => {
     ['the Storefront API proxy', 'only a storefront client is configured', 'POST', `/api/${API_VERSION}/graphql.json`, { analytics: false }],
     ['the checkout', 'only a storefront client is configured', 'GET', '/checkout', { analytics: false }],
     ['predictive search', 'only a storefront client is configured', 'GET', '/api/predictive-search?q=shirt', { analytics: false }],
-    ['the endpoints of Shopify\'s scripts', 'only analytics is on', 'GET', '/cart.js', { clients: {}, defaultMarket: { country: 'US', language: 'EN' } }],
+    ['the endpoints of Shopify\'s scripts', 'only analytics is on', 'GET', '/cart.js', { clients: {}, i18n: { defaultLocale: { country: 'US', language: 'EN' } } }],
   ])('serves %s with Hydrogen\'s handlers when %s', async (_, __, method, path, config) => {
     Object.assign(runtimeConfig._shopify, config)
 
@@ -361,7 +361,7 @@ describe('routes middleware', () => {
   })
 
   it('lets Hydrogen answer variant links on any page, for analytics without a storefront client too', async () => {
-    runtimeConfig._shopify.defaultMarket = { country: 'US', language: 'EN' }
+    runtimeConfig._shopify.i18n = { defaultLocale: { country: 'US', language: 'EN' } }
     runtimeConfig._shopify.clients = {}
 
     await handler(createTestEvent({ method: 'HEAD', path: '/product/shirt?variant=123', headers: { host: 'shop.test' } }))
@@ -483,7 +483,7 @@ describe('routes middleware', () => {
     handleShopifyRoutes.mockImplementationOnce(hydrogen.handleShopifyRoutes as never)
 
     runtimeConfig._shopify.clients = { storefront: { apiVersion: API_VERSION, routes: true, publicAccessToken: 'public' } }
-    runtimeConfig._shopify.defaultMarket = { country: 'US', language: 'EN' }
+    runtimeConfig._shopify.i18n = { defaultLocale: { country: 'US', language: 'EN' } }
 
     const cookies = ['_shopify_essential=e; Path=/; HttpOnly; Secure', '_shopify_analytics=a; Path=/; HttpOnly; Secure']
 

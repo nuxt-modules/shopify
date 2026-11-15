@@ -20,7 +20,7 @@ describe('response headers plugin', () => {
     event.node.res.setHeader('cache-control', 'public, s-maxage=60')
     event.node.res.setHeader('cdn-cache-control', 'max-age=60')
 
-    const requestContext = createShopifyRequestContext({ request: new Request('https://shop.test/account'), i18n: { country: 'US', language: 'EN' } })
+    const requestContext = createShopifyRequestContext({ request: new Request('https://shop.test/account'), i18n: { defaultLocale: { country: 'US', language: 'EN' } } })
 
     requestContext.markResponseAsPersonalized('customer-session')
 

@@ -318,7 +318,7 @@ describe('unrecognized configuration values', () => {
       },
       webhooks: { secret: 'secret', subscriptions: [{ uri: 'https://shop.example/hook', topic: 'ORDERS_CREATE', metafields: [{ key: 'a' }] }] },
       shopId: 1,
-      defaultMarket: { country: 'US', language: 'EN' },
+      i18n: { defaultLocale: { country: 'US', language: 'EN' } },
       analytics: true,
     })
 

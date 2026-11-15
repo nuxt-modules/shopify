@@ -85,8 +85,8 @@ export default function setupCustomerAccountClient(nuxt: Nuxt, config: ShopifyCo
   registerClientImports(ShopifyClientType.CustomerAccount, resolver)
   registerClientAsyncImports(nuxt, ShopifyClientType.CustomerAccount, resolver)
 
-  if (!config.clients.storefront && !(config.defaultMarket?.country && config.defaultMarket.language)) {
-    useLogger().warn('Customer sign-in needs the market of each request, and without the storefront client the module can\'t look up your shop\'s default market. Set `defaultMarket`, or set `event.context.shopifyMarket` in a Nitro plugin')
+  if (!config.clients.storefront && !config.i18n?.defaultLocale.country) {
+    useLogger().warn('Customer login needs the locale of each request, and without the storefront client the module can\'t look up your shop\'s default locale. Set `i18n.defaultLocale`')
   }
 
   registerShopifyRoutes(nuxt, config, resolver)

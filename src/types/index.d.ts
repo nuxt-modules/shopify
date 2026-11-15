@@ -1,6 +1,6 @@
 import type { HookResult } from '@nuxt/schema'
 import type { CustomFetchApi } from '@shopify/graphql-client'
-import type { ShopifyRequestContext, ShopifyScriptsI18n } from '@shopify/hydrogen'
+import type { ShopifyLocale, ShopifyRequestContext } from '@shopify/hydrogen'
 import type { StorefrontOperations } from '@nuxtjs/shopify/storefront'
 import type { CustomerAccountOperations } from '@nuxtjs/shopify/customer-account'
 import type { AdminOperations } from '@nuxtjs/shopify/admin'
@@ -187,7 +187,7 @@ declare module '#app' {
 
 declare module 'h3' {
   interface H3EventContext {
-    shopifyMarket?: ShopifyScriptsI18n
+    shopifyLocale?: ShopifyLocale
     shopifyRequestContext?: ShopifyRequestContext
     _shopify?: {
       redirect?: (event: H3Event) => Promise<Response | null>

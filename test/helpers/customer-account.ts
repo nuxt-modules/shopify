@@ -55,7 +55,7 @@ export function createShopifyConfig(customerAccount: Record<string, unknown> = {
   return {
     name: 'test-shop',
     shopId: SHOP_ID,
-    defaultMarket: { country: 'US', language: 'EN' },
+    i18n: { defaultLocale: { country: 'US', language: 'EN' } },
     clients: {
       customerAccount: {
         clientId: CLIENT_ID,

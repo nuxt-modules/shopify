@@ -8,10 +8,10 @@ const addServerHandler = vi.fn()
 vi.mock('@nuxt/kit', async importOriginal => ({
   ...await importOriginal<typeof import('@nuxt/kit')>(),
   addImports: vi.fn(),
+  addNitroPlugin: vi.fn(),
   addPlugin,
   addServerHandler,
   addServerImports: vi.fn(),
-  addServerPlugin: vi.fn(),
   extendRouteRules: vi.fn(),
 }))
 

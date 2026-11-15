@@ -179,9 +179,11 @@ CustomerAccount.vue
     shopify: {
       name: 'store-name',
 
-      defaultMarket: {
-        country: 'US',
-        language: 'EN',
+      i18n: {
+        defaultLocale: {
+          country: 'US',
+          language: 'EN',
+        },
       },
 
       clients: {

@@ -37,6 +37,7 @@ vi.mock('nitropack/runtime', () => ({
 vi.mock('#src/runtime/server/utils/log', () => ({ createLogger: () => ({ warn, withTag: () => hydrogenLogger }) }))
 
 const plugin = (await import('#src/runtime/server/plugins/config')).default as unknown as (nitroApp: unknown) => void
+const { configObjectSchema } = await import('#src/runtime/utils/config')
 
 async function requestConfig() {
   plugin({ hooks: { hook: (name: string, hook: (event: object) => Promise<void>) => void (hooks[name] = hook) } })
@@ -125,6 +126,25 @@ describe('runtime config plugin', () => {
 
     expect(config._shopify?.clients).toHaveProperty('storefront.apiVersion', API_VERSION)
     expect(config._shopify?.clients).toHaveProperty('storefront.publicAccessToken', 'rotated-token')
+    expect(warn).not.toHaveBeenCalled()
+  })
+
+  it('takes the default locale from the runtime environment when the build declared the empty placeholder for it', async () => {
+    const built = configObjectSchema.parse({
+      name: 'shop',
+      clients: { storefront: { apiVersion: API_VERSION, publicAccessToken: 'token' } },
+      i18n: { defaultLocale: { country: '', language: '', currency: '' } },
+    })
+
+    base = {
+      shopify: { ...built, i18n: { defaultLocale: { ...built.i18n!.defaultLocale, country: 'DE', language: 'DE' } } },
+      public: {},
+      _shopify: built as never,
+    }
+
+    const config = await requestConfig()
+
+    expect(config._shopify).toHaveProperty('i18n.defaultLocale', { country: 'DE', language: 'DE', currency: '' })
     expect(warn).not.toHaveBeenCalled()
   })
 

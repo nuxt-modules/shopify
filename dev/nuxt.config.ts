@@ -12,16 +12,11 @@ const moduleTypes = fileURLToPath(new URL('../src/types/index.d.ts', import.meta
 export default defineNuxtConfig({
   alias,
 
-  nitro: {
-    typescript: {
-      tsConfig: {
-        include: [moduleTypes],
-      },
-    },
-  },
-
   typescript: {
     tsConfig: {
+      include: [moduleTypes],
+    },
+    serverTsConfig: {
       include: [moduleTypes],
     },
   },

@@ -7,11 +7,11 @@ const { warn } = vi.hoisted(() => ({ warn: vi.fn() }))
 
 vi.mock('@nuxt/kit', () => ({
   addImports: vi.fn(),
+  addNitroPlugin: vi.fn(),
   addPlugin: vi.fn(),
   addRouteMiddleware: vi.fn(),
   addServerHandler: vi.fn(),
   addServerImports: vi.fn(),
-  addServerPlugin: vi.fn(),
   extendRouteRules: vi.fn(),
 }))
 
@@ -24,6 +24,7 @@ const {
   warnInsecureCustomerAccountDevServer,
 } = await import('#src/setup/clients/customer-account')
 const { addRouteMiddleware, addServerHandler } = await import('@nuxt/kit')
+const { configObjectSchema } = await import('#src/schemas')
 
 const customerAccount = { clientId: 'client', proxy: true, tokenStorage: false }
 
@@ -33,19 +34,19 @@ beforeEach(() => {
 
 describe('setupCustomerAccountClient', () => {
   it.each([
-    ['when there is no storefront client to look the shop\'s default market up with', {}],
-    ['when the market is only the empty placeholder declared for environment variables', { defaultMarket: { country: '', language: '' } }],
-  ])('asks for a market %s', (_, market) => {
-    setupCustomerAccountClient(createSetupNuxt() as never, { clients: { customerAccount }, ...market, analytics: false } as never, resolver as never)
+    ['when there is no storefront client to look the shop\'s default locale up with', {}],
+    ['when the default locale is only the empty placeholder declared for environment variables', { i18n: configObjectSchema.parse({ name: 'shop', i18n: { defaultLocale: { country: '', language: '' } } }).i18n }],
+  ])('asks for a default locale %s', (_, i18n) => {
+    setupCustomerAccountClient(createSetupNuxt() as never, { clients: { customerAccount }, ...i18n, analytics: false } as never, resolver as never)
 
-    expect(warn).toHaveBeenCalledWith(expect.stringContaining('Set `defaultMarket`'))
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('Set `i18n.defaultLocale`'))
   })
 
-  it('stays quiet with a market configured, or with a storefront client', () => {
-    setupCustomerAccountClient(createSetupNuxt() as never, { clients: { customerAccount }, defaultMarket: { country: 'US', language: 'EN' }, analytics: false } as never, resolver as never)
+  it('stays quiet with a default locale configured, or with a storefront client', () => {
+    setupCustomerAccountClient(createSetupNuxt() as never, { clients: { customerAccount }, i18n: { defaultLocale: { country: 'US', language: 'EN' } }, analytics: false } as never, resolver as never)
     setupCustomerAccountClient(createSetupNuxt() as never, { clients: { customerAccount, storefront: {} }, analytics: false } as never, resolver as never)
 
-    expect(warn).not.toHaveBeenCalledWith(expect.stringContaining('Set `defaultMarket`'))
+    expect(warn).not.toHaveBeenCalledWith(expect.stringContaining('Set `i18n.defaultLocale`'))
   })
 })
 

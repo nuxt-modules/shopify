@@ -6,10 +6,10 @@ import type { ShopifyConfig } from '../types'
 import { glob } from 'node:fs/promises'
 import {
   addImports,
+  addNitroPlugin,
   addPlugin,
   addServerHandler,
   addServerImports,
-  addServerPlugin,
 } from '@nuxt/kit'
 import { Minimatch } from 'minimatch'
 import { join, relative } from 'pathe'
@@ -120,7 +120,7 @@ export function registerShopifyRoutes(nuxt: Nuxt, config: ShopifyConfig, resolve
   if (nuxt.options.serverHandlers.some(serverHandler => serverHandler.handler === handler)) return
 
   addServerHandler({ middleware: true, handler })
-  addServerPlugin(resolver.resolve('./runtime/server/plugins/response-headers'))
+  addNitroPlugin(resolver.resolve('./runtime/server/plugins/response-headers'))
 
   const storefront = !!(config.clients.storefront?.routes || config.analytics)
 

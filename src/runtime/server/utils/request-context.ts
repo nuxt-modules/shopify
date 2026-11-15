@@ -1,4 +1,4 @@
-import type { I18nConfig, ShopifyRequestContext } from '@shopify/hydrogen'
+import type { ShopifyLocale, ShopifyRequestContext } from '@shopify/hydrogen'
 import type { H3Event } from 'h3'
 
 import type { ShopifyConfig } from '../../../module'
@@ -17,24 +17,18 @@ import { resolveBuyerIp } from '../../utils/clients/buyer-ip'
 import { getPublicRequestURL, toShopifyHeaders } from './routes'
 import { getShopResolver } from './shop'
 
-async function lookUpDefaultMarket(config: ShopifyConfig): Promise<I18nConfig> {
-  const market = config.clients.storefront ? (await getShopResolver(config)()).i18n : undefined
+async function lookUpDefaultLocale(config: ShopifyConfig): Promise<ShopifyLocale> {
+  const defaultLocale = config.clients.storefront ? (await getShopResolver(config)()).i18n : undefined
 
-  if (!market) {
+  if (!defaultLocale) {
     throw createError({
       status: 502,
       statusText: 'Bad Gateway',
-      message: '[shopify] Failed to look up the shop\'s default market through the storefront client. Set `defaultMarket`, or set the market of each request on `event.context.shopifyMarket` in a Nitro plugin',
+      message: '[shopify] Failed to look up the shop\'s default locale through the storefront client. Set `i18n.defaultLocale`',
     })
   }
 
-  return market
-}
-
-export async function resolveShopifyMarket(event: H3Event, config: ShopifyConfig): Promise<I18nConfig> {
-  const defaultMarket = config.defaultMarket?.country && config.defaultMarket.language ? config.defaultMarket : undefined
-
-  return event.context.shopifyMarket ?? defaultMarket ?? await lookUpDefaultMarket(config)
+  return defaultLocale
 }
 
 export async function getShopifyRequestContext(event: H3Event): Promise<ShopifyRequestContext> {
@@ -43,13 +37,14 @@ export async function getShopifyRequestContext(event: H3Event): Promise<ShopifyR
   const config = useRuntimeConfig(event)._shopify!
   const storefront = config.clients.storefront
 
-  const i18n = await resolveShopifyMarket(event, config)
+  const i18n = config.i18n?.defaultLocale.country ? config.i18n : { defaultLocale: await lookUpDefaultLocale(config) }
   const url = getPublicRequestURL(event)
   const buyerIp = storefront?.privateAccessToken && !storefront.mock ? resolveBuyerIp(event, storefront.buyerIpHeader) : undefined
 
   const input = {
     request: new Request(url, { method: event.method, headers: toShopifyHeaders(event, url.pathname) }),
     i18n,
+    locale: event.context.shopifyLocale,
   }
 
   event.context.shopifyRequestContext ??= buyerIp

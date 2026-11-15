@@ -3,7 +3,7 @@ import type { Nuxt } from '@nuxt/schema'
 
 import type { ShopifyConfig } from '../types'
 
-import { addServerPlugin } from '@nuxt/kit'
+import { addNitroPlugin } from '@nuxt/kit'
 import { defu } from 'defu'
 
 import { publicConfigSchema } from '../schemas'
@@ -54,5 +54,5 @@ export default function setupConfig(nuxt: Nuxt, config: ShopifyConfig, resolver:
   nuxt.options.nitro.virtual ??= {}
   nuxt.options.nitro.virtual['https://cdn.shopify.com/storefront/standard-events.js'] = 'export {}'
 
-  addServerPlugin(resolver.resolve('./runtime/server/plugins/config'))
+  addNitroPlugin(resolver.resolve('./runtime/server/plugins/config'))
 }

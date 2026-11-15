@@ -9,16 +9,16 @@ import { resolver } from '#test/helpers/nuxt'
 const serverHandlers: Array<{ handler: string }> = []
 
 const addServerHandler = vi.fn((handler: { handler: string }) => void serverHandlers.push(handler))
-const addServerPlugin = vi.fn()
+const addNitroPlugin = vi.fn()
 const addPlugin = vi.fn()
 const extendRouteRules = vi.fn()
 
 vi.mock('@nuxt/kit', () => ({
   addImports: vi.fn(),
+  addNitroPlugin,
   addPlugin,
   addServerHandler,
   addServerImports: vi.fn(),
-  addServerPlugin,
   extendRouteRules,
 }))
 
@@ -81,7 +81,7 @@ describe('registerShopifyRoutes', () => {
     registerShopifyRoutes(nuxt as never, config as never, resolver as never)
 
     expect(addServerHandler).toHaveBeenCalledExactlyOnceWith({ middleware: true, handler: './runtime/server/middleware/routes' })
-    expect(addServerPlugin).toHaveBeenCalledExactlyOnceWith('./runtime/server/plugins/response-headers')
+    expect(addNitroPlugin).toHaveBeenCalledExactlyOnceWith('./runtime/server/plugins/response-headers')
     expect(addPlugin).toHaveBeenCalledTimes(2)
     expect(addPlugin).toHaveBeenCalledWith({ src: './runtime/plugins/redirects', mode: 'server' })
     expect(addPlugin).toHaveBeenCalledWith('./runtime/plugins/scripts')
@@ -97,7 +97,7 @@ describe('registerShopifyRoutes', () => {
     registerShopifyRoutes(nuxt as never, { clients: { storefront: { routes: false } }, analytics: false } as never, resolver as never)
 
     expect(addServerHandler).toHaveBeenCalledExactlyOnceWith({ middleware: true, handler: './runtime/server/middleware/routes' })
-    expect(addServerPlugin).toHaveBeenCalledExactlyOnceWith('./runtime/server/plugins/response-headers')
+    expect(addNitroPlugin).toHaveBeenCalledExactlyOnceWith('./runtime/server/plugins/response-headers')
     expect(addPlugin).not.toHaveBeenCalled()
     expect(uncachedRoutes()).toStrictEqual([])
   })
@@ -119,7 +119,7 @@ describe('registerShopifyRoutes', () => {
     registerShopifyRoutes(nuxt as never, { clients: { customerAccount: {} }, analytics: false } as never, resolver as never)
 
     expect(addServerHandler).toHaveBeenCalledExactlyOnceWith({ middleware: true, handler: './runtime/server/middleware/routes' })
-    expect(addServerPlugin).toHaveBeenCalledExactlyOnceWith('./runtime/server/plugins/response-headers')
+    expect(addNitroPlugin).toHaveBeenCalledExactlyOnceWith('./runtime/server/plugins/response-headers')
     expect(addPlugin).not.toHaveBeenCalled()
     expect(uncachedRoutes()).toStrictEqual(CUSTOMER_ACCOUNT_ROUTES)
   })

@@ -153,7 +153,7 @@ describe('login route', () => {
   })
 
   it('shows Shopify\'s sign-in page in the market of the request, whatever country its query asks for', async () => {
-    runtimeConfig._shopify!.defaultMarket = { country: 'DE', language: 'DE' }
+    runtimeConfig._shopify!.i18n = { defaultLocale: { country: 'DE', language: 'DE' } }
 
     const { url } = await startLogin('?country=FR')
 

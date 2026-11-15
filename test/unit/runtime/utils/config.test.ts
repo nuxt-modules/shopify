@@ -1,4 +1,4 @@
-import type { CreateCartServerHandlersOptions, CreatePredictiveSearchServerHandlersOptions, I18nConfig, ShopifyRouteTemplates } from '@shopify/hydrogen'
+import type { CreateCartServerHandlersOptions, CreatePredictiveSearchServerHandlersOptions, ShopifyCountryCode, ShopifyLanguageCode, ShopifyRouteTemplates } from '@shopify/hydrogen'
 
 import { CUSTOMER_ACCOUNT_API_VERSION } from '@shopify/hydrogen/customer-account'
 import { afterEach, describe, expect, expectTypeOf, it, vi } from 'vitest'
@@ -225,7 +225,7 @@ describe('public config', () => {
       origin: 'https://shop.example.com',
       shopId: '1',
       storefrontId: '2',
-      defaultMarket: { country: 'DE', language: 'DE' },
+      i18n: { defaultLocale: { country: 'DE', language: 'DE' } },
       routeTemplates: { product: '/product/:productHandle' },
       cart: { fragment: '#graphql\n  fragment CartFragment on Cart { note }' },
       predictiveSearch: { limit: 8 },
@@ -247,7 +247,7 @@ describe('public config', () => {
       },
     }))
 
-    expect(Object.keys(config).sort()).toStrictEqual(['analytics', 'clients', 'defaultMarket', 'errors', 'graphql', 'name', 'routeTemplates', 'shopId', 'storefrontId'])
+    expect(Object.keys(config).sort()).toStrictEqual(['analytics', 'clients', 'errors', 'graphql', 'i18n', 'name', 'routeTemplates', 'shopId', 'storefrontId'])
     expect(Object.keys(config.clients).sort()).toStrictEqual(['customerAccount', 'storefront'])
     expect(Object.keys(config.clients.storefront!).sort()).toStrictEqual(['apiVersion', 'cache', 'proxy', 'publicAccessToken', 'retries'])
     expect(Object.keys(config.clients.customerAccount!).sort()).toStrictEqual(['apiVersion', 'clientId', 'proxy', 'retries'])
@@ -379,21 +379,56 @@ describe('storefront ID', () => {
   })
 })
 
-describe('default market', () => {
-  type DefaultMarket = NonNullable<z.input<typeof configObjectSchema>['defaultMarket']>
+describe('i18n', () => {
+  type DefaultLocale = NonNullable<z.input<typeof configObjectSchema>['i18n']>['defaultLocale']
+
+  const routing = { type: 'pathname', locales: [{ language: 'FR', country: 'CA', currency: 'CAD' }, { language: 'PT_BR', country: 'BR', pathSegment: 'br' }] }
 
   it('types the codes with Hydrogen\'s, so the editor suggests them, and keeps the empty placeholder', () => {
-    expectTypeOf<DefaultMarket['country']>().toEqualTypeOf<I18nConfig['country'] | ''>()
-    expectTypeOf<DefaultMarket['language']>().toEqualTypeOf<I18nConfig['language'] | ''>()
+    expectTypeOf<DefaultLocale['country']>().toEqualTypeOf<ShopifyCountryCode | ''>()
+    expectTypeOf<DefaultLocale['language']>().toEqualTypeOf<ShopifyLanguageCode | ''>()
   })
 
-  it('takes the market in Shopify\'s uppercase codes', () => {
-    expect(configObjectSchema.parse({ name: 'shop', defaultMarket: { country: 'de', language: 'de', currency: 'eur' } }).defaultMarket)
-      .toStrictEqual({ country: 'DE', language: 'DE', currency: 'EUR' })
+  it('takes the default locale in Shopify\'s uppercase codes', () => {
+    expect(configObjectSchema.parse({ name: 'shop', i18n: { defaultLocale: { country: 'de', language: 'de', currency: 'eur' } } }).i18n)
+      .toStrictEqual({ defaultLocale: { country: 'DE', language: 'DE', currency: 'EUR' } })
   })
 
-  it('needs both a country and a language for the market', () => {
-    expect(configObjectSchema.safeParse({ name: 'shop', defaultMarket: { country: 'DE' } }).success).toBe(false)
+  it('keeps an empty default locale, as declared for runtime environment variables, so the runtime config has the keys they set', () => {
+    expect(configObjectSchema.parse({ name: 'shop', i18n: { defaultLocale: { country: '', language: '', currency: '' } } }).i18n)
+      .toStrictEqual({ defaultLocale: { country: '', language: '', currency: '' } })
+  })
+
+  it.each([
+    ['a missing language', { country: 'DE' }],
+    ['an empty language', { country: 'DE', language: '' }],
+    ['an empty country', { country: '', language: 'DE' }],
+  ])('needs both a country and a language for the default locale, and refuses %s', (_, defaultLocale) => {
+    expect(configObjectSchema.safeParse({ name: 'shop', i18n: { defaultLocale } }).success).toBe(false)
+  })
+
+  it('refuses routing without a default locale', () => {
+    expect(configObjectSchema.safeParse({ name: 'shop', i18n: { defaultLocale: { country: '', language: '' }, routing } }).success).toBe(false)
+  })
+
+  it('keeps the routing with the extra fields of each locale, such as its currency', () => {
+    expect(configObjectSchema.parse({ name: 'shop', i18n: { defaultLocale: { country: 'US', language: 'EN' }, routing } }).i18n)
+      .toStrictEqual({ defaultLocale: { country: 'US', language: 'EN' }, routing })
+  })
+
+  it('reports a definition Hydrogen refuses, by Hydrogen\'s own message', () => {
+    expect(issues({ name: 'shop', i18n: { defaultLocale: { country: 'CA', language: 'FR' }, routing } })).toContain('must not appear in pathname routing.locales')
+  })
+
+  it('leaves out domain routing while `origin` sets one public origin, since each locale has its own hostname', () => {
+    const domain = { type: 'domain', locales: [{ language: 'EN', country: 'US', hostname: 'shop.example.com' }, { language: 'EN', country: 'CA', hostname: 'shop.example.ca' }] }
+    const input = { name: 'shop', origin: 'https://shop.example.com', i18n: { defaultLocale: { country: 'US', language: 'EN' }, routing: domain } }
+    const parsed = configObjectSchema.safeParse(input)
+
+    expect(findInvalidFeatures(parsed.error!)).toStrictEqual([['i18n']])
+    expect(parsed.error?.issues[0]?.message).toContain('`origin`')
+    expect(configObjectSchema.safeParse({ ...input, origin: '' })).toMatchObject({ success: true })
+    expect(configObjectSchema.safeParse({ ...input, i18n: { ...input.i18n, routing } })).toMatchObject({ success: true })
   })
 })
 

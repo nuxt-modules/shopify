@@ -5,6 +5,7 @@ import type { ShopifyConfig, ShopifyScriptsShopContext } from '../../../module'
 import { useRuntimeConfig } from '#imports'
 import { createShopResolver } from '../../utils/shop'
 import { createStorefrontApiClient } from '../../utils/clients/storefront'
+import { getShopifyRequestContext } from './request-context'
 
 let resolveShop: ReturnType<typeof createShopResolver> | undefined
 
@@ -14,6 +15,8 @@ export function getShopResolver(config: ShopifyConfig) {
   return resolveShop
 }
 
-export function resolveShopifyScripts(event: H3Event): Promise<ShopifyScriptsShopContext> {
-  return getShopResolver(useRuntimeConfig(event)._shopify!)(event.context.shopifyMarket)
+export async function resolveShopifyScripts(event: H3Event): Promise<ShopifyScriptsShopContext> {
+  const locale = await getShopifyRequestContext(event).then(requestContext => requestContext.locale, () => undefined)
+
+  return getShopResolver(useRuntimeConfig(event)._shopify!)(locale)
 }

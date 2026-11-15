@@ -13,7 +13,7 @@ export default defineEventHandler(async (event) => {
 
   const storefront = useStorefront(event)
   const cartId = getCartId({ cookie: getRequestHeader(event, 'cookie') })
-  const { country, language } = event.context.shopifyMarket ?? {}
+  const { country, language } = event.context.shopifyLocale ?? {}
 
   const cart = cartId
     ? (await storefront.request(`#graphql

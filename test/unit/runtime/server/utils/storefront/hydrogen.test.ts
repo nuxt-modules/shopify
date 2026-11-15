@@ -13,7 +13,7 @@ const { toShopifyRequest } = await import('#src/runtime/server/utils/routes')
 const { createHydrogenStorefrontClient } = await import('#src/runtime/server/utils/storefront/hydrogen')
 
 describe('Shopify\'s cookies from Hydrogen\'s storefront client', () => {
-  const config = { name: 'shop', clients: { storefront: { apiVersion: API_VERSION, publicAccessToken: 'public' } }, defaultMarket: { country: 'US', language: 'EN' } }
+  const config = { name: 'shop', clients: { storefront: { apiVersion: API_VERSION, publicAccessToken: 'public' } }, i18n: { defaultLocale: { country: 'US', language: 'EN' } } }
 
   const SHOPIFY_COOKIES = ['_shopify_essential=e; Path=/; HttpOnly; Secure', '_shopify_analytics=a; Path=/; HttpOnly; Secure', '_shopify_marketing=m; Path=/; HttpOnly; Secure']
 
@@ -79,7 +79,7 @@ describe('the storefront ID from Hydrogen\'s storefront client', () => {
   })
 
   async function sentStorefrontId(storefront: Record<string, unknown>) {
-    const config = { name: 'shop', storefrontId: '1000000001', clients: { storefront: { apiVersion: API_VERSION, publicAccessToken: 'public', ...storefront } }, defaultMarket: { country: 'US', language: 'EN' } }
+    const config = { name: 'shop', storefrontId: '1000000001', clients: { storefront: { apiVersion: API_VERSION, publicAccessToken: 'public', ...storefront } }, i18n: { defaultLocale: { country: 'US', language: 'EN' } } }
     const fetchMock = vi.fn<typeof fetch>(async () => Response.json({ data: { shop: { id: '1' } } }))
 
     runtimeConfig._shopify = config

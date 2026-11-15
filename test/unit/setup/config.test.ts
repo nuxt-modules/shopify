@@ -7,9 +7,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createLoggerStub } from '#test/helpers/logger'
 import { resolver } from '#test/helpers/nuxt'
 
-vi.mock('@nuxt/kit', () => ({ addServerPlugin: vi.fn() }))
+const { addNitroPlugin, warn } = vi.hoisted(() => ({ addNitroPlugin: vi.fn(), warn: vi.fn() }))
 
-const { warn } = vi.hoisted(() => ({ warn: vi.fn() }))
+vi.mock('@nuxt/kit', () => ({ addNitroPlugin }))
 
 vi.mock('#src/utils/log', () => ({ useLogger: () => createLoggerStub({ warn }) }))
 
@@ -44,7 +44,15 @@ function initNitro(nitroOptions: { static: boolean, preset: string }, input: Rec
 }
 
 beforeEach(() => {
-  warn.mockClear()
+  vi.clearAllMocks()
+})
+
+describe('runtime configuration', () => {
+  it('is read by a server plugin when the server starts', () => {
+    setup()
+
+    expect(addNitroPlugin).toHaveBeenCalledExactlyOnceWith('./runtime/server/plugins/config')
+  })
 })
 
 describe('static presets', () => {

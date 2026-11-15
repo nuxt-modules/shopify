@@ -1,9 +1,18 @@
 import type { TypeScriptPluginConfig } from '@graphql-codegen/typescript'
-import type { CacheOptions, CreateCartServerHandlersOptions, CreatePredictiveSearchServerHandlersOptions, I18nConfig, ShopifyRouteTemplates } from '@shopify/hydrogen'
+import type {
+  CacheOptions,
+  CreateCartServerHandlersOptions,
+  CreatePredictiveSearchServerHandlersOptions,
+  ShopifyCountryCode,
+  ShopifyDomainLocale,
+  ShopifyLanguageCode,
+  ShopifyPathnameLocale,
+  ShopifyRouteTemplates,
+} from '@shopify/hydrogen'
 import type { ConsolaOptions } from 'consola'
 import type { StorageMounts } from 'nitropack'
 
-import { createCartServerHandlers, createPredictiveSearchServerHandlers } from '@shopify/hydrogen'
+import { createCartServerHandlers, createPredictiveSearchServerHandlers, defineShopifyI18n } from '@shopify/hydrogen'
 import { kebabCase } from 'scule'
 import { z } from 'zod'
 
@@ -23,7 +32,7 @@ export enum ShopifyClientType {
   Admin = 'admin',
 }
 
-function enableable<S extends z.ZodTypeAny>(schema: S, fallback: z.output<S>, enabledByDefault = true) {
+function enableable<S extends z.ZodType>(schema: S, fallback: z.output<S>, enabledByDefault = true) {
   return schema
     .or(z.boolean())
     .optional()
@@ -197,10 +206,10 @@ const webhooksSchema = z.object({
 
 const shopIdentifierSchema = z.union([z.string(), z.number()]).transform(v => String(v))
 
-function validatedBy(create: (options: object) => unknown) {
-  return (options: object | undefined, context: z.RefinementCtx) => {
+function validatedBy<T extends object>(create: (options: T) => unknown) {
+  return (options: T | undefined, context: z.RefinementCtx) => {
     try {
-      create(options ?? {})
+      if (options) create(options)
     }
     catch (error) {
       context.addIssue({ code: 'custom', message: error instanceof Error ? error.message : String(error) })
@@ -217,13 +226,24 @@ const predictiveSearchSchema = z.custom<Omit<CreatePredictiveSearchServerHandler
   .refine(options => !options || !('path' in options), { error: 'The predictive search route is always served at `/api/predictive-search`, so `path` is not supported' })
   .superRefine(validatedBy(createPredictiveSearchServerHandlers))
 
-const marketSchema = z.object({
-  country: z.custom<I18nConfig['country'] | ''>(value => typeof value === 'string', { error: 'Expected a country code, such as "US"' })
-    .transform(value => value.toUpperCase() as I18nConfig['country']),
-  language: z.custom<I18nConfig['language'] | ''>(value => typeof value === 'string', { error: 'Expected a language code, such as "EN"' })
-    .transform(value => value.toUpperCase() as I18nConfig['language']),
+const localeSchema = z.object({
+  country: z.custom<ShopifyCountryCode | ''>(value => typeof value === 'string', { error: 'Expected a country code, such as "US"' })
+    .transform(value => value.toUpperCase() as ShopifyCountryCode),
+  language: z.custom<ShopifyLanguageCode | ''>(value => typeof value === 'string', { error: 'Expected a language code, such as "EN"' })
+    .transform(value => value.toUpperCase() as ShopifyLanguageCode),
   currency: z.string().toUpperCase().optional(),
 })
+
+const i18nSchema = z.object({
+  defaultLocale: localeSchema,
+  routing: z.custom<
+    | { type: 'pathname', locales: readonly (ShopifyPathnameLocale & { currency?: string })[] }
+    | { type: 'domain', locales: readonly (ShopifyDomainLocale & { currency?: string })[] }
+  >().optional(),
+})
+  .superRefine((i18n, context) => {
+    if (i18n.routing || i18n.defaultLocale.country || i18n.defaultLocale.language) validatedBy(defineShopifyI18n)(i18n, context)
+  })
 
 const analyticsSchema = z.object({
   autoPageView: z.boolean().optional().default(true),
@@ -242,7 +262,7 @@ const configSchema = z.object({
 
   shopId: shopIdentifierSchema.refine(shopId => /^\d*$/.test(shopId), { error: 'Expected the numeric ID of your shop, such as "12345"' }).optional(),
   storefrontId: shopIdentifierSchema.optional(),
-  defaultMarket: marketSchema.optional(),
+  i18n: i18nSchema.optional(),
 
   routeTemplates: z.custom<ShopifyRouteTemplates>().optional().default({}),
 
@@ -288,10 +308,15 @@ const configSchema = z.object({
   logger: z.custom<Partial<ConsolaOptions>>().optional(),
 })
 
-export const configObjectSchema = configSchema.refine(config => !config.analytics || config.clients.storefront?.routes !== false, {
-  error: 'Analytics needs Shopify\'s routes and scripts, so it can\'t be enabled while `clients.storefront.routes` is `false`',
-  path: ['analytics'],
-})
+export const configObjectSchema = configSchema
+  .refine(config => !config.analytics || config.clients.storefront?.routes !== false, {
+    error: 'Analytics needs Shopify\'s routes and scripts, so it can\'t be enabled while `clients.storefront.routes` is `false`',
+    path: ['analytics'],
+  })
+  .refine(config => !config.origin || config.i18n?.routing?.type !== 'domain', {
+    error: 'Domain routing matches the hostname of each request, so it can\'t be used while `origin` sets one public origin for all requests',
+    path: ['i18n'],
+  })
 
 export const publicConfigSchema = configSchema.omit({ clients: true, fragments: true, webhooks: true, origin: true, cart: true, predictiveSearch: true }).extend({
   clients: z.object({

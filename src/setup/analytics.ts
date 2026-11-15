@@ -17,8 +17,8 @@ export default function setupAnalytics(nuxt: Nuxt, config: ShopifyConfig, resolv
     logger.debug('Analytics is enabled without a `storefrontId`, so events are attributed to the Headless channel')
   }
 
-  if (!config.clients.storefront && (!config.shopId || !(config.defaultMarket?.country && config.defaultMarket.language))) {
-    logger.warn('Analytics without the storefront client needs `shopId` and `defaultMarket`, because there is no client to look them up with')
+  if (!config.clients.storefront && (!config.shopId || !config.i18n?.defaultLocale.country)) {
+    logger.warn('Analytics without the storefront client needs `shopId` and `i18n.defaultLocale`, because there is no client to look them up with')
   }
 
   registerShopifyRoutes(nuxt, config, resolver)

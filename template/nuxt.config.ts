@@ -14,8 +14,8 @@ const { version } = JSON.parse(readFileSync(new URL('../package.json', import.me
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   modules: [
-    '@nuxtjs/shopify',
     './modules/markets',
+    '@nuxtjs/shopify',
     '@nuxtjs/critters',
     '@nuxtjs/i18n',
     '@nuxt/image',

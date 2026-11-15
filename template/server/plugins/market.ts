@@ -1,4 +1,4 @@
-import type { ShopifyScriptsI18n } from '@shopify/hydrogen'
+import type { ShopifyLocale } from '@shopify/hydrogen'
 
 import { CUSTOMER_ACCOUNT_LOGIN_PATH } from '@shopify/hydrogen/customer-account'
 
@@ -10,18 +10,14 @@ export default defineNitroPlugin((nitroApp) => {
 
     const [, segment] = pathname.split('/')
 
-    const prefixed = segment !== 'api' && segment !== 'discount' && pathname !== CUSTOMER_ACCOUNT_LOGIN_PATH
+    if (segment !== 'api' && segment !== 'discount' && pathname !== CUSTOMER_ACCOUNT_LOGIN_PATH) return
 
-    const locale = prefixed ? segment : getCookie(event, 'i18n_redirected')
+    const locale = getCookie(event, 'i18n_redirected')
 
     if (!locale || !locales.has(locale)) return
 
-    const [language, country] = locale.split('-')
+    const [language, country] = locale.toUpperCase().split('-')
 
-    event.context.shopifyMarket = {
-      language: language!.toUpperCase(),
-      country: country!.toUpperCase(),
-      pathPrefix: prefixed ? `/${segment}` : undefined,
-    } as ShopifyScriptsI18n
+    event.context.shopifyLocale = { language, country } as ShopifyLocale
   })
 })
