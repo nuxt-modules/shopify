@@ -87,7 +87,7 @@ export function createTransport<Operations extends AllOperations = AllOperations
     : (url, init) => {
         const deadline = new AbortController()
 
-        setTimeout(() => deadline.abort(new DOMException('The operation was aborted due to timeout', 'TimeoutError')), REQUEST_TIMEOUT_MS).unref()
+        setTimeout(() => deadline.abort(new DOMException('The operation was aborted due to timeout', 'TimeoutError')), REQUEST_TIMEOUT_MS).unref?.()
 
         return fetchApi(url, { ...init, signal: init?.signal ? AbortSignal.any([init.signal, deadline.signal]) : deadline.signal })
       }

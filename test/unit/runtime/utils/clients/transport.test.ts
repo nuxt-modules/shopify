@@ -413,6 +413,27 @@ describe('request timeout', () => {
     expect(pages.slice(0, -1).filter(page => page.deref())).toHaveLength(0)
   })
 
+  it('keeps working where timers are plain numbers, as on Cloudflare Workers before the 2026-02-10 compatibility date', async () => {
+    vi.stubGlobal('setTimeout', () => 1)
+    vi.stubGlobal('fetch', async () => Response.json({ data: { shop: { name: 'Shop' } } }))
+
+    const { data, errors } = await createStorefrontApiClient(storefront, { throwOnErrors: false }).request('query Shop { shop { name } }')
+
+    expect(errors).toBeUndefined()
+    expect(data).toStrictEqual({ shop: { name: 'Shop' } })
+  })
+
+  it('doesn\'t keep the Node process running until the deadline of a finished request', async () => {
+    const unref = vi.fn()
+
+    vi.stubGlobal('setTimeout', () => ({ unref }))
+    vi.stubGlobal('fetch', async () => Response.json({ data: { shop: { name: 'Shop' } } }))
+
+    await createStorefrontApiClient(storefront, { throwOnErrors: false }).request('query Shop { shop { name } }')
+
+    expect(unref).toHaveBeenCalledOnce()
+  })
+
   it('still stops when the caller aborts before the deadline', async () => {
     stubHangingFetch()
 
