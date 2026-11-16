@@ -61,6 +61,7 @@
     "dev": "dotenv -e .env -- pnpm --filter playground-v4 dev",
     "dev:mock": "dotenv -e .env -- pnpm --filter playground-v4-mock dev",
     "dev:template": "dotenv -e .env -- pnpm --filter ./template dev --extends ../dev",
+    "dev:template:https": "dotenv -e .env -- pnpm --filter ./template dev:https --extends ../dev",
     "dev:docs": "dotenv -e .env -- pnpm --filter ./docs dev",
     "lint": "eslint .",
     "typecheck": "vue-tsc --noEmit",

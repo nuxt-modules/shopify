@@ -1,9 +1,5 @@
-import type { NuxtConfig } from 'nuxt/schema'
-
 import { readFileSync } from 'node:fs'
 import { localHttps } from '@shopify/hydrogen/vite'
-
-type VitePlugin = NonNullable<NonNullable<NuxtConfig['vite']>['plugins']>[number]
 
 const httpsPlugin = localHttps({
   enabled: process.env.npm_lifecycle_event === 'dev:https',
@@ -74,7 +70,7 @@ export default defineNuxtConfig({
   compatibilityDate: '2026-08-09',
 
   vite: {
-    plugins: [httpsPlugin as VitePlugin],
+    plugins: [httpsPlugin],
   },
 
   fonts: {
