@@ -99,6 +99,18 @@ describe('fragments from schema language files', () => {
   })
 })
 
+describe('fragments from Vue files', () => {
+  it('finds fragments in the script tag in a vue file, even with template literals and special characters', async () => {
+    const dir = await createFragmentDir({
+      'ProductCard.vue': '<template>\n  <p>Don\'t miss out</p>\n</template>\n\n<script lang="ts">\nexport const PRODUCT_CARD = `#graphql\n  fragment ProductCard on Product { title }\n`\n</script>\n',
+    })
+
+    const registries = await scanFragments([dir], toStorefront)
+
+    expect([...registries.get('storefront')!.fragments.keys()]).toStrictEqual(['ProductCard'])
+  })
+})
+
 describe('fragment directories', () => {
   const dirs = [join('/project', 'graphql')]
   const windowsDirs = ['C:\\project\\graphql']

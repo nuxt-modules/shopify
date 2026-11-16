@@ -7,7 +7,7 @@ import { normalize, relative } from 'pathe'
 import { IGNORED_DIRS } from '../../runtime/utils/config'
 import { collectSpreads, scanDefinitions } from '../../runtime/utils/graphql/scanner'
 import { useLogger } from '../log'
-import { INTERPOLATION, SCHEMA_LANGUAGE_FILE, findGraphqlLiterals } from './literals'
+import { INTERPOLATION, SCHEMA_LANGUAGE_FILE, findFileLiterals } from './literals'
 
 const SCANNABLE = /\.(?:ts|js|mjs|cjs|mts|cts|vue|gql|graphql)$/
 
@@ -64,7 +64,7 @@ function readDefinitions(file: string, code: string) {
     return [{ definitions, interpolations: new Set<string>(), binding: undefined }]
   }
 
-  return findGraphqlLiterals(code).map(literal => ({
+  return findFileLiterals(file, code).map(literal => ({
     definitions: scanDefinitions(literal.content),
     interpolations: new Set([...literal.content.matchAll(INTERPOLATION)].map(match => match[1]!)),
     binding: literal.binding,

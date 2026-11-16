@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { findGraphqlLiterals } from '#src/utils/graphql/literals'
+import { findFileLiterals, findGraphqlLiterals } from '#src/utils/graphql/literals'
 
 describe('findGraphqlLiterals', () => {
   it('picks up `#graphql` marker and binding', () => {
@@ -44,5 +44,30 @@ describe('findGraphqlLiterals', () => {
 
     expect(literals).toHaveLength(1)
     expect(literals[0]!.content).toBe('#graphql\n query Foo { id }\n${cond ? `}` : `b`}\n')
+  })
+})
+
+describe('findFileLiterals', () => {
+  const VUE_FILE = '<template>\n  <p>Don\'t miss out</p>\n</template>\n\n<script lang="ts">\nexport const PRODUCT_CARD = `#graphql\n  fragment ProductCard on Product { title }\n`\n</script>\n\n<script setup lang="ts">\nconst query = `#graphql\n  query Shop { shop { name } }\n`\n</script>\n'
+
+  it('reads the scripts of a Vue file only, as an apostrophe in its template would hide them', () => {
+    const literals = findFileLiterals('ProductCard.vue', VUE_FILE)
+
+    expect(literals.map(literal => [literal.binding, literal.content])).toStrictEqual([
+      ['PRODUCT_CARD', '#graphql\n  fragment ProductCard on Product { title }\n'],
+      ['query', '#graphql\n  query Shop { shop { name } }\n'],
+    ])
+  })
+
+  it('points to the literals of a Vue file within the whole file', () => {
+    for (const literal of findFileLiterals('ProductCard.vue', VUE_FILE)) {
+      expect(VUE_FILE.slice(literal.start, literal.end)).toBe(literal.content)
+    }
+  })
+
+  it('reads any other file as code', () => {
+    const code = 'export const query = `#graphql\n  query Shop { shop { name } }\n`\n'
+
+    expect(findFileLiterals('shop.ts', code)).toStrictEqual(findGraphqlLiterals(code))
   })
 })

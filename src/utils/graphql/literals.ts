@@ -9,6 +9,7 @@ const INLINE_MARKER = /^\s*#graphql\s*\n/i
 const PRECEDING_MARKER = /\/\*\s*GraphQL\s*\*\/\s*$/i
 const PRECEDING_TAG = /(?<![\w$.])(?:gql|graphql)\s*$/i
 const ASSIGNED_BINDING = /(?:const|let|var)\s+(\w+)\s*=\s*$/
+const VUE_SCRIPT = /<script\b[^>]*>([\s\S]*?)<\/script>/g
 
 export const GRAPHQL_MARKER = /#graphql|\/\*\s*GraphQL\s*\*\/|(?<![\w$.])(?:gql|graphql)\s*`/i
 
@@ -178,4 +179,14 @@ export function findGraphqlLiterals(code: string): GraphqlLiteral[] {
   }
 
   return literals
+}
+
+export function findFileLiterals(file: string, code: string): GraphqlLiteral[] {
+  if (!file.endsWith('.vue')) return findGraphqlLiterals(code)
+
+  return [...code.matchAll(VUE_SCRIPT)].flatMap(({ 0: block, 1: script = '', index }) => {
+    const offset = index + block.indexOf('>') + 1
+
+    return findGraphqlLiterals(script).map(literal => ({ ...literal, start: literal.start + offset, end: literal.end + offset }))
+  })
 }
