@@ -11,7 +11,14 @@ vi.stubGlobal('fetch', fetchMock)
 
 const runtimeConfig: { _shopify?: Record<string, unknown> } = {}
 
+const hooks = {
+  callHook: vi.fn(async (_name: string, _params: unknown) => {}),
+  callHookWith: vi.fn((_caller: unknown, _name: string, ..._args: unknown[]) => {}),
+}
+
 vi.mock('#imports', () => ({ useRuntimeConfig: () => runtimeConfig }))
+
+vi.mock('nitropack/runtime', () => ({ useNitroApp: () => ({ hooks }) }))
 
 async function resolveShopifyScripts(path: string, config: Record<string, unknown>) {
   runtimeConfig._shopify = { name: 'my-shop', analytics: false, ...config }
@@ -23,6 +30,8 @@ async function resolveShopifyScripts(path: string, config: Record<string, unknow
 
 beforeEach(() => {
   vi.resetModules()
+  hooks.callHook.mockClear()
+  hooks.callHookWith.mockClear()
 })
 
 describe('resolveShopifyScripts', () => {
@@ -38,5 +47,17 @@ describe('resolveShopifyScripts', () => {
       shop: { shopId: '0', storefrontId: '', myshopifyDomain: 'my-shop.myshopify.com' },
       shopifyAnalytics: false,
     })
+  })
+
+  it('looks the shop up through the storefront client hooks, like every other storefront request on the server', async () => {
+    await resolveShopifyScripts('/', { analytics: true, clients: { storefront: { apiVersion: API_VERSION, publicAccessToken: 'public', retries: 0 } }, i18n: { defaultLocale: { country: 'US', language: 'EN' } } })
+
+    expect(hooks.callHookWith).toHaveBeenCalledWith(expect.any(Function), 'shopify:storefront:client:configure', expect.anything())
+    expect(hooks.callHook.mock.calls.map(([name]) => name)).toEqual([
+      'shopify:storefront:client:create',
+      'shopify:storefront:client:request',
+      'shopify:storefront:client:response',
+    ])
+    expect(hooks.callHook).toHaveBeenCalledWith('shopify:storefront:client:response', expect.objectContaining({ operation: expect.stringContaining('query ShopifyShopContext') }))
   })
 })

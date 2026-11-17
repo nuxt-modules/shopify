@@ -34,7 +34,7 @@ function toI18n(country?: string, language?: string, currency?: string): Shopify
 
 const MAX_CACHED_MARKETS = 50
 
-type ShopLookupClient = Pick<StorefrontApiClient<true>, 'request'>
+type ShopLookupClient = Pick<StorefrontApiClient<boolean | undefined>, 'request'>
 
 type ShopResolution = {
   resolved: ShopifyScriptsShopContext

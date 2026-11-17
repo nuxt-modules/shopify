@@ -1,8 +1,10 @@
 import type {
   AllOperations,
   CustomFetchApi,
+  Logger,
   RequestParams,
 } from '@shopify/graphql-client'
+import type { ConsolaOptions } from 'consola'
 
 import type {
   ShopifyApiClient,
@@ -48,9 +50,17 @@ export function withApiVersion(apiUrl: string, apiVersion: string) {
   return apiUrl.replace(API_VERSION_SEGMENT, `/api/${apiVersion}`)
 }
 
+export function createClientLogger(logger?: Partial<ConsolaOptions>): Logger | undefined {
+  if (!logger) return undefined
+
+  const { trace } = createConsola(logger).withTag('shopify')
+
+  return ({ type, content }) => trace({ type, content: 'requestParams' in content ? { ...content, requestParams: [content.requestParams[0]] } : content })
+}
+
 export function createTransport<Operations extends AllOperations = AllOperations, Cache extends boolean | undefined = undefined>(
   config: ShopifyApiClientConfig,
-  transportOptions: { normalize?: boolean, fetch?: CustomFetchApi } = {},
+  transportOptions: { normalize?: boolean, fetch?: CustomFetchApi, onResponseHeaders?: (headers: Headers) => unknown } = {},
 ): ShopifyApiClient<Operations, Cache> {
   const {
     storeDomain,
@@ -64,8 +74,6 @@ export function createTransport<Operations extends AllOperations = AllOperations
   if (!apiVersion) {
     throw new Error('[shopify] Failed to create client: API version is required')
   }
-
-  const trace = logger ? createConsola(logger).withTag('shopify').trace : undefined
 
   const clientConfig = {
     storeDomain,
@@ -84,21 +92,23 @@ export function createTransport<Operations extends AllOperations = AllOperations
 
   const customFetchApi: CustomFetchApi | undefined = import.meta.client
     ? transportOptions.fetch
-    : (url, init) => {
-        const deadline = new AbortController()
+    : async (url, init) => {
+      const deadline = new AbortController()
 
-        setTimeout(() => deadline.abort(new DOMException('The operation was aborted due to timeout', 'TimeoutError')), REQUEST_TIMEOUT_MS).unref?.()
+      setTimeout(() => deadline.abort(new DOMException('The operation was aborted due to timeout', 'TimeoutError')), REQUEST_TIMEOUT_MS).unref?.()
 
-        return fetchApi(url, { ...init, signal: init?.signal ? AbortSignal.any([init.signal, deadline.signal]) : deadline.signal })
-      }
+      const response = await fetchApi(url, { ...init, signal: init?.signal ? AbortSignal.any([init.signal, deadline.signal]) : deadline.signal })
+
+      await transportOptions.onResponseHeaders?.(response.headers)
+
+      return response
+    }
 
   const graphqlClient = createGraphQLClient({
     url: apiUrl,
     headers: clientConfig.headers,
     retries,
-    logger: trace
-      ? ({ type, content }) => trace({ type, content: 'requestParams' in content ? { ...content, requestParams: [content.requestParams[0]] } : content })
-      : undefined,
+    logger: createClientLogger(logger),
     ...(customFetchApi ? { customFetchApi } : {}),
   })
 

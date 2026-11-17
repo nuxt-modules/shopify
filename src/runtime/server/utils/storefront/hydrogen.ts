@@ -1,25 +1,55 @@
+import type { CustomFetchApi } from '@shopify/graphql-client'
 import type { ShopifyRequestContext, ShopifyRequestContextWithBuyerIp, StorefrontClient } from '@shopify/hydrogen'
 import type { H3Event } from 'h3'
 
 import type { ShopifyConfig } from '../../../../module'
 
-import { createStorefrontClient, handleShopifyRedirects } from '@shopify/hydrogen'
+import { generateHttpFetch } from '@shopify/graphql-client'
+import { StorefrontApiError, createStorefrontClient, handleShopifyRedirects } from '@shopify/hydrogen'
 
 import { useRuntimeConfig } from '#imports'
-import { MOCK_STORE_DOMAIN } from '../../../utils/clients/storefront'
-import { createStoreDomain } from '../../../utils/clients/transport'
+import { MOCK_STORE_DOMAIN, createStorefrontConfig } from '../../../utils/clients/storefront'
+import { createClientLogger, createStoreDomain } from '../../../utils/clients/transport'
 import { getShopifyRequestContext } from '../request-context'
 import { toShopifyRequest } from '../routes'
+import { createStorefrontCallbacks } from './client'
 
 function hasBuyerIp(requestContext: ShopifyRequestContext): requestContext is ShopifyRequestContextWithBuyerIp {
   return !!requestContext.buyerIp
 }
 
-export function createHydrogenStorefrontClient(requestContext: ShopifyRequestContext, { name, storefrontId, clients: { storefront } }: ShopifyConfig): StorefrontClient {
+function createConfiguredFetch(config: ShopifyConfig, onConfigure: ReturnType<typeof createStorefrontCallbacks>['onConfigure']): CustomFetchApi {
+  const clientConfig = config.clients.storefront ? createStorefrontConfig(config) : undefined
+
+  if (clientConfig) onConfigure?.({ config: clientConfig })
+
+  const httpFetch = generateHttpFetch({
+    clientLogger: createClientLogger(clientConfig?.logger) ?? (() => {}),
+    customFetchApi: (url, init) => globalThis.fetch(url, init),
+  })
+
+  return (url, init) => {
+    const headers = new Headers(init?.headers)
+
+    for (const [name, value] of Object.entries(clientConfig?.headers ?? {})) headers.set(name, String(value))
+
+    return httpFetch([url, { ...init, headers }], 1, clientConfig?.retries ?? 0).catch((error: unknown) => {
+      throw init?.signal?.aborted ? init.signal.reason : error
+    })
+  }
+}
+
+export function createHydrogenStorefrontClient(requestContext: ShopifyRequestContext, shopify: ShopifyConfig): StorefrontClient {
+  const { name, storefrontId, clients: { storefront } } = shopify
+  const { onConfigure, onRequest, onResponse, onErrors } = createStorefrontCallbacks()
+
+  let configuredFetch: CustomFetchApi | undefined
+
   const config = {
     storeDomain: storefront?.mock ? MOCK_STORE_DOMAIN : createStoreDomain(name),
     storefrontId: storefront?.mock ? undefined : storefrontId || undefined,
     apiVersion: storefront?.apiVersion,
+    fetch: (url: string, init?: Parameters<CustomFetchApi>[1]) => (configuredFetch ??= createConfiguredFetch(shopify, onConfigure))(url, init),
   }
 
   const privateStorefrontToken = storefront?.mock ? undefined : storefront?.privateAccessToken
@@ -31,7 +61,28 @@ export function createHydrogenStorefrontClient(requestContext: ShopifyRequestCon
       : createStorefrontClient({ type: 'private_no_buyer_context', requestContext, config: { ...config, privateStorefrontToken } })
 
   const graphql = (async (...args: Parameters<StorefrontClient['graphql']>) => {
-    const result = await client.graphql(...args)
+    const [doc, options] = args
+    const request = { operation: String(doc), options: { variables: options?.variables } }
+
+    await onRequest?.(request)
+
+    const result = await client.graphql(...args).catch(async (error: unknown) => {
+      if (options?.signal?.aborted) throw error
+
+      const errors = { networkStatusCode: error instanceof StorefrontApiError ? error.status : undefined, message: error instanceof Error ? error.message : String(error) }
+
+      await onResponse?.({ ...request, response: { errors } })
+      await onErrors?.({ errors })
+
+      throw error
+    })
+
+    const errors = result.errors && { graphQLErrors: result.errors.map(error => ({ ...error, locations: error.locations?.slice(), path: error.path?.slice() })) }
+
+    await onResponse?.({ ...request, response: { data: result.data, errors } })
+
+    if (errors) await onErrors?.({ errors })
+
     const headers = new Headers(result.headers)
 
     headers.delete('set-cookie')

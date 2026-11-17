@@ -52,7 +52,8 @@ const {
   }
 })
 
-vi.mock('@shopify/hydrogen', () => ({
+vi.mock('@shopify/hydrogen', async () => ({
+  StorefrontApiError: (await vi.importActual<typeof import('@shopify/hydrogen')>('@shopify/hydrogen')).StorefrontApiError,
   createCartServerHandlers,
   createPredictiveSearchServerHandlers,
   createShopifyRequestContext,
@@ -80,7 +81,7 @@ vi.mock('#src/runtime/server/utils/log', () => ({
 
 vi.mock('nitropack/runtime', () => ({
   getRouteRules: () => ({}),
-  useNitroApp: () => ({ hooks: { callHook: vi.fn() } }),
+  useNitroApp: () => ({ hooks: { callHook: vi.fn(), callHookWith: vi.fn() } }),
   useStorage: vi.fn(),
 }))
 
@@ -163,6 +164,7 @@ describe('routes middleware', () => {
         publicStorefrontToken: undefined,
         storefrontId: '123',
         apiVersion: API_VERSION,
+        fetch: expect.any(Function),
       },
     }))
     expect(event.node.res.statusCode).toBe(201)
@@ -233,7 +235,7 @@ describe('routes middleware', () => {
 
     await handler(event)
 
-    expect(Object.keys(event.context._shopify!).sort()).toStrictEqual(['customerAccount', 'storefrontCache'])
+    expect(Object.keys(event.context._shopify!).sort()).toStrictEqual(['customerAccount', 'storefrontCache', 'subrequestHeaders'])
 
     await handler(createTestEvent({ path: '/account/login', headers: { host: 'shop.test' } }))
 

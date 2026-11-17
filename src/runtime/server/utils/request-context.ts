@@ -54,6 +54,14 @@ export async function getShopifyRequestContext(event: H3Event): Promise<ShopifyR
   return event.context.shopifyRequestContext
 }
 
+export async function captureSubrequestHeaders(event: H3Event, headers: Headers) {
+  if (event.method === 'GET' || event.method === 'HEAD' || !headers.getSetCookie().length) return
+
+  const requestContext = await getShopifyRequestContext(event).catch(() => undefined)
+
+  requestContext?.captureSubrequestHeaders?.(headers)
+}
+
 function toHeaders(headers: ReturnType<typeof getResponseHeaders>): Headers {
   const result = new Headers()
 

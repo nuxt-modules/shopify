@@ -6,11 +6,12 @@ import { useRuntimeConfig } from '#imports'
 import { createShopResolver } from '../../utils/shop'
 import { createStorefrontApiClient } from '../../utils/clients/storefront'
 import { getShopifyRequestContext } from './request-context'
+import { createStorefrontCallbacks } from './storefront/client'
 
 let resolveShop: ReturnType<typeof createShopResolver> | undefined
 
 export function getShopResolver(config: ShopifyConfig) {
-  resolveShop ??= createShopResolver(config, config.clients.storefront ? () => createStorefrontApiClient<true>(config, { throwOnErrors: false }) : undefined)
+  resolveShop ??= createShopResolver(config, config.clients.storefront ? () => createStorefrontApiClient(config, { throwOnErrors: false, ...createStorefrontCallbacks() }) : undefined)
 
   return resolveShop
 }

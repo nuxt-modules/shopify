@@ -23,6 +23,7 @@ export type ClientDefinition<Kind extends ShopifyClientKind = ShopifyClientKind>
   createConfig: (config: ModuleOptions) => ShopifyApiClientConfig
   createProxyUrl?: (config: ModuleOptions, origin: string, apiVersion: string) => string | undefined
   requestHeaders?: (config: ModuleOptions, headers: ShopifyApiClientConfig['headers'], options: Pick<ShopifyClientOptions, 'event' | 'buyerIp'>) => Record<string, string>
+  responseHeaders?: (headers: Headers, options: Pick<ShopifyClientOptions, 'event'>) => unknown
   cachePresets?: (config: ModuleOptions) => Record<string, CacheOptions> | undefined
 
   authHeader?: string
@@ -48,7 +49,7 @@ export function createClient<
   config: ShopifyClientConfig,
   options: ShopifyClientOptions<Operations, Cache> = {},
 ): ShopifyApiClient<Operations, Cache> {
-  const { authHeader } = definition
+  const { authHeader, responseHeaders } = definition
   const { event, origin, buyerIp, browserCache, serverCache, auth, apiVersion, headers, retries, logger, throwOnErrors, ...callbacks } = options
 
   const moduleConfig = normalizeConfig(definition.kind, config)
@@ -75,6 +76,7 @@ export function createClient<
   const transport = createTransport<Operations, Cache>(apiClientConfig, {
     normalize: moduleConfig.graphql?.normalize ?? true,
     fetch: serverCache,
+    onResponseHeaders: responseHeaders && (headersFromShopify => responseHeaders(headersFromShopify, { event })),
   })
 
   const shouldThrow = throwOnErrors ?? moduleConfig.errors?.throw ?? DEFAULT_THROW_ERRORS

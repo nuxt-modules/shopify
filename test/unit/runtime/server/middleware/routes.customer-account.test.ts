@@ -19,7 +19,7 @@ import { getResponseHeader, getSetCookieHeaders, toCookieHeader } from '#test/he
 const runtimeConfig: { _shopify?: Record<string, unknown> } = {}
 const { storages, useTokenStorage } = createTokenStorages()
 
-const hooks = { callHook: vi.fn<(name: string, params: Record<string, unknown>) => Promise<void>>() }
+const hooks = { callHook: vi.fn<(name: string, params: Record<string, unknown>) => Promise<void>>(), callHookWith: vi.fn() }
 
 const fetchMock = vi.fn<typeof fetch>()
 
@@ -98,10 +98,14 @@ function buyerIdentityUpdates() {
   return storefrontApi.mock.calls.map(([operation]) => operation).filter(({ query }) => query.includes('cartBuyerIdentityUpdate')).map(({ variables }) => variables)
 }
 
+function authHookCalls() {
+  return hooks.callHook.mock.calls.filter(([name]) => name.startsWith('shopify:customer-account:auth:'))
+}
+
 function configure(customerAccount: Record<string, unknown> = {}) {
   const config = createShopifyConfig(customerAccount)
 
-  runtimeConfig._shopify = { ...config, clients: { ...config.clients, storefront: { apiVersion: API_VERSION, routes: true, publicAccessToken: '' } } }
+  runtimeConfig._shopify = { ...config, clients: { ...config.clients, storefront: { apiVersion: API_VERSION, routes: true, publicAccessToken: 'public-token' } } }
 }
 
 beforeEach(() => {
@@ -354,7 +358,27 @@ describe('cart', () => {
     await handler(event)
 
     expect(tokenRequests('refresh_token')).toHaveLength(1)
-    expect(hooks.callHook).toHaveBeenCalledExactlyOnceWith('shopify:customer-account:auth:refresh', { event })
+    expect(authHookCalls()).toEqual([['shopify:customer-account:auth:refresh', { event }]])
+  })
+
+  it('reports adding to the cart and attaching the customer to the storefront client hooks', async () => {
+    storefrontApi.mockImplementation(({ query }) => query.includes('cartCreate')
+      ? Response.json({ data: { cartCreate: { cart: { id: CART_ID }, userErrors: [], warnings: [] } } })
+      : Response.json({ data: { cartBuyerIdentityUpdate: { cart: { id: CART_ID }, userErrors: [], warnings: [] } } }))
+
+    await signIn(undefined, CART_COOKIE)
+
+    await handler(createHttpsEvent(await createSessionCookie(), {
+      path: '/api/cart',
+      method: 'POST',
+      headers: { origin: ORIGIN, accept: 'application/json' },
+      body: { lines: [{ merchandiseId: 'gid://shopify/ProductVariant/1', quantity: 1 }] },
+    }))
+
+    const operations = hooks.callHook.mock.calls.filter(([name]) => name === 'shopify:storefront:client:response').map(([, params]) => String(params.operation))
+
+    expect(operations.some(operation => operation.includes('cartBuyerIdentityUpdate'))).toBe(true)
+    expect(operations.some(operation => operation.includes('cartCreate'))).toBe(true)
   })
 })
 

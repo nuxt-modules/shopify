@@ -5,7 +5,7 @@ import { useRuntimeConfig } from '#imports'
 import { assertSameOrigin } from '../utils/csrf'
 import { customerAccountContext } from '../utils/customer-account/auth'
 import { createCustomerAccountRoutes } from '../utils/customer-account/routes'
-import { applyShopifyResponseHeaders, getShopifyRequestContext } from '../utils/request-context'
+import { applyShopifyResponseHeaders, captureSubrequestHeaders, getShopifyRequestContext } from '../utils/request-context'
 import {
   isAjaxCartEndpoint,
   isCartEndpoint,
@@ -31,6 +31,7 @@ export default defineEventHandler(async (event) => {
     ...(storefront ? { redirect: getShopifyRedirect, scripts: resolveShopifyScripts } : {}),
     ...(customerAccount ? { customerAccount: customerAccountContext } : {}),
     ...(serverCache ? { storefrontCache: createStorefrontServerCache } : {}),
+    subrequestHeaders: captureSubrequestHeaders,
   }
 
   const { pathname, searchParams } = getRequestURL(event)

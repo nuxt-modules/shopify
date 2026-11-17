@@ -15,7 +15,9 @@ vi.mock('#src/runtime/utils/log', () => ({
   createLogger: () => createLoggerStub({ warn }),
 }))
 
-const { applyShopifyResponseHeaders, getShopifyRequestContext } = await import('#src/runtime/server/utils/request-context')
+vi.mock('nitropack/runtime', () => ({ useNitroApp: () => ({ hooks: { callHook: vi.fn(), callHookWith: vi.fn() } }) }))
+
+const { applyShopifyResponseHeaders, captureSubrequestHeaders, getShopifyRequestContext } = await import('#src/runtime/server/utils/request-context')
 const { createHydrogenStorefrontClient } = await import('#src/runtime/server/utils/storefront/hydrogen')
 
 describe('request locale', () => {
@@ -284,5 +286,53 @@ describe('applyShopifyResponseHeaders', () => {
     event.node.res.writeHead(200)
 
     expect(() => applyShopifyResponseHeaders(event)).not.toThrow()
+  })
+})
+
+describe('captureSubrequestHeaders', () => {
+  const SHOPIFY_COOKIES = ['_shopify_essential=e; Path=/; HttpOnly; Secure', '_shopify_analytics=a; Path=/; HttpOnly; Secure']
+
+  function fromShopify(cookies = SHOPIFY_COOKIES) {
+    const headers = new Headers({ 'content-type': 'application/json' })
+
+    for (const cookie of cookies) headers.append('set-cookie', cookie)
+
+    return headers
+  }
+
+  function request(method: string) {
+    runtimeConfig._shopify = { name: 'shop', clients: { storefront: { apiVersion: API_VERSION, publicAccessToken: 'public' } }, i18n: { defaultLocale: { country: 'US', language: 'EN' } } }
+
+    const event = createTestEvent({ method, path: '/api/subscribe', headers: { host: 'shop.test', cookie: '_shopify_essential=old' } })
+
+    event.node.res.setHeader('content-type', 'application/json')
+
+    return event
+  }
+
+  it('hands Shopify\'s cookies to the response of a POST request, as Hydrogen does for its own requests', async () => {
+    const event = request('POST')
+
+    await captureSubrequestHeaders(event, fromShopify())
+
+    applyShopifyResponseHeaders(event)
+
+    expect(getSetCookieHeaders(event)).toEqual(SHOPIFY_COOKIES)
+  })
+
+  it.each(['GET', 'HEAD'])('leaves a %s request without a request context, since Hydrogen never hands cookies to one', async (method) => {
+    const event = request(method)
+
+    await captureSubrequestHeaders(event, fromShopify())
+
+    expect(event.context.shopifyRequestContext).toBeUndefined()
+  })
+
+  it('leaves a request without a request context when Shopify sets no cookies', async () => {
+    const event = request('POST')
+
+    await captureSubrequestHeaders(event, fromShopify([]))
+
+    expect(event.context.shopifyRequestContext).toBeUndefined()
   })
 })

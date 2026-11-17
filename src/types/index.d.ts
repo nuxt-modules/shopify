@@ -194,6 +194,7 @@ declare module 'h3' {
       scripts?: (event: H3Event) => Promise<ShopifyScriptsShopContext>
       customerAccount?: ShopifyCustomerAccountContext
       storefrontCache?: (event: H3Event) => CustomFetchApi
+      subrequestHeaders?: (event: H3Event, headers: Headers) => Promise<void>
     }
   }
 }

@@ -90,6 +90,7 @@ const definition: ClientDefinition<'storefront'> = {
       ...(buyer && headers[PRIVATE_TOKEN_HEADER] ? { [BUYER_IP_HEADER]: buyer } : {}),
     }
   },
+  responseHeaders: (headers, { event }) => event?.context._shopify?.subrequestHeaders?.(event, headers),
   cachePresets: ({ clients }) => typeof clients?.storefront?.cache === 'object' ? clients.storefront.cache?.presets : undefined,
 }
 
