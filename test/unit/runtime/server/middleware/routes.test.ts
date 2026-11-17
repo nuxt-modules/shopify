@@ -292,6 +292,17 @@ describe('routes middleware', () => {
     }))
   })
 
+  it('proxies a storefront mocked with a catalog name to that mock.shop catalog', async () => {
+    runtimeConfig._shopify.analytics = false
+    runtimeConfig._shopify.clients = { storefront: { apiVersion: API_VERSION, routes: true, mock: 'vesna', proxy: true } }
+
+    await handler(createTestEvent({ method: 'POST', path: `/api/${API_VERSION}/graphql.json`, headers: { host: 'shop.test' }, body: { query: '{ shop { id } }' } }))
+
+    expect(createStorefrontClient).toHaveBeenCalledWith(expect.objectContaining({
+      config: expect.objectContaining({ storeDomain: 'https://vesna.mock.shop' }),
+    }))
+  })
+
   it('keeps serving the storefront endpoints when the customer account is misconfigured', async () => {
     vi.stubEnv('NUXT_SHOPIFY_CLIENTS_CUSTOMER_ACCOUNT_SESSION_PASSWORD', '')
 

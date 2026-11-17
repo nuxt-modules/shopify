@@ -8,7 +8,7 @@ import { generateHttpFetch } from '@shopify/graphql-client'
 import { StorefrontApiError, createStorefrontClient, handleShopifyRedirects } from '@shopify/hydrogen'
 
 import { useRuntimeConfig } from '#imports'
-import { MOCK_STORE_DOMAIN, createStorefrontConfig } from '../../../utils/clients/storefront'
+import { createMockStoreDomain, createStorefrontConfig } from '../../../utils/clients/storefront'
 import { createClientLogger, createStoreDomain } from '../../../utils/clients/transport'
 import { getShopifyRequestContext } from '../request-context'
 import { toShopifyRequest } from '../routes'
@@ -46,7 +46,7 @@ export function createHydrogenStorefrontClient(requestContext: ShopifyRequestCon
   let configuredFetch: CustomFetchApi | undefined
 
   const config = {
-    storeDomain: storefront?.mock ? MOCK_STORE_DOMAIN : createStoreDomain(name),
+    storeDomain: storefront?.mock ? createMockStoreDomain(storefront.mock) : createStoreDomain(name),
     storefrontId: storefront?.mock ? undefined : storefrontId || undefined,
     apiVersion: storefront?.apiVersion,
     fetch: (url: string, init?: Parameters<CustomFetchApi>[1]) => (configuredFetch ??= createConfiguredFetch(shopify, onConfigure))(url, init),
