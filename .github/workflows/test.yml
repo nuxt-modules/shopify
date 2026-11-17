@@ -121,15 +121,8 @@ jobs:
       - name: Check built package
         run: pnpm run check:package
 
-      - name: Build playground for Cloudflare Workers
-        run: pnpm --filter playground-v4-mock build
-        env:
-          NITRO_PRESET: cloudflare_module
-          NUXT_SHOPIFY_NAME: mock
-
   publish:
     runs-on: ubuntu-latest
-    # Runs on its own because the jobs above need the store secrets, which pull requests from forks don't get
     if: github.repository_owner == 'nuxt-modules'
     steps:
       - uses: actions/checkout@v7.0.1
