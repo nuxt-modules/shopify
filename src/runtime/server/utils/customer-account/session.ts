@@ -8,7 +8,14 @@ import { clearSession, createError, getCookie, getSession, updateSession } from 
 import { getRouteRules } from 'nitropack/runtime'
 import { useRuntimeConfig } from '#imports'
 
-import { DEFAULT_SESSION_NAME, SESSION_PASSWORD_ENV, SESSION_PASSWORD_MIN_LENGTH, isUsableSessionPassword } from '../../../utils/session'
+import {
+  CUSTOMER_ACCOUNT_DISABLED_MESSAGE,
+  DEFAULT_SESSION_NAME,
+  SESSION_PASSWORD_ENV,
+  SESSION_PASSWORD_MIN_LENGTH,
+  isCustomerAccountEnabled,
+  isUsableSessionPassword,
+} from '../../../utils/session'
 import { getShopifyRequestContext } from '../request-context'
 import { getPublicRequestURL } from '../routes'
 import { createTokenStore } from './tokens'
@@ -31,6 +38,10 @@ export function requireCustomerAccountConfig(config?: ShopifyConfig): NonNullabl
 
   if (!customerAccount) {
     throw createError({ status: 500, statusText: 'Internal Server Error', message: '[shopify] Customer account client is not configured' })
+  }
+
+  if (!isCustomerAccountEnabled(config)) {
+    throw createError({ status: 404, statusText: 'Not Found', message: CUSTOMER_ACCOUNT_DISABLED_MESSAGE })
   }
 
   return customerAccount
@@ -182,6 +193,8 @@ export function createCustomerSessionManager(event: H3Event): WritableCustomerSe
 export async function getCustomerAccountSession(event: H3Event): Promise<ShopifyCustomerAccountSession> {
   const { _shopify } = useRuntimeConfig(event)
 
+  if (!isCustomerAccountEnabled(_shopify)) return { isLoggedIn: false }
+
   const session = await readSession(event, getSessionConfig(_shopify))
 
   if (!session || !holdsTokens(session.data)) return { isLoggedIn: false }
@@ -196,9 +209,11 @@ export async function getCustomerAccountSession(event: H3Event): Promise<Shopify
  *
  * @returns the session of the signed in customer
  *
- * @throws a 401 unauthorized error when there is no active session
+ * @throws a 404 not found error when customer accounts are disabled, and a 401 unauthorized error when there is no active session
  */
 export async function requireCustomerAccountSession(event: H3Event): Promise<ShopifyCustomerAccountSession> {
+  requireCustomerAccountConfig(useRuntimeConfig(event)._shopify)
+
   const session = await getCustomerAccountSession(event)
 
   if (!session.isLoggedIn) {
@@ -219,6 +234,8 @@ export async function requireCustomerAccountSession(event: H3Event): Promise<Sho
  */
 export async function clearCustomerAccountSession(event: H3Event): Promise<void> {
   const { _shopify } = useRuntimeConfig(event)
+
+  if (!isCustomerAccountEnabled(_shopify)) return
 
   const config = getSessionConfig(_shopify)
 

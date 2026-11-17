@@ -8,7 +8,7 @@ import { kebabCase } from 'scule'
 import { ShopifyClientType, publicConfigSchema } from '../runtime/utils/config'
 import { resolveShopId } from '../runtime/utils/clients/customer-account/discovery'
 import { useLogger } from '../utils/log'
-import { SESSION_PASSWORD_ENV, SESSION_PASSWORD_MIN_LENGTH, isUsableSessionPassword } from '../runtime/utils/session'
+import { SESSION_PASSWORD_ENV, SESSION_PASSWORD_MIN_LENGTH, isCustomerAccountEnabled, isUsableSessionPassword } from '../runtime/utils/session'
 import { generateSessionPassword, persistSessionPassword } from '../utils/session'
 
 function findUnrecognizedOptions(input: unknown, output: unknown, path: string[] = []): string[] {
@@ -84,7 +84,7 @@ async function resolveSessionPassword(config: ShopifyConfig, nuxt: Nuxt) {
 
   delete session.password
 
-  if (password || nuxt.options._prepare) return
+  if (password || nuxt.options._prepare || !isCustomerAccountEnabled(config)) return
 
   if (!nuxt.options.dev) {
     logger.warn(candidates.some(Boolean)

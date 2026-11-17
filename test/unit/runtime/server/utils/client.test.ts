@@ -3,6 +3,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 const requestEvent = { context: {} }
 const configuredFor: unknown[] = []
 
+let clientId = 'cid'
+
 vi.mock('nitropack/runtime', () => ({
   getRouteRules: () => ({}),
   useEvent: () => requestEvent,
@@ -13,7 +15,7 @@ vi.mock('#imports', () => ({
   useRuntimeConfig: (event?: unknown) => {
     configuredFor.push(event)
 
-    return { _shopify: {} }
+    return { _shopify: { clients: { customerAccount: { clientId } } } }
   },
 }))
 
@@ -28,6 +30,7 @@ const { useCustomerAccount } = await import('#src/runtime/server/utils/customer-
 
 beforeEach(() => {
   configuredFor.length = 0
+  clientId = 'cid'
 })
 
 describe('server clients', () => {
@@ -39,5 +42,11 @@ describe('server clients', () => {
     useClient()
 
     expect(configuredFor).toEqual([requestEvent])
+  })
+
+  it('useCustomerAccount refuses with a 404 while customer accounts are disabled', () => {
+    clientId = ''
+
+    expect(() => useCustomerAccount()).toThrow(expect.objectContaining({ statusCode: 404, message: expect.stringContaining('Customer accounts are disabled') }))
   })
 })

@@ -2,6 +2,7 @@ import { createCartServerHandlers, createPredictiveSearchServerHandlers, handleS
 import { defineEventHandler, getRequestURL, sendWebResponse } from 'h3'
 
 import { useRuntimeConfig } from '#imports'
+import { isCustomerAccountEnabled } from '../../utils/session'
 import { assertSameOrigin } from '../utils/csrf'
 import { customerAccountContext } from '../utils/customer-account/auth'
 import { createCustomerAccountRoutes } from '../utils/customer-account/routes'
@@ -24,7 +25,7 @@ export default defineEventHandler(async (event) => {
   if (!_shopify) return
 
   const storefront = !!(_shopify.clients.storefront?.routes || _shopify.analytics)
-  const customerAccount = !!_shopify.clients.customerAccount
+  const customerAccount = isCustomerAccountEnabled(_shopify)
   const serverCache = !!(_shopify.clients.storefront?.cache && _shopify.clients.storefront.cache.server)
 
   event.context._shopify = {

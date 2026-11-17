@@ -107,6 +107,27 @@ describe('resolveShopId', () => {
     expect(fetch).not.toHaveBeenCalled()
   })
 
+  it.each([
+    ['the storefront client', input.clients.storefront],
+    ['mock.shop', { mock: true }],
+  ])('skips the lookup while customer accounts are disabled, with %s', async (_, storefront) => {
+    stubShopId(2)
+
+    const config = withOverrides({ shopId: undefined, clients: { storefront, customerAccount: { clientId: '' } } })
+
+    await expect(resolveShopId(config, config)).resolves.toBe(config)
+    expect(fetch).not.toHaveBeenCalled()
+  })
+
+  it('looks the shop ID up once the client ID arrives at runtime', async () => {
+    stubShopId(2)
+
+    const built = withOverrides({ shopId: undefined, clients: { storefront: input.clients.storefront, customerAccount: { clientId: '' } } })
+    const config = await resolveShopId(withOverrides({ shopId: undefined }), built)
+
+    expect(config.shopId).toBe('2')
+  })
+
   it('gives up on a lookup that never answers, so a hanging endpoint can\'t stall the build or every request', async () => {
     const timeout = new AbortController()
 

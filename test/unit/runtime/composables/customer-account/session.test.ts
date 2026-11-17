@@ -15,6 +15,7 @@ const state = new Map<string, ReturnType<typeof ref>>()
 const fetchSession = vi.fn()
 
 let configured = true
+let clientId = 'client-id'
 let requestEvent: { context: { _shopify?: { customerAccount?: CustomerAccountContext } } } | undefined
 
 vi.mock('#imports', async () => ({
@@ -23,7 +24,7 @@ vi.mock('#imports', async () => ({
   useRuntimeConfig: () => ({
     public: {
       _shopify: {
-        clients: configured ? { customerAccount: {} } : {},
+        clients: configured ? { customerAccount: { clientId } } : {},
       },
     },
   }),
@@ -56,6 +57,7 @@ beforeEach(() => {
   state.clear()
 
   configured = true
+  clientId = 'client-id'
   requestEvent = undefined
 
   fetchSession.mockReset()
@@ -71,6 +73,10 @@ describe('useCustomerAccountSession', () => {
     configured = false
 
     expect(() => useCustomerAccountSession()).toThrow(expect.objectContaining({ statusCode: 500 }))
+  })
+
+  it('is enabled with a client id', () => {
+    expect(useCustomerAccountSession().isEnabled.value).toBe(true)
   })
 
   it('starts out logged out and not ready yet', () => {
@@ -202,5 +208,36 @@ describe('logout', () => {
     onServer()
 
     expect(() => useCustomerAccountSession().logout()).not.toThrow()
+  })
+})
+
+describe('without a client id', () => {
+  beforeEach(() => {
+    clientId = ''
+  })
+
+  it('is disabled', () => {
+    expect(useCustomerAccountSession().isEnabled.value).toBe(false)
+  })
+
+  it.each([
+    ['in the browser', () => {}],
+    ['during server rendering', () => onServer({ getSession: () => Promise.resolve(SIGNED_IN) })],
+  ])('resolves to logged out without reading the session %s', async (_, setup) => {
+    setup()
+
+    const { fetch, isLoggedIn, isReady } = useCustomerAccountSession()
+
+    await fetch()
+
+    expect(fetchSession).not.toHaveBeenCalled()
+    expect(isLoggedIn.value).toBe(false)
+    expect(isReady.value).toBe(true)
+  })
+
+  it.each(['login', 'logout'] as const)('refuses to %s', (action) => {
+    expect(() => useCustomerAccountSession()[action]())
+      .toThrow(expect.objectContaining({ statusCode: 404, message: expect.stringContaining('Customer accounts are disabled') }))
+    expect(navigations).toHaveLength(0)
   })
 })

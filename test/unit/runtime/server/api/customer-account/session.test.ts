@@ -35,3 +35,12 @@ describe('customer account session route', () => {
     expect(event.node.res.getHeader('cache-control')).toBe('no-store')
   })
 })
+
+describe('without a client id', () => {
+  it('reports logged out without reading the session or calling Shopify', async () => {
+    runtimeConfig._shopify = createShopifyConfig({ clientId: '', session: {} })
+
+    await expect(handler(request('__Host-session=sealed'))).resolves.toEqual({ isLoggedIn: false })
+    expect(fetch).not.toHaveBeenCalled()
+  })
+})

@@ -7,6 +7,7 @@ import { addNitroPlugin } from '@nuxt/kit'
 import { defu } from 'defu'
 
 import { publicConfigSchema } from '../schemas'
+import { isCustomerAccountEnabled } from '../runtime/utils/session'
 import { useLogger } from '../utils/log'
 
 type ProxiedClients = { clients?: Record<string, { proxy?: boolean } | undefined> }
@@ -34,7 +35,7 @@ export default function setupConfig(nuxt: Nuxt, config: ShopifyConfig, resolver:
       logger.warn(`The \`${preset}\` preset has no server for the paths Shopify's scripts call, so analytics events only reach Shopify if your host forwards them to your store`)
     }
 
-    if (config.clients.customerAccount) {
+    if (isCustomerAccountEnabled(config)) {
       logger.warn(`The \`${preset}\` preset has no server for the customer account routes, so customers can't sign in and prerendered pages must not call the customer account client`)
     }
 

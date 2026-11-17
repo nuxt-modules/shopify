@@ -13,8 +13,11 @@ const payload: { prerenderedAt?: number } = {}
 
 let baseURL = '/'
 
-vi.mock('#imports', () => ({
-  useRuntimeConfig: () => ({ app: { baseURL }, public: { _shopify: {} } }),
+let shopify: Record<string, unknown> = {}
+
+vi.mock('#imports', async () => ({
+  createError: (await import('h3')).createError,
+  useRuntimeConfig: () => ({ app: { baseURL }, public: { _shopify: shopify } }),
   useNuxtApp: () => ({ payload, hooks: { callHook: vi.fn() } }),
   useRequestURL: () => new URL('https://shop.test/account'),
   useRequestEvent: () => requestEvent,
@@ -36,6 +39,7 @@ afterEach(() => {
   vi.unstubAllGlobals()
 
   baseURL = '/'
+  shopify = {}
 
   requestEvent = undefined
   delete payload.prerenderedAt
@@ -78,5 +82,14 @@ describe('useCustomerAccount', () => {
 
     expect(lastOptions().origin).toBe('https://shop.test')
     expect(lastOptions().auth).toBeUndefined()
+  })
+
+  it('refuses with a 404 while customer accounts are disabled', () => {
+    shopify = { clients: { customerAccount: { clientId: '' } } }
+
+    createCustomerAccountApiClient.mockClear()
+
+    expect(() => useCustomerAccount()).toThrow(expect.objectContaining({ statusCode: 404, message: expect.stringContaining('Customer accounts are disabled') }))
+    expect(createCustomerAccountApiClient).not.toHaveBeenCalled()
   })
 })

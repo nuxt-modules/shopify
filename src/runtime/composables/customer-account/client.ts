@@ -1,8 +1,9 @@
 import type { CustomerAccountApiClient } from '@nuxtjs/shopify/customer-account'
 import type { H3Event } from 'h3'
 
-import { useRuntimeConfig, useNuxtApp, useRequestURL, useRequestEvent } from '#imports'
+import { createError, useRuntimeConfig, useNuxtApp, useRequestURL, useRequestEvent } from '#imports'
 import { createCustomerAccountApiClient } from '../../utils/clients/customer-account'
+import { CUSTOMER_ACCOUNT_DISABLED_MESSAGE, isCustomerAccountEnabled } from '../../utils/session'
 
 /**
  * Creates a Customer Account API client for the current request.
@@ -13,6 +14,10 @@ import { createCustomerAccountApiClient } from '../../utils/clients/customer-acc
  */
 export function useCustomerAccount(event?: H3Event): CustomerAccountApiClient {
   const { public: { _shopify } } = useRuntimeConfig()
+
+  if (_shopify?.clients?.customerAccount && !isCustomerAccountEnabled(_shopify)) {
+    throw createError({ status: 404, statusText: 'Not Found', message: CUSTOMER_ACCOUNT_DISABLED_MESSAGE })
+  }
 
   const nuxtApp = useNuxtApp()
 

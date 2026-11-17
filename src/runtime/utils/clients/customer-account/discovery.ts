@@ -1,5 +1,6 @@
 import type { ShopifyConfig } from '../../../../module'
 
+import { isCustomerAccountEnabled } from '../../session'
 import { createStoreDomain } from '../transport'
 
 type Logger = {
@@ -11,7 +12,7 @@ const SHOP_ID = /^\d+$/
 const LOOKUP_TIMEOUT_MS = 10_000
 
 export async function resolveShopId(config: ShopifyConfig, base?: ShopifyConfig, logger?: Logger): Promise<ShopifyConfig> {
-  if (!config.clients.customerAccount) return config
+  if (!isCustomerAccountEnabled(config)) return config
 
   const sameShop = config.name === base?.name
 

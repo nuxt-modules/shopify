@@ -72,6 +72,12 @@ describe('static presets', () => {
     expect(warn).toHaveBeenCalledWith(expect.stringContaining('analytics events only reach Shopify if your host forwards them'))
   })
 
+  it('don\'t warn about customer sign-in while customer accounts are disabled', () => {
+    initNitro({ static: true, preset: 'github_pages' }, { clients: { storefront: { mock: true }, customerAccount: {} } })
+
+    expect(warn).not.toHaveBeenCalled()
+  })
+
   it('keep the proxies on a preset with a server', () => {
     const runtimeConfig = initNitro({ static: false, preset: 'node-server' }, { analytics: true })
 

@@ -6,6 +6,7 @@ import { z } from 'zod'
 
 import { configObjectSchema, findInvalidFeatures, publicConfigSchema, withoutFeatures } from '#src/runtime/utils/config'
 import { DEFAULT_API_VERSION } from '#src/runtime/utils/clients/defaults'
+import { isCustomerAccountEnabled } from '#src/runtime/utils/session'
 import { API_VERSION } from '#test/helpers/api-version'
 
 const storefront = { publicAccessToken: 'tok' }
@@ -352,9 +353,25 @@ describe('customer account client id', () => {
   it.each([
     ['without a client id', { afterLogin: '/account' }],
     ['with an empty client id', { clientId: '' }],
-  ])('still refuses to parse a customer account client %s', (_, customerAccount) => {
-    expect(issues({ name: 'shop', clients: { storefront, customerAccount } }))
-      .toContain('Client ID is required for the customer account client')
+  ])('parses a customer account client %s as a disabled client', (_, customerAccount) => {
+    const config = configObjectSchema.parse({ name: 'shop', clients: { storefront, customerAccount } })
+
+    expect(config.clients.customerAccount).toMatchObject({ clientId: '', proxy: true })
+    expect(isCustomerAccountEnabled(config)).toBe(false)
+  })
+
+  it.each([
+    ['without a customer account client', { clients: {} }, false],
+    ['with an empty client id', { clients: { customerAccount: { clientId: '' } } }, false],
+    ['with a client id', { clients: { customerAccount: { clientId: 'cid' } } }, true],
+  ])('tells whether customer accounts are enabled %s', (_, config, enabled) => {
+    expect(isCustomerAccountEnabled(config)).toBe(enabled)
+  })
+
+  it('keeps the client id in the public config, so the browser knows whether customer accounts are enabled', () => {
+    const config = configObjectSchema.parse({ name: 'shop', clients: { storefront, customerAccount: { clientId: 'cid' } } })
+
+    expect(isCustomerAccountEnabled(publicConfigSchema.parse(config))).toBe(true)
   })
 })
 

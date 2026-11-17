@@ -12,9 +12,15 @@ describe('test mock.shop integration with nuxt 4', async () => {
   await setup({
     server: true,
     rootDir: playgroundDir,
+    env: {
+      NUXT_SHOPIFY_CLIENTS_CUSTOMER_ACCOUNT_CLIENT_ID: '',
+    },
     nuxtConfig: {
       routeRules: { '/**': { swr: 60 } },
-      shopify: { routeTemplates: { product: '/product/:productHandle' } },
+      shopify: {
+        routeTemplates: { product: '/product/:productHandle' },
+        clients: { customerAccount: {} },
+      },
     },
   })
 
@@ -38,6 +44,19 @@ describe('test mock.shop integration with nuxt 4', async () => {
 
     expect(response.status).toBe(301)
     expect(response.headers.get('location')).toBe('/product/shirt?ref=email')
+  })
+
+  it('should report a logged out session while customer accounts are disabled', async () => {
+    await expect($fetch('/account/session')).resolves.toEqual({ isLoggedIn: false })
+  })
+
+  it.each([
+    ['GET', '/account/login'],
+    ['POST', `/account/customer/api/${DEFAULT_API_VERSION}/graphql`],
+  ])('should answer %s %s with a 404 while customer accounts are disabled', async (method, path) => {
+    const response = await fetch(path, { method, redirect: 'manual', headers: { 'content-type': 'application/json', 'x-forwarded-proto': 'https' }, body: method === 'POST' ? JSON.stringify({ query: '{ customer { id } }' }) : undefined })
+
+    expect(response.status).toBe(404)
   })
 
   it('should keep the not found page when Shopify knows no redirect', async () => {

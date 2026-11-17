@@ -99,7 +99,7 @@ describe('runtime config plugin', () => {
         shopId: '1',
         clients: {
           storefront: { apiVersion: API_VERSION, publicAccessToken: 'rotated-token' },
-          customerAccount: { ...builtCustomerAccount, clientId: '' },
+          customerAccount: { ...builtCustomerAccount, session: { cookie: { sameSite: 'strict' } } },
         },
       },
       public: {},
@@ -111,6 +111,19 @@ describe('runtime config plugin', () => {
     expect(config._shopify?.clients?.storefront?.publicAccessToken).toBe('rotated-token')
     expect(config._shopify?.clients).toHaveProperty('customerAccount.clientId', 'built-client')
     expect(warn).toHaveBeenCalledWith(expect.stringContaining('`clients.customerAccount`'))
+  })
+
+  it('turns customer accounts on when the client ID only arrives at runtime', async () => {
+    base = {
+      shopify: { name: 'shop', shopId: '1', clients: { storefront: { apiVersion: API_VERSION, mock: true }, customerAccount: { apiVersion: API_VERSION, clientId: 'runtime-client' } } },
+      public: {},
+      _shopify: { name: 'shop', shopId: '1', clients: { storefront: { mock: true }, customerAccount: { clientId: '' } } as never },
+    }
+
+    const config = await requestConfig()
+
+    expect(config._shopify?.clients).toHaveProperty('customerAccount.clientId', 'runtime-client')
+    expect(config.public?._shopify?.clients).toHaveProperty('customerAccount.clientId', 'runtime-client')
   })
 
   it('keeps the build\'s API version when the runtime environment sets an empty one, and the client\'s other runtime values', async () => {

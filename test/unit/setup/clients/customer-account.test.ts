@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createLoggerStub } from '#test/helpers/logger'
 import { createSetupNuxt, resolver } from '#test/helpers/nuxt'
 
-const { warn } = vi.hoisted(() => ({ warn: vi.fn() }))
+const { info, warn } = vi.hoisted(() => ({ info: vi.fn(), warn: vi.fn() }))
 
 vi.mock('@nuxt/kit', () => ({
   addImports: vi.fn(),
@@ -15,7 +15,7 @@ vi.mock('@nuxt/kit', () => ({
   extendRouteRules: vi.fn(),
 }))
 
-vi.mock('#src/utils/log', () => ({ useLogger: () => createLoggerStub({ warn }) }))
+vi.mock('#src/utils/log', () => ({ useLogger: () => createLoggerStub({ info, warn }) }))
 
 const {
   default: setupCustomerAccountClient,
@@ -23,7 +23,7 @@ const {
   registerCustomerAccountSession,
   warnInsecureCustomerAccountDevServer,
 } = await import('#src/setup/clients/customer-account')
-const { addRouteMiddleware, addServerHandler } = await import('@nuxt/kit')
+const { addImports, addRouteMiddleware, addServerHandler } = await import('@nuxt/kit')
 const { configObjectSchema } = await import('#src/schemas')
 
 const customerAccount = { clientId: 'client', proxy: true, tokenStorage: false }
@@ -47,6 +47,20 @@ describe('setupCustomerAccountClient', () => {
     setupCustomerAccountClient(createSetupNuxt() as never, { clients: { customerAccount, storefront: {} }, analytics: false } as never, resolver as never)
 
     expect(warn).not.toHaveBeenCalledWith(expect.stringContaining('Set `i18n.defaultLocale`'))
+  })
+
+  it('registers everything without a client id, since it can still arrive at runtime, and only says so in development', () => {
+    const disabled = { ...customerAccount, clientId: '' }
+    const nuxt = { ...createSetupNuxt(), options: { ...createSetupNuxt().options, dev: true } }
+
+    setupCustomerAccountClient(nuxt as never, { clients: { customerAccount: disabled }, analytics: false } as never, resolver as never)
+
+    expect(addImports).toHaveBeenCalledWith([expect.objectContaining({ name: 'useCustomerAccountSession' })])
+    expect(addRouteMiddleware).toHaveBeenCalledWith(expect.objectContaining({ name: 'shopify:customer-account' }))
+    expect(addServerHandler).toHaveBeenCalledWith(expect.objectContaining({ route: '/account/session' }))
+    expect(nuxt.hook).not.toHaveBeenCalledWith('listen', expect.anything())
+    expect(warn).not.toHaveBeenCalled()
+    expect(info).toHaveBeenCalledExactlyOnceWith(expect.stringContaining('`NUXT_SHOPIFY_CLIENTS_CUSTOMER_ACCOUNT_CLIENT_ID`'))
   })
 })
 
