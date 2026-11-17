@@ -182,6 +182,17 @@ describe('api version', () => {
   })
 })
 
+describe('mock', () => {
+  it('accepts `true` or the name of a mock.shop catalog in place of a token', () => {
+    expect(configObjectSchema.parse({ name: 'shop', clients: { storefront: { mock: true } } }).clients.storefront?.mock).toBe(true)
+    expect(configObjectSchema.parse({ name: 'shop', clients: { storefront: { mock: 'vesna' } } }).clients.storefront?.mock).toBe('vesna')
+  })
+
+  it.each([['vesna.mock.shop'], ['https://vesna.mock.shop'], ['Vesna'], ['']])('refuses %j, which is not a catalog name', (mock) => {
+    expect(issues({ name: 'shop', clients: { storefront: { mock } } })).toContain('mock.shop catalog')
+  })
+})
+
 describe('retries', () => {
   it('accepts the range the Shopify client supports', () => {
     for (const retries of [0, 1, 2, 3]) {

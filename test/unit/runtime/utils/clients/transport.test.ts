@@ -245,6 +245,16 @@ describe('client config resolution', () => {
     expect(config.headers).not.toHaveProperty(PRIVATE_TOKEN_HEADER)
   })
 
+  it('sends a mocked storefront to the default mock.shop catalog, or to the one it names', () => {
+    const apiUrl = (mock: boolean | string) => createStorefrontConfig({
+      name: 'shop',
+      clients: { storefront: { apiVersion: API_VERSION, mock, retries: 0 } },
+    } as never).apiUrl
+
+    expect(apiUrl(true)).toBe(`https://mock.shop/api/${API_VERSION}/graphql.json`)
+    expect(apiUrl('vesna')).toBe(`https://vesna.mock.shop/api/${API_VERSION}/graphql.json`)
+  })
+
   it('does not build a storefront config without a token', () => {
     expect(() => createStorefrontConfig({
       name: 'shop',

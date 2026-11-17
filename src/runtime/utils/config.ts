@@ -144,7 +144,10 @@ const storefrontClientSchema = clientSchema.extend({
   publicAccessToken: z.string().optional(),
   privateAccessToken: z.string().optional(),
   buyerIpHeader: z.string().optional(),
-  mock: z.boolean().optional(),
+  mock: z.union([
+    z.boolean(),
+    z.string().regex(/^[a-z0-9][a-z0-9-]*$/, { error: '`mock` must be `true` or the name of a mock.shop catalog, such as `vesna`' }),
+  ]).optional(),
 
   codegen: enableable(codegenSchema.extend({ globalTypes: z.boolean().optional().default(true) }), { globalTypes: true }),
   documents: clientSchema.shape.documents.transform(resolveDocuments(defaultStorefrontDocuments)),
@@ -272,7 +275,7 @@ const configSchema = z.object({
   clients: z.object({
     [ShopifyClientType.Storefront]: storefrontClientSchema
       .refine(client => client?.mock || client?.privateAccessToken || client?.publicAccessToken, {
-        error: 'Either a public or private access token must be provided for the storefront client, or `mock: true` to use mock.shop',
+        error: 'Either a public or private access token must be provided for the storefront client, or `mock` to use mock.shop',
       })
       .transform(client => client.routes ? client : { ...client, proxy: false })
       .optional(),

@@ -23,7 +23,15 @@ import { resolveBuyerIp } from '../buyer-ip'
 import { createClient } from '../create'
 import { DEFAULT_API_VERSION, DEFAULT_RETRIES } from '../defaults'
 
-export const MOCK_STORE_DOMAIN = 'https://mock.shop'
+const MOCK_STORE_DOMAIN = 'https://mock.shop'
+
+/**
+ * Resolves the mock.shop domain to use: `true` for the default catalog,
+ * a catalog name such as `'vesna'` for `https://vesna.mock.shop`.
+ */
+export function createMockStoreDomain(mock: boolean | string) {
+  return typeof mock === 'string' ? `https://${mock}.mock.shop` : MOCK_STORE_DOMAIN
+}
 
 export function createStorefrontConfig(config?: ModuleOptions): ShopifyApiClientConfig {
   if (!config?.clients?.storefront) {
@@ -58,7 +66,7 @@ export function createStorefrontConfig(config?: ModuleOptions): ShopifyApiClient
   }
 
   const apiUrl = mock
-    ? createApiUrl(MOCK_STORE_DOMAIN, apiVersion)
+    ? createApiUrl(createMockStoreDomain(mock), apiVersion)
     : createApiUrl(createStoreDomain(name), apiVersion)
 
   return {
