@@ -217,6 +217,23 @@ describe('the storefront client config for Hydrogen\'s requests', () => {
     expect(configure.mock.calls[0]![0].config.headers).toMatchObject({ 'X-Shopify-Storefront-Access-Token': 'public' })
   })
 
+  it('runs the configure hook before the request hook, like the module\'s own client', async () => {
+    const requestHooksBeforeConfigure: unknown[][] = []
+
+    configureHooks.push(() => {
+      requestHooksBeforeConfigure.push(hookCalls('shopify:storefront:client:request'))
+    })
+
+    vi.stubGlobal('fetch', vi.fn(async () => Response.json({ data: { shop: { id: '1' } } })))
+
+    const client = await createClient()
+
+    await client.graphql(SHOP_QUERY)
+
+    expect(requestHooksBeforeConfigure).toEqual([[]])
+    expect(hookCalls('shopify:storefront:client:request')).toHaveLength(1)
+  })
+
   it('sends the configured headers and the ones a configure hook adds', async () => {
     configureHooks.push(({ config }) => {
       config.headers['X-From-Hook'] = 'hook'

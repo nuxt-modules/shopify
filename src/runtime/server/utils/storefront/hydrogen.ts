@@ -64,6 +64,8 @@ export function createHydrogenStorefrontClient(requestContext: ShopifyRequestCon
     const [doc, options] = args
     const request = { operation: String(doc), options: { variables: options?.variables } }
 
+    configuredFetch ??= createConfiguredFetch(shopify, onConfigure)
+
     await onRequest?.(request)
 
     const startedAt = performance.now()
