@@ -1,14 +1,20 @@
+import type { Resolver } from '@nuxt/kit'
+import type { Nuxt } from '@nuxt/schema'
 import type { H3Event } from 'h3'
 
 import type { ShopifyConfig } from '../types'
 
+import { randomUUID } from 'node:crypto'
+import { addDevServerHandler } from '@nuxt/kit'
 import { ShopifyClientType } from '../schemas'
-import { createError, defineEventHandler, getRequestIP, getRequestURL, setResponseHeader } from 'h3'
-import { titleCase } from 'scule'
+import { createError, defineEventHandler, getQuery, getRequestIP, getRequestURL, setResponseHeader } from 'h3'
+import { kebabCase, titleCase } from 'scule'
 
 import { CUSTOMER_ACCOUNT_PROXY_ROUTE, createApiUrl } from '../runtime/utils/clients/transport'
+import { isCustomerAccountEnabled } from '../runtime/utils/session'
+import { addUncachedServerHandler } from './routes'
 
-export const ADMIN_PROXY_ROUTE = '/_explorer/proxy/admin'
+const ADMIN_PROXY_ROUTE = '/_explorer/proxy/admin'
 
 const LOCAL_HOSTNAMES = ['localhost', '127.0.0.1', '[::1]', 'local.tryhydrogen.dev']
 
@@ -24,7 +30,7 @@ export function assertLocalRequest(event: H3Event) {
   })
 }
 
-export function getExplorerEndpoint(config: ShopifyConfig, clientType: ShopifyClientType, token: string): string {
+function getExplorerEndpoint(config: ShopifyConfig, clientType: ShopifyClientType, token: string): string {
   if (clientType === ShopifyClientType.Storefront) return createApiUrl('/', config.clients.storefront!.apiVersion)
 
   if (clientType === ShopifyClientType.CustomerAccount) return CUSTOMER_ACCOUNT_PROXY_ROUTE.replace(':version', config.clients.customerAccount!.apiVersion)
@@ -37,6 +43,7 @@ export function createExplorerHandler(clientType: ShopifyClientType, endpoint: s
     assertLocalRequest(event)
 
     const { renderGraphiQL } = await import('@graphql-yoga/render-graphiql')
+    const { variables } = getQuery(event)
 
     setResponseHeader(event, 'content-type', 'text/html')
 
@@ -44,6 +51,39 @@ export function createExplorerHandler(clientType: ShopifyClientType, endpoint: s
       title: `Explorer - ${titleCase(clientType)}`,
       endpoint,
       defaultEditorToolsVisibility: true,
+      ...(typeof variables === 'string' ? { variables: variables.replaceAll('<', '\\u003c') } : {}),
     })
   })
+}
+
+export function registerExplorer(resolver: Resolver, config: ShopifyConfig, clientType: ShopifyClientType): string {
+  const admin = clientType === ShopifyClientType.Admin
+  const token = randomUUID()
+  const route = admin ? `/_explorer/admin/${token}` : `/_explorer/${kebabCase(clientType)}`
+
+  addDevServerHandler({
+    handler: createExplorerHandler(clientType, getExplorerEndpoint(config, clientType, token)),
+    route,
+  })
+
+  if (admin) {
+    addDevServerHandler({
+      handler: defineEventHandler(assertLocalRequest),
+      route: ADMIN_PROXY_ROUTE,
+    })
+
+    addUncachedServerHandler({
+      method: 'post',
+      handler: resolver.resolve('./runtime/server/api/admin/explorer'),
+      route: `${ADMIN_PROXY_ROUTE}/${token}`,
+    })
+  }
+
+  return route
+}
+
+export function shouldEnableExplorer(nuxt: Nuxt, config: ShopifyConfig, clientType: ShopifyClientType): boolean {
+  if (!nuxt.options.dev || !config.clients[clientType]?.explorer) return false
+
+  return clientType !== ShopifyClientType.CustomerAccount || (isCustomerAccountEnabled(config) && !!config.clients.customerAccount?.proxy)
 }

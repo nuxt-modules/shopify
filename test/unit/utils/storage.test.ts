@@ -16,7 +16,11 @@ function register(mount: { driver: string, [option: string]: unknown }) {
 
   hooks.get('nitro:init')?.(nitro)
 
-  return { config: nuxt.options.nitro.storage, bundled: nitro.options.storage }
+  const initialized = { ...nitro.options.storage }
+
+  hooks.get('nitro:build:before')?.(nitro)
+
+  return { config: nuxt.options.nitro.storage, initialized, bundled: nitro.options.storage }
 }
 
 describe('registerStorageMount', () => {
@@ -25,6 +29,12 @@ describe('registerStorageMount', () => {
 
     expect(config).toStrictEqual({ 'customer-account-token': { driver: 'lru-cache', max: 10_000 } })
     expect(bundled).toStrictEqual({ 'customer-account-token': { driver: './runtime/utils/lru-driver', max: 10_000 } })
+  })
+
+  it('keeps the builtin `lru-cache` name through `nitro:init`, where DevTools imports every driver itself', () => {
+    const { initialized } = register({ driver: 'lru-cache', max: 10_000 })
+
+    expect(initialized).toStrictEqual({ 'customer-account-token': { driver: 'lru-cache', max: 10_000 } })
   })
 
   it('bundles any other driver as configured', () => {

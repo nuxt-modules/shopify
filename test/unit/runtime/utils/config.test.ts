@@ -40,6 +40,11 @@ describe('defaults', () => {
     expect(config.routeTemplates).toStrictEqual({})
   })
 
+  it('turns DevTools on by default, and off with `devtools: false`', () => {
+    expect(configObjectSchema.parse({ name: 'shop' }).devtools).toBe(true)
+    expect(configObjectSchema.parse({ name: 'shop', devtools: false }).devtools).toBe(false)
+  })
+
   it('fills in the documented global defaults, whether a block is omitted or empty', () => {
     const webhooks = { secret: 'secret', subscriptions: [{ uri: 'https://shop.example/webhooks/orders-create', topic: 'ORDERS_CREATE' }] }
 

@@ -306,6 +306,8 @@ const configSchema = z.object({
 
   analytics: enableable(analyticsSchema, analyticsSchema.parse({}), false),
 
+  devtools: z.boolean().optional().default(true),
+
   logger: z.custom<Partial<ConsolaOptions>>().optional(),
 })
 
@@ -319,7 +321,7 @@ export const configObjectSchema = configSchema
     path: ['i18n'],
   })
 
-export const publicConfigSchema = configSchema.omit({ clients: true, fragments: true, webhooks: true, origin: true, cart: true, predictiveSearch: true }).extend({
+export const publicConfigSchema = configSchema.omit({ clients: true, fragments: true, webhooks: true, origin: true, cart: true, predictiveSearch: true, devtools: true }).extend({
   clients: z.object({
     [ShopifyClientType.Storefront]: storefrontClientSchema.omit({
       privateAccessToken: true,

@@ -151,7 +151,7 @@ declare module '#app' {
     /**
      * Called after the storefront client receives a response within nuxt
      */
-    'shopify:storefront:client:response': ({ response, operation, options }: ShopifyClientResponseHookParams<keyof StorefrontOperations, StorefrontOperations, true>) => HookResult
+    'shopify:storefront:client:response': ({ response, operation, options, duration }: ShopifyClientResponseHookParams<keyof StorefrontOperations, StorefrontOperations, true>) => HookResult
 
     /**
      * Called whenever a storefront client response carries errors, whether or not `errors.throw` makes the request throw
@@ -176,7 +176,7 @@ declare module '#app' {
     /**
      * Called after the customer account client receives a response within nuxt
      */
-    'shopify:customer-account:client:response': ({ response, operation, options }: ShopifyClientResponseHookParams<keyof CustomerAccountOperations, CustomerAccountOperations>) => HookResult
+    'shopify:customer-account:client:response': ({ response, operation, options, duration }: ShopifyClientResponseHookParams<keyof CustomerAccountOperations, CustomerAccountOperations>) => HookResult
 
     /**
      * Called whenever a customer account client response carries errors, whether or not `errors.throw` makes the request throw
@@ -219,7 +219,7 @@ declare module 'nitropack/types' {
     /**
      * Called after the storefront client receives a response within nitro
      */
-    'shopify:storefront:client:response': ({ response, operation, options }: ShopifyClientResponseHookParams<keyof StorefrontOperations, StorefrontOperations>) => HookResult
+    'shopify:storefront:client:response': ({ response, operation, options, duration }: ShopifyClientResponseHookParams<keyof StorefrontOperations, StorefrontOperations>) => HookResult
 
     /**
      * Called whenever a storefront client response carries errors, whether or not `errors.throw` makes the request throw
@@ -244,7 +244,7 @@ declare module 'nitropack/types' {
     /**
      * Called after the customer account client receives a response within nitro
      */
-    'shopify:customer-account:client:response': ({ response, operation, options }: ShopifyClientResponseHookParams<keyof CustomerAccountOperations, CustomerAccountOperations>) => HookResult
+    'shopify:customer-account:client:response': ({ response, operation, options, duration }: ShopifyClientResponseHookParams<keyof CustomerAccountOperations, CustomerAccountOperations>) => HookResult
 
     /**
      * Called whenever a customer account client response carries errors, whether or not `errors.throw` makes the request throw
@@ -309,7 +309,7 @@ declare module 'nitropack/types' {
     /**
      * Called after the admin client receives a response within nitro
      */
-    'shopify:admin:client:response': ({ response, operation, options }: ShopifyClientResponseHookParams<keyof AdminOperations, AdminOperations>) => HookResult
+    'shopify:admin:client:response': ({ response, operation, options, duration }: ShopifyClientResponseHookParams<keyof AdminOperations, AdminOperations>) => HookResult
 
     /**
      * Called whenever an admin client response carries errors, whether or not `errors.throw` makes the request throw

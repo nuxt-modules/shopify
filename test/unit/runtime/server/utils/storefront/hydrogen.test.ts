@@ -139,7 +139,7 @@ describe('the storefront ID from Hydrogen\'s storefront client', () => {
 })
 
 describe('the storefront client hooks for Hydrogen\'s requests', () => {
-  it('calls the request and response hooks with the operation and its variables', async () => {
+  it('calls the request and response hooks with the operation, its variables and the duration', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => Response.json({ data: { shop: { id: '1' } } })))
 
     const client = await createClient()
@@ -151,6 +151,7 @@ describe('the storefront client hooks for Hydrogen\'s requests', () => {
       operation: SHOP_QUERY,
       options: { variables: { handle: 'shirt' } },
       response: { data: { shop: { id: '1' } }, errors: undefined },
+      duration: expect.any(Number),
     }])
     expect(hookCalls('shopify:storefront:client:errors')).toEqual([])
   })
