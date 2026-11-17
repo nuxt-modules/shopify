@@ -126,3 +126,23 @@ jobs:
         env:
           NITRO_PRESET: cloudflare_module
           NUXT_SHOPIFY_NAME: mock
+
+  publish:
+    runs-on: ubuntu-latest
+    # Runs on its own because the jobs above need the store secrets, which pull requests from forks don't get
+    if: github.repository_owner == 'nuxt-modules'
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v6.1.1
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: 24.22.2
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Publish preview package
+        run: pnpm run prepack && pnpx pkg-pr-new publish --compact --no-template --pnpm
