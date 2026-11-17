@@ -14,7 +14,7 @@ export function registerStorageMount(nuxt: Nuxt, base: string, mount: StorageMou
 
   if (mount.driver !== 'lru-cache') return
 
-  nuxt.hook('nitro:init', (nitro) => {
+  nuxt.hook('nitro:build:before', (nitro) => {
     nitro.options.storage[base] = { ...mount, driver: resolver.resolve('./runtime/utils/lru-driver') }
   })
 }

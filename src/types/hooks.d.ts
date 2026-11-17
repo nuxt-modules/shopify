@@ -40,6 +40,7 @@ export type ShopifyClientResponseHookParams<Operation extends keyof Operations, 
   response: ClientResponse<ReturnData<Operation, Operations>>
   operation: Operation
   options?: ShopifyApiClientRequestOptions<Operation, Operations, Cache>
+  duration?: number
 }
 
 export type ShopifyAnalyticsReadyHookParams = Pick<ShopifyScriptTagsOptions, 'shop' | 'i18n'>

@@ -46,8 +46,6 @@ const DOCUMENT_POINTER_SCHEME = /^[a-z][\w+.-]+:/i
 
 const GLOB_SYNTAX = /[*?[]/g
 
-const generateFailures = new WeakMap<Nuxt, string[]>()
-
 type CodegenClient = ConfiguredClient & {
   shopName: string
 }
@@ -58,6 +56,10 @@ type DocumentState = {
   revision: number
   graphqlFiles: Set<string>
 }
+
+const generateFailures = new WeakMap<Nuxt, Map<string, string>>()
+
+const documentStates = new WeakMap<Nuxt, Map<ShopifyClientType, DocumentState>>()
 
 type InterfaceExtensionsParams = {
   queryType: string
@@ -71,7 +73,11 @@ export function getIntrospectionFilename(clientType: ShopifyClientType, apiVersi
 }
 
 export function getGenerateFailures(nuxt: Nuxt): string[] {
-  return generateFailures.get(nuxt) ?? []
+  return [...generateFailures.get(nuxt)?.values() ?? []]
+}
+
+export function getDocumentFiles(nuxt: Nuxt): Map<ShopifyClientType, Set<string>> {
+  return new Map([...documentStates.get(nuxt) ?? []].map(([clientType, documents]) => [clientType, documents.graphqlFiles]))
 }
 
 function reportGenerateFailure(nuxt: Nuxt, filename: string, error: unknown): '' {
@@ -79,7 +85,7 @@ function reportGenerateFailure(nuxt: Nuxt, filename: string, error: unknown): ''
 
   useLogger().error(`${message}\nTypes for this client are unavailable`)
 
-  generateFailures.set(nuxt, [...getGenerateFailures(nuxt), message])
+  generateFailures.set(nuxt, new Map(generateFailures.get(nuxt)).set(filename, message))
 
   return ''
 }
@@ -279,7 +285,7 @@ async function scanDocuments(paths: string[], cwd: string): Promise<{ failure?: 
   for (const path of paths) {
     const file = resolve(cwd, path)
 
-    if (!GRAPHQL_MARKER.test(await readFile(file, 'utf8').catch(() => ''))) continue
+    if (!SCHEMA_LANGUAGE_FILE.test(file) && !GRAPHQL_MARKER.test(await readFile(file, 'utf8').catch(() => ''))) continue
 
     files.add(file)
 
@@ -351,10 +357,12 @@ async function generateOperations(nuxt: Nuxt, client: CodegenClient, filename: s
     const generated = await generateFile(nuxt, filename, { ...config, documents: pointers }, { cwd: nuxt.options.rootDir, pluckConfig: pluckConfig as Types.Config['pluckConfig'] })
     const { codegen } = client.clientConfig
 
+    if (documents.revision === revision) generateFailures.get(nuxt)?.delete(filename)
+
     return codegen && codegen.globalTypes ? generated + createGlobalDeclarations(generated, filename) : generated
   }
   catch (error) {
-    return reportGenerateFailure(nuxt, filename, error)
+    return documents.revision === revision ? reportGenerateFailure(nuxt, filename, error) : ''
   }
 }
 
@@ -388,6 +396,8 @@ function watchDocuments(nuxt: Nuxt, client: CodegenClient, filename: string, doc
 
 export function createOperationsGenerator(nuxt: Nuxt, client: CodegenClient, filename: string, loadSchema: SchemaLoader) {
   const documents: DocumentState = { revision: 0, graphqlFiles: new Set() }
+
+  documentStates.set(nuxt, new Map(documentStates.get(nuxt)).set(client.clientType, documents))
 
   let operations: { revision: number, contents: Promise<string> } | undefined
 

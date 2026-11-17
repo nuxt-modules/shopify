@@ -27,9 +27,24 @@ function createHooks() {
 
 afterEach(() => {
   vi.unstubAllGlobals()
+  vi.useRealTimers()
 })
 
 describe('client response hook', () => {
+  it('tells the hook how long the request took', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'performance'] })
+    vi.stubGlobal('fetch', vi.fn(() => new Promise(resolve => setTimeout(() => resolve(Response.json({ data: { shop: { name: 'shop' } } })), 250))))
+
+    const hooks = createHooks()
+
+    const pending = createStorefrontApiClient(config, hooks).request(QUERY)
+
+    await vi.advanceTimersByTimeAsync(250)
+    await pending
+
+    expect(hooks.onResponse).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ duration: 250 }))
+  })
+
   it('fires for a successful response', async () => {
     respondWith({ data: { shop: { name: 'shop' } } })
 

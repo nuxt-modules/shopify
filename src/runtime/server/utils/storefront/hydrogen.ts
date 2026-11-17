@@ -66,12 +66,14 @@ export function createHydrogenStorefrontClient(requestContext: ShopifyRequestCon
 
     await onRequest?.(request)
 
+    const startedAt = performance.now()
+
     const result = await client.graphql(...args).catch(async (error: unknown) => {
       if (options?.signal?.aborted) throw error
 
       const errors = { networkStatusCode: error instanceof StorefrontApiError ? error.status : undefined, message: error instanceof Error ? error.message : String(error) }
 
-      await onResponse?.({ ...request, response: { errors } })
+      await onResponse?.({ ...request, response: { errors }, duration: performance.now() - startedAt })
       await onErrors?.({ errors })
 
       throw error
@@ -79,7 +81,7 @@ export function createHydrogenStorefrontClient(requestContext: ShopifyRequestCon
 
     const errors = result.errors && { graphQLErrors: result.errors.map(error => ({ ...error, locations: error.locations?.slice(), path: error.path?.slice() })) }
 
-    await onResponse?.({ ...request, response: { data: result.data, errors } })
+    await onResponse?.({ ...request, response: { data: result.data, errors }, duration: performance.now() - startedAt })
 
     if (errors) await onErrors?.({ errors })
 

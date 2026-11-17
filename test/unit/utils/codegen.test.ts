@@ -1,3 +1,5 @@
+import type { CodegenClient } from '#src/utils/codegen'
+
 import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
@@ -20,13 +22,13 @@ vi.mock('@nuxt/kit', async importOriginal => ({
   updateTemplates: (...args: unknown[]) => updateTemplates(...args),
 }))
 
-const {
-  createOperationsGenerator,
-  createSchemaLoader,
-  createTypesGenerator,
-  getGenerateFailures,
-  getIntrospectionFilename,
-} = await import('#src/utils/codegen')
+const codegen = await import('#src/utils/codegen')
+
+const { createSchemaLoader, createTypesGenerator, getIntrospectionFilename } = codegen
+
+const createOperationsGenerator = codegen.createOperationsGenerator as unknown as (nuxt: ReturnType<typeof createNuxt>, client: CodegenClient, filename: string, loadSchema: () => Promise<string | undefined>) => ReturnType<typeof codegen.createOperationsGenerator>
+const getDocumentFiles = codegen.getDocumentFiles as unknown as (nuxt: ReturnType<typeof createNuxt>) => ReturnType<typeof codegen.getDocumentFiles>
+const getGenerateFailures = codegen.getGenerateFailures as unknown as (nuxt: ReturnType<typeof createNuxt>) => string[]
 
 const { useLogger } = await import('#src/utils/log')
 
@@ -512,6 +514,77 @@ describe('document parse failures', () => {
     expect(getGenerateFailures(build as never)).toEqual([])
   })
 
+  it('forgets the failure of an operation once it parses again, so DevTools only shows current failures', async () => {
+    writeFileSync(pathFor('broken.ts'), 'export const broken = `#graphql\n  query Broken { shop { name\n`\n')
+
+    const regenerate = createOperationsGenerator(build, client(ShopifyClientType.Storefront, { documents: ['**/*.ts'] }), OPERATIONS_FILE, storedSchema)
+
+    await regenerate()
+
+    expect(getGenerateFailures(build)).toHaveLength(1)
+
+    writeFileSync(pathFor('broken.ts'), 'export const broken = `#graphql\n  query Broken { shop { name } }\n`\n')
+
+    await build.watch(pathFor('broken.ts'))
+    await regenerate()
+
+    expect(getGenerateFailures(build)).toEqual([])
+  })
+
+  it('keeps the failure of a newer generation when an older one succeeds last', async () => {
+    writeFileSync(pathFor('shop.ts'), 'export const query = `#graphql\n  query Shop { shop { name } }\n`\n')
+
+    const regenerate = createOperationsGenerator(build, client(ShopifyClientType.Storefront, { documents: ['**/*.ts'] }), OPERATIONS_FILE, storedSchema)
+
+    let finishOlder!: (output: Array<{ content: string }>) => void
+
+    generate.mockImplementationOnce(() => new Promise((resolve) => {
+      finishOlder = resolve
+    }))
+
+    const older = regenerate()
+
+    await vi.waitFor(() => expect(generate).toHaveBeenCalledOnce())
+
+    writeFileSync(pathFor('shop.ts'), 'export const query = `#graphql\n  query Shop { shop { name\n`\n')
+
+    await build.watch(pathFor('shop.ts'))
+    await regenerate()
+
+    finishOlder([{ content: 'interface OlderQueryTypes {}' }])
+
+    await older
+
+    expect(getGenerateFailures(build)).toEqual([expect.stringContaining('Syntax Error')])
+  })
+
+  it('drops the failure of an older generation that fails after a newer one succeeded', async () => {
+    writeFileSync(pathFor('shop.ts'), 'export const query = `#graphql\n  query Shop { shop { name } }\n`\n')
+
+    const regenerate = createOperationsGenerator(build, client(ShopifyClientType.Storefront, { documents: ['**/*.ts'] }), OPERATIONS_FILE, storedSchema)
+
+    let failOlder!: (error: Error) => void
+
+    generate.mockImplementationOnce(() => new Promise<Array<{ content: string }>>((_resolve, reject) => {
+      failOlder = reject
+    }))
+
+    const older = regenerate()
+
+    await vi.waitFor(() => expect(generate).toHaveBeenCalledOnce())
+
+    writeFileSync(pathFor('shop.ts'), 'export const query = `#graphql\n  query Shop { shop { name id } }\n`\n')
+
+    await build.watch(pathFor('shop.ts'))
+    await regenerate()
+
+    failOlder(new Error('the older generation failed'))
+
+    await older
+
+    expect(getGenerateFailures(build)).toEqual([])
+  })
+
   it('skips a broken operation in a folder that a ! entry excludes, as codegen does', async () => {
     writeFileSync(pathFor('good.ts'), 'export const good = `#graphql\n  query Good { shop { name } }\n`\n')
     mkdirSync(pathFor('node_modules/dependency'), { recursive: true })
@@ -631,6 +704,21 @@ describe('operation cache', () => {
 
     await expect(generateOperations()).resolves.toContain('GeneratedQueryTypes')
     expect(generate).toHaveBeenCalledTimes(2)
+  })
+
+  it('shares the files of each client that contain GraphQL, schema language files included, for the DevTools operations tab', async () => {
+    mkdirSync(pathFor('queries'), { recursive: true })
+    writeFileSync(pathFor('shop.ts'), 'export const query = `#graphql\n  query Shop { shop { name } }\n`\n')
+    writeFileSync(pathFor('queries/menu.graphql'), 'query Menu { menu(handle: "main") { title } }\n')
+    writeFileSync(pathFor('math.ts'), 'export const add = (a: number, b: number) => a + b\n')
+
+    await createOperationsGenerator(watched, client(ShopifyClientType.Storefront, { documents: ['**/*.{ts,graphql}'] }), OPERATIONS_FILE, storedSchema)()
+    await createOperationsGenerator(watched, client(ShopifyClientType.Admin, { documents: ['**/*.admin.ts'] }), 'shopify/admin/admin.operations.d.ts', storedSchema)()
+
+    expect(getDocumentFiles(watched)).toStrictEqual(new Map([
+      [ShopifyClientType.Storefront, new Set([pathFor('queries/menu.graphql'), pathFor('shop.ts')])],
+      [ShopifyClientType.Admin, new Set()],
+    ]))
   })
 
   it('leaves the documents it found to the newer generation when a document changes while it runs', async () => {

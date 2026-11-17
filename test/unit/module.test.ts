@@ -13,10 +13,10 @@ const setupSteps = vi.hoisted(() => ({
   setupAnalytics: vi.fn(),
   setupClients: vi.fn(),
   setupCodegen: vi.fn(),
+  setupDevtools: vi.fn(),
   setupGraphqlConfig: vi.fn(),
   setupGraphqlTransform: vi.fn(),
   setupImports: vi.fn(),
-  setupExplorer: vi.fn(),
   setupVite: vi.fn(),
   setupWebhooks: vi.fn(),
 }))
@@ -34,10 +34,10 @@ vi.mock('#src/setup/config', () => ({ default: setupSteps.setupConfig }))
 vi.mock('#src/setup/analytics', () => ({ default: setupSteps.setupAnalytics }))
 vi.mock('#src/setup/clients', () => ({ default: setupSteps.setupClients }))
 vi.mock('#src/setup/codegen', () => ({ default: setupSteps.setupCodegen }))
+vi.mock('#src/setup/devtools', () => ({ default: setupSteps.setupDevtools }))
 vi.mock('#src/setup/graphql-config', () => ({ default: setupSteps.setupGraphqlConfig }))
 vi.mock('#src/setup/graphql-transform', () => ({ default: setupSteps.setupGraphqlTransform }))
 vi.mock('#src/setup/imports', () => ({ default: setupSteps.setupImports }))
-vi.mock('#src/setup/explorer', () => ({ default: setupSteps.setupExplorer }))
 vi.mock('#src/setup/vite', () => ({ default: setupSteps.setupVite }))
 vi.mock('#src/setup/webhooks', () => ({ default: setupSteps.setupWebhooks }))
 
@@ -130,6 +130,14 @@ describe('module setup', () => {
 
     expect(nuxt.callHook.mock.calls.map(([name]) => name)).toEqual(['shopify:config', 'shopify:setup'])
     expect(nuxt.callHook).toHaveBeenCalledWith('shopify:setup', { nuxt, config: expect.objectContaining({ name: 'shop' }) })
+  })
+
+  it('sets up the explorers and DevTools in one step', async () => {
+    const nuxt = createNuxt({ dev: true })
+
+    await shopifyModule.setup({ name: 'shop', clients: { storefront } }, nuxt)
+
+    expect(setupSteps.setupDevtools).toHaveBeenCalledExactlyOnceWith(nuxt, expect.objectContaining({ name: 'shop' }), resolver)
   })
 
   it('skips setup without any configuration', async () => {

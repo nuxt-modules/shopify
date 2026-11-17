@@ -94,6 +94,8 @@ export function createClient<
       config: transport.config,
     })
 
+    const startedAt = performance.now()
+
     const authError = await authenticate().then(() => undefined, (error: Error & { statusCode?: number }) => error)
 
     const response = authError
@@ -108,6 +110,7 @@ export function createClient<
       response: response,
       operation,
       options: options as ShopifyApiClientRequestOptions<keyof Operations, Operations, Cache>,
+      duration: performance.now() - startedAt,
     })
 
     if (response.errors) await handleErrors(response.errors, shouldThrow && !authError, callbacks.onErrors, apiClientConfig.logger)

@@ -12,10 +12,10 @@ import setupConfig from './setup/config'
 import setupAnalytics from './setup/analytics'
 import setupClients from './setup/clients'
 import setupCodegen from './setup/codegen'
+import setupDevtools from './setup/devtools'
 import setupGraphqlConfig from './setup/graphql-config'
 import setupGraphqlTransform from './setup/graphql-transform'
 import setupImports from './setup/imports'
-import setupExplorer from './setup/explorer'
 import setupVite from './setup/vite'
 import setupWebhooks from './setup/webhooks'
 
@@ -81,7 +81,7 @@ export default defineNuxtModule<ModuleOptions>({
       setupCodegen(nuxt, config)
       setupAnalytics(nuxt, config, resolver)
       setupImports(nuxt, config, resolver)
-      setupExplorer(nuxt, config, resolver)
+      setupDevtools(nuxt, config, resolver)
       setupGraphqlConfig(nuxt, config)
       setupVite(nuxt, config)
       setupWebhooks(resolver)

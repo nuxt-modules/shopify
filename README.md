@@ -33,6 +33,7 @@ Fully configurable, works out of the box with [mock.shop](https://mock.shop) for
 - 📦 Auto-imports for fragments, queries and generated types
 - 🪝 Webhook subscription support
 - 🏖️ Built-in GraphQL explorer for all client APIs
+- 🧭 DevTools panel for Requests, GraphQL operations and configuration
 - 🛠️ Automatic mock.shop integration
 - 🔄 Hooks for customizing the module behavior
 - 🧪 Fully tested with the latest Nuxt version
