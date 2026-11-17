@@ -7,6 +7,7 @@ import { useRuntimeConfig } from '#imports'
 import { createCustomerAccountApiClient } from '../../../utils/clients/customer-account'
 import { tryUseEvent } from '../event'
 import { getValidCustomerAccessToken } from './auth'
+import { requireCustomerAccountConfig } from './session'
 
 /**
  * Creates a Customer Account API client for the current request.
@@ -21,6 +22,8 @@ export function useCustomerAccount(event?: H3Event): CustomerAccountApiClient {
   event ??= tryUseEvent()
 
   const { _shopify } = useRuntimeConfig(event)
+
+  requireCustomerAccountConfig(_shopify)
 
   const nitroApp = useNitroApp()
 

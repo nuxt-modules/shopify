@@ -237,6 +237,18 @@ describe('customer account session password', () => {
     expect(warnings).toEqual([])
     expect(persisted).toHaveLength(0)
   })
+
+  it.each([
+    ['development', true],
+    ['production', false],
+  ])('neither generates one nor warns in %s while customer accounts are disabled', async (_, dev) => {
+    const { config } = await resolve({ name: 'shop', clients: { storefront: { mock: true }, customerAccount: {} } }, nuxtStub({ dev }))
+
+    expect(config.clients.customerAccount?.session.password).toBeUndefined()
+    expect(persisted).toHaveLength(0)
+    expect(warnings).toEqual([])
+    expect(fetch).not.toHaveBeenCalled()
+  })
 })
 
 describe('api version window', () => {

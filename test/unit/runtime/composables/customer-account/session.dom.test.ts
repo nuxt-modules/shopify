@@ -4,7 +4,7 @@ import { ref } from 'vue'
 
 vi.mock('#imports', async () => ({
   ...(await vi.importActual<Record<string, unknown>>('#test/helpers/stubs')),
-  useRuntimeConfig: () => ({ public: { _shopify: { clients: { customerAccount: {} } } } }),
+  useRuntimeConfig: () => ({ public: { _shopify: { clients: { customerAccount: { clientId: 'cid' } } } } }),
   useState: (_key: string, init: () => unknown) => ref(init()),
   useRequestEvent: () => undefined,
   navigateTo: vi.fn(),

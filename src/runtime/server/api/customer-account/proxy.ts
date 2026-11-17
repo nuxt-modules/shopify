@@ -8,9 +8,14 @@ import { DEFAULT_API_VERSION, REQUEST_TIMEOUT_MS, isApiVersion } from '../../../
 import { createUpstreamError, resolveStatus } from '../../../utils/clients/errors'
 import { withApiVersion } from '../../../utils/clients/transport'
 import { getValidCustomerAccessToken } from '../../utils/customer-account/auth'
+import { requireCustomerAccountConfig } from '../../utils/customer-account/session'
 
 export default defineEventHandler(async (event) => {
   assertSameOrigin(event)
+
+  const { _shopify } = useRuntimeConfig(event)
+
+  requireCustomerAccountConfig(_shopify)
 
   const apiVersion = getRouterParam(event, 'version')
 
@@ -23,8 +28,6 @@ export default defineEventHandler(async (event) => {
   }
 
   const body = await readGraphqlBody(event)
-
-  const { _shopify } = useRuntimeConfig(event)
 
   const { apiUrl } = createCustomerAccountConfig(_shopify)
 

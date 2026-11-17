@@ -7,7 +7,7 @@ import { computed } from 'vue'
 import { withQuery } from 'ufo'
 import { createError, navigateTo, useRequestEvent, useRuntimeConfig, useState } from '#imports'
 
-import { CUSTOMER_ACCOUNT_SESSION_ROUTE } from '../../utils/session'
+import { CUSTOMER_ACCOUNT_DISABLED_MESSAGE, CUSTOMER_ACCOUNT_SESSION_ROUTE, isCustomerAccountEnabled } from '../../utils/session'
 
 type LoginOptions = Omit<PrepareLoginUrlOptions, 'origin' | 'countryCode'>
 
@@ -17,10 +17,12 @@ type LogoutOptions = {
 
 const emptySession = (): ShopifyCustomerAccountSession => ({ isLoggedIn: false })
 
+const disabledError = () => createError({ status: 404, statusText: 'Not Found', message: CUSTOMER_ACCOUNT_DISABLED_MESSAGE })
+
 /**
  * Provides the customer account session state and the login and logout actions.
  *
- * @returns reactive session state with `login`, `logout` and `fetch`
+ * @returns reactive session state with `isEnabled`, `login`, `logout` and `fetch`
  */
 export function useCustomerAccountSession() {
   const { _shopify } = useRuntimeConfig().public
@@ -30,6 +32,8 @@ export function useCustomerAccountSession() {
   if (!customerAccount) {
     throw createError({ status: 500, statusText: 'Internal Server Error', message: '[shopify] Customer account client is not configured' })
   }
+
+  const isEnabled = computed(() => isCustomerAccountEnabled(_shopify))
 
   const session = useState<ShopifyCustomerAccountSession>('shopify-customer-account-session', emptySession)
   const isReady = useState<boolean>('shopify-customer-account-session-ready', () => false)
@@ -49,7 +53,7 @@ export function useCustomerAccountSession() {
   }
 
   const fetch = async () => {
-    const value = await readSession().catch(emptySession)
+    const value = isEnabled.value ? await readSession().catch(emptySession) : emptySession()
 
     if (!value) return
 
@@ -57,15 +61,21 @@ export function useCustomerAccountSession() {
     isReady.value = true
   }
 
-  const login = (options: LoginOptions = {}) => navigateTo(withQuery(CUSTOMER_ACCOUNT_LOGIN_PATH, {
-    return_to: options.returnTo,
-    locale: options.locale,
-    login_hint: options.loginHint,
-    login_hint_mode: options.loginHintMode,
-    acr_values: options.acrValues,
-  }), { external: true })
+  const login = (options: LoginOptions = {}) => {
+    if (!isEnabled.value) throw disabledError()
+
+    return navigateTo(withQuery(CUSTOMER_ACCOUNT_LOGIN_PATH, {
+      return_to: options.returnTo,
+      locale: options.locale,
+      login_hint: options.loginHint,
+      login_hint_mode: options.loginHintMode,
+      acr_values: options.acrValues,
+    }), { external: true })
+  }
 
   const logout = (options: LogoutOptions = {}) => {
+    if (!isEnabled.value) throw disabledError()
+
     if (import.meta.server) return
 
     const form = document.createElement('form')
@@ -79,6 +89,7 @@ export function useCustomerAccountSession() {
   }
 
   return {
+    isEnabled,
     isLoggedIn: computed(() => session.value.isLoggedIn),
     isReady,
     fetch,

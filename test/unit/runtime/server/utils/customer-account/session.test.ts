@@ -458,6 +458,17 @@ describe('requireCustomerAccountSession', () => {
   it('returns the session of a signed in customer', async () => {
     await expect(requireCustomerAccountSession(request(await signIn()))).resolves.toEqual({ isLoggedIn: true })
   })
+
+  it('rejects with a 404 while customer accounts are disabled', async () => {
+    const cookie = await signIn()
+
+    configure({ clientId: '' })
+
+    await expect(requireCustomerAccountSession(request(cookie))).rejects.toMatchObject({
+      statusCode: 404,
+      message: '[shopify] Customer accounts are disabled: set `clients.customerAccount.clientId`',
+    })
+  })
 })
 
 describe('clearCustomerAccountSession', () => {

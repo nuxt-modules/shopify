@@ -284,9 +284,7 @@ const configSchema = z.object({
         error: 'Either an access token or both client ID and client secret must be provided for the admin client',
       })
       .optional(),
-    [ShopifyClientType.CustomerAccount]: customerAccountClientSchema
-      .refine(client => client.clientId, { error: 'Client ID is required for the customer account client' })
-      .optional(),
+    [ShopifyClientType.CustomerAccount]: customerAccountClientSchema.optional(),
   }).optional().default({}),
 
   errors: z.object({

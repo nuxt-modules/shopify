@@ -105,6 +105,13 @@ describe('customer account proxy', () => {
     expect(lastCall().url).toBe(`https://shopify.com/${SHOP_ID}/account/customer/api/${OTHER_API_VERSION}/graphql`)
   })
 
+  it('answers 404 while customer accounts are disabled', async () => {
+    runtimeConfig._shopify = createShopifyConfig({ clientId: '' })
+
+    await expect(handler(proxyEvent())).rejects.toMatchObject({ statusCode: 404, message: expect.stringContaining('Customer accounts are disabled') })
+    expect(upstream).not.toHaveBeenCalled()
+  })
+
   it('reports a missing customer account client configuration', async () => {
     runtimeConfig._shopify = UNCONFIGURED_SHOPIFY_CONFIG
 

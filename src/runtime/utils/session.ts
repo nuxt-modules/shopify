@@ -7,6 +7,10 @@ import {
 
 export const SESSION_PASSWORD_ENV = 'NUXT_SHOPIFY_CLIENTS_CUSTOMER_ACCOUNT_SESSION_PASSWORD'
 
+export const CLIENT_ID_ENV = 'NUXT_SHOPIFY_CLIENTS_CUSTOMER_ACCOUNT_CLIENT_ID'
+
+export const CUSTOMER_ACCOUNT_DISABLED_MESSAGE = '[shopify] Customer accounts are disabled: set `clients.customerAccount.clientId`'
+
 export const DEFAULT_SESSION_NAME = '__Host-session'
 
 export const CUSTOMER_ACCOUNT_SESSION_ROUTE = '/account/session'
@@ -24,4 +28,8 @@ const EXAMPLE_SESSION_PASSWORD = 'A_RANDOM_32_CHARACTER_OR_LONGER_SECRET'
 
 export function isUsableSessionPassword(password: string | undefined): password is string {
   return !!password && password.length >= SESSION_PASSWORD_MIN_LENGTH && password !== EXAMPLE_SESSION_PASSWORD
+}
+
+export function isCustomerAccountEnabled(config?: { clients?: { customerAccount?: { clientId?: string } } }): boolean {
+  return !!config?.clients?.customerAccount?.clientId
 }

@@ -9,6 +9,7 @@ import { defineEventHandler } from 'h3'
 import { kebabCase } from 'scule'
 import { joinURL } from 'ufo'
 
+import { isCustomerAccountEnabled } from '../runtime/utils/session'
 import { ShopifyClientType } from '../schemas'
 import { getConfiguredClients } from '../utils/clients'
 import { onDevServerURL } from '../utils/dev'
@@ -45,7 +46,7 @@ export function registerExplorer(resolver: Resolver, config: ShopifyConfig, clie
 export function shouldEnableExplorer(nuxt: Nuxt, config: ShopifyConfig, clientType: ShopifyClientType): boolean {
   if (!nuxt.options.dev || !config.clients[clientType]?.explorer) return false
 
-  return clientType !== ShopifyClientType.CustomerAccount || !!config.clients.customerAccount?.proxy
+  return clientType !== ShopifyClientType.CustomerAccount || (isCustomerAccountEnabled(config) && !!config.clients.customerAccount?.proxy)
 }
 
 export default function setupExplorer(nuxt: Nuxt, config: ShopifyConfig, resolver: Resolver) {

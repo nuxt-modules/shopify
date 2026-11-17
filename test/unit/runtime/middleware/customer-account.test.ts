@@ -4,6 +4,7 @@ import { ref } from 'vue'
 const nuxtApp = { isHydrating: false }
 
 const session = {
+  isEnabled: ref(true),
   isLoggedIn: ref(false),
   isReady: ref(false),
   fetch: vi.fn(() => {
@@ -12,7 +13,11 @@ const session = {
   login: vi.fn((options: { returnTo: string }) => `/account/login?return_to=${options.returnTo}`),
 }
 
-vi.mock('#app', () => ({
+vi.mock('#app', async () => ({
+  abortNavigation: (error: unknown) => {
+    throw error
+  },
+  createError: (await import('h3')).createError,
   defineNuxtRouteMiddleware: (middleware: unknown) => middleware,
   useNuxtApp: () => nuxtApp,
 }))
@@ -34,6 +39,7 @@ function inBrowser({ hydrating = false } = {}) {
 beforeEach(() => {
   vi.clearAllMocks()
 
+  session.isEnabled.value = true
   session.isLoggedIn.value = true
   session.isReady.value = false
   nuxtApp.isHydrating = false
@@ -80,5 +86,15 @@ describe('customer-account route middleware', () => {
     await expect(middleware(TO)).resolves.toBe('/account/login?return_to=/account/orders?page=2')
 
     expect(session.login).toHaveBeenCalledWith({ returnTo: TO.fullPath })
+  })
+
+  it('shows a 404 instead of sending the customer to a login that can\'t work while customer accounts are disabled', async () => {
+    session.isEnabled.value = false
+    session.isLoggedIn.value = false
+
+    await expect(middleware(TO)).rejects.toMatchObject({ statusCode: 404, statusMessage: 'Page Not Found', fatal: true, message: expect.not.stringContaining('clientId') })
+
+    expect(session.fetch).not.toHaveBeenCalled()
+    expect(session.login).not.toHaveBeenCalled()
   })
 })

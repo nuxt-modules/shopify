@@ -22,7 +22,7 @@ const { registerExplorer, shouldEnableExplorer } = await import('#src/setup/expl
 const config = {
   clients: {
     storefront: { apiVersion: API_VERSION, explorer: true },
-    customerAccount: { apiVersion: API_VERSION, explorer: true, proxy: true },
+    customerAccount: { apiVersion: API_VERSION, clientId: 'cid', explorer: true, proxy: true },
     admin: { apiVersion: API_VERSION, explorer: true },
   },
 }
@@ -113,7 +113,13 @@ describe('explorer endpoints', () => {
     const nuxt = { options: { dev: true } }
 
     expect(shouldEnableExplorer(nuxt as never, config as never, ShopifyClientType.CustomerAccount)).toBe(true)
-    expect(shouldEnableExplorer(nuxt as never, { clients: { customerAccount: { explorer: true, proxy: false } } } as never, ShopifyClientType.CustomerAccount)).toBe(false)
+    expect(shouldEnableExplorer(nuxt as never, { clients: { customerAccount: { clientId: 'cid', explorer: true, proxy: false } } } as never, ShopifyClientType.CustomerAccount)).toBe(false)
     expect(shouldEnableExplorer({ options: { dev: false } } as never, config as never, ShopifyClientType.Storefront)).toBe(false)
+  })
+
+  it('offers no customer account explorer while customer accounts are disabled', () => {
+    const nuxt = { options: { dev: true } }
+
+    expect(shouldEnableExplorer(nuxt as never, { clients: { customerAccount: { clientId: '', explorer: true, proxy: true } } } as never, ShopifyClientType.CustomerAccount)).toBe(false)
   })
 })

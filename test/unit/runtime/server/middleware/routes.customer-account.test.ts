@@ -457,3 +457,27 @@ describe('server rendering', () => {
     expect(getResponseHeader(event, 'cache-control')).toBe(cacheControl)
   })
 })
+
+describe('without a client id', () => {
+  beforeEach(() => {
+    configure({ clientId: '', session: {} })
+  })
+
+  it.each([
+    ['GET', '/account/login'],
+    ['GET', '/account/authorize?code=authorization-code&state=state'],
+    ['GET', '/account/refresh'],
+    ['POST', '/account/logout'],
+  ])('leaves %s %s to the app, which answers it with a 404', async (method, path) => {
+    const { event, status, location } = await send(path, { method, headers: { origin: ORIGIN } })
+
+    expect(status).toBe(200)
+    expect(location).toBe('')
+    expect(event.context._shopify).not.toHaveProperty('customerAccount')
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('reports the session as logged out without a session password', async () => {
+    await expect(sessionRoute(createHttpsEvent('__Host-session=sealed', { path: '/account/session' }))).resolves.toEqual({ isLoggedIn: false })
+  })
+})

@@ -6,7 +6,7 @@ import type { ShopifyConfig } from '../../types'
 import { addImports, addPlugin, addRouteMiddleware, addServerImports } from '@nuxt/kit'
 
 import { CUSTOMER_ACCOUNT_PROXY_ROUTE } from '../../runtime/utils/clients/transport'
-import { CUSTOMER_ACCOUNT_SESSION_ROUTE } from '../../runtime/utils/session'
+import { CLIENT_ID_ENV, CUSTOMER_ACCOUNT_SESSION_ROUTE, isCustomerAccountEnabled } from '../../runtime/utils/session'
 import { ShopifyClientType } from '../../schemas'
 import {
   registerClientAsyncImports,
@@ -85,7 +85,13 @@ export default function setupCustomerAccountClient(nuxt: Nuxt, config: ShopifyCo
   registerClientImports(ShopifyClientType.CustomerAccount, resolver)
   registerClientAsyncImports(nuxt, ShopifyClientType.CustomerAccount, resolver)
 
-  if (!config.clients.storefront && !config.i18n?.defaultLocale.country) {
+  const enabled = isCustomerAccountEnabled(config)
+
+  if (!enabled && nuxt.options.dev) {
+    useLogger().info(`No customer account client ID set, so customer accounts are disabled until \`${CLIENT_ID_ENV}\` is set`)
+  }
+
+  if (enabled && !config.clients.storefront && !config.i18n?.defaultLocale.country) {
     useLogger().warn('Customer login needs the locale of each request, and without the storefront client the module can\'t look up your shop\'s default locale. Set `i18n.defaultLocale`')
   }
 
@@ -93,7 +99,7 @@ export default function setupCustomerAccountClient(nuxt: Nuxt, config: ShopifyCo
   registerCustomerAccountRoutes(customerAccount, resolver)
   registerCustomerAccountSession(resolver)
 
-  warnInsecureCustomerAccountDevServer(nuxt)
+  if (enabled) warnInsecureCustomerAccountDevServer(nuxt)
 
   registerStorageMount(nuxt, 'customer-account-token', customerAccount.tokenStorage, resolver)
 }
