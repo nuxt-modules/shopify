@@ -15,6 +15,11 @@ describe('devtools client plugin', () => {
     ['shopify:customer-account:client:response', 'customer-account'],
   ])('sends every `%s` in the browser to the DevTools panel over the dev server, with the page it was sent from', (name, client) => {
     const hooks: Record<string, (params: unknown) => void> = {}
+    const hot = { send: vi.fn() }
+    const request = { client, source: 'browser' }
+
+    vi.stubGlobal('__NUXT_HOT__', hot)
+    toDevtoolsRequest.mockReturnValue(request)
 
     plugin.setup({ hook: (hookName: string, hook: (params: unknown) => void) => void (hooks[hookName] = hook) })
 
@@ -25,6 +30,7 @@ describe('devtools client plugin', () => {
     hooks[name]!(params)
 
     expect(toDevtoolsRequest).toHaveBeenLastCalledWith(client, 'browser', params, '/products/shirt?variant=1')
+    expect(hot.send).toHaveBeenCalledExactlyOnceWith('shopify:devtools:request', request)
     expect(postRequest).not.toHaveBeenCalled()
     expect(Object.keys(hooks)).toHaveLength(2)
   })

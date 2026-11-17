@@ -35,6 +35,17 @@ describe('scanner', () => {
     expect(names(source)).toStrictEqual(['operation:Foo', 'fragment:After'])
   })
 
+  it('reads past object values in variable defaults and directive arguments', () => {
+    const source = `#graphql
+      query Search($filters: [ProductFilter!] = [{ available: true }]) @inContext(buyer: { customerAccessToken: $token }) {
+        search(query: "shirt", productFilters: $filters) { totalCount }
+      }
+      fragment Price on ProductVariant @cost(weights: { amount: 1 }) { price { amount } }
+    `
+
+    expect(names(source)).toStrictEqual(['operation:Search', 'fragment:Price'])
+  })
+
   it('ignores inline type conditions when collecting spreads', () => {
     const source = `{
       media {

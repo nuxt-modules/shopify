@@ -88,13 +88,18 @@ function readName(source: string, index: number) {
 }
 
 function readSelectionSet(source: string, index: number) {
-  while (index < source.length && source[index] !== '{') {
+  let parentheses = 0
+
+  while (index < source.length && (parentheses > 0 || source[index] !== '{')) {
     const skipped = skipIgnored(source, index)
 
     if (skipped !== undefined) {
       index = skipped
       continue
     }
+
+    if (source[index] === '(') parentheses++
+    else if (source[index] === ')') parentheses--
 
     index++
   }

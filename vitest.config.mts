@@ -15,6 +15,7 @@ export default defineConfig({
         'import.meta.dev': 'globalThis.__NUXT_DEV__',
         'import.meta.server': 'globalThis.__NUXT_SERVER__',
         'import.meta.client': 'globalThis.__NUXT_CLIENT__',
+        'import.meta.hot': 'globalThis.__NUXT_HOT__',
       },
     }),
   ],
