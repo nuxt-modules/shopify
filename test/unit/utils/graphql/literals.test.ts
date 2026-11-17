@@ -65,6 +65,15 @@ describe('findFileLiterals', () => {
     }
   })
 
+  it.each(['"', '\''])('reads a script whose attribute value in %s quotes contains a >, such as a generic type', (quote) => {
+    const code = `<script setup lang=${quote}ts${quote} generic=${quote}T extends Record<string, unknown>${quote}>\nconst query = \`#graphql\n  query Shop { shop { name } }\n\`\n</script>\n`
+
+    const literals = findFileLiterals('ProductList.vue', code)
+
+    expect(literals.map(literal => [literal.binding, literal.content])).toStrictEqual([['query', '#graphql\n  query Shop { shop { name } }\n']])
+    expect(code.slice(literals[0]!.start, literals[0]!.end)).toBe(literals[0]!.content)
+  })
+
   it('reads any other file as code', () => {
     const code = 'export const query = `#graphql\n  query Shop { shop { name } }\n`\n'
 
