@@ -8,6 +8,7 @@ import { generateHttpFetch } from '@shopify/graphql-client'
 import { StorefrontApiError, createStorefrontClient, handleShopifyRedirects } from '@shopify/hydrogen'
 
 import { useRuntimeConfig } from '#imports'
+import { shopifyFetch } from '../../../utils/clients/fetch'
 import { createMockStoreDomain, createStorefrontConfig } from '../../../utils/clients/storefront'
 import { createClientLogger, createStoreDomain } from '../../../utils/clients/transport'
 import { getShopifyRequestContext } from '../request-context'
@@ -25,7 +26,7 @@ function createConfiguredFetch(config: ShopifyConfig, onConfigure: ReturnType<ty
 
   const httpFetch = generateHttpFetch({
     clientLogger: createClientLogger(clientConfig?.logger) ?? (() => {}),
-    customFetchApi: (url, init) => globalThis.fetch(url, init),
+    customFetchApi: shopifyFetch,
   })
 
   return (url, init) => {

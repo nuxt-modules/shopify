@@ -9,6 +9,7 @@ import { createStorage } from 'unstorage'
 import { warnUnmountedStorage } from '../../storage'
 import { REQUEST_TIMEOUT_MS } from '../defaults'
 import { createUpstreamError } from '../errors'
+import { shopifyFetch } from '../fetch'
 import { createStoreDomain } from '../transport'
 
 type AdminConfig = NonNullable<NonNullable<ModuleOptions['clients']>['admin']>
@@ -57,7 +58,7 @@ async function fetchAccessToken(
     throw createUpstreamError(502, `Failed to obtain an Admin API access token: ${error}`, error, logger)
   }
 
-  const response = await globalThis.fetch(url, {
+  const response = await shopifyFetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',

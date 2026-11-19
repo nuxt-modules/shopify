@@ -1,6 +1,7 @@
 import type { ShopifyConfig } from '../../../../module'
 
 import { isCustomerAccountEnabled } from '../../session'
+import { shopifyFetch } from '../fetch'
 import { createStoreDomain } from '../transport'
 
 type Logger = {
@@ -21,7 +22,7 @@ export async function resolveShopId(config: ShopifyConfig, base?: ShopifyConfig,
 
   const storeDomain = createStoreDomain(config.name)
 
-  const shopId = await fetch(`${storeDomain}/.well-known/customer-account-api`, { signal: AbortSignal.timeout(LOOKUP_TIMEOUT_MS) })
+  const shopId = await shopifyFetch(`${storeDomain}/.well-known/customer-account-api`, { signal: AbortSignal.timeout(LOOKUP_TIMEOUT_MS) })
     .then(async response => (await response.json() as { graphql_api?: string }).graphql_api)
     .then(apiUrl => apiUrl ? new URL(apiUrl).pathname.split('/')[1] : undefined)
     .catch(() => undefined)

@@ -26,6 +26,9 @@ export default function setupConfig(nuxt: Nuxt, config: ShopifyConfig, resolver:
   nuxt.options.runtimeConfig.shopify = config
 
   nuxt.hook('nitro:init', (nitro) => {
+    // Runs before the other plugins so their Shopify requests use it too. Runtimes other than Node never load undici
+    if (nitro.options.node !== false) nitro.options.plugins.unshift(resolver.resolve('./runtime/server/plugins/dispatcher'))
+
     if (!nitro.options.static) return
 
     const logger = useLogger()

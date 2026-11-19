@@ -86,6 +86,9 @@ importers:
       ufo:
         specifier: ^1.6.4
         version: 1.6.4
+      undici:
+        specifier: ^8.12.4
+        version: 8.12.4
       unstorage:
         specifier: ^1.17.6
         version: 1.17.6(db0@0.3.4(better-sqlite3@13.1.1))(ioredis@5.11.1(supports-color@10.2.2))

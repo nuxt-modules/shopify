@@ -31,14 +31,14 @@ function setup(input: Record<string, unknown> = {}) {
   return { hooks, nuxt }
 }
 
-function initNitro(nitroOptions: { static: boolean, preset: string }, input: Record<string, unknown> = {}) {
+function initNitro(nitroOptions: { static: boolean, preset: string, node?: boolean, plugins?: string[] }, input: Record<string, unknown> = {}) {
   const { hooks, nuxt } = setup(input)
 
   type ClientConfigs = { clients: Record<'storefront' | 'customerAccount', { proxy: boolean }> }
 
   const runtimeConfig = structuredClone(nuxt.options.runtimeConfig) as { shopify: ClientConfigs, _shopify: ClientConfigs, public: { _shopify: ClientConfigs } }
 
-  hooks.get('nitro:init')!({ options: { ...nitroOptions, runtimeConfig } })
+  hooks.get('nitro:init')!({ options: { plugins: [], ...nitroOptions, runtimeConfig } })
 
   return runtimeConfig
 }
@@ -52,6 +52,24 @@ describe('runtime configuration', () => {
     setup()
 
     expect(addNitroPlugin).toHaveBeenCalledExactlyOnceWith('./runtime/server/plugins/config')
+  })
+})
+
+describe('shopify dispatcher', () => {
+  it('is set by the first server plugin on Node presets', () => {
+    const plugins = ['./server/plugins/app']
+
+    initNitro({ static: false, preset: 'vercel', node: true, plugins })
+
+    expect(plugins).toEqual(['./runtime/server/plugins/dispatcher', './server/plugins/app'])
+  })
+
+  it('stays out of presets without Node, which never load undici', () => {
+    const plugins: string[] = []
+
+    initNitro({ static: false, preset: 'cloudflare-module', node: false, plugins })
+
+    expect(plugins).toEqual([])
   })
 })
 

@@ -7,6 +7,7 @@ import { useStorage } from 'nitropack/runtime'
 import { useRuntimeConfig } from '#imports'
 import { MUTATION } from '../../../utils/clients/cache'
 import { REQUEST_TIMEOUT_MS } from '../../../utils/clients/defaults'
+import { shopifyFetch } from '../../../utils/clients/fetch'
 import { warnUnmountedStorage } from '../../../utils/storage'
 import {
   BUYER_IP_HEADER,
@@ -33,7 +34,7 @@ export function createStorefrontServerCache(event: H3Event): CustomFetchApi {
 
   warnUnmountedStorage(storage, base, _shopify?.logger)
 
-  const fetchWithCache = createFetchWithCache({ cache: storage, waitUntil: promise => event.waitUntil(promise) })
+  const fetchWithCache = createFetchWithCache({ cache: storage, waitUntil: promise => event.waitUntil(promise), fetch: shopifyFetch })
 
   return async (url, init = {}) => {
     const headers = new Headers(init.headers)
@@ -43,7 +44,7 @@ export function createStorefrontServerCache(event: H3Event): CustomFetchApi {
 
     const options = preset && cacheConfig?.presets && Object.hasOwn(cacheConfig.presets, preset) ? cacheConfig.presets[preset] : undefined
 
-    if (!options || typeof init.body !== 'string' || MUTATION.test(JSON.parse(init.body).query)) return await fetch(url, { ...init, headers })
+    if (!options || typeof init.body !== 'string' || MUTATION.test(JSON.parse(init.body).query)) return await shopifyFetch(url, { ...init, headers })
 
     for (const name of VISITOR_HEADERS) headers.delete(name)
 

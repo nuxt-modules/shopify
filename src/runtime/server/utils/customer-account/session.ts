@@ -16,6 +16,7 @@ import {
   isCustomerAccountEnabled,
   isUsableSessionPassword,
 } from '../../../utils/session'
+import { shopifyFetch } from '../../../utils/clients/fetch'
 import { getShopifyRequestContext } from '../request-context'
 import { getPublicRequestURL } from '../routes'
 import { createTokenStore } from './tokens'
@@ -64,7 +65,7 @@ export function getHydrogenCustomerSession(config?: ShopifyConfig): CustomerSess
   let session = customerSessions.get(key)
 
   if (!session) {
-    session = createCustomerSession({ shopId, customerAccountApiClientId: customerAccount.clientId })
+    session = createCustomerSession({ shopId, customerAccountApiClientId: customerAccount.clientId, fetch: shopifyFetch })
 
     customerSessions.set(key, session)
   }
