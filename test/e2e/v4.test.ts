@@ -30,7 +30,7 @@ function sendWebhook(secret: string) {
   })
 }
 
-describe('test module with nuxt 4', async () => {
+describe.skipIf(!process.env.NUXT_SHOPIFY_NAME)('test module with nuxt 4', async () => {
   await setup({
     server: true,
     rootDir: playgroundDir,

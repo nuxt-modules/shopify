@@ -60,8 +60,16 @@ jobs:
       - name: Typecheck Module
         run: pnpm run prepare && pnpm run typecheck
 
-      - name: Typecheck All Playgrounds
-        run: pnpm run prepare:playgrounds && pnpm run typecheck:playgrounds
+      - name: Prepare Playgrounds
+        run: pnpm run prepare:playgrounds
+
+      - name: Typecheck Mock Playground
+        run: pnpm run typecheck:playground-v4-mock
+
+      # Forks don't get the store secrets the playground needs to generate its types
+      - name: Typecheck Playground
+        if: env.NUXT_SHOPIFY_NAME != ''
+        run: pnpm run typecheck:playground-v4
 
   knip:
     runs-on: ubuntu-latest

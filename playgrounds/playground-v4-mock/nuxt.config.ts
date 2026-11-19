@@ -7,8 +7,6 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     shopify: {
-      name: '',
-
       clients: {
         storefront: {
           apiVersion: '',
@@ -20,6 +18,8 @@ export default defineNuxtConfig({
   compatibilityDate: '2026-03-15',
 
   shopify: {
+    name: 'mock-shop',
+
     clients: {
       storefront: {
         mock: true,
