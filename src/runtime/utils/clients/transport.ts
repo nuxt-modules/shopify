@@ -58,6 +58,16 @@ export function createClientLogger(logger?: Partial<ConsolaOptions>): Logger | u
   return ({ type, content }) => trace({ type, content: 'requestParams' in content ? { ...content, requestParams: [content.requestParams[0]] } : content })
 }
 
+// Created out here so the timer, which outlives the request, only holds its controller: a closure inside
+// `createTransport` would keep the transport options alive, and with them the request event, for the whole timeout
+function createDeadline() {
+  const deadline = new AbortController()
+
+  setTimeout(() => deadline.abort(new DOMException('The operation was aborted due to timeout', 'TimeoutError')), REQUEST_TIMEOUT_MS).unref?.()
+
+  return deadline.signal
+}
+
 export function createTransport<Operations extends AllOperations = AllOperations, Cache extends boolean | undefined = undefined>(
   config: ShopifyApiClientConfig,
   transportOptions: { normalize?: boolean, fetch?: CustomFetchApi, onResponseHeaders?: (headers: Headers) => unknown } = {},
@@ -93,11 +103,9 @@ export function createTransport<Operations extends AllOperations = AllOperations
   const customFetchApi: CustomFetchApi | undefined = import.meta.client
     ? transportOptions.fetch
     : async (url, init) => {
-      const deadline = new AbortController()
+      const deadline = createDeadline()
 
-      setTimeout(() => deadline.abort(new DOMException('The operation was aborted due to timeout', 'TimeoutError')), REQUEST_TIMEOUT_MS).unref?.()
-
-      const response = await fetchApi(url, { ...init, signal: init?.signal ? AbortSignal.any([init.signal, deadline.signal]) : deadline.signal })
+      const response = await fetchApi(url, { ...init, signal: init?.signal ? AbortSignal.any([init.signal, deadline]) : deadline })
 
       await transportOptions.onResponseHeaders?.(response.headers)
 
