@@ -423,6 +423,32 @@ describe('request timeout', () => {
     expect(pages.slice(0, -1).filter(page => page.deref())).toHaveLength(0)
   })
 
+  it('lets go of the event of a finished request, which the deadline doesn\'t need', async () => {
+    setFlagsFromString('--expose-gc')
+
+    const collectGarbage = runInNewContext('gc') as () => void
+
+    vi.stubGlobal('fetch', async () => Response.json({ data: { shop: { name: 'Shop' } } }))
+
+    const events: Array<WeakRef<object>> = []
+
+    for (let i = 0; i < 20; i++) {
+      const event = createTestEvent()
+
+      await createStorefrontApiClient(storefront, { event, throwOnErrors: false }).request('query Shop { shop { name } }')
+
+      events.push(new WeakRef(event))
+    }
+
+    for (let i = 0; i < 3; i++) {
+      collectGarbage()
+
+      await new Promise(resolve => setTimeout(resolve, 10))
+    }
+
+    expect(events.slice(0, -1).filter(event => event.deref())).toHaveLength(0)
+  })
+
   it('keeps working where timers are plain numbers, as on Cloudflare Workers before the 2026-02-10 compatibility date', async () => {
     vi.stubGlobal('setTimeout', () => 1)
     vi.stubGlobal('fetch', async () => Response.json({ data: { shop: { name: 'Shop' } } }))
