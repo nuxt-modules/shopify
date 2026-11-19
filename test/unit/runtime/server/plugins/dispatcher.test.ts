@@ -51,6 +51,9 @@ describe('dispatcher plugin', () => {
   it('keeps Shopify requests on HTTP/1.1 when Node\'s fetch negotiates HTTP/2', async () => {
     stubUndiciVersion('8.12.2')
 
+    vi.stubEnv('NODE_USE_ENV_PROXY', undefined)
+    vi.stubEnv('NODE_OPTIONS', undefined)
+
     plugin()
 
     expect(await getShopifyDispatcher()).toBeInstanceOf(Agent)
@@ -77,6 +80,8 @@ describe('dispatcher plugin', () => {
 
     const { port } = proxy.address() as { port: number }
 
+    for (const name of ['https_proxy', 'NO_PROXY', 'no_proxy', 'NODE_USE_ENV_PROXY', 'NODE_OPTIONS']) vi.stubEnv(name, undefined)
+
     vi.stubEnv('HTTPS_PROXY', `http://127.0.0.1:${port}`)
 
     for (const [name, value] of Object.entries(env)) vi.stubEnv(name, value)
@@ -91,6 +96,33 @@ describe('dispatcher plugin', () => {
     await expect(dispatcher.request({ origin: 'https://shop.myshopify.com', path: '/', method: 'GET' })).rejects.toThrow()
 
     expect(tunnels).toEqual(['shop.myshopify.com:443'])
+  })
+
+  it.each([
+    { NODE_OPTIONS: '--use-env-proxy --no-use-env-proxy' },
+    { NODE_OPTIONS: '--use-env-proxy', execArgv: ['--no-use-env-proxy'] },
+    { NODE_USE_ENV_PROXY: '1', execArgv: ['--no-use-env-proxy'] },
+  ])('connects directly when a later flag turns Node\'s env proxy off with %o', async ({ execArgv, ...env }) => {
+    stubUndiciVersion('8.12.2')
+
+    vi.stubEnv('NODE_USE_ENV_PROXY', undefined)
+    vi.stubEnv('NODE_OPTIONS', undefined)
+
+    for (const [name, value] of Object.entries(env)) vi.stubEnv(name, value)
+
+    if (execArgv) {
+      const original = process.execArgv
+
+      process.execArgv = execArgv
+      onTestFinished(() => void (process.execArgv = original))
+    }
+
+    plugin()
+
+    const dispatcher = await getShopifyDispatcher()
+
+    expect(dispatcher).toBeInstanceOf(Agent)
+    expect(dispatcher).not.toBeInstanceOf(EnvHttpProxyAgent)
   })
 
   it.each(['7.29.0', undefined])('leaves Shopify requests alone when Node\'s fetch is undici %s', async (version) => {

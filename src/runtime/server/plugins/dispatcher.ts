@@ -14,11 +14,14 @@ function negotiatesHttp2() {
   return !!undici && Number.parseInt(undici) >= 8
 }
 
-// Node's `fetch` goes through `HTTP_PROXY` and `HTTPS_PROXY` when this is on, so Shopify requests do too
+// Node's `fetch` goes through `HTTP_PROXY` and `HTTPS_PROXY` when this is on, so Shopify requests do too. Like Node, the
+// last flag wins, command line flags come after `NODE_OPTIONS`, and a flag overrides `NODE_USE_ENV_PROXY`
 function usesEnvProxy() {
   const { env, execArgv } = globalThis.process
 
-  return env.NODE_USE_ENV_PROXY === '1' || [...execArgv, ...env.NODE_OPTIONS?.split(/\s+/) ?? []].includes('--use-env-proxy')
+  const flag = [...env.NODE_OPTIONS?.split(/\s+/) ?? [], ...execArgv].findLast(arg => arg === '--use-env-proxy' || arg === '--no-use-env-proxy')
+
+  return flag ? flag === '--use-env-proxy' : env.NODE_USE_ENV_PROXY === '1'
 }
 
 export default defineNitroPlugin(() => {
