@@ -4,7 +4,7 @@ import { once } from 'node:events'
 import { createServer } from 'node:http'
 
 import { Agent, EnvHttpProxyAgent } from 'undici'
-import { afterEach, describe, expect, it, onTestFinished, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest'
 
 import { getShopifyDispatcher } from '#src/runtime/utils/clients/fetch'
 
@@ -40,8 +40,15 @@ function stubUndiciVersion(version: string | undefined) {
   Object.defineProperty(process.versions, 'undici', { ...undiciVersion, value: version })
 }
 
+const execArgv = process.execArgv
+
 describe('dispatcher plugin', () => {
+  beforeEach(() => {
+    process.execArgv = []
+  })
+
   afterEach(() => {
+    process.execArgv = execArgv
     Object.defineProperty(process.versions, 'undici', undiciVersion)
     Reflect.deleteProperty(globalThis, Symbol.for('nuxt-shopify:dispatcher'))
     agentOptions.length = 0
@@ -102,7 +109,7 @@ describe('dispatcher plugin', () => {
     { NODE_OPTIONS: '--use-env-proxy --no-use-env-proxy' },
     { NODE_OPTIONS: '--use-env-proxy', execArgv: ['--no-use-env-proxy'] },
     { NODE_USE_ENV_PROXY: '1', execArgv: ['--no-use-env-proxy'] },
-  ])('connects directly when a later flag turns Node\'s env proxy off with %o', async ({ execArgv, ...env }) => {
+  ])('connects directly when a later flag turns Node\'s env proxy off with %o', async ({ execArgv: args, ...env }) => {
     stubUndiciVersion('8.12.2')
 
     vi.stubEnv('NODE_USE_ENV_PROXY', undefined)
@@ -110,12 +117,7 @@ describe('dispatcher plugin', () => {
 
     for (const [name, value] of Object.entries(env)) vi.stubEnv(name, value)
 
-    if (execArgv) {
-      const original = process.execArgv
-
-      process.execArgv = execArgv
-      onTestFinished(() => void (process.execArgv = original))
-    }
+    if (args) process.execArgv = args
 
     plugin()
 
