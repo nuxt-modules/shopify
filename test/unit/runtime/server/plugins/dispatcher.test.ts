@@ -1,5 +1,10 @@
-import { Agent } from 'undici'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import type { Dispatcher } from 'undici'
+
+import { once } from 'node:events'
+import { createServer } from 'node:http'
+
+import { Agent, EnvHttpProxyAgent } from 'undici'
+import { afterEach, describe, expect, it, onTestFinished, vi } from 'vitest'
 
 import { getShopifyDispatcher } from '#src/runtime/utils/clients/fetch'
 
@@ -17,7 +22,14 @@ vi.mock('undici', async (importOriginal) => {
     }
   }
 
-  return { ...undici, Agent: SpiedAgent }
+  class SpiedEnvHttpProxyAgent extends undici.EnvHttpProxyAgent {
+    constructor(options?: ConstructorParameters<typeof undici.EnvHttpProxyAgent>[0]) {
+      super(options)
+      agentOptions.push(options)
+    }
+  }
+
+  return { ...undici, Agent: SpiedAgent, EnvHttpProxyAgent: SpiedEnvHttpProxyAgent }
 })
 
 const plugin = (await import('#src/runtime/server/plugins/dispatcher')).default as unknown as () => void
@@ -33,6 +45,7 @@ describe('dispatcher plugin', () => {
     Object.defineProperty(process.versions, 'undici', undiciVersion)
     Reflect.deleteProperty(globalThis, Symbol.for('nuxt-shopify:dispatcher'))
     agentOptions.length = 0
+    vi.unstubAllEnvs()
   })
 
   it('keeps Shopify requests on HTTP/1.1 when Node\'s fetch negotiates HTTP/2', async () => {
@@ -42,6 +55,42 @@ describe('dispatcher plugin', () => {
 
     expect(await getShopifyDispatcher()).toBeInstanceOf(Agent)
     expect(agentOptions).toEqual([{ allowH2: false, connections: 12 }])
+  })
+
+  it.each([
+    { NODE_USE_ENV_PROXY: '1' },
+    { NODE_OPTIONS: '--max-old-space-size=4096 --use-env-proxy' },
+  ])('keeps going through Node\'s env proxy with %o', async (env) => {
+    stubUndiciVersion('8.12.2')
+
+    const proxy = createServer()
+    const tunnels: string[] = []
+
+    proxy.on('connect', (request, socket) => {
+      tunnels.push(request.url!)
+      socket.end('HTTP/1.1 502 Bad Gateway\r\n\r\n')
+    })
+
+    proxy.listen(0, '127.0.0.1')
+    await once(proxy, 'listening')
+    onTestFinished(() => void proxy.close())
+
+    const { port } = proxy.address() as { port: number }
+
+    vi.stubEnv('HTTPS_PROXY', `http://127.0.0.1:${port}`)
+
+    for (const [name, value] of Object.entries(env)) vi.stubEnv(name, value)
+
+    plugin()
+
+    const dispatcher = await getShopifyDispatcher() as Dispatcher
+
+    expect(dispatcher).toBeInstanceOf(EnvHttpProxyAgent)
+    expect(agentOptions).toEqual([{ allowH2: false, connections: 12 }])
+
+    await expect(dispatcher.request({ origin: 'https://shop.myshopify.com', path: '/', method: 'GET' })).rejects.toThrow()
+
+    expect(tunnels).toEqual(['shop.myshopify.com:443'])
   })
 
   it.each(['7.29.0', undefined])('leaves Shopify requests alone when Node\'s fetch is undici %s', async (version) => {

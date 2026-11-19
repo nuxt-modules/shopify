@@ -14,8 +14,19 @@ function negotiatesHttp2() {
   return !!undici && Number.parseInt(undici) >= 8
 }
 
+// Node's `fetch` goes through `HTTP_PROXY` and `HTTPS_PROXY` when this is on, so Shopify requests do too
+function usesEnvProxy() {
+  const { env, execArgv } = globalThis.process
+
+  return env.NODE_USE_ENV_PROXY === '1' || [...execArgv, ...env.NODE_OPTIONS?.split(/\s+/) ?? []].includes('--use-env-proxy')
+}
+
 export default defineNitroPlugin(() => {
   if (!negotiatesHttp2()) return
 
-  setShopifyDispatcher(() => import('undici').then(({ Agent }) => new Agent({ allowH2: false, connections: MAX_CONNECTIONS })))
+  setShopifyDispatcher(() => import('undici').then(({ Agent, EnvHttpProxyAgent }) => {
+    const options = { allowH2: false, connections: MAX_CONNECTIONS }
+
+    return usesEnvProxy() ? new EnvHttpProxyAgent(options) : new Agent(options)
+  }))
 })
