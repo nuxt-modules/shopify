@@ -74,7 +74,16 @@ describe('shopifyFetch', () => {
 
     await shopifyFetch('https://shop.myshopify.com/api/graphql.json')
 
-    expect(fetchMock).toHaveBeenCalledExactlyOnceWith('https://shop.myshopify.com/api/graphql.json', undefined)
+    setShopifyDispatcher(() => {
+      throw new Error('Cannot find package \'undici\'')
+    })
+
+    await shopifyFetch('https://shop.myshopify.com/api/graphql.json')
+
+    expect(fetchMock.mock.calls).toEqual([
+      ['https://shop.myshopify.com/api/graphql.json', undefined],
+      ['https://shop.myshopify.com/api/graphql.json', undefined],
+    ])
   })
 
   it('leaves requests unchanged in the browser', async () => {

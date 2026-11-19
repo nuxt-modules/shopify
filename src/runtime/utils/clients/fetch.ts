@@ -12,7 +12,7 @@ type DispatcherGlobal = typeof globalThis & { [DISPATCHER]?: () => Promise<Dispa
 export function setShopifyDispatcher(load: () => Promise<Dispatcher>) {
   let dispatcher: Promise<Dispatcher | undefined> | undefined
 
-  (globalThis as DispatcherGlobal)[DISPATCHER] = () => dispatcher ??= load().catch(() => undefined)
+  (globalThis as DispatcherGlobal)[DISPATCHER] = () => dispatcher ??= Promise.resolve().then(load).catch(() => undefined)
 }
 
 /**
