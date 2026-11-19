@@ -19,6 +19,7 @@ import { createConsola } from 'consola'
 import { MODULE_VERSION } from '../version'
 import { normalizeOperation } from '../graphql/normalize'
 import { REQUEST_TIMEOUT_MS } from './defaults'
+import { shopifyFetch } from './fetch'
 
 export const SERVER_CACHE_HEADER = 'X-Shopify-Server-Cache'
 export const PRIVATE_TOKEN_HEADER = 'Shopify-Storefront-Private-Token'
@@ -98,7 +99,7 @@ export function createTransport<Operations extends AllOperations = AllOperations
     },
   } satisfies ShopifyApiClientConfig
 
-  const fetchApi: CustomFetchApi = transportOptions.fetch ?? ((url, init) => globalThis.fetch(url, init))
+  const fetchApi: CustomFetchApi = transportOptions.fetch ?? shopifyFetch
 
   const customFetchApi: CustomFetchApi | undefined = import.meta.client
     ? transportOptions.fetch
