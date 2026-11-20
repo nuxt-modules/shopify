@@ -13,7 +13,7 @@ import { createTestEvent } from '#test/helpers/event'
 
 const runtimeConfig: { _shopify?: Record<string, unknown> } = {}
 
-vi.mock('#imports', () => ({ useRuntimeConfig: () => runtimeConfig }))
+vi.mock('nitropack/runtime', () => ({ useRuntimeConfig: () => runtimeConfig }))
 
 const { getPublicRequestURL, isShopifyApiProxyPath, isShopifyEndpoint, toShopifyRequest }
   = await import('#src/runtime/server/utils/routes')

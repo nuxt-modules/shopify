@@ -1,6 +1,6 @@
 import { createError, defineEventHandler, getRouterParam, setResponseHeader } from 'h3'
 
-import { useRuntimeConfig } from '#imports'
+import { useRuntimeConfig } from 'nitropack/runtime'
 import { assertSameOrigin } from '../../utils/csrf'
 import { readGraphqlBody } from '../../utils/graphql'
 import { createCustomerAccountConfig } from '../../../utils/clients/customer-account'

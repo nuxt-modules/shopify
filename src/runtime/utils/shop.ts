@@ -3,8 +3,6 @@ import type { ShopifyScriptsI18n } from '@shopify/hydrogen'
 
 import type { PublicShopifyConfig, ShopifyScriptsShopContext } from '../../module'
 
-import { createLogger } from './log'
-
 type ShopConfig = Pick<PublicShopifyConfig, 'name' | 'shopId' | 'storefrontId' | 'i18n' | 'analytics'>
 
 const SHOP_QUERY = `#graphql
@@ -41,7 +39,8 @@ type ShopResolution = {
   failed: boolean
 }
 
-export function createShopResolver(config: ShopConfig, getClient?: () => ShopLookupClient | Promise<ShopLookupClient>) {
+// The logger is passed in: this file runs in the app and in the server, which each read their config differently
+export function createShopResolver(config: ShopConfig, logger: { warn(message: string, ...args: unknown[]): void }, getClient?: () => ShopLookupClient | Promise<ShopLookupClient>) {
   const cache = new Map<string, Promise<ShopifyScriptsShopContext>>()
 
   const myshopifyDomain = `${config.name}.myshopify.com`
@@ -76,7 +75,7 @@ export function createShopResolver(config: ShopConfig, getClient?: () => ShopLoo
       catch (error) {
         failed = true
 
-        if (!warned) createLogger().warn('Could not look up the shop and its default locale through the Storefront API, so Shopify\'s scripts run without them. Set `shopId` and an `i18n.defaultLocale` with its `currency` to skip the lookup:', error)
+        if (!warned) logger.warn('Could not look up the shop and its default locale through the Storefront API, so Shopify\'s scripts run without them. Set `shopId` and an `i18n.defaultLocale` with its `currency` to skip the lookup:', error)
 
         warned = true
       }

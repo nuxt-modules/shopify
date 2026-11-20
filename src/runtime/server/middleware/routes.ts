@@ -1,7 +1,7 @@
 import { createCartServerHandlers, createPredictiveSearchServerHandlers, handleShopifyRoutes } from '@shopify/hydrogen'
 import { defineEventHandler, getRequestURL, sendWebResponse } from 'h3'
 
-import { useRuntimeConfig } from '#imports'
+import { useRuntimeConfig } from 'nitropack/runtime'
 import { isCustomerAccountEnabled } from '../../utils/session'
 import { assertSameOrigin } from '../utils/csrf'
 import { customerAccountContext } from '../utils/customer-account/auth'

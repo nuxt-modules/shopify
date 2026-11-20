@@ -2,12 +2,12 @@ import type { CustomFetchApi } from '@shopify/graphql-client'
 import type { ShopifyRequestContext, ShopifyRequestContextWithBuyerIp, StorefrontClient } from '@shopify/hydrogen'
 import type { H3Event } from 'h3'
 
+import { useRuntimeConfig } from 'nitropack/runtime'
 import type { ShopifyConfig } from '../../../../module'
 
 import { generateHttpFetch } from '@shopify/graphql-client'
 import { StorefrontApiError, createStorefrontClient, handleShopifyRedirects } from '@shopify/hydrogen'
 
-import { useRuntimeConfig } from '#imports'
 import { warnAboutDeprecations } from '../../../utils/clients/errors'
 import { shopifyFetch } from '../../../utils/clients/fetch'
 import { createMockStoreDomain, createStorefrontConfig } from '../../../utils/clients/storefront'

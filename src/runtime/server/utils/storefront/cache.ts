@@ -2,9 +2,8 @@ import type { CustomFetchApi } from '@shopify/graphql-client'
 import type { H3Event } from 'h3'
 
 import { Cache, createFetchWithCache } from '@shopify/hydrogen'
-import { useStorage } from 'nitropack/runtime'
+import { useRuntimeConfig, useStorage } from 'nitropack/runtime'
 
-import { useRuntimeConfig } from '#imports'
 import { MUTATION } from '../../../utils/clients/cache'
 import { REQUEST_TIMEOUT_MS } from '../../../utils/clients/defaults'
 import { shopifyFetch } from '../../../utils/clients/fetch'

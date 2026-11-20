@@ -1,8 +1,7 @@
 import type { AdminApiClient } from '@nuxtjs/shopify/admin'
 import type { H3Event } from 'h3'
 
-import { useNitroApp } from 'nitropack/runtime'
-import { useRuntimeConfig } from '#imports'
+import { useNitroApp, useRuntimeConfig } from 'nitropack/runtime'
 import { createAdminApiClient } from '../../../utils/clients/admin'
 import { tryUseEvent } from '../event'
 

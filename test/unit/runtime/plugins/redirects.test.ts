@@ -29,6 +29,7 @@ vi.mock('#imports', () => ({
 }))
 
 vi.mock('nitropack/runtime', () => ({
+  useRuntimeConfig: () => runtimeConfig,
   getRouteRules: () => ({}),
   useNitroApp: () => ({ hooks: { callHook: vi.fn(), callHookWith: vi.fn() } }),
   useStorage: vi.fn(),

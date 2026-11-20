@@ -3,19 +3,13 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { API_VERSION } from '#test/helpers/api-version'
 import { createTestEvent, getResponseHeader, getSetCookieHeaders } from '#test/helpers/event'
-import { createLogReporter, createLoggerStub } from '#test/helpers/logger'
+import { createLogReporter } from '#test/helpers/logger'
 
 const runtimeConfig: { _shopify?: Record<string, unknown> } = {}
 
-const { warn } = vi.hoisted(() => ({ warn: vi.fn() }))
-
 vi.mock('#imports', () => ({ useRuntimeConfig: () => runtimeConfig }))
 
-vi.mock('#src/runtime/utils/log', () => ({
-  createLogger: () => createLoggerStub({ warn }),
-}))
-
-vi.mock('nitropack/runtime', () => ({ useNitroApp: () => ({ hooks: { callHook: vi.fn(), callHookWith: vi.fn() } }) }))
+vi.mock('nitropack/runtime', () => ({ useRuntimeConfig: () => runtimeConfig, useNitroApp: () => ({ hooks: { callHook: vi.fn(), callHookWith: vi.fn() } }) }))
 
 const { applyShopifyResponseHeaders, captureSubrequestHeaders, getShopifyRequestContext } = await import('#src/runtime/server/utils/request-context')
 const { createHydrogenStorefrontClient } = await import('#src/runtime/server/utils/storefront/hydrogen')
@@ -47,7 +41,6 @@ describe('request locale', () => {
 
   afterEach(() => {
     vi.unstubAllGlobals()
-    warn.mockClear()
   })
 
   const unset: [string, Record<string, unknown>][] = [
@@ -62,7 +55,6 @@ describe('request locale', () => {
       .rejects.toMatchObject({ statusCode: 502, message: expect.stringContaining('`i18n.defaultLocale`') })
 
     expect(fetchMock).not.toHaveBeenCalled()
-    expect(warn).not.toHaveBeenCalled()
   })
 
   it.each(unset)('looks up the shop\'s default locale with %s', async (_, i18n) => {
@@ -100,8 +92,9 @@ describe('request locale', () => {
     await expect(getShopifyRequestContext(event())).rejects.toMatchObject({ statusCode: 502 })
 
     expect(fetchMock).toHaveBeenCalledTimes(2)
-    expect(log).not.toHaveBeenCalled()
-    expect(warn).toHaveBeenCalledOnce()
+    // A single warning through the configured server logger, not an error per request
+    expect(log).toHaveBeenCalledOnce()
+    expect(log.mock.calls[0]![0]).toMatchObject({ type: 'warn', tag: 'shopify', args: [expect.stringContaining('`i18n.defaultLocale` with its `currency`'), expect.anything()] })
   })
 
   it.each([

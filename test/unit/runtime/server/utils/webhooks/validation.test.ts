@@ -8,7 +8,7 @@ const SECRET = 'shpss_super_secret'
 
 const runtimeConfig: { _shopify?: { webhooks?: { secret?: string }, clients?: { admin?: { clientSecret?: string } } } } = {}
 
-vi.mock('#imports', async () => ({
+vi.mock('nitropack/runtime', async () => ({
   ...(await vi.importActual<Record<string, unknown>>('#test/helpers/stubs')),
   useRuntimeConfig: () => runtimeConfig,
 }))
