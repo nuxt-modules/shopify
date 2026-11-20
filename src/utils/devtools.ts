@@ -1,7 +1,7 @@
 import type { Nuxt } from '@nuxt/schema'
 import type { JsonRenderSpec } from '@vitejs/devtools/json-render'
 
-import type { ShopifyDevtoolsRequest } from '../runtime/utils/devtools'
+import type { ShopifyDevtoolsAnalyticsEvent, ShopifyDevtoolsConsent, ShopifyDevtoolsRequest } from '../runtime/utils/devtools'
 import type { ShopifyConfig } from '../types'
 
 import { readFile } from 'node:fs/promises'
@@ -22,6 +22,10 @@ const DEFINITION_KEYWORD = /^\w+/
 
 const REQUEST_SOURCES = { ssr: 'SSR', server: 'Server route', browser: 'Browser' }
 
+const CACHE_STATUSES = { hit: 'Server hit', miss: 'Server miss', bypass: 'Not cached', browser: 'Browser hit' }
+
+const CONSENT_CHOICES = [['analytics', 'Analytics'], ['marketing', 'Marketing'], ['preferences', 'Preferences'], ['saleOfData', 'Sale of data']] as const
+
 const MAX_HEIGHT = 320
 
 const REQUEST_COLUMNS = [
@@ -31,8 +35,15 @@ const REQUEST_COLUMNS = [
   { key: 'source', label: 'Source' },
   { key: 'page', label: 'Page' },
   { key: 'status', label: 'Status' },
+  { key: 'cache', label: 'Cache' },
   { key: 'duration', label: 'Duration' },
 ] as const
+
+const ANALYTICS_COLUMNS = [
+  { key: 'time', label: 'Time' },
+  { key: 'event', label: 'Event' },
+  { key: 'page', label: 'Page' },
+]
 
 const OPERATION_COLUMNS = [
   { key: 'api', label: 'API' },
@@ -50,6 +61,8 @@ const FRAGMENT_COLUMNS = [
 type Elements = JsonRenderSpec['elements']
 
 type DevtoolsRequest = ShopifyDevtoolsRequest & { id: number }
+
+type DevtoolsAnalyticsEvent = ShopifyDevtoolsAnalyticsEvent & { id: number }
 
 type Definition = {
   api: string
@@ -71,6 +84,9 @@ export type PanelState = {
   requests: DevtoolsRequest[]
   selected?: DevtoolsRequest
   definitions: Definition[]
+  analytics: DevtoolsAnalyticsEvent[]
+  selectedAnalyticsEvent?: DevtoolsAnalyticsEvent
+  consent?: ShopifyDevtoolsConsent
 }
 
 function toRow(request: DevtoolsRequest) {
@@ -82,6 +98,7 @@ function toRow(request: DevtoolsRequest) {
     source: REQUEST_SOURCES[request.source],
     page: request.page,
     status: request.errors ? 'Error' : 'OK',
+    cache: request.cache && CACHE_STATUSES[request.cache],
     duration: request.duration === undefined ? undefined : `${Math.round(request.duration)} ms`,
   }
 }
@@ -112,12 +129,36 @@ function createRequestDetails(request: DevtoolsRequest, explorerDocks: ExplorerD
     'request-details': {
       type: 'Card',
       props: { title: `${request.operation} · ${row.api} API` },
-      children: ['request-summary', ...(explorer ? ['request-explorer'] : []), 'request-tabs'],
+      children: ['request-summary', ...(request.deprecation ? ['request-deprecation'] : []), ...(explorer ? ['request-explorer'] : []), 'request-tabs'],
     },
     'request-summary': {
       type: 'KeyValueTable',
-      props: { data: Object.fromEntries(REQUEST_COLUMNS.filter(({ key }) => row[key]).map(({ key, label }) => [label, row[key]])) },
+      props: {
+        data: {
+          ...Object.fromEntries(REQUEST_COLUMNS.filter(({ key }) => row[key]).map(({ key, label }) => [label, row[key]])),
+          ...(request.processingTime === undefined ? {} : { 'Shopify processing': `${Math.round(request.processingTime)} ms` }),
+          ...(request.apiVersion ? { 'API version': request.apiVersion } : {}),
+          ...(request.requestId ? { 'Request ID': request.requestId } : {}),
+        },
+      },
     },
+    ...(request.deprecation
+      ? {
+          'request-deprecation': {
+            type: 'Stack',
+            props: { direction: 'row', align: 'center', gap: 8, wrap: true },
+            children: ['request-deprecation-text', 'request-deprecation-link'],
+          },
+          'request-deprecation-text': {
+            type: 'Text',
+            props: { text: 'Shopify flagged this request for using deprecated API features.', color: 'warning' },
+          },
+          'request-deprecation-link': {
+            type: 'Link',
+            props: { href: request.deprecation, label: 'Learn more', icon: 'ph:arrow-square-out', external: true },
+          },
+        }
+      : {}),
     ...(explorer
       ? {
           'request-explorer': {
@@ -226,6 +267,64 @@ function createFragmentsTab(fragments: Definition[]): Elements {
   }
 }
 
+function createAnalyticsTab(consentMode: string, { analytics, selectedAnalyticsEvent, consent }: PanelState): Elements {
+  return {
+    'analytics': {
+      type: 'Stack',
+      props: { direction: 'column', gap: 12, padding: 12 },
+      children: ['analytics-toolbar', 'analytics-consent', 'analytics-table', ...(selectedAnalyticsEvent ? ['analytics-details'] : [])],
+    },
+    'analytics-toolbar': {
+      type: 'Stack',
+      props: { direction: 'row', align: 'center', justify: 'between', gap: 12, wrap: true },
+      children: ['analytics-hint', 'analytics-clear'],
+    },
+    'analytics-hint': {
+      type: 'Text',
+      props: { text: 'The analytics events that tracking receives in the browser, once the visitor allows tracking. Click one to see its payload.', variant: 'caption', color: 'muted' },
+    },
+    'analytics-clear': {
+      type: 'Button',
+      props: { label: 'Clear', icon: 'ph:trash', variant: 'ghost', disabled: !analytics.length },
+      on: { press: { action: 'shopify:clear-analytics' } },
+    },
+    'analytics-consent': {
+      type: 'KeyValueTable',
+      props: {
+        data: {
+          'Consent mode': consentMode,
+          ...(consent?.loaded
+            ? Object.fromEntries(CONSENT_CHOICES.map(([key, label]) => [label, consent[key] ? 'Allowed' : 'Not allowed']))
+            : { 'Visitor consent': 'Not loaded yet' }),
+        },
+      },
+    },
+    'analytics-table': {
+      type: 'DataTable',
+      props: {
+        columns: ANALYTICS_COLUMNS,
+        rows: analytics.map(({ id, time, event, page }) => ({ id, time: new Date(time).toLocaleTimeString(), event, page })),
+        height: MAX_HEIGHT,
+        value: { $bindState: '/analytics' },
+      },
+      on: { rowClick: { action: 'shopify:select-analytics-event', params: { id: { $state: '/analytics/row/id' } } } },
+    },
+    ...(selectedAnalyticsEvent
+      ? {
+          'analytics-details': {
+            type: 'Card',
+            props: { title: selectedAnalyticsEvent.event },
+            children: ['analytics-payload'],
+          },
+          'analytics-payload': {
+            type: 'Tree',
+            props: { data: selectedAnalyticsEvent.payload },
+          },
+        }
+      : {}),
+  }
+}
+
 function createConfigTab(config: ShopifyConfig): Elements {
   return {
     'config': {
@@ -272,14 +371,16 @@ export function createPanel(config: ShopifyConfig, explorerDocks: ExplorerDock[]
               badgeVariant: failures.length ? 'danger' : undefined,
             },
             ...(fragments.length ? [{ value: 'fragments', label: 'Fragments', badge: String(fragments.length) }] : []),
+            ...(config.analytics ? [{ value: 'analytics', label: 'Analytics', badge: state.analytics.length ? String(state.analytics.length) : undefined }] : []),
             { value: 'config', label: 'Config' },
           ],
         },
-        children: ['requests', 'operations', ...(fragments.length ? ['fragments'] : []), 'config'],
+        children: ['requests', 'operations', ...(fragments.length ? ['fragments'] : []), ...(config.analytics ? ['analytics'] : []), 'config'],
       },
       ...createRequestsTab(explorerDocks, state),
       ...createOperationsTab(operations, failures),
       ...(fragments.length ? createFragmentsTab(fragments) : {}),
+      ...(config.analytics ? createAnalyticsTab(config.analytics.consent.mode, state) : {}),
       ...createConfigTab(config),
     },
   }

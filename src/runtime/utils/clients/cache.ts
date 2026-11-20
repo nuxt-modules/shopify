@@ -22,6 +22,8 @@ type RequestCache = {
 
 export const MUTATION = /\bmutation\b/
 
+export const BROWSER_CACHE_NAME = 'nuxt-shopify'
+
 function fromPreset(name: string, cachePresets?: CachePresets) {
   const preset = cachePresets?.[name]
 
@@ -100,7 +102,13 @@ export async function requestWithCache<
   if (storage && cacheKey) {
     const cached = await storage.getItemRaw(cacheKey) as ClientResponse<ReturnData<Operation, Operations>> | null
 
-    if (cached) return detach(cached)
+    if (cached) {
+      const headers = new Headers(cached.headers)
+
+      headers.append('Cache-Status', `${BROWSER_CACHE_NAME}; hit`)
+
+      return { ...detach(cached), headers }
+    }
   }
 
   const response = await request(operation, {

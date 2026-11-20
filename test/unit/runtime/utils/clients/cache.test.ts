@@ -5,7 +5,17 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createStorage as createLruStorage } from 'unstorage'
 
 import lruCacheDriver from '#src/runtime/utils/lru-driver'
-import { requestWithCache } from '#src/runtime/utils/clients/cache'
+
+type CachedResponse = { data?: unknown, errors?: unknown, headers?: Headers }
+
+type CachedRequest = (...args: unknown[]) => Promise<CachedResponse>
+
+const requestWithCache = (await import('#src/runtime/utils/clients/cache')).requestWithCache as unknown as (
+  cache: { storage?: Storage<StorageValue>, presets: Record<string, object>, serverCache: boolean },
+  request: CachedRequest,
+  operation: string,
+  options?: Record<string, unknown>,
+) => Promise<CachedResponse>
 
 const presets = {
   short: { maxAge: 2, staleWhileRevalidate: 3 },
@@ -35,11 +45,11 @@ function createRequest(data: unknown = { product: { id: '1' } }) {
 
 function cached(
   storage: Storage<StorageValue> | undefined,
-  request: unknown,
+  request: CachedRequest,
   query: string,
   options: Record<string, unknown> = {},
 ) {
-  return requestWithCache({ storage, presets, serverCache: true }, request as never, query as never, options as never)
+  return requestWithCache({ storage, presets, serverCache: true }, request, query, options)
 }
 
 function requestOptions(request: ReturnType<typeof createRequest>) {
@@ -70,7 +80,7 @@ describe('browser cache', () => {
       storage: createStorage(),
       presets: { tiny: { maxAge: { minutes: 1 }, staleWhileRevalidate: { seconds: 30 }, staleIfError: 600 } },
       serverCache: true,
-    }, createRequest() as never, QUERY as never, { cache: 'tiny' } as never)
+    }, createRequest(), QUERY, { cache: 'tiny' })
 
     expect([...ttls.values()]).toStrictEqual([{ ttl: 90 }])
   })
@@ -138,7 +148,8 @@ describe('browser cache', () => {
     const second = await cached(storage, request, QUERY, { cache: 'short', signal: new AbortController().signal })
 
     expect(request).toHaveBeenCalledTimes(1)
-    expect(second).toStrictEqual(first)
+    expect(second.data).toStrictEqual(first.data)
+    expect(second.headers?.get('cache-status')).toBe('nuxt-shopify; hit')
   })
 
   it('passes an abort signal through when caching is off', async () => {
@@ -181,6 +192,21 @@ describe('browser cache', () => {
     expect(request).toHaveBeenCalledTimes(1)
     expect(hit.headers).toBeInstanceOf(Headers)
     expect(hit.headers?.get('x-a')).toBe('b')
+  })
+
+  it('marks every hit with its own `Cache-Status` entry, on a copy of the cached headers', async () => {
+    const storage = createLruStorage({ driver: lruCacheDriver({}) })
+    const request = vi.fn(async () => ({ data: { a: 1 }, headers: new Headers({ 'x-request-id': 'request-1' }) }))
+
+    const miss = await cached(storage, request, QUERY, { cache: 'short' })
+    const hit = await cached(storage, request, QUERY, { cache: 'short' })
+    const nextHit = await cached(storage, request, QUERY, { cache: 'short' })
+
+    expect(request).toHaveBeenCalledTimes(1)
+    expect(hit.headers?.get('cache-status')).toBe('nuxt-shopify; hit')
+    expect(hit.headers?.get('x-request-id')).toBe('request-1')
+    expect(nextHit.headers?.get('cache-status')).toBe('nuxt-shopify; hit')
+    expect(miss.headers?.has('cache-status')).toBe(false)
   })
 
   it('returns a fresh copy of the cached response to each caller', async () => {

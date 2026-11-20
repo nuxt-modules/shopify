@@ -1,9 +1,9 @@
 import type { ShopifyRequestContext, StorefrontClient } from '@shopify/hydrogen'
 
 import { StorefrontApiError, StorefrontTimeoutError, createPredictiveSearchServerHandlers, handleShopifyRoutes } from '@shopify/hydrogen'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest'
 
-import { API_VERSION } from '#test/helpers/api-version'
+import { API_VERSION, OTHER_API_VERSION } from '#test/helpers/api-version'
 import { createTestEvent } from '#test/helpers/event'
 import { createLogReporter } from '#test/helpers/logger'
 
@@ -57,6 +57,7 @@ afterEach(() => {
   vi.useRealTimers()
   vi.unstubAllGlobals()
   vi.restoreAllMocks()
+  Reflect.deleteProperty(globalThis, Symbol.for('nuxt-shopify:warned-deprecations'))
 })
 
 describe('Shopify\'s cookies from Hydrogen\'s storefront client', () => {
@@ -150,10 +151,62 @@ describe('the storefront client hooks for Hydrogen\'s requests', () => {
     expect(hookCalls('shopify:storefront:client:response')).toEqual([{
       operation: SHOP_QUERY,
       options: { variables: { handle: 'shirt' } },
-      response: { data: { shop: { id: '1' } }, errors: undefined },
+      response: { data: { shop: { id: '1' } }, errors: undefined, headers: expect.any(Headers) },
       duration: expect.any(Number),
     }])
     expect(hookCalls('shopify:storefront:client:errors')).toEqual([])
+  })
+
+  it('gives the response hook Shopify\'s response headers, without the cookies that Hydrogen keeps for itself', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => Response.json({ data: { shop: { id: '1' } } }, { headers: [['x-request-id', 'request-1'], ['set-cookie', '_shopify_essential=e; Path=/']] })))
+
+    const client = await createClient()
+
+    await client.graphql(SHOP_QUERY)
+
+    const [{ response }] = hookCalls('shopify:storefront:client:response') as [{ response: { headers: Headers } }]
+
+    expect(response.headers.get('x-request-id')).toBe('request-1')
+    expect(response.headers.getSetCookie()).toEqual([])
+  })
+
+  it('gives the response hook its own copy of the headers, so a hook that changes them can\'t change the response of a Shopify route', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => Response.json({ data: { shop: { id: '1' } } }, { headers: { 'x-request-id': 'request-1' } })))
+
+    hooks.callHook.mockImplementation(async (name: string, params: unknown) => {
+      if (name === 'shopify:storefront:client:response') (params as { response: { headers: Headers } }).response.headers.set('x-request-id', 'changed')
+    })
+
+    onTestFinished(() => void hooks.callHook.mockImplementation(async () => {}))
+
+    const client = await createClient()
+
+    const result = await client.graphql(SHOP_QUERY)
+
+    expect(result.headers.get('x-request-id')).toBe('request-1')
+  })
+
+  it('warns in development, and only there, about the API version Shopify served and the deprecated features it flagged, like the module\'s own client', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => Response.json({ data: { shop: { id: '1' } } }, { headers: { 'x-shopify-api-version': OTHER_API_VERSION, 'x-shopify-api-deprecated-reason': 'https://shopify.dev/api/usage/versioning#deprecation-practices' } })))
+
+    const { log, logger } = createLogReporter()
+    const client = await createClient({ ...shopConfig(), logger })
+
+    vi.stubGlobal('__NUXT_DEV__', false)
+
+    await client.graphql(SHOP_QUERY)
+
+    expect(log).not.toHaveBeenCalled()
+
+    vi.stubGlobal('__NUXT_DEV__', true)
+
+    await client.graphql(SHOP_QUERY)
+    await client.graphql(SHOP_QUERY)
+
+    expect(log.mock.calls.map(([entry]) => entry).filter(entry => entry.type === 'warn').map(entry => entry.args.join(' '))).toStrictEqual([
+      `The storefront client asked for API version \`${API_VERSION}\`, but Shopify no longer supports it and served \`${OTHER_API_VERSION}\` instead`,
+      'Shopify flagged the storefront operation `Shop` for using deprecated API features. See https://shopify.dev/api/usage/versioning#deprecation-practices',
+    ])
   })
 
   it('reports the GraphQL errors of a response to the response and errors hooks', async () => {

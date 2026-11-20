@@ -15,7 +15,7 @@ import type {
 import { createTransport, withApiVersion } from './transport'
 import { DEFAULT_THROW_ERRORS } from './defaults'
 import { requestWithCache } from './cache'
-import { handleErrors } from './errors'
+import { handleErrors, warnAboutDeprecations } from './errors'
 
 export type ClientDefinition<Kind extends ShopifyClientKind = ShopifyClientKind> = {
   kind: Kind
@@ -49,10 +49,10 @@ export function createClient<
   config: ShopifyClientConfig,
   options: ShopifyClientOptions<Operations, Cache> = {},
 ): ShopifyApiClient<Operations, Cache> {
-  const { authHeader, responseHeaders } = definition
+  const { kind, authHeader, responseHeaders } = definition
   const { event, origin, buyerIp, browserCache, serverCache, auth, apiVersion, headers, retries, logger, throwOnErrors, ...callbacks } = options
 
-  const moduleConfig = normalizeConfig(definition.kind, config)
+  const moduleConfig = normalizeConfig(kind, config)
 
   const apiClientConfig = definition.createConfig(moduleConfig)
 
@@ -112,6 +112,8 @@ export function createClient<
       options: options as ShopifyApiClientRequestOptions<keyof Operations, Operations, Cache>,
       duration: performance.now() - startedAt,
     })
+
+    if (import.meta.dev && !import.meta.client) warnAboutDeprecations(kind, String(operation), options?.apiVersion ?? apiClientConfig.apiVersion, response.headers ?? response.errors?.response?.headers, apiClientConfig.logger)
 
     if (response.errors) await handleErrors(response.errors, shouldThrow && !authError, callbacks.onErrors, apiClientConfig.logger)
 

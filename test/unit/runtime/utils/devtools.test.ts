@@ -45,6 +45,11 @@ describe('postRequest', () => {
       errors: undefined,
       extensions: { cost: { requestedQueryCost: 2 } },
       duration: 120,
+      cache: undefined,
+      requestId: undefined,
+      apiVersion: undefined,
+      deprecation: undefined,
+      processingTime: undefined,
       time: expect.any(Number),
     })
   })
@@ -113,9 +118,51 @@ describe('toDevtoolsRequest', () => {
       errors: undefined,
       extensions: undefined,
       duration: undefined,
+      cache: undefined,
+      requestId: undefined,
+      apiVersion: undefined,
+      deprecation: undefined,
+      processingTime: undefined,
       time: expect.any(Number),
     })
 
     await expect(Promise.race([received, skipped])).resolves.toBe('skipped')
+  })
+
+  it('adds what Shopify\'s response headers tell: the request ID, the API version Shopify served, its deprecation notice and its processing time', () => {
+    const headers = new Headers({
+      'x-request-id': 'request-1',
+      'x-shopify-api-version': '2026-01',
+      'x-shopify-api-deprecated-reason': 'https://shopify.dev/api/usage/versioning#deprecation-practices',
+      'server-timing': 'processing;dur=53.6;desc="gc:1", db;dur=17, requestID;desc="request-1"',
+    })
+
+    expect(toDevtoolsRequest('storefront', 'ssr', { operation: QUERY, response: { data: {}, headers } })).toMatchObject({
+      requestId: 'request-1',
+      apiVersion: '2026-01',
+      deprecation: 'https://shopify.dev/api/usage/versioning#deprecation-practices',
+      processingTime: 53.6,
+      cache: undefined,
+    })
+  })
+
+  it('reads the headers of a failed response from its raw response', () => {
+    const response = new Response(null, { status: 403, headers: { 'x-request-id': 'request-1', 'server-timing': 'db;dur=2, processing;dur=8' } })
+
+    expect(toDevtoolsRequest('admin', 'server', { operation: QUERY, response: { errors: { message: 'Forbidden', networkStatusCode: 403, response } } })).toMatchObject({
+      requestId: 'request-1',
+      processingTime: 8,
+    })
+  })
+
+  it.each([
+    ['Hydrogen; hit', 'hit'],
+    ['Hydrogen; fwd=uri-miss; stored', 'miss'],
+    ['Hydrogen; fwd=bypass', 'bypass'],
+    ['nuxt-shopify; hit', 'browser'],
+    ['Hydrogen; fwd=uri-miss; stored, nuxt-shopify; hit', 'browser'],
+    ['ExampleCache; hit', undefined],
+  ])('reads the `Cache-Status` `%s` as %s', (cacheStatus, cache) => {
+    expect(toDevtoolsRequest('storefront', 'ssr', { operation: QUERY, response: { data: {}, headers: new Headers({ 'cache-status': cacheStatus }) } }).cache).toBe(cache)
   })
 })

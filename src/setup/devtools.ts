@@ -2,7 +2,7 @@ import type { Resolver } from '@nuxt/kit'
 import type { Nuxt } from '@nuxt/schema'
 import type { DevToolsViewJsonRender } from '@vitejs/devtools/json-render'
 
-import type { ShopifyDevtoolsRequest } from '../runtime/utils/devtools'
+import type { ShopifyDevtoolsAnalyticsEvent, ShopifyDevtoolsConsent, ShopifyDevtoolsRequest } from '../runtime/utils/devtools'
 import type { ShopifyClientType } from '../schemas'
 import type { ShopifyConfig } from '../types'
 import type { PanelState } from '../utils/devtools'
@@ -11,7 +11,7 @@ import { addNitroPlugin, addPlugin, hasNuxtModuleCompatibility } from '@nuxt/kit
 import { kebabCase, titleCase } from 'scule'
 import { joinURL } from 'ufo'
 
-import { DEVTOOLS_CHANNEL, DEVTOOLS_EVENT } from '../runtime/utils/devtools'
+import { DEVTOOLS_ANALYTICS_EVENT, DEVTOOLS_CHANNEL, DEVTOOLS_CONSENT_EVENT, DEVTOOLS_EVENT } from '../runtime/utils/devtools'
 import { getConfiguredClients } from '../utils/clients'
 import { getGenerateFailures } from '../utils/codegen'
 import { onDevServerURL } from '../utils/dev'
@@ -19,7 +19,7 @@ import { createPanel, findDefinitions } from '../utils/devtools'
 import { registerExplorer, shouldEnableExplorer } from '../utils/explorer'
 import { useLogger } from '../utils/log'
 
-const MAX_REQUESTS = 100
+const MAX_ENTRIES = 100
 
 export default function setupDevtools(nuxt: Nuxt, config: ShopifyConfig, resolver: Resolver) {
   if (!nuxt.options.dev) return
@@ -58,7 +58,7 @@ export default function setupDevtools(nuxt: Nuxt, config: ShopifyConfig, resolve
     }))
 
     onDevtoolsReady((context) => {
-      const state: PanelState = { requests: [], definitions: [] }
+      const state: PanelState = { requests: [], definitions: [], analytics: [] }
 
       const panel = context.createJsonRenderer(createPanel(config, explorerDocks, state, getGenerateFailures(nuxt)))
       const dock = context.docks.register<DevToolsViewJsonRender>({ id: 'shopify', title: 'Shopify', icon: 'simple-icons:shopify', type: 'json-render', view: panel.view, groupId: NUXT_DEVTOOLS_GROUP_ID, category: 'modules' })
@@ -107,16 +107,47 @@ export default function setupDevtools(nuxt: Nuxt, config: ShopifyConfig, resolve
         },
       })
 
+      rpc.register({
+        name: 'select-analytics-event',
+        type: 'action',
+        handler: ({ id }: { id: number }) => {
+          state.selectedAnalyticsEvent = state.analytics.find(event => event.id === id)
+          render()
+        },
+      })
+
+      rpc.register({
+        name: 'clear-analytics',
+        type: 'action',
+        handler: () => {
+          state.analytics = []
+          state.selectedAnalyticsEvent = undefined
+          render()
+        },
+      })
+
       let lastId = 0
 
       const addRequest = (request: ShopifyDevtoolsRequest) => {
-        state.requests = [{ ...request, id: ++lastId }, ...state.requests].slice(0, MAX_REQUESTS)
+        state.requests = [{ ...request, id: ++lastId }, ...state.requests].slice(0, MAX_ENTRIES)
+        render()
+      }
+
+      const addAnalyticsEvent = (event: ShopifyDevtoolsAnalyticsEvent) => {
+        state.analytics = [{ ...event, id: ++lastId }, ...state.analytics].slice(0, MAX_ENTRIES)
+        render()
+      }
+
+      const setConsent = (consent: ShopifyDevtoolsConsent) => {
+        state.consent = consent
         render()
       }
 
       channel.onmessage = ({ data }: MessageEvent<ShopifyDevtoolsRequest>) => addRequest(data)
 
       context.viteServer?.ws.on(DEVTOOLS_EVENT, addRequest)
+      context.viteServer?.ws.on(DEVTOOLS_ANALYTICS_EVENT, addAnalyticsEvent)
+      context.viteServer?.ws.on(DEVTOOLS_CONSENT_EVENT, setConsent)
 
       refreshDefinitions()
 

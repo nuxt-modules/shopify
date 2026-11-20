@@ -8,6 +8,7 @@ import { generateHttpFetch } from '@shopify/graphql-client'
 import { StorefrontApiError, createStorefrontClient, handleShopifyRedirects } from '@shopify/hydrogen'
 
 import { useRuntimeConfig } from '#imports'
+import { warnAboutDeprecations } from '../../../utils/clients/errors'
 import { shopifyFetch } from '../../../utils/clients/fetch'
 import { createMockStoreDomain, createStorefrontConfig } from '../../../utils/clients/storefront'
 import { createClientLogger, createStoreDomain } from '../../../utils/clients/transport'
@@ -84,13 +85,15 @@ export function createHydrogenStorefrontClient(requestContext: ShopifyRequestCon
 
     const errors = result.errors && { graphQLErrors: result.errors.map(error => ({ ...error, locations: error.locations?.slice(), path: error.path?.slice() })) }
 
-    await onResponse?.({ ...request, response: { data: result.data, errors }, duration: performance.now() - startedAt })
-
-    if (errors) await onErrors?.({ errors })
-
     const headers = new Headers(result.headers)
 
     headers.delete('set-cookie')
+
+    await onResponse?.({ ...request, response: { data: result.data, errors, headers: new Headers(headers) }, duration: performance.now() - startedAt })
+
+    if (import.meta.dev) warnAboutDeprecations('storefront', request.operation, storefront?.apiVersion, headers, shopify.logger)
+
+    if (errors) await onErrors?.({ errors })
 
     return { ...result, headers }
   }) as StorefrontClient['graphql']

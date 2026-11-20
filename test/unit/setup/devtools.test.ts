@@ -1,13 +1,13 @@
 import type { Resolver } from '@nuxt/kit'
 
-import type { ShopifyDevtoolsRequest } from '#src/runtime/utils/devtools'
+import type { ShopifyDevtoolsAnalyticsEvent, ShopifyDevtoolsConsent, ShopifyDevtoolsRequest } from '#src/runtime/utils/devtools'
 
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { DEVTOOLS_CHANNEL, DEVTOOLS_EVENT } from '#src/runtime/utils/devtools'
+import { DEVTOOLS_ANALYTICS_EVENT, DEVTOOLS_CHANNEL, DEVTOOLS_CONSENT_EVENT, DEVTOOLS_EVENT } from '#src/runtime/utils/devtools'
 import { ShopifyClientType } from '#src/schemas'
 import { API_VERSION } from '#test/helpers/api-version'
 import { createLoggerStub } from '#test/helpers/logger'
@@ -141,6 +141,10 @@ function sendRequests(requests: Partial<ShopifyDevtoolsRequest>[]) {
   for (const request of requests) {
     channel.postMessage({ client: 'storefront', source: 'ssr', operation: 'FetchShop', query: QUERY, duration: 120.4, time: 0, ...request })
   }
+}
+
+function listen(context: ReturnType<typeof createDevtools>['context'], event: string) {
+  return context.viteServer.ws.on.mock.calls.find(([name]) => name === event)![1]
 }
 
 async function receive(spec: () => Spec, count: number) {
@@ -302,8 +306,8 @@ describe('requests tab', () => {
     const elements = await receive(spec, 2)
 
     expect(elements['requests-table']!.props.rows).toStrictEqual([
-      { id: 2, time: new Date(time).toLocaleTimeString(), api: 'Admin', operation: 'FetchOrders', source: 'Server route', page: undefined, status: 'Error', duration: '80 ms' },
-      { id: 1, time: new Date(time).toLocaleTimeString(), api: 'Storefront', operation: 'FetchShop', source: 'SSR', page: '/products/shirt', status: 'OK', duration: '120 ms' },
+      { id: 2, time: new Date(time).toLocaleTimeString(), api: 'Admin', operation: 'FetchOrders', source: 'Server route', page: undefined, status: 'Error', cache: undefined, duration: '80 ms' },
+      { id: 1, time: new Date(time).toLocaleTimeString(), api: 'Storefront', operation: 'FetchShop', source: 'SSR', page: '/products/shirt', status: 'OK', cache: undefined, duration: '120 ms' },
     ])
   })
 
@@ -324,18 +328,18 @@ describe('requests tab', () => {
   it('lists the requests the browser sends over the connection of the dev server', async () => {
     const { context, spec } = await start()
 
-    expect(context.viteServer.ws.on).toHaveBeenCalledExactlyOnceWith(DEVTOOLS_EVENT, expect.any(Function))
+    expect(context.viteServer.ws.on.mock.calls.map(([event]) => event)).toStrictEqual([DEVTOOLS_EVENT, DEVTOOLS_ANALYTICS_EVENT, DEVTOOLS_CONSENT_EVENT])
     expect(spec().elements['requests-hint']!.props.text).toBe('Shopify requests from server-side rendering, server routes and the browser. Click one to see its details.')
 
     sendRequests([{}])
 
     await receive(spec, 1)
 
-    context.viteServer.ws.on.mock.lastCall![1]({ client: 'customer-account', source: 'browser', page: '/account/orders?page=2', operation: 'FetchOrders', query: QUERY, duration: 80, time: 0 })
+    listen(context, DEVTOOLS_EVENT)({ client: 'customer-account', source: 'browser', page: '/account/orders?page=2', operation: 'FetchOrders', query: QUERY, duration: 80, time: 0 })
 
     expect(spec().elements['requests-table']!.props.rows).toStrictEqual([
-      { id: 2, time: new Date(0).toLocaleTimeString(), api: 'Customer Account', operation: 'FetchOrders', source: 'Browser', page: '/account/orders?page=2', status: 'OK', duration: '80 ms' },
-      { id: 1, time: new Date(0).toLocaleTimeString(), api: 'Storefront', operation: 'FetchShop', source: 'SSR', page: undefined, status: 'OK', duration: '120 ms' },
+      { id: 2, time: new Date(0).toLocaleTimeString(), api: 'Customer Account', operation: 'FetchOrders', source: 'Browser', page: '/account/orders?page=2', status: 'OK', cache: undefined, duration: '80 ms' },
+      { id: 1, time: new Date(0).toLocaleTimeString(), api: 'Storefront', operation: 'FetchShop', source: 'SSR', page: undefined, status: 'OK', cache: undefined, duration: '120 ms' },
     ])
   })
 
@@ -403,6 +407,70 @@ describe('requests tab', () => {
     expect(elements['request-summary']!.props.data).not.toHaveProperty('Page')
     expect(elements['request-tabs']!.children).toStrictEqual(['request-query', 'request-errors'])
     expect(elements['request-errors']).toStrictEqual({ type: 'Tree', props: { data: errors, defaultExpanded: true } })
+  })
+
+  it.each([
+    ['hit', 'Server hit'],
+    ['miss', 'Server miss'],
+    ['bypass', 'Not cached'],
+    ['browser', 'Browser hit'],
+  ] as const)('shows the cache status `%s` of a request as %s, in the list and in its details', async (cache, label) => {
+    const { action, spec } = await start()
+
+    sendRequests([{ cache }])
+
+    const elements = await receive(spec, 1)
+
+    expect(elements['requests-table']!.props.columns).toContainEqual({ key: 'cache', label: 'Cache' })
+    expect(elements['requests-table']!.props.rows).toMatchObject([{ cache: label }])
+
+    action('select-request').handler({ id: 1 })
+
+    expect(spec().elements['request-summary']!.props.data).toMatchObject({ Cache: label })
+  })
+
+  it('shows the request ID, the API version Shopify served and how long Shopify took in the details', async () => {
+    const { action, spec } = await start()
+
+    sendRequests([{ requestId: 'request-1', apiVersion: API_VERSION, processingTime: 53.6 }])
+
+    await receive(spec, 1)
+
+    action('select-request').handler({ id: 1 })
+
+    expect(spec().elements['request-summary']!.props.data).toStrictEqual({
+      'Time': new Date(0).toLocaleTimeString(),
+      'API': 'Storefront',
+      'Operation': 'FetchShop',
+      'Source': 'SSR',
+      'Status': 'OK',
+      'Duration': '120 ms',
+      'Shopify processing': '54 ms',
+      'API version': API_VERSION,
+      'Request ID': 'request-1',
+    })
+  })
+
+  it('warns in the details of a request that Shopify flags for using deprecated API features, with Shopify\'s link', async () => {
+    const { action, spec } = await start()
+
+    sendRequests([{ deprecation: 'https://shopify.dev/api/usage/versioning#deprecation-practices' }, { operation: 'FetchMenu' }])
+
+    await receive(spec, 2)
+
+    action('select-request').handler({ id: 1 })
+
+    const { elements } = spec()
+
+    expect(elements['request-details']!.children).toStrictEqual(['request-summary', 'request-deprecation', 'request-tabs'])
+    expect(elements['request-deprecation']).toStrictEqual({ type: 'Stack', props: { direction: 'row', align: 'center', gap: 8, wrap: true }, children: ['request-deprecation-text', 'request-deprecation-link'] })
+    expect(elements['request-deprecation-text']).toStrictEqual({ type: 'Text', props: { text: 'Shopify flagged this request for using deprecated API features.', color: 'warning' } })
+    expect(elements['request-deprecation-link']).toStrictEqual({ type: 'Link', props: { href: 'https://shopify.dev/api/usage/versioning#deprecation-practices', label: 'Learn more', icon: 'ph:arrow-square-out', external: true } })
+
+    action('select-request').handler({ id: 2 })
+
+    expect(spec().elements['request-details']!.children).toStrictEqual(['request-summary', 'request-tabs'])
+    expect(spec().elements['request-deprecation']).toBeUndefined()
   })
 
   it('keeps showing the request you clicked while newer ones arrive', async () => {
@@ -685,6 +753,116 @@ describe('operations tab', () => {
     await nuxt.callHook('builder:watch', 'change', 'server/api/shop.ts')
 
     await vi.waitFor(() => expect(spec().elements['operations-table']!.props.rows).toMatchObject([{ name: 'Shop', file: 'server/api/shop.ts:4', line: 4 }]))
+  })
+})
+
+describe('analytics tab', () => {
+  const analyticsConfig = { ...config, analytics: { autoPageView: true, consent: { mode: 'custom-banner' } } }
+
+  function sendEvents(context: ReturnType<typeof createDevtools>['context'], events: Partial<ShopifyDevtoolsAnalyticsEvent>[]) {
+    for (const event of events) listen(context, DEVTOOLS_ANALYTICS_EVENT)({ event: 'page_viewed', page: '/', payload: { url: 'http://localhost:3005/' }, time: 0, ...event })
+  }
+
+  it('is left out while analytics is disabled', async () => {
+    const { spec } = await start()
+
+    expect(spec().elements.tabs!.children).toStrictEqual(['requests', 'operations', 'config'])
+    expect(spec().elements.analytics).toBeUndefined()
+  })
+
+  it('lists the events that the browser receives from Shopify\'s analytics bus, newest first, with their time and page', async () => {
+    const { context, spec } = await start(undefined, analyticsConfig)
+
+    const time = Date.UTC(2026, 10, 20, 12, 30)
+
+    sendEvents(context, [{ time }, { event: 'product_added_to_cart', page: undefined, payload: { cart: { id: 'gid://shopify/Cart/1' } }, time }])
+
+    const { elements } = spec()
+
+    expect(elements.tabs!.children).toStrictEqual(['requests', 'operations', 'analytics', 'config'])
+    expect(elements.tabs!.props.tabs).toContainEqual({ value: 'analytics', label: 'Analytics', badge: '2' })
+    expect(elements.analytics!.children).toStrictEqual(['analytics-toolbar', 'analytics-consent', 'analytics-table'])
+    expect(elements['analytics-hint']!.props.text).toBe('The analytics events that tracking receives in the browser, once the visitor allows tracking. Click one to see its payload.')
+    expect(elements['analytics-table']!.props).toMatchObject({
+      columns: [{ key: 'time', label: 'Time' }, { key: 'event', label: 'Event' }, { key: 'page', label: 'Page' }],
+      rows: [
+        { id: 2, time: new Date(time).toLocaleTimeString(), event: 'product_added_to_cart', page: undefined },
+        { id: 1, time: new Date(time).toLocaleTimeString(), event: 'page_viewed', page: '/' },
+      ],
+      height: 320,
+      value: { $bindState: '/analytics' },
+    })
+  })
+
+  it('keeps the last 100 events', async () => {
+    const { context, spec } = await start(undefined, analyticsConfig)
+
+    sendEvents(context, Array.from({ length: 101 }, (_, index) => ({ page: `/page-${index}` })))
+
+    const rows = spec().elements['analytics-table']!.props.rows as Array<{ page: string }>
+
+    expect(rows).toHaveLength(100)
+    expect(rows[0]).toMatchObject({ page: '/page-100' })
+    expect(rows.at(-1)).toMatchObject({ page: '/page-1' })
+  })
+
+  it('shows the payload of the event you click below the list', async () => {
+    const { action, context, spec } = await start(undefined, analyticsConfig)
+
+    sendEvents(context, [{ event: 'product_viewed', payload: { products: [{ id: 'gid://shopify/Product/1' }] } }, {}])
+
+    const table = spec().elements['analytics-table']!
+
+    expect(table.on).toStrictEqual({ rowClick: { action: 'shopify:select-analytics-event', params: { id: { $state: '/analytics/row/id' } } } })
+    expect(action('select-analytics-event').type).toBe('action')
+
+    action('select-analytics-event').handler({ id: 1 })
+
+    const { elements } = spec()
+
+    expect(elements.analytics!.children).toStrictEqual(['analytics-toolbar', 'analytics-consent', 'analytics-table', 'analytics-details'])
+    expect(elements['analytics-details']).toStrictEqual({ type: 'Card', props: { title: 'product_viewed' }, children: ['analytics-payload'] })
+    expect(elements['analytics-payload']).toStrictEqual({ type: 'Tree', props: { data: { products: [{ id: 'gid://shopify/Product/1' }] } } })
+  })
+
+  it('shows the consent mode, and the visitor\'s consent once Shopify has loaded it', async () => {
+    const { context, spec } = await start(undefined, analyticsConfig)
+
+    expect(spec().elements['analytics-consent']).toStrictEqual({ type: 'KeyValueTable', props: { data: { 'Consent mode': 'custom-banner', 'Visitor consent': 'Not loaded yet' } } })
+
+    listen(context, DEVTOOLS_CONSENT_EVENT)({ loaded: false } satisfies ShopifyDevtoolsConsent)
+
+    expect(spec().elements['analytics-consent']!.props.data).toStrictEqual({ 'Consent mode': 'custom-banner', 'Visitor consent': 'Not loaded yet' })
+
+    listen(context, DEVTOOLS_CONSENT_EVENT)({ loaded: true, analytics: true, marketing: false, preferences: true, saleOfData: false } satisfies ShopifyDevtoolsConsent)
+
+    expect(spec().elements['analytics-consent']!.props.data).toStrictEqual({
+      'Consent mode': 'custom-banner',
+      'Analytics': 'Allowed',
+      'Marketing': 'Not allowed',
+      'Preferences': 'Allowed',
+      'Sale of data': 'Not allowed',
+    })
+  })
+
+  it('clears the events and the payload with the panel\'s button', async () => {
+    const { action, context, spec } = await start(undefined, analyticsConfig)
+
+    sendEvents(context, [{}])
+
+    action('select-analytics-event').handler({ id: 1 })
+
+    expect(spec().elements['analytics-clear']).toMatchObject({ type: 'Button', props: { label: 'Clear', disabled: false }, on: { press: { action: 'shopify:clear-analytics' } } })
+    expect(action('clear-analytics').type).toBe('action')
+
+    action('clear-analytics').handler()
+
+    const { elements } = spec()
+
+    expect(elements['analytics-table']!.props.rows).toStrictEqual([])
+    expect(elements['analytics-details']).toBeUndefined()
+    expect(elements['analytics-clear']!.props.disabled).toBe(true)
+    expect(elements.tabs!.props.tabs).toContainEqual({ value: 'analytics', label: 'Analytics', badge: undefined })
   })
 })
 
