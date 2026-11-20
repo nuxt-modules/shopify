@@ -8,7 +8,7 @@ const runtimeConfig: { _shopify?: Record<string, unknown> } = {}
 const request = vi.fn()
 const createAdminApiClient = vi.fn((..._args: unknown[]) => ({ request }))
 
-vi.mock('#imports', async () => ({
+vi.mock('nitropack/runtime', async () => ({
   ...(await vi.importActual<Record<string, unknown>>('#test/helpers/stubs')),
   useRuntimeConfig: () => runtimeConfig,
 }))

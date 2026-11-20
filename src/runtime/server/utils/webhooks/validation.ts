@@ -1,8 +1,8 @@
 import type { H3Event } from 'h3'
 
 import { readRawBody, createError } from 'h3'
-import { useRuntimeConfig } from '#imports'
 
+import { useRuntimeConfig } from 'nitropack/runtime'
 import { createLogger } from '../log'
 import { getWebhookHmac } from './functions'
 

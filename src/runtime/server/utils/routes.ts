@@ -2,7 +2,7 @@ import type { H3Event } from 'h3'
 
 import { getRequestHeaders, getRequestURL, toWebRequest } from 'h3'
 
-import { useRuntimeConfig } from '#imports'
+import { useRuntimeConfig } from 'nitropack/runtime'
 import { PUBLIC_TOKEN_HEADER } from '../../utils/clients/transport'
 import { pickShopifyCookies } from '../../utils/cookies'
 import { CUSTOMER_ACCOUNT_ROUTES } from '../../utils/session'

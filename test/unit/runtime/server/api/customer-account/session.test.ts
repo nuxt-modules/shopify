@@ -15,7 +15,7 @@ vi.mock('#imports', async () => ({
   useRuntimeConfig: () => runtimeConfig,
 }))
 
-vi.mock('nitropack/runtime', () => ({ getRouteRules: () => ({}), useStorage: vi.fn() }))
+vi.mock('nitropack/runtime', () => ({ useRuntimeConfig: () => runtimeConfig, getRouteRules: () => ({}), useStorage: vi.fn() }))
 
 const handler = (await import('#src/runtime/server/api/customer-account/session')).default
 

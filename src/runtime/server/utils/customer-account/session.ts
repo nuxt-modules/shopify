@@ -5,8 +5,7 @@ import type { ShopifyCustomerAccountSession, ShopifyConfig } from '../../../../m
 
 import { createCustomerSession } from '@shopify/hydrogen/customer-account'
 import { clearSession, createError, getCookie, getSession, updateSession } from 'h3'
-import { getRouteRules } from 'nitropack/runtime'
-import { useRuntimeConfig } from '#imports'
+import { getRouteRules, useRuntimeConfig } from 'nitropack/runtime'
 
 import {
   CUSTOMER_ACCOUNT_DISABLED_MESSAGE,

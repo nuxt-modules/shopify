@@ -1,17 +1,18 @@
 import type { H3Event } from 'h3'
 
+import { useRuntimeConfig } from 'nitropack/runtime'
 import type { ShopifyConfig, ShopifyScriptsShopContext } from '../../../module'
 
-import { useRuntimeConfig } from '#imports'
 import { createShopResolver } from '../../utils/shop'
 import { createStorefrontApiClient } from '../../utils/clients/storefront'
+import { createLogger } from './log'
 import { getShopifyRequestContext } from './request-context'
 import { createStorefrontCallbacks } from './storefront/client'
 
 let resolveShop: ReturnType<typeof createShopResolver> | undefined
 
 export function getShopResolver(config: ShopifyConfig) {
-  resolveShop ??= createShopResolver(config, config.clients.storefront ? () => createStorefrontApiClient(config, { throwOnErrors: false, ...createStorefrontCallbacks() }) : undefined)
+  resolveShop ??= createShopResolver(config, createLogger(), config.clients.storefront ? () => createStorefrontApiClient(config, { throwOnErrors: false, ...createStorefrontCallbacks() }) : undefined)
 
   return resolveShop
 }

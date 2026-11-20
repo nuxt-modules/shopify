@@ -20,7 +20,7 @@ const hooks = {
 
 vi.mock('#imports', () => ({ useRuntimeConfig: () => runtimeConfig }))
 
-vi.mock('nitropack/runtime', () => ({ useNitroApp: () => ({ hooks }) }))
+vi.mock('nitropack/runtime', () => ({ useRuntimeConfig: () => runtimeConfig, useNitroApp: () => ({ hooks }) }))
 
 const { getShopifyRequestContext } = await import('#src/runtime/server/utils/request-context')
 const { toShopifyRequest } = await import('#src/runtime/server/utils/routes')

@@ -3,8 +3,7 @@ import type { H3Event } from 'h3'
 import type { ShopifyCustomerAccountContext } from '../../../../module'
 
 import { createError } from 'h3'
-import { useNitroApp } from 'nitropack/runtime'
-import { useRuntimeConfig } from '#imports'
+import { useNitroApp, useRuntimeConfig } from 'nitropack/runtime'
 
 import { getShopifyRequestContext } from '../request-context'
 import { createCustomerSessionManager, getCustomerAccountSession, getHydrogenCustomerSession, isCachedRoute } from './session'

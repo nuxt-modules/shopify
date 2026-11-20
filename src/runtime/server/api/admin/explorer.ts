@@ -2,8 +2,8 @@ import type { H3Event } from 'h3'
 
 import { Kind, parse, print } from 'graphql'
 import { createError, defineEventHandler } from 'h3'
-import { useRuntimeConfig } from '#imports'
 
+import { useRuntimeConfig } from 'nitropack/runtime'
 import { assertSameOrigin } from '../../utils/csrf'
 import { readGraphqlBody } from '../../utils/graphql'
 import { createAdminApiClient } from '../../../utils/clients/admin'

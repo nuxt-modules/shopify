@@ -6,6 +6,11 @@ const configuredFor: unknown[] = []
 let clientId = 'cid'
 
 vi.mock('nitropack/runtime', () => ({
+  useRuntimeConfig: (event?: unknown) => {
+    configuredFor.push(event)
+
+    return { _shopify: { clients: { customerAccount: { clientId } } } }
+  },
   getRouteRules: () => ({}),
   useEvent: () => requestEvent,
   useNitroApp: () => ({ hooks: { callHook: vi.fn() } }),

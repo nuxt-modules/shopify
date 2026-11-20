@@ -21,6 +21,7 @@ vi.mock('#imports', async () => ({
 }))
 
 vi.mock('nitropack/runtime', () => ({
+  useRuntimeConfig: () => runtimeConfig,
   useStorage: (base: string) => {
     if (!storages.has(base)) storages.set(base, createStorage())
 

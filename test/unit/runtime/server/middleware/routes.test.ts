@@ -80,6 +80,7 @@ vi.mock('#src/runtime/server/utils/log', () => ({
 }))
 
 vi.mock('nitropack/runtime', () => ({
+  useRuntimeConfig: () => runtimeConfig,
   getRouteRules: () => ({}),
   useNitroApp: () => ({ hooks: { callHook: vi.fn(), callHookWith: vi.fn() } }),
   useStorage: vi.fn(),

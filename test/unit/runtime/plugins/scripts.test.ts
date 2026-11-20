@@ -1,6 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ref } from 'vue'
 
+import { createLoggerStub } from '#test/helpers/logger'
+
 type HeadInput = { script: Array<{ 'id'?: string, 'data-config'?: string }> }
 
 type Analytics = Record<string, unknown>
@@ -38,7 +40,7 @@ vi.mock('#src/runtime/composables/storefront/client', () => ({ useStorefront: ()
 const { createShopResolver } = await import('#src/runtime/utils/shop')
 
 function serverRequest() {
-  const resolve = createShopResolver({ name: 'my-shop', analytics } as never, () => ({ request }) as never)
+  const resolve = createShopResolver({ name: 'my-shop', analytics } as never, createLoggerStub(), () => ({ request }) as never)
 
   return { context: { _shopify: { scripts: vi.fn((_event: unknown) => resolve()) } } }
 }

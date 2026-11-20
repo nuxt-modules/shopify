@@ -3,9 +3,8 @@ import type { H3Event } from 'h3'
 
 import type { ShopifyClientCallbacks } from '../../../../module'
 
-import { useNitroApp } from 'nitropack/runtime'
+import { useNitroApp, useRuntimeConfig } from 'nitropack/runtime'
 
-import { useRuntimeConfig } from '#imports'
 import { createStorefrontApiClient } from '../../../utils/clients/storefront'
 import { tryUseEvent } from '../event'
 

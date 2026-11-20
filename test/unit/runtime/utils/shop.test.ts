@@ -2,13 +2,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { createLoggerStub } from '#test/helpers/logger'
 
-const { warn } = vi.hoisted(() => ({ warn: vi.fn() }))
+import { createShopResolver } from '#src/runtime/utils/shop'
 
-vi.mock('#src/runtime/utils/log', () => ({
-  createLogger: () => createLoggerStub({ warn }),
-}))
-
-const { createShopResolver } = await import('#src/runtime/utils/shop')
+const warn = vi.fn()
+const logger = createLoggerStub({ warn })
 
 const localized = {
   shop: { id: 'gid://shopify/Shop/1' },
@@ -28,7 +25,7 @@ type ResolverConfig = Partial<Parameters<typeof createShopResolver>[0]>
 function setup(config: ResolverConfig = {}, client: { request: ReturnType<typeof vi.fn> } = createClient()) {
   const getClient = vi.fn(() => client)
 
-  return { client, getClient, resolve: createShopResolver({ name: 'my-shop', analytics: {} as never, ...config }, getClient as never) }
+  return { client, getClient, resolve: createShopResolver({ name: 'my-shop', analytics: {} as never, ...config }, logger, getClient as never) }
 }
 
 beforeEach(() => {
@@ -114,7 +111,7 @@ describe('createShopResolver', () => {
   })
 
   it('renders what is configured, without warning or retrying, when there is no Storefront client to look anything up with', async () => {
-    const resolve = createShopResolver({ name: 'my-shop', analytics: {} as never, i18n: { defaultLocale: { country: 'AT', language: 'DE' } } })
+    const resolve = createShopResolver({ name: 'my-shop', analytics: {} as never, i18n: { defaultLocale: { country: 'AT', language: 'DE' } } }, logger)
 
     await expect(resolve()).resolves.toStrictEqual({ shop: placeholderShop, shopifyAnalytics: false, i18n: { country: 'AT', language: 'DE' } })
     await expect(resolve()).resolves.toStrictEqual({ shop: placeholderShop, shopifyAnalytics: false, i18n: { country: 'AT', language: 'DE' } })

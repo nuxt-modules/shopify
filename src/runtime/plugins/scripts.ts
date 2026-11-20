@@ -84,7 +84,7 @@ export default defineNuxtPlugin({
 
     const resolved = scripts.value
       ? Promise.resolve(scripts.value)
-      : createShopResolver(_shopify, lookUpClient)().then((context) => {
+      : createShopResolver(_shopify, createLogger(), lookUpClient)().then((context) => {
           scripts.value = context
 
           render(context)

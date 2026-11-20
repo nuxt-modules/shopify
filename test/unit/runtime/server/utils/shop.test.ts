@@ -18,7 +18,7 @@ const hooks = {
 
 vi.mock('#imports', () => ({ useRuntimeConfig: () => runtimeConfig }))
 
-vi.mock('nitropack/runtime', () => ({ useNitroApp: () => ({ hooks }) }))
+vi.mock('nitropack/runtime', () => ({ useRuntimeConfig: () => runtimeConfig, useNitroApp: () => ({ hooks }) }))
 
 async function resolveShopifyScripts(path: string, config: Record<string, unknown>) {
   runtimeConfig._shopify = { name: 'my-shop', analytics: false, ...config }

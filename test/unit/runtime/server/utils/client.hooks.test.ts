@@ -28,6 +28,7 @@ const runtimeConfig = {
 }
 
 vi.mock('nitropack/runtime', () => ({
+  useRuntimeConfig: () => runtimeConfig,
   useEvent: () => undefined,
   useNitroApp: () => ({ hooks }),
 }))

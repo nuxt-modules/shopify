@@ -1,8 +1,7 @@
 import type { CustomerAccountApiClient } from '@nuxtjs/shopify/customer-account'
 import type { H3Event } from 'h3'
 
-import { useNitroApp } from 'nitropack/runtime'
-import { useRuntimeConfig } from '#imports'
+import { useNitroApp, useRuntimeConfig } from 'nitropack/runtime'
 
 import { createCustomerAccountApiClient } from '../../../utils/clients/customer-account'
 import { tryUseEvent } from '../event'

@@ -1,6 +1,7 @@
 import type { ShopifyLocale, ShopifyRequestContext } from '@shopify/hydrogen'
 import type { H3Event } from 'h3'
 
+import { useRuntimeConfig } from 'nitropack/runtime'
 import type { ShopifyConfig } from '../../../module'
 
 import { createShopifyRequestContext } from '@shopify/hydrogen'
@@ -12,7 +13,6 @@ import {
   setResponseHeader,
 } from 'h3'
 
-import { useRuntimeConfig } from '#imports'
 import { resolveBuyerIp } from '../../utils/clients/buyer-ip'
 import { getPublicRequestURL, toShopifyHeaders } from './routes'
 import { getShopResolver } from './shop'
