@@ -13,7 +13,7 @@ Use typed fetch clients on the server and client side with built-in fragment ded
 Fully configurable, works out of the box with [mock.shop](https://mock.shop) for local development.
 
 - 📚 [Documentation](https://shopify.nuxtjs.org)
-- 🛍️ [Store Template](https://github.com/nuxt-modules/shopify/tree/main/template)
+- 🛍️ [Store Template](https://github.com/nuxt-ui-templates/shop)
 - ✨ [Release Notes](https://github.com/nuxt-modules/shopify/releases)
 - ⬆️ [Migrating to 2.0](https://shopify.nuxtjs.org/going-further/migration)
 
@@ -40,7 +40,7 @@ Fully configurable, works out of the box with [mock.shop](https://mock.shop) for
 
 ## Setup
 
-> To get started, use the [store template](https://github.com/nuxt-modules/shopify/tree/main/template) with a fully functioning Shopify store.
+> To get started, use the [store template](https://github.com/nuxt-ui-templates/shop) with a fully functioning Shopify store.
 
 Run the following command to install the module in your project:
 
@@ -48,10 +48,10 @@ Run the following command to install the module in your project:
 npx nuxi@latest module add shopify
 ```
 
-Or scaffold a complete storefront from the [store template](https://github.com/nuxt-modules/shopify/tree/main/template):
+Or scaffold a complete storefront from the [store template](https://github.com/nuxt-ui-templates/shop):
 
 ```bash
-npx nuxi@latest init -t gh:nuxt-modules/shopify/template ./my-shop
+npx nuxi@latest init -t gh:nuxt-ui-templates/shop ./my-shop
 ```
 
 <details>

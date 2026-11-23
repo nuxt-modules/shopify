@@ -30,7 +30,7 @@ Plug & play Shopify integration for Nuxt
   icon: i-lucide-shopping-bag
   size: xl
   target: _blank
-  to: https://nuxt-shopify.vercel.app
+  to: https://shop-template.nuxt.dev
   variant: subtle
   ---
   View Demo Store

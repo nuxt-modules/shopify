@@ -10,7 +10,7 @@ body:
 
         The quickest way to a minimal reproduction is the store template, which comes preconfigured with the module:
         ```bash
-        npx @nuxtjs/shopify@latest init ./reproduction
+        npx nuxi@latest init -t gh:nuxt-ui-templates/shop ./reproduction
         ```
   - type: textarea
     id: bug-env
