@@ -18,4 +18,4 @@ minimumReleaseAge: 4320 # 3 days
 minimumReleaseAgeStrict: true
 
 overrides:
-  "@nuxt/devtools": ^4.1.0
+  "@nuxt/devtools": ^4.2.0
