@@ -6,14 +6,14 @@ import { createError } from 'h3'
 import { useNitroApp, useRuntimeConfig } from 'nitropack/runtime'
 
 import { getShopifyRequestContext } from '../request-context'
-import { createCustomerSessionManager, getCustomerAccountSession, getHydrogenCustomerSession, isCachedRoute } from './session'
+import { createCustomerSessionManager, createHydrogenCustomerSession, getCustomerAccountSession, isCachedRoute } from './session'
 
 const accessTokens = new WeakMap<H3Event, Promise<string>>()
 
 async function resolveAccessToken(event: H3Event): Promise<string> {
   const { _shopify } = useRuntimeConfig(event)
 
-  const customerSession = getHydrogenCustomerSession(_shopify)
+  const customerSession = createHydrogenCustomerSession(_shopify)
   const sessionManager = createCustomerSessionManager(event)
   const requestContext = await getShopifyRequestContext(event)
 

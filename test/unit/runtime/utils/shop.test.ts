@@ -2,7 +2,17 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { createLoggerStub } from '#test/helpers/logger'
 
-import { createShopResolver } from '#src/runtime/utils/shop'
+import { createShopResolver as createTypedShopResolver } from '#src/runtime/utils/shop'
+
+type LookupClient = { request: ReturnType<typeof vi.fn> }
+
+type Market = { country: string, language: string, currency?: string, pathPrefix?: string }
+
+const createShopResolver = createTypedShopResolver as unknown as (
+  config: Record<string, unknown>,
+  logger: Parameters<typeof createTypedShopResolver>[1],
+  getClient?: () => LookupClient,
+) => (market?: Market) => Promise<unknown>
 
 const warn = vi.fn()
 const logger = createLoggerStub({ warn })
@@ -20,12 +30,10 @@ function createClient(data: unknown = localized) {
   return { request: vi.fn(() => Promise.resolve({ data })) }
 }
 
-type ResolverConfig = Partial<Parameters<typeof createShopResolver>[0]>
-
-function setup(config: ResolverConfig = {}, client: { request: ReturnType<typeof vi.fn> } = createClient()) {
+function setup(config: Record<string, unknown> = {}, client: LookupClient = createClient()) {
   const getClient = vi.fn(() => client)
 
-  return { client, getClient, resolve: createShopResolver({ name: 'my-shop', analytics: {} as never, ...config }, logger, getClient as never) }
+  return { client, getClient, resolve: createShopResolver({ name: 'my-shop', analytics: {}, ...config }, logger, getClient) }
 }
 
 beforeEach(() => {
@@ -35,7 +43,7 @@ beforeEach(() => {
 describe('createShopResolver', () => {
   it.each([
     ['without i18n', {}],
-    ['while i18n is only the empty placeholder declared for environment variables', { i18n: { defaultLocale: { country: '', language: '', currency: '' } } as never }],
+    ['while i18n is only the empty placeholder declared for environment variables', { i18n: { defaultLocale: { country: '', language: '', currency: '' } } }],
   ])('reads the shop and its default market from the Storefront API %s', async (_, config) => {
     const { client, resolve } = setup(config)
 
@@ -82,6 +90,25 @@ describe('createShopResolver', () => {
     expect(client.request).toHaveBeenCalledOnce()
   })
 
+  it('looks a market up again instead of waiting for another request\'s unfinished lookup', async () => {
+    const client = {
+      request: vi.fn()
+        .mockReturnValueOnce(new Promise(() => {}))
+        .mockResolvedValue({ data: localized }),
+    }
+
+    const { resolve } = setup({}, client)
+
+    void resolve()
+
+    await vi.waitFor(() => expect(client.request).toHaveBeenCalledOnce())
+
+    const next = resolve()
+
+    await vi.waitFor(() => expect(client.request).toHaveBeenCalledTimes(2))
+    await expect(next).resolves.toStrictEqual({ shop, shopifyAnalytics: true, i18n: { country: 'DE', language: 'DE', currency: 'EUR' } })
+  })
+
   it('starts the scripts in the request\'s market, with its own currency and path prefix', async () => {
     const { client, resolve } = setup({ shopId: 'gid://shopify/Shop/1', i18n: { defaultLocale: { country: 'AT', language: 'DE', currency: 'EUR' } } })
 
@@ -111,7 +138,7 @@ describe('createShopResolver', () => {
   })
 
   it('renders what is configured, without warning or retrying, when there is no Storefront client to look anything up with', async () => {
-    const resolve = createShopResolver({ name: 'my-shop', analytics: {} as never, i18n: { defaultLocale: { country: 'AT', language: 'DE' } } }, logger)
+    const resolve = createShopResolver({ name: 'my-shop', analytics: {}, i18n: { defaultLocale: { country: 'AT', language: 'DE' } } }, logger)
 
     await expect(resolve()).resolves.toStrictEqual({ shop: placeholderShop, shopifyAnalytics: false, i18n: { country: 'AT', language: 'DE' } })
     await expect(resolve()).resolves.toStrictEqual({ shop: placeholderShop, shopifyAnalytics: false, i18n: { country: 'AT', language: 'DE' } })
@@ -156,13 +183,13 @@ describe('createShopResolver', () => {
   it('keeps a bounded number of markets', async () => {
     const { client, resolve } = setup()
 
-    for (let index = 0; index <= 50; index++) await resolve({ country: `C${index}`, language: 'EN' } as never)
+    for (let index = 0; index <= 50; index++) await resolve({ country: `C${index}`, language: 'EN' })
 
-    await resolve({ country: 'C50', language: 'EN' } as never)
+    await resolve({ country: 'C50', language: 'EN' })
 
     expect(client.request).toHaveBeenCalledTimes(51)
 
-    await resolve({ country: 'C0', language: 'EN' } as never)
+    await resolve({ country: 'C0', language: 'EN' })
 
     expect(client.request).toHaveBeenCalledTimes(52)
   })

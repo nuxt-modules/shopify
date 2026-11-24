@@ -93,6 +93,22 @@ describe('getValidCustomerAccessToken', () => {
     expect(hooks.callHook).toHaveBeenCalledOnce()
   })
 
+  it('refreshes on its own instead of waiting for another request\'s unfinished refresh of the same token', async () => {
+    respondWithTokens()
+    fetchMock.mockImplementationOnce(() => new Promise<Response>(() => {}))
+
+    const cookie = await signIn(EXPIRED)
+
+    void getValidCustomerAccessToken(request(cookie))
+
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledOnce())
+
+    const next = getValidCustomerAccessToken(request(cookie))
+
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2))
+    await expect(next).resolves.toBe('fresh-access-token')
+  })
+
   it.each([
     ['signs the customer out when Shopify rejects the refresh token', () => fetchMock.mockResolvedValue(new Response(null, { status: 400 })), false],
     ['keeps the session through an unavailable token endpoint', () => fetchMock.mockResolvedValue(new Response(null, { status: 503 })), true],
