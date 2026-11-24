@@ -11,7 +11,7 @@ import { withQuery } from 'ufo'
 
 import { createLogger } from '../log'
 import { isCartEndpoint } from '../routes'
-import { createCustomerSessionManager, getHydrogenCustomerSession, requireCustomerAccountConfig } from './session'
+import { createCustomerSessionManager, createHydrogenCustomerSession, requireCustomerAccountConfig } from './session'
 
 type CustomerAccountHandlers = Record<'login' | 'authorize' | 'refresh' | 'logout', ShopifyRouteHandler>
 
@@ -68,7 +68,7 @@ function withAuthHooks(event: H3Event, customerSession: CustomerSession, { autho
 function createHandlers(event: H3Event, config: ShopifyConfig) {
   const { afterLogin, afterLogout } = requireCustomerAccountConfig(config)
 
-  const customerSession = getHydrogenCustomerSession(config)
+  const customerSession = createHydrogenCustomerSession(config)
 
   const redirects = {
     defaultPostLoginRedirectPathname: afterLogin,
