@@ -30,7 +30,7 @@ export function useCustomerAccount(event?: H3Event): CustomerAccountApiClient {
 
     ...(requestEvent && serverContext ? { auth: () => serverContext.getAccessToken(requestEvent) } : {}),
 
-    onConfigure: params => nuxtApp.hooks.callHookWith(hooks => hooks.forEach(hook => hook(params)), 'shopify:customer-account:client:configure', [params] as never),
+    onConfigure: params => nuxtApp.hooks.callHookWith(hooks => hooks.forEach(hook => hook(params)), 'shopify:customer-account:client:configure', [params]),
     onCreate: params => nuxtApp.hooks.callHook('shopify:customer-account:client:create', params),
     onRequest: params => nuxtApp.hooks.callHook('shopify:customer-account:client:request', params),
     onResponse: params => nuxtApp.hooks.callHook('shopify:customer-account:client:response', params),

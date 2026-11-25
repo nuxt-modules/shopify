@@ -36,8 +36,11 @@ function enableable<S extends z.ZodType>(schema: S, fallback: z.output<S>, enabl
   return schema
     .or(z.boolean())
     .optional()
-    .default((enabledByDefault ? fallback : false) as never)
-    .transform((v): z.output<S> | false => (v === true || v == null ? fallback : v as z.output<S> | false))
+    .transform((v): z.output<S> | false => {
+      if (v === undefined) return enabledByDefault ? fallback : false
+
+      return v === true || v === null ? fallback : v as z.output<S> | false
+    })
 }
 
 const routeMethods = ['connect', 'delete', 'get', 'head', 'options', 'patch', 'post', 'put', 'trace'].join(',')
