@@ -41,7 +41,7 @@ type ShopResolution = {
 
 // The logger is passed in: this file runs in the app and in the server, which each read their config differently
 export function createShopResolver(config: ShopConfig, logger: { warn(message: string, ...args: unknown[]): void }, getClient?: () => ShopLookupClient | Promise<ShopLookupClient>) {
-  const cache = new Map<string, Promise<ShopifyScriptsShopContext>>()
+  const cache = new Map<string, ShopifyScriptsShopContext>()
 
   const myshopifyDomain = `${config.name}.myshopify.com`
 
@@ -103,23 +103,21 @@ export function createShopResolver(config: ShopConfig, logger: { warn(message: s
     }
   }
 
-  return (market?: ShopifyScriptsI18n): Promise<ShopifyScriptsShopContext> => {
+  return async (market?: ShopifyScriptsI18n): Promise<ShopifyScriptsShopContext> => {
     const key = market ? [market.country, market.language, market.currency, market.pathPrefix].join(':') : ''
 
-    let pending = cache.get(key)
+    const cached = cache.get(key)
 
-    if (!pending) {
+    if (cached) return cached
+
+    const { resolved, failed } = await resolve(market)
+
+    if (!failed) {
       if (cache.size >= MAX_CACHED_MARKETS) cache.delete(cache.keys().next().value!)
 
-      pending = resolve(market).then(({ resolved, failed }) => {
-        if (failed) cache.delete(key)
-
-        return resolved
-      })
-
-      cache.set(key, pending)
+      cache.set(key, resolved)
     }
 
-    return pending
+    return resolved
   }
 }

@@ -50,14 +50,14 @@ describe('admin access token', () => {
   it('returns a statically configured access token as-is', async () => {
     const fetchMock = stubTokenEndpoint()
 
-    await expect(getAdminAccessToken('shop', { accessToken: 'static-token' } as never)).resolves.toBe('static-token')
+    await expect(getAdminAccessToken('shop', { accessToken: 'static-token' })).resolves.toBe('static-token')
     expect(fetchMock).not.toHaveBeenCalled()
   })
 
   it('keeps using a static access token when no refresh token is configured', async () => {
     const fetchMock = stubTokenEndpoint()
 
-    await expect(getAdminAccessToken('shop', { ...credentials, accessToken: 'static-token' } as never))
+    await expect(getAdminAccessToken('shop', { ...credentials, accessToken: 'static-token' }))
       .resolves.toBe('static-token')
 
     expect(fetchMock).not.toHaveBeenCalled()
@@ -70,7 +70,7 @@ describe('admin access token', () => {
       ...credentials,
       accessToken: 'expired-token',
       refreshToken: 'refresh-token',
-    } as never)).resolves.toBe('shop-refresh_token-token')
+    })).resolves.toBe('shop-refresh_token-token')
 
     expect(fetchMock).toHaveBeenCalledTimes(1)
     expect(fetchMock.mock.calls[0]![1].body.get('grant_type')).toBe('refresh_token')
@@ -81,8 +81,8 @@ describe('admin access token', () => {
     const fetchMock = stubTokenEndpoint({ defer: true })
 
     const pending = Promise.all([
-      getAdminAccessToken('shop-a', credentials as never),
-      getAdminAccessToken('shop-b', credentials as never),
+      getAdminAccessToken('shop-a', credentials),
+      getAdminAccessToken('shop-b', credentials),
     ])
 
     await vi.waitFor(() => expect(resolvers).toHaveLength(2))
@@ -97,24 +97,23 @@ describe('admin access token', () => {
     expect(fetchMock).toHaveBeenCalledTimes(2)
   })
 
-  it('shares one in-flight request per shop', async () => {
+  it('requests a token on its own instead of waiting for another request\'s unfinished token request', async () => {
     const fetchMock = stubTokenEndpoint({ defer: true })
 
-    const pending = Promise.all([
-      getAdminAccessToken('shop-a', credentials as never),
-      getAdminAccessToken('shop-a', credentials as never),
-    ])
+    void getAdminAccessToken('shop-a', credentials)
 
     await vi.waitFor(() => expect(resolvers).toHaveLength(1))
 
-    for (const resolve of resolvers) resolve()
+    const next = getAdminAccessToken('shop-a', credentials)
 
-    await expect(pending).resolves.toStrictEqual([
-      'shop-a-client_credentials-token',
-      'shop-a-client_credentials-token',
-    ])
+    await vi.waitFor(() => expect(resolvers).toHaveLength(2))
 
-    expect(fetchMock).toHaveBeenCalledTimes(1)
+    resolvers[1]!()
+
+    await expect(next).resolves.toBe('shop-a-client_credentials-token')
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+
+    resolvers[0]!()
   })
 })
 
@@ -122,9 +121,9 @@ describe('stored admin access token', () => {
   it('reuses the stored token for the same shop and client', async () => {
     const fetchMock = stubTokenEndpoint()
 
-    await getAdminAccessToken('stored-shop', credentials as never, { storage: true })
+    await getAdminAccessToken('stored-shop', credentials, { storage: true })
 
-    await expect(getAdminAccessToken('stored-shop', credentials as never, { storage: true }))
+    await expect(getAdminAccessToken('stored-shop', credentials, { storage: true }))
       .resolves.toBe('stored-shop-client_credentials-token')
 
     expect(fetchMock).toHaveBeenCalledTimes(1)
@@ -133,9 +132,9 @@ describe('stored admin access token', () => {
   it('keeps the stored tokens of different shops apart', async () => {
     const fetchMock = stubTokenEndpoint()
 
-    await getAdminAccessToken('first-shop', credentials as never, { storage: true })
+    await getAdminAccessToken('first-shop', credentials, { storage: true })
 
-    await expect(getAdminAccessToken('second-shop', credentials as never, { storage: true }))
+    await expect(getAdminAccessToken('second-shop', credentials, { storage: true }))
       .resolves.toBe('second-shop-client_credentials-token')
 
     expect(fetchMock).toHaveBeenCalledTimes(2)
@@ -144,11 +143,11 @@ describe('stored admin access token', () => {
   it('keeps the stored tokens of different clients of one shop apart', async () => {
     stubTokenEndpoint()
 
-    await getAdminAccessToken('shared-shop', credentials as never, { storage: true })
+    await getAdminAccessToken('shared-shop', credentials, { storage: true })
 
     const fetchMock = stubTokenEndpoint()
 
-    await getAdminAccessToken('shared-shop', { ...credentials, clientId: 'other-client' } as never, { storage: true })
+    await getAdminAccessToken('shared-shop', { ...credentials, clientId: 'other-client' }, { storage: true })
 
     expect(fetchMock).toHaveBeenCalledTimes(1)
     expect(fetchMock.mock.calls[0]![1].body.get('client_id')).toBe('other-client')
@@ -164,7 +163,7 @@ describe('admin access token failures', () => {
 
     vi.stubGlobal('fetch', vi.fn(fetchMock))
 
-    await expect(getAdminAccessToken('shop', credentials as never, { logger }))
+    await expect(getAdminAccessToken('shop', credentials, { logger }))
       .rejects.toMatchObject({ statusCode: 502, statusMessage: 'Bad Gateway', message: '[shopify] Request to Shopify failed' })
 
     expect(log).toHaveBeenCalledWith(
@@ -181,7 +180,7 @@ describe('admin access token failures', () => {
 
     stubHangingFetch()
 
-    const pending = getAdminAccessToken('slow-shop', credentials as never)
+    const pending = getAdminAccessToken('slow-shop', credentials)
 
     deadline.abort(new DOMException('The operation was aborted due to timeout', 'TimeoutError'))
 
@@ -194,7 +193,7 @@ describe('admin access token failures', () => {
 
     stubTokenEndpoint()
 
-    await getAdminAccessToken('shop', { ...credentials, tokenStorage: 'missing-admin-tokens' } as never, { storage: true, logger })
+    await getAdminAccessToken('shop', { ...credentials, tokenStorage: 'missing-admin-tokens' }, { storage: true, logger })
 
     expect(warnUnmountedStorage).toHaveBeenCalledWith(expect.anything(), 'missing-admin-tokens', logger)
   })
@@ -202,7 +201,7 @@ describe('admin access token failures', () => {
   it('checks the default token storage mount as well', async () => {
     stubTokenEndpoint()
 
-    await getAdminAccessToken('default-mount-shop', credentials as never, { storage: true })
+    await getAdminAccessToken('default-mount-shop', credentials, { storage: true })
 
     expect(warnUnmountedStorage).toHaveBeenCalledWith(expect.anything(), 'admin-token', undefined)
   })
@@ -215,7 +214,7 @@ describe('admin access token failures', () => {
 
     const { log, logger } = createLogReporter()
 
-    await expect(getAdminAccessToken('shop', credentials as never, { logger })).rejects.toMatchObject({
+    await expect(getAdminAccessToken('shop', credentials, { logger })).rejects.toMatchObject({
       statusCode: 502,
       message: '[shopify] Request to Shopify failed',
     })
@@ -228,7 +227,7 @@ describe('admin access token failures', () => {
   it('reports incomplete credentials as a server misconfiguration without requesting a token', async () => {
     const fetchMock = stubTokenEndpoint()
 
-    await expect(getAdminAccessToken('shop', { clientId: 'client-id' } as never)).rejects.toMatchObject({
+    await expect(getAdminAccessToken('shop', { clientId: 'client-id' })).rejects.toMatchObject({
       statusCode: 500,
       message: expect.stringContaining('missing `clientId` or `clientSecret`'),
     })

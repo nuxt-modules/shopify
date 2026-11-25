@@ -31,8 +31,6 @@ type CustomerAccountSessionData = {
   customerAccount?: unknown
 }
 
-const customerSessions = new Map<string, CustomerSessionWithInternals>()
-
 export function requireCustomerAccountConfig(config?: ShopifyConfig): NonNullable<ShopifyConfig['clients']['customerAccount']> {
   const customerAccount = config?.clients?.customerAccount
 
@@ -47,7 +45,7 @@ export function requireCustomerAccountConfig(config?: ShopifyConfig): NonNullabl
   return customerAccount
 }
 
-export function getHydrogenCustomerSession(config?: ShopifyConfig): CustomerSessionWithInternals {
+export function createHydrogenCustomerSession(config?: ShopifyConfig): CustomerSessionWithInternals {
   const customerAccount = requireCustomerAccountConfig(config)
   const shopId = config?.shopId
 
@@ -59,17 +57,7 @@ export function getHydrogenCustomerSession(config?: ShopifyConfig): CustomerSess
     })
   }
 
-  const key = `${shopId}:${customerAccount.clientId}`
-
-  let session = customerSessions.get(key)
-
-  if (!session) {
-    session = createCustomerSession({ shopId, customerAccountApiClientId: customerAccount.clientId, fetch: shopifyFetch })
-
-    customerSessions.set(key, session)
-  }
-
-  return session
+  return createCustomerSession({ shopId, customerAccountApiClientId: customerAccount.clientId, fetch: shopifyFetch })
 }
 
 export function getSessionConfig(config?: ShopifyConfig): SessionConfig {
@@ -199,7 +187,7 @@ export async function getCustomerAccountSession(event: H3Event): Promise<Shopify
 
   if (!session || !holdsTokens(session.data)) return { isLoggedIn: false }
 
-  return { isLoggedIn: await getHydrogenCustomerSession(_shopify).isLoggedIn(createCustomerSessionManager(event), await getShopifyRequestContext(event)) }
+  return { isLoggedIn: await createHydrogenCustomerSession(_shopify).isLoggedIn(createCustomerSessionManager(event), await getShopifyRequestContext(event)) }
 }
 
 /**

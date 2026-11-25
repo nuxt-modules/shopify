@@ -21,8 +21,6 @@ type AdminAccessTokenOptions = ShopifyAdminAuthCallbacks & {
 
 const TOKEN_REFRESH_MARGIN_MS = 5 * 60 * 1000
 
-const pendingAccessTokenRequests = new Map<string, Promise<ShopifyAdminTokenSet>>()
-
 let memoryStorage: Storage<ShopifyAdminTokenSet> | undefined
 
 async function getTokenStorage(config: AdminConfig, logger?: Partial<ConsolaOptions>) {
@@ -153,38 +151,22 @@ export async function getAdminAccessToken(
         client_secret: clientSecret,
       }
 
-  const pendingKey = `${tokenKey}:${params.grant_type}`
+  try {
+    await onAuthRequest?.({ params })
 
-  let pendingAccessTokenRequest = pendingAccessTokenRequests.get(pendingKey)
+    const newToken = await fetchAccessToken(storeDomain, params, logger)
 
-  if (!pendingAccessTokenRequest) {
-    pendingAccessTokenRequest = (async () => {
-      try {
-        await onAuthRequest?.({ params })
+    if (store) {
+      await getTokenStorage(config, logger).then(storage => storage.setItem(tokenKey, newToken))
+    }
 
-        const newToken = await fetchAccessToken(storeDomain, params, logger)
+    await onAuthToken?.({ token: newToken, refresh: isRefresh })
 
-        if (store) {
-          await getTokenStorage(config, logger).then(storage => storage.setItem(tokenKey, newToken))
-        }
-
-        await onAuthToken?.({ token: newToken, refresh: isRefresh })
-
-        return newToken
-      }
-      catch (error) {
-        await onAuthError?.({ error })
-
-        throw error
-      }
-    })().finally(() => {
-      pendingAccessTokenRequests.delete(pendingKey)
-    })
-
-    pendingAccessTokenRequests.set(pendingKey, pendingAccessTokenRequest)
+    return newToken.accessToken
   }
+  catch (error) {
+    await onAuthError?.({ error })
 
-  const token = await pendingAccessTokenRequest
-
-  return token.accessToken
+    throw error
+  }
 }
