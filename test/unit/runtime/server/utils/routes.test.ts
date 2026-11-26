@@ -23,14 +23,18 @@ const hydrogenUrl: Record<string, unknown> = await import(pathToFileURL(join(hyd
 
 const radix3 = await import(resolveModulePath('radix3', { from: resolveModulePath('nitropack', { from: import.meta.url }) }))
 
-const routeRules = radix3.toRouteMatcher(radix3.createRouter({
-  routes: {
-    '/**': { swr: 60 },
-    ...Object.fromEntries([...STOREFRONT_ROUTES, ...CUSTOMER_ACCOUNT_ROUTES].map(route => [route, { cache: false, swr: false, isr: false }])),
-  },
-}))
+const createRouteRules = (appRules: Record<string, object>) => {
+  const routeRules = radix3.toRouteMatcher(radix3.createRouter({
+    routes: {
+      ...appRules,
+      ...Object.fromEntries([...STOREFRONT_ROUTES, ...CUSTOMER_ACCOUNT_ROUTES].map(route => [route, { cache: false, swr: false, isr: false }])),
+    },
+  }))
 
-const routeRulesFor = (path: string) => defu({}, ...routeRules.matchAll(path).reverse())
+  return (path: string) => defu({}, ...routeRules.matchAll(path).reverse())
+}
+
+const routeRulesFor = createRouteRules({ '/**': { swr: 60 } })
 
 const ALL_ROUTES = { storefront: true, customerAccount: true }
 
@@ -117,6 +121,17 @@ describe('Hydrogen\'s routes', () => {
     expect((hydrogenUrl.isHydrogenServerHandoffPath as (pathname: string) => boolean)(path)).toBe(true)
     expect(isShopifyEndpoint(path, { storefront: true, customerAccount: false })).toBe(true)
     expect(routeRulesFor(path)).toMatchObject({ cache: false, swr: false, isr: false })
+  })
+
+  it('keep their rules next to an app\'s own wildcard rules, which Nitro v2 only keeps when they share the segment', () => {
+    const withAppRules = createRouteRules({ '/*/account/**': { headers: { 'cache-control': 'no-store' } }, '/api/*/orders': { swr: 60 } })
+
+    for (const path of ['/de-de/cart.js', '/en/cart/change.json', `/api/${API_VERSION}/graphql.json`]) {
+      expect(withAppRules(path)).toMatchObject({ cache: false, swr: false, isr: false })
+    }
+
+    expect(withAppRules('/de-de/account/orders')).toStrictEqual({ headers: { 'cache-control': 'no-store' } })
+    expect(withAppRules('/api/1/orders')).toStrictEqual({ swr: 60 })
   })
 
   it.each(['/api/cart', '/api/predictive-search'])('%s, a Hydrogen route handler, reaches Hydrogen and is never cached', (path) => {
