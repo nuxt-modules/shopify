@@ -4,8 +4,7 @@
     "-lintignore"
   ],
   "ignoreWorkspaces": [
-    "docs",
-    "template"
+    "docs"
   ],
   "workspaces": {
     ".": {

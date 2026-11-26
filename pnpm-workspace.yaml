@@ -1,10 +1,6 @@
 packages:
   - playgrounds/*
-  - template
   - docs
-
-linkWorkspacePackages: true
-preferWorkspacePackages: true
 
 allowBuilds:
   "@parcel/watcher": true

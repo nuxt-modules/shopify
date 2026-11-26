@@ -4,7 +4,7 @@ contact_links:
     url: https://shopify.nuxtjs.org
     about: Check the documentation for usage of the module
   - name: 🛍️ Store Template
-    url: https://github.com/nuxt-modules/shopify/tree/main/template
+    url: https://github.com/nuxt-ui-templates/shop
     about: A preconfigured storefront built with the module, useful as a reference or a reproduction starting point
   - name: 🔐 Report a security vulnerability
     url: https://github.com/nuxt-modules/shopify/security/advisories/new

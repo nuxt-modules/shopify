@@ -87,12 +87,11 @@ jobs:
     permissions:
       actions: write
     steps:
-      - name: Dispatch docs, template and compatibility workflows
+      - name: Dispatch docs and compatibility workflows
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
           TAG: ${{ github.ref_name }}
         run: |
           gh workflow run docs.yml --ref "$TAG"
-          gh workflow run template.yml --ref "$TAG"
           gh workflow run compat.yml --ref "$TAG"

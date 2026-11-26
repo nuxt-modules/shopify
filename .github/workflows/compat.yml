@@ -134,6 +134,3 @@ jobs:
         run: pnpm --filter playground-v4-mock build
         env:
           NUXT_SHOPIFY_NAME: mock
-
-      - name: Build template
-        run: pnpm run build:template

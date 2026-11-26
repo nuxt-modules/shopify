@@ -7,7 +7,6 @@
   "packageManager": "pnpm@11.28.13",
   "workspaces": [
     "playgrounds/*",
-    "template",
     "docs",
     "."
   ],
@@ -56,19 +55,15 @@
   },
   "scripts": {
     "build": "nuxt-module-build build",
-    "build:template": "pnpm --filter ./template build --extends ../dev",
     "build:docs": "pnpm --filter ./docs build",
     "dev": "dotenv -e .env -- pnpm --filter playground-v4 dev",
     "dev:mock": "dotenv -e .env -- pnpm --filter playground-v4-mock dev",
-    "dev:template": "dotenv -e .env -- pnpm --filter ./template dev --extends ../dev",
-    "dev:template:https": "dotenv -e .env -- pnpm --filter ./template dev:https --extends ../dev",
     "dev:docs": "dotenv -e .env -- pnpm --filter ./docs dev",
     "lint": "eslint .",
     "typecheck": "vue-tsc --noEmit",
     "typecheck:playgrounds": "dotenv -e .env -- pnpm --filter \"./playgrounds/*\" typecheck",
     "typecheck:playground-v4": "dotenv -e .env -- pnpm --filter playground-v4 typecheck",
     "typecheck:playground-v4-mock": "dotenv -e .env -- pnpm --filter playground-v4-mock typecheck",
-    "typecheck:template": "pnpm --filter ./template typecheck --extends ../dev",
     "typecheck:docs": "pnpm --filter ./docs typecheck",
     "knip": "knip",
     "check:package": "publint --strict && attw --pack . --profile esm-only",
@@ -78,9 +73,8 @@
     "analyze": "pnpm --filter playground-v4 analyze",
     "prepack": "nuxt-module-build prepare && nuxt-module-build build",
     "prepare": "nuxt-module-build prepare && nuxt-module-build build",
-    "prepare:dev": "nuxt-module-build prepare && pnpm run prepare:playgrounds && pnpm --filter ./template prepare --extends ../dev",
+    "prepare:dev": "nuxt-module-build prepare && pnpm run prepare:playgrounds",
     "prepare:playgrounds": "dotenv -e .env -- pnpm --filter \"./playgrounds/*\" prepare",
-    "prepare:template": "pnpm run build && pnpm --filter ./template prepare --extends ../dev",
     "prepare:docs": "pnpm --filter ./docs prepare"
   },
   "dependencies": {
