@@ -15,6 +15,16 @@ const hooks = {
     caller([...registered.get(name) ?? []], args),
 }
 
+// Nitro v3's hooks have no `callHookWith`, and `callHook` runs synchronous hooks right away
+const nitroV3Hooks = {
+  hook: hooks.hook,
+  callHook: (name: string, ...args: Parameters<ConfigureHook>) => {
+    for (const hook of registered.get(name) ?? []) hook(...args)
+  },
+}
+
+let nitroHooks: typeof hooks | typeof nitroV3Hooks = hooks
+
 const runtimeConfig = {
   _shopify: {
     name: 'my-shop',
@@ -30,7 +40,7 @@ const runtimeConfig = {
 vi.mock('nitropack/runtime', () => ({
   useRuntimeConfig: () => runtimeConfig,
   useEvent: () => undefined,
-  useNitroApp: () => ({ hooks }),
+  useNitroApp: () => ({ hooks: nitroHooks }),
 }))
 
 vi.mock('#imports', () => ({ useRuntimeConfig: () => runtimeConfig }))
@@ -51,10 +61,26 @@ describe('client configure hooks in Nitro', () => {
 
     expect(useClient(createTestEvent()).getHeaders()['X-Request-Source']).toBe('nuxt-shopify')
   })
+
+  it.each([
+    ['storefront', useStorefront],
+    ['admin', useAdmin],
+    ['customer-account', useCustomerAccount],
+  ])('let a Nitro v3 plugin change the %s client\'s config, without `callHookWith`', (name, useClient) => {
+    nitroHooks = nitroV3Hooks
+
+    nitroHooks.hook(`shopify:${name}:client:configure`, ({ config }) => {
+      config.headers['X-Nitro'] = 'v3'
+    })
+
+    expect(useClient(createTestEvent()).getHeaders()['X-Nitro']).toBe('v3')
+  })
 })
 
 afterEach(() => {
   vi.unstubAllGlobals()
+
+  nitroHooks = hooks
 
   runtimeConfig._shopify.clients.admin = { apiVersion: API_VERSION, accessToken: 'admin-token' }
 })

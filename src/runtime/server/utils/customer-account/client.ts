@@ -5,6 +5,7 @@ import { useNitroApp, useRuntimeConfig } from 'nitropack/runtime'
 
 import { createCustomerAccountApiClient } from '../../../utils/clients/customer-account'
 import { tryUseEvent } from '../event'
+import { callConfigureHook } from '../hooks'
 import { getValidCustomerAccessToken } from './auth'
 import { requireCustomerAccountConfig } from './session'
 
@@ -31,7 +32,7 @@ export function useCustomerAccount(event?: H3Event): CustomerAccountApiClient {
 
     auth: () => getValidCustomerAccessToken(event),
 
-    onConfigure: params => nitroApp.hooks.callHookWith(hooks => hooks.forEach(hook => hook(params)), 'shopify:customer-account:client:configure', params),
+    onConfigure: params => callConfigureHook(nitroApp, 'shopify:customer-account:client:configure', params),
     onCreate: params => nitroApp.hooks.callHook('shopify:customer-account:client:create', params),
     onRequest: params => nitroApp.hooks.callHook('shopify:customer-account:client:request', params),
     onResponse: params => nitroApp.hooks.callHook('shopify:customer-account:client:response', params),
