@@ -14,7 +14,7 @@ export const STOREFRONT_ROUTES = [
   '/cart/*',
   '/*/cart.js',
   '/*/cart.json',
-  '/*/cart/*',
+  '/*/cart/:path',
   '/buy/*',
   '/__shopify/api/collect',
   '/.well-known/ucp',

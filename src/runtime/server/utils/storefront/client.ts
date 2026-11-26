@@ -7,12 +7,13 @@ import { useNitroApp, useRuntimeConfig } from 'nitropack/runtime'
 
 import { createStorefrontApiClient } from '../../../utils/clients/storefront'
 import { tryUseEvent } from '../event'
+import { callConfigureHook } from '../hooks'
 
 export function createStorefrontCallbacks(): ShopifyClientCallbacks<StorefrontOperations> {
   const nitroApp = useNitroApp()
 
   return {
-    onConfigure: params => nitroApp.hooks.callHookWith(hooks => hooks.forEach(hook => hook(params)), 'shopify:storefront:client:configure', params),
+    onConfigure: params => callConfigureHook(nitroApp, 'shopify:storefront:client:configure', params),
     onCreate: params => nitroApp.hooks.callHook('shopify:storefront:client:create', params),
     onRequest: params => nitroApp.hooks.callHook('shopify:storefront:client:request', params),
     onResponse: params => nitroApp.hooks.callHook('shopify:storefront:client:response', params),

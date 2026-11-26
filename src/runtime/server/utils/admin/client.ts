@@ -4,6 +4,7 @@ import type { H3Event } from 'h3'
 import { useNitroApp, useRuntimeConfig } from 'nitropack/runtime'
 import { createAdminApiClient } from '../../../utils/clients/admin'
 import { tryUseEvent } from '../event'
+import { callConfigureHook } from '../hooks'
 
 /**
  * Creates an Admin API client for the current request.
@@ -23,7 +24,7 @@ export function useAdmin(event?: H3Event): AdminApiClient {
   return createAdminApiClient(_shopify!, {
     event,
 
-    onConfigure: params => nitroApp.hooks.callHookWith(hooks => hooks.forEach(hook => hook(params)), 'shopify:admin:client:configure', params),
+    onConfigure: params => callConfigureHook(nitroApp, 'shopify:admin:client:configure', params),
     onCreate: params => nitroApp.hooks.callHook('shopify:admin:client:create', params),
     onRequest: params => nitroApp.hooks.callHook('shopify:admin:client:request', params),
     onResponse: params => nitroApp.hooks.callHook('shopify:admin:client:response', params),
