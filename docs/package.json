@@ -1,6 +1,7 @@
 {
     "name": "nuxt-shopify-docs",
     "private": true,
+    "type": "module",
     "scripts": {
         "dev": "nuxt dev",
         "prepare": "nuxt prepare",
