@@ -21,7 +21,7 @@
         "@nuxtjs/shopify": ">=1.1.0",
         "@shopify/hydrogen": "^2026.10.3",
         "@tailwindcss/typography": "^0.5.20",
-        "nuxt": "^4.6.4",
+        "nuxt": "^4.7.0",
         "tailwindcss": "^4.3.5",
         "zod": "^4.6.7"
     },
